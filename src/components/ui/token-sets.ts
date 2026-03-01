@@ -139,8 +139,12 @@ export function ensureTokenSetsWithSystem(sets: StudioTokenSet[]): StudioTokenSe
   for (const set of sets) {
     deduped.set(set.id, set);
   }
-  deduped.set(SYSTEM_TOKEN_SET.id, SYSTEM_TOKEN_SET);
-  return [SYSTEM_TOKEN_SET, ...Array.from(deduped.values()).filter((set) => set.id !== SYSTEM_TOKEN_SET.id)];
+  // Only use the hardcoded default if no version (including user-edited) exists
+  if (!deduped.has(SYSTEM_TOKEN_SET.id)) {
+    deduped.set(SYSTEM_TOKEN_SET.id, SYSTEM_TOKEN_SET);
+  }
+  const systemSet = deduped.get(SYSTEM_TOKEN_SET.id) ?? SYSTEM_TOKEN_SET;
+  return [systemSet, ...Array.from(deduped.values()).filter((set) => set.id !== SYSTEM_TOKEN_SET.id)];
 }
 
 export function createTokenSetId(name: string): string {

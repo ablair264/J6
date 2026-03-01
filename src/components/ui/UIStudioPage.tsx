@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Switch } from 'radix-ui';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ChevronDown, Copy, Download, Minus, SlidersHorizontal } from 'lucide-react';
+import { Check, ChevronDown, Copy, Download, Minus, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import {
     Config,
     Delete,
@@ -304,6 +304,8 @@ export function UIStudioComponentPage() {
     const [newSetName, setNewSetName] = useState('');
     const [showNewSetInput, setShowNewSetInput] = useState(false);
     const [newTokenForm, setNewTokenForm] = useState<{ id: string; label: string; hex: string } | null>(null);
+    const [suggestPaletteColor, setSuggestPaletteColor] = useState('#6366f1');
+    const [suggestingPalette, setSuggestingPalette] = useState(false);
     const [studioTheme, setStudioTheme] = useState<'dark' | 'light'>(() => {
         if (typeof window === 'undefined') return 'dark';
         const saved = (window.localStorage.getItem(STUDIO_THEME_STORAGE_KEY) as 'dark' | 'light') ?? 'dark';
@@ -1434,7 +1436,7 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
 
     const updateActiveTokenValue = (tokenId: string, value: string) => {
         const normalized = normalizeHexColor(value);
-        if (!normalized || activeTokenSet.source !== 'user') {
+        if (!normalized) {
             return;
         }
         setTokenSets((current) =>
@@ -1458,9 +1460,6 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
     };
 
     const updateActiveSizeToken = (size: StudioSizeTokenKey, field: 'height' | 'width', value: number) => {
-        if (activeTokenSet.source !== 'user') {
-            return;
-        }
         const sanitized = Math.max(0, Math.min(640, Math.round(value)));
         setTokenSets((current) =>
             current.map((set) => {
@@ -1492,10 +1491,6 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
     };
 
     const addTokenToActiveSet = (id: string, label: string, hex: string) => {
-        if (activeTokenSet.source !== 'user') {
-            setTokenSyncMessage('Duplicate the system token set before editing tokens.');
-            return;
-        }
         const value = normalizeHexColor(hex);
         if (!value || !id.trim() || !label.trim()) return;
         setTokenSets((current) =>
@@ -1509,9 +1504,6 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
     };
 
     const removeTokenFromActiveSet = (tokenId: string) => {
-        if (activeTokenSet.source !== 'user') {
-            return;
-        }
         setTokenSets((current) =>
             current.map((set) =>
                 set.id === activeTokenSet.id
@@ -1525,13 +1517,12 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
     };
 
     const saveActiveTokenSetToNeon = async () => {
-        if (activeTokenSet.source !== 'user') {
-            setTokenSyncMessage('System token set is read-only. Duplicate it first.');
-            return;
-        }
         setTokensLoading(true);
         try {
-            const saved = await upsertTokenSetToApi(activeTokenSet);
+            const setToSave = activeTokenSet.source === 'system'
+                ? { ...activeTokenSet, source: 'user' as const }
+                : activeTokenSet;
+            const saved = await upsertTokenSetToApi(setToSave);
             const sanitized = sanitizeTokenSet(saved);
             if (sanitized) {
                 setTokenSets((current) =>
@@ -1572,6 +1563,59 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
             setTokenSyncMessage('Could not delete token set from Neon.');
         } finally {
             setTokensLoading(false);
+        }
+    };
+
+    const resetSystemTokenSet = async () => {
+        if (!window.confirm('Reset Tailwind System token set to defaults? Any saved customisations will be removed.')) {
+            return;
+        }
+        setTokensLoading(true);
+        try {
+            await deleteTokenSetFromApi(SYSTEM_TOKEN_SET_ID).catch(() => { /* ignore if not saved */ });
+            setTokenSets((current) => {
+                const withoutSystem = current.filter((set) => set.id !== SYSTEM_TOKEN_SET_ID);
+                return ensureTokenSetsWithSystem(withoutSystem);
+            });
+            setTokenSyncMessage('Tailwind System reset to defaults.');
+        } catch {
+            setTokenSyncMessage('Could not reset system token set.');
+        } finally {
+            setTokensLoading(false);
+        }
+    };
+
+    const suggestPalette = async (primaryColor: string) => {
+        setSuggestingPalette(true);
+        setTokenSyncMessage('Generating palette…');
+        try {
+            const res = await fetch('/api/suggest-palette', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ primaryColor }),
+            });
+            const data = await res.json() as { palette?: Record<string, string>; error?: string };
+            if (!res.ok || !data.palette) {
+                setTokenSyncMessage(data.error ?? 'Failed to generate palette');
+                return;
+            }
+            // Apply generated colours to the active token set
+            setTokenSets((current) =>
+                current.map((set) => {
+                    if (set.id !== activeTokenSetId) return set;
+                    const updatedTokens = set.tokens.map((token) => {
+                        const suggested = data.palette![token.id];
+                        if (!suggested) return token;
+                        return { ...token, value: suggested, cssVar: undefined };
+                    });
+                    return { ...set, tokens: updatedTokens };
+                }),
+            );
+            setTokenSyncMessage('Palette applied! Save to Neon to persist.');
+        } catch {
+            setTokenSyncMessage('Could not reach palette suggestion service.');
+        } finally {
+            setSuggestingPalette(false);
         }
     };
 
@@ -2502,17 +2546,27 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                     )}
 
                                     {/* Set actions */}
-                                    {activeTokenSet.source === 'user' && (
-                                        <div className="mt-auto flex flex-col gap-1 pt-3 border-t border-white/8">
+                                    <div className="mt-auto flex flex-col gap-1 pt-3 border-t border-white/8">
+                                        <button
+                                            type="button"
+                                            onClick={() => void saveActiveTokenSetToNeon()}
+                                            disabled={tokensLoading}
+                                            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#63e8da]/16 px-2.5 py-2 text-xs font-semibold text-[#86fff1] transition hover:bg-[#63e8da]/24 disabled:opacity-50"
+                                        >
+                                            {tokensLoading ? <svg className="size-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : <Download className="size-3" />}
+                                            Save to Neon
+                                        </button>
+                                        {activeTokenSet.id === SYSTEM_TOKEN_SET_ID ? (
                                             <button
                                                 type="button"
-                                                onClick={() => void saveActiveTokenSetToNeon()}
+                                                onClick={() => void resetSystemTokenSet()}
                                                 disabled={tokensLoading}
-                                                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#63e8da]/16 px-2.5 py-2 text-xs font-semibold text-[#86fff1] transition hover:bg-[#63e8da]/24 disabled:opacity-50"
+                                                className="flex w-full items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-[#8da4c3] transition hover:bg-white/[0.05] hover:text-[#dbe8fb] disabled:opacity-50"
                                             >
-                                                {tokensLoading ? <svg className="size-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : <Download className="size-3" />}
-                                                Save to Neon
+                                                <RotateCcw className="size-3" />
+                                                Reset to defaults
                                             </button>
+                                        ) : (
                                             <button
                                                 type="button"
                                                 onClick={() => void deleteActiveTokenSetFromNeon()}
@@ -2522,8 +2576,8 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                                 <Delete className="size-3" />
                                                 Delete set
                                             </button>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Right: token editor */}
@@ -2531,7 +2585,35 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                     <div>
                                         <div className="mb-3 flex items-center justify-between">
                                             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7188a8]">Colour Tokens</p>
-                                            {activeTokenSet.source === 'user' && (
+                                            <div className="flex items-center gap-1">
+                                                {/* AI Suggest Palette */}
+                                                <div className="relative flex items-center">
+                                                    <label className="relative flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#63e8da] transition hover:bg-[#63e8da]/10 cursor-pointer" title="AI-suggest palette from a primary colour">
+                                                        <span
+                                                            className="block size-3.5 rounded-sm border border-white/20 shrink-0"
+                                                            style={{ background: suggestPaletteColor }}
+                                                        />
+                                                        <input
+                                                            type="color"
+                                                            value={suggestPaletteColor}
+                                                            onChange={(e) => setSuggestPaletteColor(e.target.value)}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                        />
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        disabled={suggestingPalette}
+                                                        onClick={() => void suggestPalette(suggestPaletteColor)}
+                                                        className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#63e8da] transition hover:bg-[#63e8da]/10 disabled:opacity-50"
+                                                        title="Generate AI palette from selected colour"
+                                                    >
+                                                        {suggestingPalette
+                                                            ? <svg className="size-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                                            : <Sparkles className="size-3" />
+                                                        }
+                                                        Suggest
+                                                    </button>
+                                                </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => setNewTokenForm({ id: '', label: '', hex: '#22d3ee' })}
@@ -2540,13 +2622,13 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                                     <Plus className="size-3" />
                                                     Add token
                                                 </button>
-                                            )}
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col gap-2">
                                             {activeTokenSet.tokens.map((token) => {
                                                 const hexVal = resolveTokenToHex(token) ?? token.value ?? '#000000';
-                                                const isEditable = activeTokenSet.source === 'user';
+                                                const isEditable = true;
                                                 return (
                                                     <div key={token.id} className="group flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 transition hover:border-white/[0.1]">
                                                         {/* Colour swatch */}
@@ -2645,7 +2727,7 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                         <div className="flex flex-col gap-2">
                                             {(['sm', 'md', 'lg'] as const).map((size) => {
                                                 const st = activeTokenSet.sizeTokens[size];
-                                                const isEditable = activeTokenSet.source === 'user';
+                                                const isEditable = true;
                                                 return (
                                                     <div key={size} className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                                                         <span className="w-6 text-center text-[11px] font-bold uppercase text-[#7188a8]">{size}</span>
