@@ -1,23 +1,21 @@
 import type { StudioTokenSet } from '@/components/ui/token-sets';
+import { authService } from '@/services/authService';
 
 export interface TokenSetApiResponse {
   tokenSets: StudioTokenSet[];
 }
 
-function buildHeaders(userKey?: string): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-  if (userKey && userKey.trim()) {
-    headers['x-ui-studio-user-id'] = userKey.trim();
-  }
+function buildHeaders(): HeadersInit {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  const token = authService.getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   return headers;
 }
 
-export async function fetchTokenSetsFromApi(userKey?: string): Promise<StudioTokenSet[]> {
+export async function fetchTokenSetsFromApi(): Promise<StudioTokenSet[]> {
   const response = await fetch('/api/token-sets', {
     method: 'GET',
-    headers: buildHeaders(userKey),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -28,10 +26,10 @@ export async function fetchTokenSetsFromApi(userKey?: string): Promise<StudioTok
   return Array.isArray(payload.tokenSets) ? payload.tokenSets : [];
 }
 
-export async function upsertTokenSetToApi(tokenSet: StudioTokenSet, userKey?: string): Promise<StudioTokenSet> {
+export async function upsertTokenSetToApi(tokenSet: StudioTokenSet): Promise<StudioTokenSet> {
   const response = await fetch('/api/token-sets', {
     method: 'POST',
-    headers: buildHeaders(userKey),
+    headers: buildHeaders(),
     body: JSON.stringify(tokenSet),
   });
 
@@ -42,10 +40,10 @@ export async function upsertTokenSetToApi(tokenSet: StudioTokenSet, userKey?: st
   return (await response.json()) as StudioTokenSet;
 }
 
-export async function deleteTokenSetFromApi(setId: string, userKey?: string): Promise<void> {
+export async function deleteTokenSetFromApi(setId: string): Promise<void> {
   const response = await fetch(`/api/token-sets?setId=${encodeURIComponent(setId)}`, {
     method: 'DELETE',
-    headers: buildHeaders(userKey),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {

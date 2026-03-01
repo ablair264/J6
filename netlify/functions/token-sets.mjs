@@ -16,15 +16,33 @@ function response(statusCode, body) {
   };
 }
 
-function getUserId(event) {
+async function getUserId(sql, event) {
+  // Priority 1: Bearer session token
+  const authHeader = event?.headers?.['authorization'] ?? event?.headers?.['Authorization'] ?? '';
+  const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (bearerMatch) {
+    const token = bearerMatch[1].trim();
+    const rows = await sql`
+      SELECT user_id FROM user_sessions
+      WHERE token = ${token}
+        AND expires_at > NOW()
+      LIMIT 1
+    `;
+    if (rows[0]?.user_id) return rows[0].user_id;
+  }
+
+  // Priority 2: Netlify Identity
   const identityUserId = event?.clientContext?.user?.sub;
   if (typeof identityUserId === 'string' && identityUserId.trim()) {
     return identityUserId.trim();
   }
+
+  // Priority 3: Legacy custom header (local dev fallback)
   const headerUserId = event?.headers?.['x-ui-studio-user-id'] ?? event?.headers?.['X-UI-STUDIO-USER-ID'];
   if (typeof headerUserId === 'string' && headerUserId.trim()) {
     return headerUserId.trim();
   }
+
   return null;
 }
 
@@ -177,12 +195,12 @@ export async function handler(event) {
     return response(500, { error: 'NEON_DATABASE_URL is not configured' });
   }
 
-  const userId = getUserId(event);
+  const sql = neon(databaseUrl);
+
+  const userId = await getUserId(sql, event);
   if (!userId) {
     return response(401, { error: 'Missing user identity' });
   }
-
-  const sql = neon(databaseUrl);
 
   try {
     if (event.httpMethod === 'GET') {

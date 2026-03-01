@@ -128,7 +128,6 @@ const STUDIO_STORAGE_PREFIX = 'ui-studio-oss:v1:';
 const INSPECTOR_TAB_STORAGE_PREFIX = `${STUDIO_STORAGE_PREFIX}inspector-tab:`;
 const TOKEN_SETS_STORAGE_KEY = `${STUDIO_STORAGE_PREFIX}token-sets`;
 const ACTIVE_TOKEN_SET_STORAGE_KEY = `${STUDIO_STORAGE_PREFIX}active-token-set`;
-const TOKEN_USER_KEY_STORAGE_KEY = `${STUDIO_STORAGE_PREFIX}token-user-key`;
 
 function getComponentStorageKey(kind: UIComponentKind): string {
     return `${STUDIO_STORAGE_PREFIX}${kind}`;
@@ -295,12 +294,6 @@ export function UIStudioComponentPage() {
         }
         return window.localStorage.getItem(ACTIVE_TOKEN_SET_STORAGE_KEY) ?? SYSTEM_TOKEN_SET_ID;
     });
-    const [tokenUserKey, setTokenUserKey] = useState<string>(() => {
-        if (typeof window === 'undefined') {
-            return '';
-        }
-        return window.localStorage.getItem(TOKEN_USER_KEY_STORAGE_KEY) ?? '';
-    });
     const [tokenSyncMessage, setTokenSyncMessage] = useState<string>('');
     const [tokensLoading, setTokensLoading] = useState(false);
     const [showTokenManager, setShowTokenManager] = useState(false);
@@ -370,13 +363,6 @@ export function UIStudioComponentPage() {
     }, [activeTokenSetId]);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-        window.localStorage.setItem(TOKEN_USER_KEY_STORAGE_KEY, tokenUserKey);
-    }, [tokenUserKey]);
-
-    useEffect(() => {
         if (!tokenSets.some((set) => set.id === activeTokenSetId)) {
             setActiveTokenSetId(SYSTEM_TOKEN_SET_ID);
         }
@@ -388,7 +374,7 @@ export function UIStudioComponentPage() {
         const syncTokenSets = async () => {
             setTokensLoading(true);
             try {
-                const fromApi = await fetchTokenSetsFromApi(tokenUserKey || undefined);
+                const fromApi = await fetchTokenSetsFromApi();
                 if (cancelled) {
                     return;
                 }
@@ -400,9 +386,7 @@ export function UIStudioComponentPage() {
                 setTokenSyncMessage(sanitized.length > 0 ? 'Token sets synced from Neon.' : 'No remote token sets yet.');
             } catch {
                 if (!cancelled) {
-                    setTokenSyncMessage(
-                        'Token sets are currently local. Add a user key or sign in via Netlify Identity to sync Neon.',
-                    );
+                    setTokenSyncMessage('Token sets are currently local. Sign in to sync with Neon.');
                 }
             } finally {
                 if (!cancelled) {
@@ -415,7 +399,7 @@ export function UIStudioComponentPage() {
         return () => {
             cancelled = true;
         };
-    }, [tokenUserKey]);
+    }, []);
 
     useEffect(() => {
         if (!selectedInstanceId) {
@@ -1541,7 +1525,7 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
         }
         setTokensLoading(true);
         try {
-            const saved = await upsertTokenSetToApi(activeTokenSet, tokenUserKey || undefined);
+            const saved = await upsertTokenSetToApi(activeTokenSet);
             const sanitized = sanitizeTokenSet(saved);
             if (sanitized) {
                 setTokenSets((current) =>
@@ -1559,7 +1543,7 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
             }
             setTokenSyncMessage('Token set saved to Neon.');
         } catch {
-            setTokenSyncMessage('Could not save token set to Neon. Check identity or user key and database env vars.');
+            setTokenSyncMessage('Could not save token set to Neon. Check your session and database configuration.');
         } finally {
             setTokensLoading(false);
         }
@@ -1574,7 +1558,7 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
         }
         setTokensLoading(true);
         try {
-            await deleteTokenSetFromApi(activeTokenSet.id, tokenUserKey || undefined);
+            await deleteTokenSetFromApi(activeTokenSet.id);
             setTokenSets((current) => ensureTokenSetsWithSystem(current.filter((set) => set.id !== activeTokenSet.id)));
             setActiveTokenSetId(SYSTEM_TOKEN_SET_ID);
             setTokenSyncMessage('Token set deleted from Neon.');
