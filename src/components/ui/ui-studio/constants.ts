@@ -1,0 +1,1336 @@
+import type {
+    ButtonPreviewState,
+    ComponentInfo,
+    ComponentStyleConfig,
+    ComponentVisualPreset,
+    FillMode,
+    FontPosition,
+    IconOptionId,
+    MotionEaseOption,
+    MotionPresetId,
+    MotionTransitionType,
+    PrimitiveAlign,
+    PrimitiveSide,
+    SizeOption,
+    StylePreset,
+    UIComponentKind,
+} from '@/components/ui/ui-studio.types';
+
+export const COMPONENTS: ComponentInfo[] = [
+    {
+        kind: 'badge',
+        label: 'Badge',
+        file: 'src/components/ui/badge.tsx',
+        summary: 'Compact status and metadata pills.',
+    },
+    {
+        kind: 'button',
+        label: 'Button',
+        file: 'src/components/ui/button.tsx',
+        summary: 'Action triggers and key call-to-actions.',
+    },
+    {
+        kind: 'checkbox',
+        label: 'Checkbox',
+        file: 'src/components/ui/checkbox.tsx',
+        summary: 'Boolean toggles for forms and filters.',
+    },
+    {
+        kind: 'dialog',
+        label: 'Dialog',
+        file: 'src/components/ui/dialog.tsx',
+        summary: 'Modal conversation pattern for focused tasks.',
+    },
+    {
+        kind: 'dropdown',
+        label: 'Dropdown',
+        file: 'src/components/ui/dropdown.tsx',
+        summary: 'Selectable list options with keyboard hints.',
+    },
+    {
+        kind: 'popover',
+        label: 'Popover',
+        file: 'src/components/ui/popover.tsx',
+        summary: 'Anchored overlays for contextual actions.',
+    },
+    {
+        kind: 'label',
+        label: 'Label',
+        file: 'src/components/ui/label.tsx',
+        summary: 'Field labels and concise descriptors.',
+    },
+    {
+        kind: 'input',
+        label: 'Input',
+        file: 'src/components/ui/input.tsx',
+        summary: 'Text entry with validation-ready styling.',
+    },
+    {
+        kind: 'tabs',
+        label: 'Tabs',
+        file: 'src/components/ui/tabs.tsx',
+        summary: 'Content segmentation with compact navigation.',
+    },
+    {
+        kind: 'tooltip',
+        label: 'Tooltip',
+        file: 'src/components/ui/tooltip.tsx',
+        summary: 'Assistive context on hover or focus.',
+    },
+    {
+        kind: 'slider',
+        label: 'Slider',
+        file: 'src/components/ui/slider.tsx',
+        summary: 'Continuous value selection.',
+    },
+];
+
+export const SIZE_SCALE: Record<SizeOption, number> = {
+    sm: 0.86,
+    md: 1,
+    lg: 1.2,
+};
+
+export function mapSizeOptionToButtonSize(size: SizeOption): 'sm' | 'default' | 'lg' {
+    if (size === 'sm') {
+        return 'sm';
+    }
+    if (size === 'lg') {
+        return 'lg';
+    }
+    return 'default';
+}
+
+export const DEFAULT_STYLE: ComponentStyleConfig = {
+    size: 'md',
+    cornerRadius: 14,
+    strokeColor: '#1f2937',
+    strokeWeight: 1,
+    strokeOpacity: 30,
+    fillMode: 'solid',
+    fillColor: '#ffffff',
+    fillColorTo: '#bfdbfe',
+    fillWeight: 60,
+    fillOpacity: 100,
+    fontSize: 14,
+    fontWeight: 500,
+    fontPosition: 'center',
+    fontColor: '#111827',
+    fontOpacity: 100,
+    effectDropShadow: false,
+    dropShadowStrength: 22,
+    dropShadowX: 0,
+    dropShadowY: 10,
+    dropShadowBlur: 22,
+    dropShadowSpread: 0,
+    effectInnerShadow: false,
+    innerShadowStrength: 24,
+    innerShadowX: 0,
+    innerShadowY: 1,
+    innerShadowBlur: 10,
+    innerShadowSpread: 0,
+    effectBlur: false,
+    blurAmount: 8,
+    effectGlass: false,
+    glassOpacity: 55,
+    customWidth: 0,
+    customHeight: 0,
+    dropdownHoverFill: '#e2e8f0',
+    dropdownHoverFillOpacity: 100,
+    dropdownHoverText: '#0f172a',
+    panelFillColor: '#0f172a',
+    panelFillOpacity: 96,
+    panelStrokeColor: '#334155',
+    panelStrokeWeight: 1,
+    panelStrokeOpacity: 65,
+    panelFontColor: '#f8fafc',
+    panelFontOpacity: 100,
+    panelFontSize: 14,
+    panelFontWeight: 500,
+    panelCornerRadius: 14,
+    panelCustomWidth: 0,
+    panelCustomHeight: 0,
+    panelEffectDropShadow: false,
+    panelDropShadowX: 0,
+    panelDropShadowY: 14,
+    panelDropShadowBlur: 26,
+    panelDropShadowSpread: -2,
+    panelEffectBlur: false,
+    panelBlurAmount: 0,
+    buttonPreviewState: 'default',
+    buttonHoverFillMode: 'solid',
+    buttonHoverFillColor: '#e2e8f0',
+    buttonHoverFillColorTo: '#bfdbfe',
+    buttonHoverFillWeight: 60,
+    buttonHoverFillOpacity: 100,
+    buttonHoverFontColor: '#0f172a',
+    buttonHoverFontOpacity: 100,
+    buttonHoverFontSize: 14,
+    buttonHoverFontWeight: 500,
+    buttonHoverFontPosition: 'center',
+    buttonHoverStrokeColor: '#94a3b8',
+    buttonHoverStrokeOpacity: 90,
+    buttonHoverStrokeWeight: 1,
+    buttonActiveFillMode: 'solid',
+    buttonActiveFillColor: '#cbd5e1',
+    buttonActiveFillColorTo: '#93c5fd',
+    buttonActiveFillWeight: 60,
+    buttonActiveFillOpacity: 100,
+    buttonActiveFontColor: '#0f172a',
+    buttonActiveFontOpacity: 100,
+    buttonActiveFontSize: 14,
+    buttonActiveFontWeight: 500,
+    buttonActiveFontPosition: 'center',
+    buttonActiveStrokeColor: '#64748b',
+    buttonActiveStrokeOpacity: 100,
+    buttonActiveStrokeWeight: 1,
+    buttonDisabledFillMode: 'solid',
+    buttonDisabledFillColor: '#e5e7eb',
+    buttonDisabledFillColorTo: '#d1d5db',
+    buttonDisabledFillWeight: 60,
+    buttonDisabledFillOpacity: 100,
+    buttonDisabledFontColor: '#6b7280',
+    buttonDisabledFontOpacity: 100,
+    buttonDisabledFontSize: 14,
+    buttonDisabledFontWeight: 500,
+    buttonDisabledFontPosition: 'center',
+    buttonDisabledStrokeColor: '#cbd5e1',
+    buttonDisabledStrokeOpacity: 100,
+    buttonDisabledStrokeWeight: 1,
+    badgeShowText: true,
+    buttonShowText: true,
+    icon: 'none',
+    iconSize: 18,
+    iconPosition: 'left',
+    componentPreset: 'default',
+    motionPreset: 'none',
+    motionSpeed: 2.8,
+    rainbowColor1: '#22d3ee',
+    rainbowColor2: '#60a5fa',
+    rainbowColor3: '#a78bfa',
+    rainbowColor4: '#34d399',
+    rainbowColor5: '#f59e0b',
+    shimmerColor: '#ffffff',
+    checkboxState: 'checked',
+    checkboxDisabled: false,
+    checkboxRequired: false,
+    checkboxName: 'ui-checkbox',
+    checkboxValue: 'enabled',
+    dialogDefaultOpen: false,
+    dialogModal: true,
+    dropdownSide: 'bottom',
+    dropdownAlign: 'start',
+    dropdownSideOffset: 10,
+    dropdownAlignOffset: 0,
+    labelFor: 'monthly-rental',
+    labelText: 'Monthly rental',
+    labelShowField: false,
+    tooltipSide: 'top',
+    tooltipAlign: 'center',
+    tooltipSideOffset: 10,
+    tooltipDelay: 0,
+    tooltipArrow: true,
+    motionComponentEnabled: false,
+    motionEntryEnabled: false,
+    motionExitEnabled: false,
+    motionHoverEnabled: false,
+    motionTapEnabled: false,
+    motionInitialOpacity: 100,
+    motionAnimateOpacity: 100,
+    motionInitialX: 0,
+    motionInitialY: 0,
+    motionAnimateX: 0,
+    motionAnimateY: 0,
+    motionAnimateRotate: 0,
+    motionHoverScale: 104,
+    motionHoverX: 0,
+    motionHoverY: -2,
+    motionHoverRotate: 0,
+    motionHoverOpacity: 100,
+    motionTapScale: 96,
+    motionTapX: 0,
+    motionTapY: 0,
+    motionTapRotate: 0,
+    motionTapOpacity: 100,
+    motionHoverTransitionType: 'tween',
+    motionHoverEase: 'easeInOut',
+    motionHoverDuration: 0.2,
+    motionHoverDelay: 0,
+    motionHoverStiffness: 260,
+    motionHoverDamping: 20,
+    motionHoverMass: 0.8,
+    motionTapTransitionType: 'spring',
+    motionTapEase: 'easeInOut',
+    motionTapDuration: 0.15,
+    motionTapDelay: 0,
+    motionTapStiffness: 420,
+    motionTapDamping: 30,
+    motionTapMass: 0.75,
+    motionTransitionType: 'tween',
+    motionEase: 'easeInOut',
+    motionDuration: 0.35,
+    motionDelay: 0,
+    motionStiffness: 220,
+    motionDamping: 22,
+    motionMass: 0.8,
+    effectGradientSlideEnabled: false,
+    effectGradientSlideDirection: 'left',
+    effectGradientSlideFillMode: 'gradient',
+    effectGradientSlideColor: '#f54900',
+    effectGradientSlideColorTo: '#ff8904',
+    effectGradientSlideSpeed: 0.32,
+    effectAnimatedBorderEnabled: false,
+    effectAnimatedBorderSpeed: 2.8,
+    effectAnimatedBorderColorCount: 3,
+    effectAnimatedBorderColor1: '#22d3ee',
+    effectAnimatedBorderColor2: '#60a5fa',
+    effectAnimatedBorderColor3: '#a78bfa',
+    effectAnimatedBorderColor4: '#34d399',
+    effectAnimatedBorderColor5: '#f59e0b',
+    effectAnimatedBorderStateDefault: true,
+    effectAnimatedBorderStateHover: true,
+    effectAnimatedBorderStateActive: true,
+    effectAnimatedBorderStateDisabled: false,
+    effectRippleFillEnabled: false,
+    effectRippleFillColor: '#0f172a',
+    effectRippleFillSpeed: 0.5,
+    effectLoadingActiveEnabled: false,
+    effectLoadingBadgeDefaultEnabled: false,
+    effectLoadingPosition: 'left',
+    effectLoadingOutcome: 'success',
+    effectSweepEnabled: false,
+    effectSweepColor: '#ffffff',
+    effectSweepOpacity: 42,
+    effectSweepWidth: 22,
+    effectSweepSpeed: 1.6,
+    effectSweepStateDefault: false,
+    effectSweepStateHover: true,
+    effectSweepStateActive: true,
+    effectSweepStateDisabled: false,
+    tooltipBodyMotionPresetId: 'fade-in',
+    tooltipTextMotionPresetId: 'fade-in',
+    dialogBodyMotionPresetId: 'fade-scale',
+    dialogTextMotionPresetId: 'fade-in',
+    popoverBodyMotionPresetId: 'fade-scale',
+    popoverTextMotionPresetId: 'fade-in',
+    dropdownBodyMotionPresetId: 'dropdown-down',
+    dropdownOptionHoverEnabled: true,
+    dropdownOptionHoverScale: 102,
+    dropdownOptionHoverY: -1,
+    dropdownOptionTapEnabled: true,
+    dropdownOptionTapScale: 98,
+    dropdownOptionTapY: 0,
+    inputAutocompleteEnabled: false,
+    inputAutocompleteBodyMotionPresetId: 'dropdown-down',
+    tabsUnderlineMotionEnabled: true,
+    tabsBodyMotionPresetId: 'fade-in',
+    tabsTextMotionPresetId: 'fade-in',
+    checkboxHoverEnabled: true,
+    checkboxHoverScale: 106,
+    checkboxTapEnabled: true,
+    checkboxTapScale: 94,
+    checkboxSelectionIcon: 'tick',
+    checkboxSelectionAnimationSpeed: 0.22,
+    sliderThumbHoverScale: 1.08,
+    sliderThumbTapBounce: 0.2,
+    sliderBarFillSpeed: 0.25,
+    sliderBarScale: 1,
+    sliderBarBounce: 0.18,
+};
+
+export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | undefined): ComponentStyleConfig {
+    const merged: ComponentStyleConfig = {
+        ...DEFAULT_STYLE,
+        ...(style ?? {}),
+    };
+    if (style) {
+        if (style.motionHoverTransitionType === undefined) {
+            merged.motionHoverTransitionType = merged.motionTransitionType;
+        }
+        if (style.motionHoverEase === undefined) {
+            merged.motionHoverEase = merged.motionEase;
+        }
+        if (style.motionHoverDuration === undefined) {
+            merged.motionHoverDuration = merged.motionDuration;
+        }
+        if (style.motionHoverDelay === undefined) {
+            merged.motionHoverDelay = merged.motionDelay;
+        }
+        if (style.motionHoverStiffness === undefined) {
+            merged.motionHoverStiffness = merged.motionStiffness;
+        }
+        if (style.motionHoverDamping === undefined) {
+            merged.motionHoverDamping = merged.motionDamping;
+        }
+        if (style.motionHoverMass === undefined) {
+            merged.motionHoverMass = merged.motionMass;
+        }
+        if (style.motionTapTransitionType === undefined) {
+            merged.motionTapTransitionType = merged.motionTransitionType;
+        }
+        if (style.motionTapEase === undefined) {
+            merged.motionTapEase = merged.motionEase;
+        }
+        if (style.motionTapDuration === undefined) {
+            merged.motionTapDuration = merged.motionDuration;
+        }
+        if (style.motionTapDelay === undefined) {
+            merged.motionTapDelay = merged.motionDelay;
+        }
+        if (style.motionTapStiffness === undefined) {
+            merged.motionTapStiffness = merged.motionStiffness;
+        }
+        if (style.motionTapDamping === undefined) {
+            merged.motionTapDamping = merged.motionDamping;
+        }
+        if (style.motionTapMass === undefined) {
+            merged.motionTapMass = merged.motionMass;
+        }
+        if (style.motionHoverEnabled === undefined) {
+            merged.motionHoverEnabled = merged.motionComponentEnabled;
+        }
+        if (style.motionTapEnabled === undefined) {
+            merged.motionTapEnabled = merged.motionComponentEnabled;
+        }
+        if (style.componentPreset === 'motion-gradient-slide') {
+            merged.componentPreset = 'default';
+            merged.effectGradientSlideEnabled = true;
+            merged.effectGradientSlideColor = style.rainbowColor1 ?? merged.effectGradientSlideColor;
+            merged.effectGradientSlideColorTo = style.rainbowColor2 ?? merged.effectGradientSlideColorTo;
+        }
+        if (style.componentPreset === 'motion-animated-border') {
+            merged.componentPreset = 'default';
+            merged.effectAnimatedBorderEnabled = true;
+            merged.effectAnimatedBorderStateDefault = true;
+            merged.effectAnimatedBorderStateHover = true;
+            merged.effectAnimatedBorderStateActive = true;
+        }
+        if (style.componentPreset === 'motion-ripple-hover') {
+            merged.componentPreset = 'default';
+            merged.effectRippleFillEnabled = true;
+            merged.effectRippleFillColor = style.rainbowColor1 ?? merged.effectRippleFillColor;
+        }
+        if (style.componentPreset === 'motion-loading-stack') {
+            merged.componentPreset = 'default';
+            merged.effectLoadingActiveEnabled = true;
+            merged.effectLoadingPosition = style.iconPosition ?? merged.effectLoadingPosition;
+        }
+        if (style.componentPreset === 'motion-shiny-sweep') {
+            merged.componentPreset = 'default';
+            merged.effectSweepEnabled = true;
+            merged.effectSweepStateHover = true;
+        }
+    }
+    merged.effectAnimatedBorderColorCount = Math.max(2, Math.min(5, Math.round(merged.effectAnimatedBorderColorCount)));
+    merged.sliderThumbHoverScale = Math.max(0.8, Math.min(1.6, merged.sliderThumbHoverScale));
+    merged.sliderBarScale = Math.max(0.8, Math.min(1.6, merged.sliderBarScale));
+    return merged;
+}
+
+export const MOTION_PRESETS: Array<{ id: MotionPresetId; label: string; description: string }> = [
+    { id: 'none', label: 'None', description: 'No animation' },
+    { id: 'rainbow', label: 'Rainbow', description: 'Animated spectrum border' },
+    { id: 'shimmer', label: 'Shimmer', description: 'Sweeping light highlight' },
+];
+
+export const MOTION_COMPONENT_PRESETS: Array<{
+    id: string;
+    label: string;
+    description: string;
+    kinds?: UIComponentKind[];
+    values: Partial<ComponentStyleConfig>;
+}> = [
+    {
+        id: 'fade-in',
+        label: 'Fade In',
+        description: 'Simple opacity fade',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 0,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'fade-scale',
+        label: 'Fade Scale',
+        description: 'Fade in with slight settle',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 8,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.22,
+            motionDelay: 0,
+            motionHoverScale: 102,
+            motionTapScale: 98,
+        },
+    },
+    {
+        id: 'scale-in',
+        label: 'Scale In',
+        description: 'Springy scale-like entrance',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 14,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'spring',
+            motionDuration: 0.3,
+            motionDelay: 0,
+            motionStiffness: 300,
+            motionDamping: 25,
+            motionMass: 0.8,
+            motionHoverScale: 103,
+            motionTapScale: 97,
+        },
+    },
+    {
+        id: 'slide-in-right',
+        label: 'Slide In Right',
+        description: 'Enter from the right side',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialX: 24,
+            motionAnimateX: 0,
+            motionInitialY: 0,
+            motionAnimateY: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeInOut',
+            motionDuration: 0.24,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'slide-in-left',
+        label: 'Slide In Left',
+        description: 'Enter from the left side',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialX: -24,
+            motionAnimateX: 0,
+            motionInitialY: 0,
+            motionAnimateY: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeInOut',
+            motionDuration: 0.24,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'slide-up',
+        label: 'Slide Up',
+        description: 'Rise in from below',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 18,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.22,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'slide-up-left',
+        label: 'Slide Up Left',
+        description: 'Rise in diagonally from the lower left',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 18,
+            motionAnimateY: 0,
+            motionInitialX: -18,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.24,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'slide-up-right',
+        label: 'Slide Up Right',
+        description: 'Rise in diagonally from the lower right',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 18,
+            motionAnimateY: 0,
+            motionInitialX: 18,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.24,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'slide-down',
+        label: 'Slide Down',
+        description: 'Drop in from above',
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: -18,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.22,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'modal-content',
+        label: 'Modal Content',
+        description: 'Gentle spring for overlays',
+        kinds: ['dialog', 'popover', 'tooltip'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 10,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionTransitionType: 'spring',
+            motionDuration: 0.3,
+            motionDelay: 0,
+            motionStiffness: 200,
+            motionDamping: 20,
+            motionMass: 0.8,
+            motionHoverScale: 101,
+            motionTapScale: 99,
+        },
+    },
+    {
+        id: 'sheet-content',
+        label: 'Sheet Content',
+        description: 'Bottom-sheet style entrance',
+        kinds: ['dialog', 'popover'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 36,
+            motionAnimateY: 0,
+            motionInitialX: 0,
+            motionAnimateX: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.3,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'dropdown-down',
+        label: 'Dropdown Down',
+        description: 'Dropdown appears downward',
+        kinds: ['dropdown', 'popover', 'tooltip'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: -8,
+            motionAnimateY: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'dropdown-up',
+        label: 'Dropdown Up',
+        description: 'Dropdown appears upward',
+        kinds: ['dropdown', 'popover', 'tooltip'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: true,
+            motionInitialOpacity: 0,
+            motionAnimateOpacity: 100,
+            motionInitialY: 8,
+            motionAnimateY: 0,
+            motionTransitionType: 'tween',
+            motionEase: 'easeOut',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionHoverScale: 100,
+            motionTapScale: 100,
+        },
+    },
+    {
+        id: 'tap-scale',
+        label: 'Tap Scale',
+        description: 'Press feedback micro-interaction',
+        kinds: ['button', 'badge', 'checkbox', 'tabs', 'label', 'input'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: false,
+            motionHoverEnabled: false,
+            motionTapEnabled: true,
+            motionInitialOpacity: 100,
+            motionAnimateOpacity: 100,
+            motionInitialX: 0,
+            motionInitialY: 0,
+            motionAnimateX: 0,
+            motionAnimateY: 0,
+            motionAnimateRotate: 0,
+            motionTransitionType: 'spring',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionStiffness: 420,
+            motionDamping: 30,
+            motionMass: 0.7,
+            motionTapTransitionType: 'spring',
+            motionTapDuration: 0.2,
+            motionTapDelay: 0,
+            motionTapStiffness: 420,
+            motionTapDamping: 30,
+            motionTapMass: 0.7,
+            motionHoverScale: 100,
+            motionTapScale: 97,
+        },
+    },
+    {
+        id: 'hover-lift',
+        label: 'Hover Lift',
+        description: 'Subtle elevation on hover',
+        kinds: ['button', 'badge', 'label', 'input', 'tabs', 'popover', 'tooltip'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: false,
+            motionHoverEnabled: true,
+            motionTapEnabled: false,
+            motionInitialOpacity: 100,
+            motionAnimateOpacity: 100,
+            motionTransitionType: 'tween',
+            motionEase: 'easeInOut',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionHoverTransitionType: 'tween',
+            motionHoverEase: 'easeInOut',
+            motionHoverDuration: 0.2,
+            motionHoverDelay: 0,
+            motionHoverScale: 102,
+            motionHoverY: -2,
+            motionTapScale: 98,
+        },
+    },
+    {
+        id: 'hover-nudge-right',
+        label: 'Hover Nudge Right',
+        description: 'A subtle rightward nudge on hover',
+        kinds: ['button', 'badge', 'tabs', 'popover', 'tooltip', 'input', 'label'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: false,
+            motionHoverEnabled: true,
+            motionTapEnabled: false,
+            motionInitialOpacity: 100,
+            motionAnimateOpacity: 100,
+            motionTransitionType: 'tween',
+            motionEase: 'easeInOut',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionHoverTransitionType: 'tween',
+            motionHoverEase: 'easeInOut',
+            motionHoverDuration: 0.18,
+            motionHoverDelay: 0,
+            motionHoverScale: 100,
+            motionHoverX: 6,
+            motionHoverY: 0,
+            motionHoverOpacity: 100,
+            motionTapScale: 99,
+        },
+    },
+    {
+        id: 'button-press',
+        label: 'Button Press',
+        description: 'Hover and tap interaction for actions',
+        kinds: ['button', 'badge'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: false,
+            motionHoverEnabled: true,
+            motionTapEnabled: true,
+            motionInitialOpacity: 100,
+            motionAnimateOpacity: 100,
+            motionTransitionType: 'spring',
+            motionDuration: 0.2,
+            motionDelay: 0,
+            motionStiffness: 360,
+            motionDamping: 28,
+            motionMass: 0.8,
+            motionHoverTransitionType: 'spring',
+            motionHoverDuration: 0.2,
+            motionHoverDelay: 0,
+            motionHoverStiffness: 360,
+            motionHoverDamping: 28,
+            motionHoverMass: 0.8,
+            motionTapTransitionType: 'spring',
+            motionTapDuration: 0.2,
+            motionTapDelay: 0,
+            motionTapStiffness: 360,
+            motionTapDamping: 28,
+            motionTapMass: 0.8,
+            motionHoverScale: 102,
+            motionTapScale: 98,
+        },
+    },
+    {
+        id: 'card-hover',
+        label: 'Card Hover',
+        description: 'More pronounced hover emphasis',
+        kinds: ['badge', 'button', 'tabs', 'popover', 'tooltip', 'input', 'label'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: false,
+            motionHoverEnabled: true,
+            motionTapEnabled: false,
+            motionInitialOpacity: 100,
+            motionAnimateOpacity: 100,
+            motionTransitionType: 'tween',
+            motionEase: 'easeInOut',
+            motionDuration: 0.24,
+            motionDelay: 0,
+            motionHoverTransitionType: 'tween',
+            motionHoverEase: 'easeInOut',
+            motionHoverDuration: 0.24,
+            motionHoverDelay: 0,
+            motionHoverScale: 104,
+            motionHoverY: -4,
+            motionTapScale: 98,
+        },
+    },
+    {
+        id: 'tap-nudge-down',
+        label: 'Tap Nudge Down',
+        description: 'A short downward press response',
+        kinds: ['button', 'badge', 'checkbox', 'tabs', 'label', 'input'],
+        values: {
+            motionComponentEnabled: true,
+            motionEntryEnabled: false,
+            motionHoverEnabled: false,
+            motionTapEnabled: true,
+            motionInitialOpacity: 100,
+            motionAnimateOpacity: 100,
+            motionInitialX: 0,
+            motionInitialY: 0,
+            motionAnimateX: 0,
+            motionAnimateY: 0,
+            motionAnimateRotate: 0,
+            motionTapTransitionType: 'spring',
+            motionTapDuration: 0.18,
+            motionTapDelay: 0,
+            motionTapStiffness: 380,
+            motionTapDamping: 28,
+            motionTapMass: 0.75,
+            motionTapScale: 99,
+            motionTapY: 4,
+            motionTapOpacity: 100,
+        },
+    },
+];
+
+export const SURFACE_MOTION_PRESET_IDS = new Set([
+    'fade-in',
+    'fade-scale',
+    'scale-in',
+    'slide-up',
+    'slide-up-left',
+    'slide-up-right',
+    'slide-down',
+    'slide-in-left',
+    'slide-in-right',
+    'modal-content',
+    'sheet-content',
+    'dropdown-down',
+    'dropdown-up',
+]);
+
+type VisualPresetOverride = {
+    id?: string;
+    label?: string;
+    description?: string;
+    className?: string;
+    autoMotionPreset?: MotionPresetId;
+    values?: Partial<ComponentStyleConfig>;
+};
+
+const VISUAL_PRESET_TEMPLATES: Array<Omit<ComponentVisualPreset, 'kind'>> = [
+    {
+        id: 'default',
+        label: 'Default',
+        description: 'Current studio styles only',
+        values: { componentPreset: 'default', motionPreset: 'none' },
+    },
+    {
+        id: 'slate',
+        label: 'Slate',
+        description: 'Soft neutral surface with balanced contrast.',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#f8fafc',
+            fillOpacity: 100,
+            strokeColor: '#cbd5e1',
+            strokeWeight: 1,
+            strokeOpacity: 90,
+            cornerRadius: 12,
+            fontColor: '#0f172a',
+            fontOpacity: 100,
+            panelFillColor: '#0f172a',
+            panelFillOpacity: 96,
+            panelStrokeColor: '#334155',
+            panelStrokeOpacity: 58,
+            panelFontColor: '#f8fafc',
+        },
+    },
+    {
+        id: 'outline',
+        label: 'Outline',
+        description: 'Low-fill outline style with stronger borders.',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#ffffff',
+            fillOpacity: 4,
+            strokeColor: '#94a3b8',
+            strokeWeight: 1,
+            strokeOpacity: 100,
+            cornerRadius: 12,
+            fontColor: '#dbe7f8',
+            panelFillColor: '#0b1324',
+            panelFillOpacity: 92,
+            panelStrokeColor: '#475569',
+            panelStrokeOpacity: 76,
+            panelStrokeWeight: 1,
+            panelFontColor: '#dbe7f8',
+        },
+    },
+    {
+        id: 'soft',
+        label: 'Soft',
+        description: 'Light gradient with gentle edge contrast.',
+        values: {
+            fillMode: 'gradient',
+            fillColor: '#f1f5f9',
+            fillColorTo: '#dbeafe',
+            fillWeight: 55,
+            fillOpacity: 100,
+            strokeColor: '#93c5fd',
+            strokeWeight: 1,
+            strokeOpacity: 45,
+            cornerRadius: 14,
+            fontColor: '#1e293b',
+            panelFillColor: '#0f172a',
+            panelFillOpacity: 94,
+            panelStrokeColor: '#334155',
+            panelStrokeOpacity: 62,
+            panelCornerRadius: 14,
+        },
+    },
+    {
+        id: 'glass',
+        label: 'Glass',
+        description: 'Translucent shell with blur and subtle shadow.',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#f8fafc',
+            fillOpacity: 24,
+            strokeColor: '#cbd5e1',
+            strokeWeight: 1,
+            strokeOpacity: 68,
+            cornerRadius: 14,
+            fontColor: '#e2e8f0',
+            effectGlass: true,
+            glassOpacity: 42,
+            panelFillColor: '#0b1221',
+            panelFillOpacity: 84,
+            panelStrokeColor: '#64748b',
+            panelStrokeOpacity: 52,
+            panelEffectBlur: true,
+            panelBlurAmount: 8,
+            panelCornerRadius: 14,
+        },
+    },
+    {
+        id: 'brand',
+        label: 'Brand',
+        description: 'Teal-led accent styling for CTAs and triggers.',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#1dd6c3',
+            fillOpacity: 100,
+            strokeColor: '#16b8a8',
+            strokeWeight: 1,
+            strokeOpacity: 82,
+            cornerRadius: 12,
+            fontColor: '#0b1321',
+            fontWeight: 600,
+            panelFillColor: '#0b1528',
+            panelFillOpacity: 96,
+            panelStrokeColor: '#1dd6c3',
+            panelStrokeOpacity: 28,
+            panelFontColor: '#d2fff9',
+        },
+    },
+    {
+        id: 'contrast',
+        label: 'Contrast',
+        description: 'Dark elevated treatment with brighter text.',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#0b1220',
+            fillOpacity: 100,
+            strokeColor: '#334155',
+            strokeWeight: 1,
+            strokeOpacity: 86,
+            cornerRadius: 10,
+            fontColor: '#f8fafc',
+            fontOpacity: 100,
+            effectDropShadow: true,
+            dropShadowStrength: 28,
+            panelFillColor: '#050b17',
+            panelFillOpacity: 98,
+            panelStrokeColor: '#1f2937',
+            panelStrokeOpacity: 92,
+            panelFontColor: '#f8fafc',
+            panelEffectDropShadow: true,
+        },
+    },
+    {
+        id: 'sunset',
+        label: 'Sunset',
+        description: 'Warm gradient accent with softer dark panel.',
+        values: {
+            fillMode: 'gradient',
+            fillColor: '#fb7185',
+            fillColorTo: '#f59e0b',
+            fillWeight: 50,
+            fillOpacity: 100,
+            strokeColor: '#fb7185',
+            strokeWeight: 1,
+            strokeOpacity: 60,
+            cornerRadius: 12,
+            fontColor: '#fff7ed',
+            panelFillColor: '#1f1230',
+            panelFillOpacity: 96,
+            panelStrokeColor: '#7c3aed',
+            panelStrokeOpacity: 48,
+            panelFontColor: '#fdf4ff',
+        },
+    },
+];
+
+export function buildVisualPresetsForKind(
+    kind: UIComponentKind,
+    overrides: Record<string, VisualPresetOverride> = {},
+): ComponentVisualPreset[] {
+    return VISUAL_PRESET_TEMPLATES.map((template) => {
+        const override = overrides[template.id];
+        const id = override?.id ?? template.id;
+        return {
+            id,
+            label: override?.label ?? template.label,
+            description: override?.description ?? template.description,
+            kind,
+            className: override?.className ?? template.className,
+            autoMotionPreset: override?.autoMotionPreset ?? template.autoMotionPreset,
+            values: {
+                ...template.values,
+                ...(override?.values ?? {}),
+                componentPreset: id,
+            },
+        };
+    });
+}
+
+export const BUTTON_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    ...buildVisualPresetsForKind('button', {
+        brand: { className: 'font-semibold' },
+        contrast: { autoMotionPreset: 'shimmer' },
+        sunset: { autoMotionPreset: 'rainbow' },
+    }),
+];
+
+export const BADGE_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('badge');
+export const CHECKBOX_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('checkbox', {
+    brand: {
+        id: 'checkbox-preset',
+        label: 'Preset',
+        description: 'Animate-UI inspired preset checkbox',
+        className:
+            'size-5 rounded-sm border bg-background transition-colors duration-500 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary',
+        values: {
+            strokeWeight: 1,
+            strokeOpacity: 100,
+            strokeColor: '#334155',
+        },
+    },
+});
+export const DIALOG_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('dialog');
+export const DROPDOWN_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('dropdown');
+export const POPOVER_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('popover');
+export const LABEL_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('label');
+export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('input');
+export const TABS_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tabs');
+export const TOOLTIP_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tooltip');
+export const SLIDER_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('slider', {
+    soft: {
+        id: 'slider-elastic',
+        label: 'Elastic',
+        description: 'Elastic track + thumb interaction style',
+        className: 'ui-studio-slider-elastic',
+    },
+});
+
+export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPreset[]> = {
+    badge: BADGE_VISUAL_PRESETS,
+    button: BUTTON_VISUAL_PRESETS,
+    checkbox: CHECKBOX_VISUAL_PRESETS,
+    dialog: DIALOG_VISUAL_PRESETS,
+    dropdown: DROPDOWN_VISUAL_PRESETS,
+    popover: POPOVER_VISUAL_PRESETS,
+    label: LABEL_VISUAL_PRESETS,
+    input: INPUT_VISUAL_PRESETS,
+    tabs: TABS_VISUAL_PRESETS,
+    tooltip: TOOLTIP_VISUAL_PRESETS,
+    slider: SLIDER_VISUAL_PRESETS,
+};
+
+export const STYLE_PRESETS: StylePreset[] = [
+    {
+        id: 'clean',
+        label: 'Clean',
+        description: 'Neutral and product-like',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#ffffff',
+            fillOpacity: 100,
+            fillWeight: 50,
+            strokeColor: '#cbd5e1',
+            strokeWeight: 1,
+            strokeOpacity: 80,
+            cornerRadius: 12,
+            fontColor: '#111827',
+            fontOpacity: 100,
+            effectDropShadow: false,
+            effectInnerShadow: false,
+            effectBlur: false,
+            effectGlass: false,
+        },
+    },
+    {
+        id: 'soft-glass',
+        label: 'Soft Glass',
+        description: 'Translucent with blur and subtle glow',
+        values: {
+            fillMode: 'gradient',
+            fillColor: '#dbeafe',
+            fillColorTo: '#bfdbfe',
+            fillOpacity: 70,
+            fillWeight: 65,
+            strokeColor: '#93c5fd',
+            strokeWeight: 1,
+            strokeOpacity: 55,
+            cornerRadius: 16,
+            fontColor: '#1e3a8a',
+            fontOpacity: 90,
+            effectDropShadow: true,
+            dropShadowStrength: 28,
+            effectInnerShadow: true,
+            innerShadowStrength: 18,
+            effectBlur: true,
+            blurAmount: 10,
+            effectGlass: true,
+            glassOpacity: 45,
+        },
+    },
+    {
+        id: 'contrast',
+        label: 'Contrast',
+        description: 'Dark-surface and bright text',
+        values: {
+            fillMode: 'solid',
+            fillColor: '#0f172a',
+            fillOpacity: 100,
+            fillWeight: 100,
+            strokeColor: '#334155',
+            strokeWeight: 1,
+            strokeOpacity: 100,
+            cornerRadius: 10,
+            fontColor: '#f8fafc',
+            fontOpacity: 100,
+            fontWeight: 600,
+            effectDropShadow: true,
+            dropShadowStrength: 22,
+            effectInnerShadow: false,
+            effectBlur: false,
+            effectGlass: false,
+        },
+    },
+];
+
+export const ICON_OPTIONS: Array<{ id: IconOptionId; label: string }> = [
+    { id: 'none', label: 'None' },
+    { id: 'search', label: 'Search' },
+    { id: 'lightning', label: 'Lightning' },
+    { id: 'heart', label: 'Heart' },
+    { id: 'figma', label: 'Figma' },
+    { id: 'star', label: 'Star' },
+    { id: 'cog', label: 'Cog' },
+    { id: 'spinner', label: 'Spinner' },
+];
+
+export const PRESET_CHECKBOX_INDICATOR_SIZE: Record<SizeOption, string> = {
+    sm: 'size-3',
+    md: 'size-3.5',
+    lg: 'size-4',
+};
+
+export const BUTTON_STATE_CLASS_NAME = 'ui-studio-button-state';
+
+export function buildButtonPreviewStateClass(previewState: ButtonPreviewState): string | undefined {
+    if (previewState === 'hover') {
+        return 'ui-studio-button-preview-hover';
+    }
+    if (previewState === 'active') {
+        return 'ui-studio-button-preview-active';
+    }
+    if (previewState === 'disabled') {
+        return 'ui-studio-button-preview-disabled';
+    }
+    return undefined;
+}
+
+export const BUTTON_STATE_FIELD_KEYS = {
+    default: {
+        fillMode: 'fillMode',
+        fillColor: 'fillColor',
+        fillColorTo: 'fillColorTo',
+        fillWeight: 'fillWeight',
+        fillOpacity: 'fillOpacity',
+        fontSize: 'fontSize',
+        fontWeight: 'fontWeight',
+        fontPosition: 'fontPosition',
+        fontColor: 'fontColor',
+        fontOpacity: 'fontOpacity',
+        strokeColor: 'strokeColor',
+        strokeOpacity: 'strokeOpacity',
+        strokeWeight: 'strokeWeight',
+    },
+    hover: {
+        fillMode: 'buttonHoverFillMode',
+        fillColor: 'buttonHoverFillColor',
+        fillColorTo: 'buttonHoverFillColorTo',
+        fillWeight: 'buttonHoverFillWeight',
+        fillOpacity: 'buttonHoverFillOpacity',
+        fontSize: 'buttonHoverFontSize',
+        fontWeight: 'buttonHoverFontWeight',
+        fontPosition: 'buttonHoverFontPosition',
+        fontColor: 'buttonHoverFontColor',
+        fontOpacity: 'buttonHoverFontOpacity',
+        strokeColor: 'buttonHoverStrokeColor',
+        strokeOpacity: 'buttonHoverStrokeOpacity',
+        strokeWeight: 'buttonHoverStrokeWeight',
+    },
+    active: {
+        fillMode: 'buttonActiveFillMode',
+        fillColor: 'buttonActiveFillColor',
+        fillColorTo: 'buttonActiveFillColorTo',
+        fillWeight: 'buttonActiveFillWeight',
+        fillOpacity: 'buttonActiveFillOpacity',
+        fontSize: 'buttonActiveFontSize',
+        fontWeight: 'buttonActiveFontWeight',
+        fontPosition: 'buttonActiveFontPosition',
+        fontColor: 'buttonActiveFontColor',
+        fontOpacity: 'buttonActiveFontOpacity',
+        strokeColor: 'buttonActiveStrokeColor',
+        strokeOpacity: 'buttonActiveStrokeOpacity',
+        strokeWeight: 'buttonActiveStrokeWeight',
+    },
+    disabled: {
+        fillMode: 'buttonDisabledFillMode',
+        fillColor: 'buttonDisabledFillColor',
+        fillColorTo: 'buttonDisabledFillColorTo',
+        fillWeight: 'buttonDisabledFillWeight',
+        fillOpacity: 'buttonDisabledFillOpacity',
+        fontSize: 'buttonDisabledFontSize',
+        fontWeight: 'buttonDisabledFontWeight',
+        fontPosition: 'buttonDisabledFontPosition',
+        fontColor: 'buttonDisabledFontColor',
+        fontOpacity: 'buttonDisabledFontOpacity',
+        strokeColor: 'buttonDisabledStrokeColor',
+        strokeOpacity: 'buttonDisabledStrokeOpacity',
+        strokeWeight: 'buttonDisabledStrokeWeight',
+    },
+} as const;
+
+export type ButtonStateField = keyof typeof BUTTON_STATE_FIELD_KEYS.default;

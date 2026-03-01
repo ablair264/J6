@@ -1,0 +1,1 @@
+This folder is a project we are working on that allows developers and designers to create React / CSS / Tailwind component designs and then export them. The benefit of which is the Visual Preview, instead of having to sift through pages of online UI libraries. We have used some Radix primitives and React MOtion for the animation logic. 

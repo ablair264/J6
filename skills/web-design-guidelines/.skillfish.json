@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "web-design-guidelines",
+  "owner": "vercel-labs",
+  "repo": "agent-skills",
+  "path": "skills/web-design-guidelines",
+  "branch": "main",
+  "sha": "3116f3e62dbd02b44a598b1aa690d2a8938e8f89",
+  "source": "manual"
+}

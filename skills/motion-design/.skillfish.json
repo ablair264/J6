@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "motion-design",
+  "owner": "expanly",
+  "repo": "expanly-claude-code-agents",
+  "path": "plugins/ui-designer/skills/motion-design",
+  "branch": "master",
+  "sha": "891daa845e3c030190f07c7da29280adb05c1b30",
+  "source": "manual"
+}
