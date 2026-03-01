@@ -250,7 +250,7 @@ export function UIStudioIndexPage() {
 
 export function UIStudioComponentPage() {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, logout, updateProfile } = useAuth();
     const { component } = useParams<{ component: string }>();
 
     const activeKind: UIComponentKind = isUIComponentKind(component) ? component : 'button';
