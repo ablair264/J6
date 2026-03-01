@@ -377,6 +377,7 @@ export function UIStudioComponentPage() {
         if (typeof window !== 'undefined') {
             window.localStorage.setItem(STUDIO_THEME_STORAGE_KEY, studioTheme);
         }
+        setCanvasTheme(studioTheme);
     }, [studioTheme]);
 
     useEffect(() => {
