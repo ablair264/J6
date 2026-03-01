@@ -1233,6 +1233,22 @@
 }
 
 /* ============================================================
+   STUDIO LIGHT THEME — BODY LEVEL (fixes Radix portal content)
+   body gets data-studio-theme set from JS so portals inherit vars
+   ============================================================ */
+body[data-studio-theme="light"] {
+  --inspector-bg: #eef2f9;
+  --inspector-panel: #f3f6fd;
+  --inspector-input: #e6edf8;
+  --inspector-border-soft: rgba(0, 0, 0, 0.08);
+  --inspector-border-strong: rgba(13, 148, 136, 0.35);
+  --inspector-text: #1e293b;
+  --inspector-muted-text: #637499;
+  --inspector-accent: #0d9488;
+  --inspector-accent-soft: rgba(13, 148, 136, 0.1);
+}
+
+/* ============================================================
    STUDIO LIGHT THEME
    Target: [data-studio-theme="light"] applied to .ui-studio-shell
    ============================================================ */
@@ -1398,6 +1414,10 @@
 [data-studio-theme="light"] .ui-studio-inspector-input {
   background-color: #e2e9f6 !important;
 }
+/* Override [color-scheme:dark] on native inputs in light mode */
+[data-studio-theme="light"] .\[color-scheme\:dark\] {
+  color-scheme: light !important;
+}
 
 /* ── Search / text inputs ── */
 [data-studio-theme="light"] .bg-\[\#0e182a\] {
@@ -1542,6 +1562,70 @@
 /* ── Export / code panel text ── */
 [data-studio-theme="light"] .text-\[\#bfd1ec\] {
   color: #2d4a6e !important;
+}
+
+/* ── Motion FX panel — switch and container backgrounds ── */
+[data-studio-theme="light"] .bg-\[\#13161b\] {
+  background-color: #dde5f4 !important;
+}
+[data-studio-theme="light"] .bg-\[\#13161b\]\/50,
+[data-studio-theme="light"] .bg-\[\#0b1220\]\/50 {
+  background-color: rgba(200, 215, 240, 0.5) !important;
+}
+[data-studio-theme="light"] .bg-\[\#0b1220\] {
+  background-color: #d5dfef !important;
+}
+[data-studio-theme="light"] .bg-\[\#111827\] {
+  background-color: #dde5f4 !important;
+}
+[data-studio-theme="light"] .bg-\[\#161c29\] {
+  background-color: #e4eaf6 !important;
+}
+[data-studio-theme="light"] .hover\:bg-\[\#162235\]:hover {
+  background-color: #c8d5ea !important;
+}
+
+/* ── Switch thumb muted colour ── */
+[data-studio-theme="light"] .bg-\[\#64748b\] {
+  background-color: #94a3b8 !important;
+}
+
+/* ── Motion section text colours ── */
+[data-studio-theme="light"] .text-\[\#e2e8f0\] {
+  color: #1e293b !important;
+}
+[data-studio-theme="light"] .text-\[\#3d4f66\] {
+  color: #4a6182 !important;
+}
+[data-studio-theme="light"] .text-\[\#334155\] {
+  color: #4a6182 !important;
+}
+[data-studio-theme="light"] .text-\[\#526784\] {
+  color: #637499 !important;
+}
+[data-studio-theme="light"] .text-\[\#b7c8e4\] {
+  color: #2d4a6e !important;
+}
+[data-studio-theme="light"] .text-\[\#dbe7f8\],
+[data-studio-theme="light"] .text-\[\#d8e6fb\] {
+  color: #1e293b !important;
+}
+[data-studio-theme="light"] .text-\[\#64748b\] {
+  color: #637499 !important;
+}
+
+/* ── Canvas toggle switch background in light state ── */
+[data-studio-theme="light"] .bg-\[\#111f34\] {
+  background-color: #dde5f4 !important;
+}
+
+/* ── Very subtle white borders in motion section ── */
+[data-studio-theme="light"] .border-white\/7,
+[data-studio-theme="light"] .border-white\/\[0\.08\] {
+  border-color: rgba(0, 0, 0, 0.07) !important;
+}
+[data-studio-theme="light"] .bg-white\/\[0\.08\] {
+  background-color: rgba(0, 0, 0, 0.04) !important;
 }
 
 /* ── Red/danger states stay as-is ── */

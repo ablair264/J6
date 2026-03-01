@@ -306,7 +306,9 @@ export function UIStudioComponentPage() {
     const [newTokenForm, setNewTokenForm] = useState<{ id: string; label: string; hex: string } | null>(null);
     const [studioTheme, setStudioTheme] = useState<'dark' | 'light'>(() => {
         if (typeof window === 'undefined') return 'dark';
-        return (window.localStorage.getItem(STUDIO_THEME_STORAGE_KEY) as 'dark' | 'light') ?? 'dark';
+        const saved = (window.localStorage.getItem(STUDIO_THEME_STORAGE_KEY) as 'dark' | 'light') ?? 'dark';
+        document.body.dataset.studioTheme = saved;
+        return saved;
     });
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [componentPickerOpen, setComponentPickerOpen] = useState(false);
@@ -376,6 +378,7 @@ export function UIStudioComponentPage() {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             window.localStorage.setItem(STUDIO_THEME_STORAGE_KEY, studioTheme);
+            document.body.dataset.studioTheme = studioTheme;
         }
         setCanvasTheme(studioTheme);
     }, [studioTheme]);
