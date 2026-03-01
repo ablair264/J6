@@ -6,6 +6,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
+  updateProfile: (name: string | null, avatarUrl?: string | null) => Promise<void>;
   logout: () => void;
 }
 
@@ -24,13 +25,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(u);
   }, []);
 
+  const updateProfile = useCallback(async (name: string | null, avatarUrl?: string | null) => {
+    const u = await authService.updateProfile(name, avatarUrl);
+    setUser(u);
+  }, []);
+
   const logout = useCallback(() => {
     authService.logout();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

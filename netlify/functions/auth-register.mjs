@@ -70,7 +70,7 @@ export async function handler(event) {
     const inserted = await sql`
       INSERT INTO users (email, password_hash, name)
       VALUES (${email}, ${passwordHash}, ${name})
-      RETURNING id, email, name
+      RETURNING id, email, name, avatar_url
     `;
 
     const user = inserted[0];
@@ -82,7 +82,7 @@ export async function handler(event) {
     `;
 
     return response(201, {
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url ?? null },
       token,
     });
   } catch (err) {

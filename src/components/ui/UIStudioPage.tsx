@@ -2118,8 +2118,11 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                     onClick={() => setProfileMenuOpen((current) => !current)}
                                     className="group flex w-full items-center gap-3 rounded-lg px-1.5 py-2 text-left transition hover:bg-white/[0.04]"
                                 >
-                                    <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[#63e8da]/16 text-sm font-semibold text-[#7efef0]">
-                                        {user?.name ? user.name.slice(0, 2).toUpperCase() : user?.email?.slice(0, 2).toUpperCase() ?? 'UI'}
+                                    <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[#63e8da]/16 text-sm font-semibold text-[#7efef0] overflow-hidden">
+                                        {user?.avatar_url
+                                            ? <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                            : (user?.name ? user.name.slice(0, 2).toUpperCase() : user?.email?.slice(0, 2).toUpperCase() ?? 'UI')
+                                        }
                                     </div>
                                     <div className="min-w-0">
                                         <p className="truncate text-sm font-semibold text-[#f0f6ff]">{user?.name ?? 'My Account'}</p>
@@ -2196,8 +2199,8 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        setTokenSyncMessage('Profile preferences are coming soon.');
                                                         setProfileMenuOpen(false);
+                                                        navigate('/profile');
                                                     }}
                                                     className="flex h-7 w-full items-center gap-2.5 rounded-md px-2 transition hover:bg-white/[0.05]"
                                                 >

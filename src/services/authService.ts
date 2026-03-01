@@ -2,6 +2,7 @@ export interface AuthUser {
   id: string;
   name: string | null;
   email: string;
+  avatar_url: string | null;
 }
 
 interface AuthResponse {
@@ -61,6 +62,31 @@ export const authService = {
 
     const data: AuthResponse = await res.json();
     storeAuth(data);
+    return data.user;
+  },
+
+  async updateProfile(name: string | null, avatarUrl: string | null | undefined): Promise<AuthUser> {
+    const token = authService.getToken();
+    const body: Record<string, unknown> = { name };
+    if (avatarUrl !== undefined) body.avatar_url = avatarUrl;
+
+    const res = await fetch('/.netlify/functions/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { message?: string }).message || 'Failed to save profile');
+    }
+
+    const data = await res.json() as { user: AuthUser };
+    const stored = getStoredAuth();
+    if (stored) storeAuth({ ...stored, user: data.user });
     return data.user;
   },
 

@@ -54,7 +54,7 @@ export async function handler(event) {
 
   try {
     const rows = await sql`
-      SELECT id, email, name, password_hash
+      SELECT id, email, name, avatar_url, password_hash
       FROM users
       WHERE email = ${email}
       LIMIT 1
@@ -77,7 +77,7 @@ export async function handler(event) {
     `;
 
     return response(200, {
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url ?? null },
       token,
     });
   } catch (err) {
