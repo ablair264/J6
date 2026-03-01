@@ -260,7 +260,6 @@ export function UIStudioComponentPage() {
     const [nextInstanceIndex, setNextInstanceIndex] = useState(() => initialComponentState.nextInstanceIndex);
     const [copiedCode, setCopiedCode] = useState(false);
     const [exportedCode, setExportedCode] = useState(false);
-    const [canvasTheme, setCanvasTheme] = useState<'light' | 'dark'>('dark');
     const [showCanvasGrid, setShowCanvasGrid] = useState(true);
     const [inspectorTab, setInspectorTab] = useState<InspectorTab>(() => {
         if (typeof window === 'undefined') {
@@ -301,6 +300,14 @@ export function UIStudioComponentPage() {
     const [tokenSyncMessage, setTokenSyncMessage] = useState<string>('');
     const [tokensLoading, setTokensLoading] = useState(false);
     const [showTokenManager, setShowTokenManager] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+    const [profileName, setProfileName] = useState(user?.name ?? '');
+    const [profileAvatarPreview, setProfileAvatarPreview] = useState<string | null>(user?.avatar_url ?? null);
+    const [profileAvatarBase64, setProfileAvatarBase64] = useState<string | null | undefined>(undefined);
+    const [profileSaving, setProfileSaving] = useState(false);
+    const [profileSaved, setProfileSaved] = useState(false);
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const profileFileRef = useRef<HTMLInputElement>(null);
     const [newSetName, setNewSetName] = useState('');
     const [showNewSetInput, setShowNewSetInput] = useState(false);
     const [newTokenForm, setNewTokenForm] = useState<{ id: string; label: string; hex: string } | null>(null);
@@ -382,7 +389,6 @@ export function UIStudioComponentPage() {
             window.localStorage.setItem(STUDIO_THEME_STORAGE_KEY, studioTheme);
             document.body.dataset.studioTheme = studioTheme;
         }
-        setCanvasTheme(studioTheme);
     }, [studioTheme]);
 
     useEffect(() => {
@@ -1619,6 +1625,52 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
         }
     };
 
+    const handleProfileFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { setProfileError('Please select an image file.'); return; }
+        try {
+            const b64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = Math.min(1, 256 / Math.max(img.width, img.height));
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) return reject(new Error('Canvas unavailable'));
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.82));
+                    };
+                    img.onerror = reject;
+                    img.src = ev.target?.result as string;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            setProfileAvatarPreview(b64);
+            setProfileAvatarBase64(b64);
+            setProfileError(null);
+        } catch { setProfileError('Failed to process image.'); }
+    };
+
+    const handleProfileSave = async () => {
+        setProfileSaving(true);
+        setProfileError(null);
+        try {
+            await updateProfile(profileName.trim() || null, profileAvatarBase64);
+            setProfileSaved(true);
+            setProfileAvatarBase64(undefined); // reset sentinel
+            window.setTimeout(() => setProfileSaved(false), 2000);
+        } catch (err) {
+            setProfileError(err instanceof Error ? err.message : 'Failed to save profile');
+        } finally {
+            setProfileSaving(false);
+        }
+    };
+
     const copyCode = async (snippet: string) => {
         try {
             await navigator.clipboard.writeText(snippet);
@@ -2129,8 +2181,8 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
             })
             : [];
 
-    const canvasBackground = canvasTheme === 'dark' ? '#101a2d' : '#f3f7ff';
-    const canvasDotColor = canvasTheme === 'dark' ? 'rgba(126, 255, 237, 0.09)' : 'rgba(31, 56, 94, 0.16)';
+    const canvasBackground = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
+    const canvasDotColor = studioTheme === 'dark' ? 'rgba(126, 255, 237, 0.09)' : 'rgba(31, 56, 94, 0.16)';
     const studioActionButtonClass =
         'inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-[#b7c8df] transition hover:bg-white/[0.1] hover:text-[#eef5ff]';
     const studioAccentButtonClass =
@@ -2210,6 +2262,7 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                                     onClick={() => {
                                                         setInspectorTab('style');
                                                         setShowTokenManager(true);
+                                                        setShowProfile(false);
                                                         setRightSidebarTab('inspector');
                                                         setProfileMenuOpen(false);
                                                     }}
@@ -2218,37 +2271,16 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                                     <Pencil className="size-4 text-[#8da4c3]" />
                                                     Token Sets
                                                 </button>
-                                                {/* Theme toggle row */}
-                                                <div className="flex h-7 w-full items-center gap-2.5 rounded-md px-2">
-                                                    <Config className="size-4 text-[#8da4c3]" />
-                                                    <span className="flex-1 text-[13px]">Theme</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setStudioTheme((t) => t === 'dark' ? 'light' : 'dark')}
-                                                        className={cn(
-                                                            'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none',
-                                                            studioTheme === 'light' ? 'bg-[#63e8da]' : 'bg-white/20',
-                                                        )}
-                                                        aria-label="Toggle light/dark mode"
-                                                    >
-                                                        <span
-                                                            className={cn(
-                                                                'pointer-events-none inline-flex size-4 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200',
-                                                                studioTheme === 'light' ? 'translate-x-4' : 'translate-x-0',
-                                                            )}
-                                                        >
-                                                            {studioTheme === 'light'
-                                                                ? <Sun className="size-2.5 text-[#0d9488]" />
-                                                                : <Moon className="size-2.5 text-[#8da4c3]" />
-                                                            }
-                                                        </span>
-                                                    </button>
-                                                </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         setProfileMenuOpen(false);
-                                                        navigate('/profile');
+                                                        setShowTokenManager(false);
+                                                        setProfileName(user?.name ?? '');
+                                                        setProfileAvatarPreview(user?.avatar_url ?? null);
+                                                        setProfileAvatarBase64(undefined);
+                                                        setProfileError(null);
+                                                        setShowProfile(true);
                                                     }}
                                                     className="flex h-7 w-full items-center gap-2.5 rounded-md px-2 transition hover:bg-white/[0.05]"
                                                 >
@@ -2472,7 +2504,100 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                     </aside>
 
                     <div className="ui-studio-canvas-wrap relative min-h-0 p-4 xl:border-r xl:border-white/8">
-                        {showTokenManager ? (
+                        {showProfile ? (
+                        <section className="ui-studio-canvas flex h-full min-h-[440px] flex-col overflow-hidden rounded-2xl bg-[linear-gradient(180deg,rgba(20,31,49,0.96),rgba(12,20,35,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_rgba(2,6,14,0.45)]">
+                            <header className="flex items-center gap-3 border-b border-white/8 px-4 py-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowProfile(false)}
+                                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#8da4c3] transition hover:bg-white/[0.06] hover:text-[#dbe8fb]"
+                                >
+                                    <Minus className="size-3 rotate-90" />
+                                    Back
+                                </button>
+                                <div className="min-w-0 flex-1">
+                                    <p className="ui-studio-heading text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7f95b4]">Profile</p>
+                                    <p className="truncate text-xs text-[#9bb0cc]">Manage your display name and avatar</p>
+                                </div>
+                            </header>
+                            <div className="flex min-h-0 flex-1 items-start justify-center overflow-y-auto px-4 py-10">
+                                <div className="w-full max-w-sm space-y-7">
+                                    {/* Avatar */}
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="relative">
+                                            <div className="size-24 rounded-full overflow-hidden bg-[#63e8da]/16 flex items-center justify-center text-2xl font-semibold text-[#7efef0]">
+                                                {profileAvatarPreview
+                                                    ? <img src={profileAvatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                                    : (user?.name ? user.name.slice(0, 2).toUpperCase() : user?.email?.slice(0, 2).toUpperCase() ?? 'UI')
+                                                }
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => profileFileRef.current?.click()}
+                                                className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-[#63e8da] text-[#0d1a1a] hover:bg-[#7efef0] transition shadow-lg"
+                                                aria-label="Upload avatar"
+                                            >
+                                                <UserSettings className="size-4" />
+                                            </button>
+                                        </div>
+                                        <input
+                                            ref={profileFileRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => void handleProfileFileChange(e)}
+                                        />
+                                        {profileAvatarPreview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => { setProfileAvatarPreview(null); setProfileAvatarBase64(null); if (profileFileRef.current) profileFileRef.current.value = ''; }}
+                                                className="text-xs text-[#8da4c3] hover:text-[#ff7d87] transition"
+                                            >
+                                                Remove photo
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Fields */}
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-[#8da4c3] mb-1.5">Email</label>
+                                            <div className="w-full rounded-lg border border-white/8 bg-white/[0.04] px-3.5 py-2.5 text-sm text-[#8da4c3] select-all">
+                                                {user?.email}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-[#8da4c3] mb-1.5">Display Name</label>
+                                            <input
+                                                type="text"
+                                                value={profileName}
+                                                onChange={(e) => setProfileName(e.target.value)}
+                                                placeholder="Your name"
+                                                className="w-full rounded-lg border border-white/8 bg-white/[0.04] px-3.5 py-2.5 text-sm text-[#f0f6ff] placeholder-[#8da4c3]/60 outline-none focus:border-[#63e8da]/60 focus:bg-white/[0.06] transition"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {profileError && <p className="text-sm text-red-400">{profileError}</p>}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleProfileSave()}
+                                        disabled={profileSaving}
+                                        className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#63e8da] py-2.5 text-sm font-semibold text-[#0d1a1a] hover:bg-[#7efef0] active:bg-[#63e8da] transition disabled:opacity-60"
+                                    >
+                                        {profileSaving ? (
+                                            <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                        ) : profileSaved ? (
+                                            <><Check className="size-4" /> Saved</>
+                                        ) : (
+                                            'Save Changes'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                        ) : showTokenManager ? (
                         <section className="ui-studio-canvas flex h-full min-h-[440px] flex-col overflow-hidden rounded-2xl bg-[linear-gradient(180deg,rgba(20,31,49,0.96),rgba(12,20,35,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_rgba(2,6,14,0.45)]">
                             {/* Token Manager header */}
                             <header className="flex items-center gap-3 border-b border-white/8 px-4 py-3">
@@ -2809,31 +2934,20 @@ ${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additi
                                     >
                                         <Grid className="size-4" />
                                     </button>
-                                    <div className="inline-flex items-center gap-2 p-2">
-                                        <Sun className={cn('size-4 transition-colors', canvasTheme === 'light' ? 'text-[#86fff1]' : 'text-[#7289a9]')} />
-                                        <Switch.Root
-                                            checked={canvasTheme === 'dark'}
-                                            onCheckedChange={(checked) => setCanvasTheme(checked ? 'dark' : 'light')}
-                                            aria-label="Toggle canvas theme"
-                                            className={cn(
-                                                'relative h-5 w-10 shrink-0 rounded-full border transition-colors duration-300 ease-out outline-none',
-                                                'focus-visible:ring-2 focus-visible:ring-[#63e8da]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#101a2d]',
-                                                canvasTheme === 'dark'
-                                                    ? 'border-[#111f34]/45 bg-[#63e8da]/30'
-                                                    : 'border-white/20 bg-[#111f34]',
-                                            )}
-                                        >
-                                            <Switch.Thumb
-                                                className={cn(
-                                                    'block size-3 rounded-full shadow-md transition-transform duration-300 ease-out will-change-transform',
-                                                    canvasTheme === 'dark'
-                                                        ? 'translate-x-[22px] bg-[#86fff1]'
-                                                        : 'translate-x-[2px] bg-[#d8e6fb]',
-                                                )}
-                                            />
-                                        </Switch.Root>
-                                        <Moon className={cn('size-4 transition-colors', canvasTheme === 'dark' ? 'text-[#86fff1]' : 'text-[#7289a9]')} />
-                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStudioTheme((t) => t === 'dark' ? 'light' : 'dark')}
+                                        aria-label="Toggle light/dark mode"
+                                        className={cn(
+                                            'inline-flex size-8 items-center justify-center rounded-sm transition',
+                                            'bg-white/[0.04] text-[#94aac8] hover:bg-white/[0.08] hover:text-[#eaf2ff]',
+                                        )}
+                                    >
+                                        {studioTheme === 'dark'
+                                            ? <Sun className="size-4" />
+                                            : <Moon className="size-4" />
+                                        }
+                                    </button>
                                 </div>
                             </header>
                             <div
