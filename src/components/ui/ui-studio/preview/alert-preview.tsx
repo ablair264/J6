@@ -4,6 +4,7 @@ import { RotateCcw } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import type { AlertVariant } from '@/components/ui/ui-studio.types';
+import { buildComponentWrapperStyle } from '../utilities';
 
 export function AlertPreview({
     alertVariant,
@@ -43,7 +44,7 @@ export function AlertPreview({
             variant={alertVariant}
             dismissible={alertDismissible}
             onDismiss={() => setDismissed(true)}
-            style={style}
+            style={buildComponentWrapperStyle(style, 'alert')}
             className={cn('max-w-md', motionClassName)}
         >
             <AlertTitle>Alert Title</AlertTitle>

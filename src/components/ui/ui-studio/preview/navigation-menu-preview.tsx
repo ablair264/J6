@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import { renderStaggeredChildren } from '../motion';
 import type { ComponentStyleConfig } from '@/components/ui/ui-studio.types';
+import { buildComponentWrapperStyle } from '../utilities';
 
 const NAV_ITEMS = ['Home', 'About', 'Services', 'Contact', 'Blog'];
 
@@ -43,7 +44,7 @@ export function NavigationMenuPreview({
     return (
         <NavigationMenu
             orientation={instanceStyle.navMenuOrientation}
-            style={style}
+            style={buildComponentWrapperStyle(style, 'navigation-menu')}
             className={cn(motionClassName)}
         >
             <NavigationMenuList>

@@ -686,7 +686,7 @@ export function renderPreview(
 
         case 'slider':
             return (
-                <div className={cn('w-full max-w-sm rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={style}>
+                <div className={cn('w-full max-w-sm rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={buildComponentWrapperStyle(style, 'slider')}>
                     <div className="flex items-center gap-2">
                         {instance.style.componentPreset === 'slider-elastic' ? <span className="text-sm text-muted-foreground">-</span> : null}
                         <Slider className={cn('ui-studio-slider-motion', motionClassName)} defaultValue={[55]} max={100} step={1} />
@@ -708,7 +708,7 @@ export function renderPreview(
             ));
             const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
             return (
-                <div className="w-full max-w-md" style={style}>
+                <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
                     <Accordion {...accordionProps} className={cn(motionClassName)}>
                         {staggeredItems}
                     </Accordion>
@@ -733,7 +733,7 @@ export function renderPreview(
                     <Avatar
                         shape={instance.style.avatarShape}
                         size={instance.style.size}
-                        style={style}
+                        style={buildComponentWrapperStyle(style, 'avatar')}
                         className={cn(motionClassName)}
                     >
                         {instance.style.avatarSrc ? (

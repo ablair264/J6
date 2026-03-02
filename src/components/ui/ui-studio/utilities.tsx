@@ -686,24 +686,54 @@ export function buildComponentWrapperStyle(
     fullStyle: CSSProperties,
     kind: UIComponentKind,
 ): CSSProperties {
-    const stripFillAndBorder: UIComponentKind[] = [
-        'progress', 'skeleton', 'data-table',
-    ];
-
-    if (!stripFillAndBorder.includes(kind)) {
-        return fullStyle;
+    // Components that manage their own visual appearance entirely —
+    // only keep borderRadius and boxShadow
+    const stripAll: UIComponentKind[] = ['avatar'];
+    if (stripAll.includes(kind)) {
+        const kept: CSSProperties = {};
+        if (fullStyle.borderRadius) kept.borderRadius = fullStyle.borderRadius;
+        if (fullStyle.boxShadow) kept.boxShadow = fullStyle.boxShadow;
+        return kept;
     }
 
-    const {
-        background: _bg,
-        borderColor: _bc,
-        borderWidth: _bw,
-        borderStyle: _bs,
-        paddingInline: _pi,
-        ...safeProps
-    } = fullStyle;
+    // Components with variant-based visuals (own bg/border/sizing)
+    const stripVisuals: UIComponentKind[] = [
+        'alert', 'accordion', 'progress', 'skeleton', 'data-table',
+    ];
+    if (stripVisuals.includes(kind)) {
+        const {
+            background: _bg,
+            borderColor: _bc,
+            borderWidth: _bw,
+            borderStyle: _bs,
+            border: _b,
+            paddingInline: _pi,
+            minHeight: _mh,
+            height: _h,
+            width: _w,
+            ...rest
+        } = fullStyle;
+        return rest;
+    }
 
-    return safeProps;
+    // Layout-heavy components
+    const stripLayout: UIComponentKind[] = ['navigation-menu'];
+    if (stripLayout.includes(kind)) {
+        const {
+            background: _bg,
+            borderColor: _bc,
+            borderWidth: _bw,
+            borderStyle: _bs,
+            border: _b,
+            paddingInline: _pi,
+            minHeight: _mh,
+            height: _h,
+            ...rest
+        } = fullStyle;
+        return rest;
+    }
+
+    return fullStyle;
 }
 
 /**
