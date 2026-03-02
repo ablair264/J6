@@ -350,14 +350,14 @@ export function TokenManager() {
                                         type="button"
                                         disabled={suggestingPalette}
                                         onClick={() => void suggestPalette(suggestPaletteColor)}
-                                        className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#63e8da] transition hover:bg-[#63e8da]/10 disabled:opacity-50"
+                                        className="flex items-center gap-1.5 rounded-lg bg-[#63e8da]/12 px-3 py-1.5 text-xs font-medium text-[#63e8da] shadow-[inset_0_0_0_1px_rgba(99,232,218,0.2)] transition hover:bg-[#63e8da]/20 hover:shadow-[inset_0_0_0_1px_rgba(99,232,218,0.35)] disabled:opacity-50"
                                         title="Generate AI palette from selected colour"
                                     >
                                         {suggestingPalette
-                                            ? <svg className="size-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                                            : <Sparkles className="size-3" />
+                                            ? <svg className="size-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                            : <Sparkles className="size-3.5" />
                                         }
-                                        Suggest
+                                        AI Suggest
                                     </button>
                                 </div>
                                 <button

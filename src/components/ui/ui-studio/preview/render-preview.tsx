@@ -2,10 +2,8 @@ import type { CSSProperties } from 'react';
 import { motion } from 'motion/react';
 import { Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DataTable } from '@/components/ui/data-table';
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from '@/components/ui/navigation-menu';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +49,8 @@ import {
     buildExtractedEffectsClassName,
     buildMotionClassName,
     buildPreviewPresentation,
+    buildComponentWrapperStyle,
+    extractTextStyle,
     getComponentVisualPreset,
     iconSnippet,
     renderConfiguredIcon,
@@ -68,9 +68,13 @@ import {
     buildEntryPresetMotionConfig,
     buildMotionTransition,
     renderEntryMotion,
+    renderStaggeredChildren,
     renderWithMotionControls,
 } from '../motion';
+import { AlertPreview } from './alert-preview';
+import { DrawerPreview } from './drawer-preview';
 import { InteractiveDropdownPreview } from './dropdown-preview';
+import { NavigationMenuPreview } from './navigation-menu-preview';
 import type { ExportStyleMode } from '../utilities';
 
 const MotionTooltipTrigger = motion.create(TooltipTrigger);
@@ -589,7 +593,8 @@ export function renderPreview(
 
         case 'tabs': {
             const triggerStyle = {
-                ...style,
+                ...extractTextStyle(style),
+                borderRadius: style.borderRadius,
                 minHeight: `${Math.round(32 * SIZE_SCALE[instance.style.size])}px`,
             } satisfies CSSProperties;
             const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
@@ -695,15 +700,17 @@ export function renderPreview(
             const accordionProps = instance.style.accordionType === 'single'
                 ? { type: 'single' as const, collapsible: instance.style.accordionCollapsible }
                 : { type: 'multiple' as const };
+            const accordionItems = items.map((n) => (
+                <AccordionItem key={n} value={`item-${n}`}>
+                    <AccordionTrigger>Section {n}</AccordionTrigger>
+                    <AccordionContent>Content for section {n}.</AccordionContent>
+                </AccordionItem>
+            ));
+            const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
             return (
                 <div className="w-full max-w-md" style={style}>
                     <Accordion {...accordionProps} className={cn(motionClassName)}>
-                        {items.map((n) => (
-                            <AccordionItem key={n} value={`item-${n}`}>
-                                <AccordionTrigger>Section {n}</AccordionTrigger>
-                                <AccordionContent>Content for section {n}.</AccordionContent>
-                            </AccordionItem>
-                        ))}
+                        {staggeredItems}
                     </Accordion>
                 </div>
             );
@@ -711,15 +718,13 @@ export function renderPreview(
 
         case 'alert':
             return (
-                <Alert
-                    variant={instance.style.alertVariant}
-                    dismissible={instance.style.alertDismissible}
+                <AlertPreview
+                    alertVariant={instance.style.alertVariant}
+                    alertDismissible={instance.style.alertDismissible}
+                    alertShowIcon={instance.style.alertShowIcon}
                     style={style}
-                    className={cn('max-w-md', motionClassName)}
-                >
-                    <AlertTitle>Alert Title</AlertTitle>
-                    <AlertDescription>This is an alert message with relevant details.</AlertDescription>
-                </Alert>
+                    motionClassName={motionClassName}
+                />
             );
 
         case 'avatar':
@@ -764,7 +769,7 @@ export function renderPreview(
                 Object.fromEntries(columns.map((col, colIdx) => [col.key, sampleRows[rowIdx % 5]?.[colIdx] ?? `R${rowIdx + 1}`]))
             );
             return (
-                <div className="w-full max-w-lg overflow-auto" style={style}>
+                <div className="w-full max-w-lg overflow-auto" style={buildComponentWrapperStyle(style, 'data-table')}>
                     <DataTable
                         columns={columns}
                         data={data}
@@ -776,81 +781,36 @@ export function renderPreview(
             );
         }
 
-        case 'drawer': {
-            const drawerBodyMotion = buildEntryPresetMotionConfig('drawer', instance.style, instance.style.drawerBodyMotionPresetId);
-            const drawerSide = instance.style.drawerSide;
-            const isDrawerH = drawerSide === 'left' || drawerSide === 'right';
-            const drawerPanelW = Math.min(instance.style.drawerWidth, 240);
-            const drawerPanel = (
-                <div
-                    className={cn(
-                        'shrink-0 border-border/40',
-                        drawerSide === 'left' && 'border-r',
-                        drawerSide === 'right' && 'border-l',
-                        drawerSide === 'top' && 'border-b',
-                        drawerSide === 'bottom' && 'border-t',
-                    )}
-                    style={{
-                        ...panelStyle,
-                        ...(isDrawerH ? { width: `${drawerPanelW}px` } : { height: '120px' }),
-                    }}
-                >
-                    {renderEntryMotion(
-                        <div className="space-y-2 p-4">
-                            <div className="text-sm font-semibold">Drawer</div>
-                            <div className="text-xs text-muted-foreground">Panel content area.</div>
-                        </div>,
-                        drawerBodyMotion,
-                    )}
-                </div>
-            );
-            const drawerMain = (
-                <div className="flex-1 bg-muted/10 p-3">
-                    <div className="text-[10px] text-muted-foreground/60">Main content</div>
-                </div>
-            );
+        case 'drawer':
             return (
-                <div className={cn(
-                    'relative overflow-hidden rounded-xl border border-border/40',
-                    isDrawerH ? 'flex h-[240px] w-full max-w-lg' : 'flex h-[280px] w-full max-w-lg flex-col',
-                )}>
-                    {(drawerSide === 'left' || drawerSide === 'top')
-                        ? <>{drawerPanel}{drawerMain}</>
-                        : <>{drawerMain}{drawerPanel}</>}
-                </div>
+                <DrawerPreview
+                    instanceStyle={instance.style}
+                    triggerStyle={style}
+                    panelStyle={panelStyle}
+                    motionClassName={motionClassName}
+                    pinnedOpen={pinOverlayOpen}
+                />
             );
-        }
 
-        case 'navigation-menu': {
-            const navItems = ['Home', 'About', 'Services', 'Contact', 'Blog'].slice(0, instance.style.navMenuItemCount);
+        case 'navigation-menu':
             return (
-                <NavigationMenu
-                    orientation={instance.style.navMenuOrientation}
+                <NavigationMenuPreview
+                    instanceStyle={instance.style}
                     style={style}
-                    className={cn(motionClassName)}
-                >
-                    <NavigationMenuList>
-                        {navItems.map((label, idx) => (
-                            <NavigationMenuItem key={label}>
-                                <NavigationMenuLink active={instance.style.navMenuActiveIndicator && idx === 0}>
-                                    {label}
-                                </NavigationMenuLink>
-                            </NavigationMenuItem>
-                        ))}
-                    </NavigationMenuList>
-                </NavigationMenu>
+                    motionClassName={motionClassName}
+                />
             );
-        }
 
         case 'progress':
             return (
-                <div className="w-full max-w-sm" style={style}>
+                <div className="w-full max-w-sm" style={buildComponentWrapperStyle(style, 'progress')}>
                     <Progress
                         value={instance.style.progressValue}
                         variant={instance.style.progressVariant}
                         size={instance.style.size}
                         showLabel={instance.style.progressShowLabel}
                         className={cn(motionClassName)}
+                        style={{ borderRadius: style.borderRadius, boxShadow: style.boxShadow }}
                     />
                 </div>
             );
@@ -859,15 +819,17 @@ export function renderPreview(
             const animSpeed = instance.style.skeletonAnimationSpeed <= 0.75 ? 'fast' as const
                 : instance.style.skeletonAnimationSpeed >= 1.5 ? 'slow' as const
                 : 'normal' as const;
+            const skeletonPassthrough = { borderRadius: style.borderRadius, boxShadow: style.boxShadow };
             return (
-                <div className="w-full max-w-sm space-y-2" style={style}>
+                <div className="w-full max-w-sm space-y-2" style={buildComponentWrapperStyle(style, 'skeleton')}>
                     <Skeleton
                         variant={instance.style.skeletonVariant}
                         animationSpeed={animSpeed}
                         className={cn(motionClassName)}
+                        style={skeletonPassthrough}
                     />
-                    {instance.style.skeletonLines > 1 && <Skeleton variant="text" animationSpeed={animSpeed} />}
-                    {instance.style.skeletonLines > 2 && <Skeleton variant="text" animationSpeed={animSpeed} className="w-3/4" />}
+                    {instance.style.skeletonLines > 1 && <Skeleton variant="text" animationSpeed={animSpeed} style={skeletonPassthrough} />}
+                    {instance.style.skeletonLines > 2 && <Skeleton variant="text" animationSpeed={animSpeed} className="w-3/4" style={skeletonPassthrough} />}
                 </div>
             );
         }

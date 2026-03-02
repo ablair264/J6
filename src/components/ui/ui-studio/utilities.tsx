@@ -677,6 +677,51 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
     return result;
 }
 
+/**
+ * For components with internal styling (Progress, Skeleton, DataTable, etc.),
+ * strip background/border/fill properties from the wrapper style so they
+ * don't override the component's own visuals. Keep layout properties.
+ */
+export function buildComponentWrapperStyle(
+    fullStyle: CSSProperties,
+    kind: UIComponentKind,
+): CSSProperties {
+    const stripFillAndBorder: UIComponentKind[] = [
+        'progress', 'skeleton', 'data-table',
+    ];
+
+    if (!stripFillAndBorder.includes(kind)) {
+        return fullStyle;
+    }
+
+    const {
+        background: _bg,
+        borderColor: _bc,
+        borderWidth: _bw,
+        borderStyle: _bs,
+        paddingInline: _pi,
+        ...safeProps
+    } = fullStyle;
+
+    return safeProps;
+}
+
+/**
+ * Extract text/font-related styles from the full preview style,
+ * for passing to inner elements like TabsTrigger.
+ */
+export function extractTextStyle(fullStyle: CSSProperties): CSSProperties {
+    const result: CSSProperties = {};
+    if (fullStyle.color) result.color = fullStyle.color;
+    if (fullStyle.fontSize) result.fontSize = fullStyle.fontSize;
+    if (fullStyle.fontWeight) result.fontWeight = fullStyle.fontWeight;
+    if (fullStyle.letterSpacing) result.letterSpacing = fullStyle.letterSpacing;
+    if (fullStyle.lineHeight) result.lineHeight = fullStyle.lineHeight;
+    if (fullStyle.textTransform) result.textTransform = fullStyle.textTransform;
+    if (fullStyle.textShadow) result.textShadow = fullStyle.textShadow;
+    return result;
+}
+
 export function buildMotionVariables(config: ComponentStyleConfig): CSSProperties {
     return {
         ['--ui-motion-speed' as string]: `${config.motionSpeed}s`,
