@@ -687,6 +687,7 @@ export function InspectorPanel() {
                                     <FlatUnitField label="Rows" value={selectedStyle.dataTableRows} min={1} max={10} unit="" onChange={(value) => updateSelectedStyle('dataTableRows', value)} />
                                 </div>
                                 <FlatColorControl label="Header Background" value={selectedStyle.dataTableHeaderBg} onChange={(value) => updateSelectedStyle('dataTableHeaderBg', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Row Background" value={selectedStyle.dataTableRowBg} onChange={(value) => updateSelectedStyle('dataTableRowBg', value)} tokens={activeTokenSet.tokens} />
                                 {selectedStyle.dataTableStriped ? (
                                     <FlatColorControl label="Stripe Color" value={selectedStyle.dataTableStripedBg} onChange={(value) => updateSelectedStyle('dataTableStripedBg', value)} tokens={activeTokenSet.tokens} />
                                 ) : null}

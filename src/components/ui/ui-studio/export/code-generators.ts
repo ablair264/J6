@@ -440,6 +440,7 @@ export function buildTailwindThemeStyles(
 ${[...activeVarLines, ...sizeLines].join('\n')}
 }
 
+/* Dark mode: customise these values for your dark theme */
 .dark {
 ${activeVarLines.join('\n')}
 }

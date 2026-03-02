@@ -111,6 +111,7 @@ interface DataTableProps
   striped?: boolean
   size?: "sm" | "md" | "lg"
   headerBg?: string
+  rowBg?: string
   stripedBg?: string
   onSort?: (columnKey: string, direction: SortDirection) => void
 }
@@ -144,6 +145,7 @@ function DataTable({
   size = "md",
   variant,
   headerBg,
+  rowBg,
   stripedBg,
   onSort,
   ...props
@@ -241,7 +243,9 @@ function DataTable({
               style={
                 striped && stripedBg && rowIndex % 2 === 1
                   ? { backgroundColor: stripedBg }
-                  : undefined
+                  : rowBg
+                    ? { backgroundColor: rowBg }
+                    : undefined
               }
             >
               {columns.map((column) => (

@@ -203,7 +203,9 @@ export function TokenManager() {
                     const updatedTokens = set.tokens.map((token) => {
                         const suggested = data.palette![token.id];
                         if (!suggested) return token;
-                        return { ...token, value: suggested, cssVar: undefined };
+                        const validated = normalizeHexColor(suggested);
+                        if (!validated) return token;
+                        return { ...token, value: validated, cssVar: undefined };
                     });
                     return { ...set, tokens: updatedTokens };
                 }),

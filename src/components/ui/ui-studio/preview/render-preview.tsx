@@ -194,7 +194,7 @@ export function componentSnippet(
             }
         case 'dialog': {
             const dialogDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
-            return `${dialogDeclarations ? `${dialogDeclarations}\n\n` : ''}<DialogTriggerPrimitive defaultOpen={${String(instance.style.dialogDefaultOpen)}}>\n  <Button intent="primary"${buttonClassNameSnippet}${previewStyleSnippet}>Open dialog</Button>\n  <ModalOverlay isDismissable={${String(!instance.style.dialogModal)}}>\n    <Modal>\n      <Dialog${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</Dialog>\n    </Modal>\n  </ModalOverlay>\n</DialogTriggerPrimitive>`;
+            return `${dialogDeclarations ? `${dialogDeclarations}\n\n` : ''}<DialogTrigger defaultOpen={${String(instance.style.dialogDefaultOpen)}}>\n  <Button intent="primary"${buttonClassNameSnippet}${previewStyleSnippet}>Open dialog</Button>\n  <ModalOverlay isDismissable={${String(!instance.style.dialogModal)}}>\n    <Modal>\n      <Dialog${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</Dialog>\n    </Modal>\n  </ModalOverlay>\n</DialogTrigger>`;
         }
         case 'dropdown': {
             const dropdownDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations, `const dropdownPositionStyle = ${dropdownPositionStyleCode};`]
@@ -242,6 +242,7 @@ export function componentSnippet(
                 `striped={${String(instance.style.dataTableStriped)}}`,
                 `size="${instance.style.size}"`,
                 instance.style.dataTableHeaderBg ? `headerBg="${instance.style.dataTableHeaderBg}"` : '',
+                instance.style.dataTableRowBg ? `rowBg="${instance.style.dataTableRowBg}"` : '',
                 instance.style.dataTableStripedBg ? `stripedBg="${instance.style.dataTableStripedBg}"` : '',
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
@@ -625,6 +626,22 @@ export function renderPreview(
             const tabLabels = ['Style', 'Effects', 'Layout', 'Tokens', 'Export'];
             const tabCount = instance.style.tabsCount;
 
+            const hasHoverOrTap = instance.style.motionHoverEnabled || instance.style.motionTapEnabled;
+            const tabHover = instance.style.motionHoverEnabled ? {
+                scale: instance.style.motionHoverScale / 100,
+                x: instance.style.motionHoverX,
+                y: instance.style.motionHoverY,
+                rotate: instance.style.motionHoverRotate,
+                opacity: instance.style.motionHoverOpacity / 100,
+            } : undefined;
+            const tabTap = instance.style.motionTapEnabled ? {
+                scale: instance.style.motionTapScale / 100,
+                x: instance.style.motionTapX,
+                y: instance.style.motionTapY,
+                rotate: instance.style.motionTapRotate,
+                opacity: instance.style.motionTapOpacity / 100,
+            } : undefined;
+
             return (
                 <Tabs defaultValue="tab-0" className="w-full max-w-md">
                     <TabsList
@@ -639,11 +656,19 @@ export function renderPreview(
                                 value={`tab-${i}`}
                                 style={triggerStyle}
                                 activeBg={instance.style.tabsActiveBg || undefined}
-                                className={cn('max-w-full overflow-hidden', instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger')}
+                                className={cn(
+                                    'max-w-full overflow-hidden',
+                                    instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger',
+                                )}
+                                asChild={hasHoverOrTap}
                             >
-                                {i === 0
-                                    ? renderWithMotionControls(withIcon(tabLabels[i] ?? `Tab ${i + 1}`, icon, instance.style.iconPosition), instance.style, false, true)
-                                    : renderWithMotionControls(tabLabels[i] ?? `Tab ${i + 1}`, instance.style, false, true)}
+                                {hasHoverOrTap ? (
+                                    <motion.button whileHover={tabHover} whileTap={tabTap}>
+                                        {i === 0 ? withIcon(tabLabels[i] ?? `Tab ${i + 1}`, icon, instance.style.iconPosition) : (tabLabels[i] ?? `Tab ${i + 1}`)}
+                                    </motion.button>
+                                ) : (
+                                    <>{i === 0 ? withIcon(tabLabels[i] ?? `Tab ${i + 1}`, icon, instance.style.iconPosition) : (tabLabels[i] ?? `Tab ${i + 1}`)}</>
+                                )}
                             </TabsTrigger>
                         ))}
                     </TabsList>
@@ -810,6 +835,7 @@ export function renderPreview(
                         striped={instance.style.dataTableStriped}
                         size={instance.style.size}
                         headerBg={instance.style.dataTableHeaderBg || undefined}
+                        rowBg={instance.style.dataTableRowBg || undefined}
                         stripedBg={instance.style.dataTableStripedBg || undefined}
                         className={cn(motionClassName)}
                     />

@@ -56,12 +56,15 @@ export default function Projects() {
     }
   };
 
+  const [deleteError, setDeleteError] = useState('');
+
   const handleDelete = async (id: string) => {
+    setDeleteError('');
     try {
       await deleteProject(id);
       setProjects((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      // silently ignore
+    } catch (e: unknown) {
+      setDeleteError(e instanceof Error ? e.message : 'Failed to delete project');
     }
     setDeleteConfirmId(null);
   };
@@ -122,9 +125,9 @@ export default function Projects() {
         </div>
 
         {/* Error */}
-        {error && (
+        {(error || deleteError) && (
           <div className="p-4 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-            {error}
+            {error || deleteError}
           </div>
         )}
 

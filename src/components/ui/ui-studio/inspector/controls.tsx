@@ -136,14 +136,14 @@ export function UnitInput({
         const decimals = String(step).split('.')[1];
         return decimals ? decimals.length : 2;
     }, [step]);
-    const clamp = (next: number) => Math.max(min, Math.min(max, next));
-    const normalize = (next: number) => {
+    const clamp = useMemo(() => (next: number) => Math.max(min, Math.min(max, next)), [min, max]);
+    const normalize = useMemo(() => (next: number) => {
         const clamped = clamp(next);
         if (precision === 0) {
             return Math.round(clamped);
         }
         return Number(clamped.toFixed(precision));
-    };
+    }, [clamp, precision]);
 
     useEffect(() => {
         setDraftValue(String(value));
@@ -700,17 +700,15 @@ export function FlatSwitchRow({
                 className={cn(
                     'relative h-5 w-10 shrink-0 rounded-full border transition-colors duration-200 outline-none',
                     'focus-visible:ring-2 focus-visible:ring-[color:var(--inspector-accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--inspector-bg)]',
-                    checked
-                        ? 'border-[var(--inspector-border-strong)] bg-[color:var(--inspector-accent-soft)]'
-                        : 'border-[var(--inspector-border-soft)] bg-[var(--inspector-input)]',
+                    'border-[var(--inspector-border-soft)] bg-[var(--inspector-input)]',
+                    'data-[state=checked]:border-[var(--inspector-border-strong)] data-[state=checked]:bg-[color:var(--inspector-accent-soft)]',
                 )}
             >
                 <Switch.Thumb
                     className={cn(
                         'block size-4 rounded-full transition-transform duration-200 will-change-transform',
-                        checked
-                            ? 'translate-x-[20px] bg-[var(--inspector-accent)]'
-                            : 'translate-x-[2px] bg-[var(--inspector-muted-text)]',
+                        'translate-x-[2px] bg-[var(--inspector-muted-text)]',
+                        'data-[state=checked]:translate-x-[20px] data-[state=checked]:bg-[var(--inspector-accent)]',
                     )}
                 />
             </Switch.Root>

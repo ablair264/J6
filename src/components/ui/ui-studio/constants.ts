@@ -415,6 +415,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     dataTableSortable: true,
     dataTableStriped: true,
     dataTableHeaderBg: '',
+    dataTableRowBg: '',
     dataTableStripedBg: '',
     drawerSide: 'right',
     drawerWidth: 320,

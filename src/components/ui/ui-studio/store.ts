@@ -548,11 +548,15 @@ export const useStudioStore = create<StudioState>()(
             },
 
             deleteInstance: (id) => {
-                set((state) => ({
-                    instances: state.instances.length <= 1
-                        ? state.instances
-                        : state.instances.filter((instance) => instance.id !== id),
-                }));
+                set((state) => {
+                    if (state.instances.length <= 1) return state;
+                    const remaining = state.instances.filter((instance) => instance.id !== id);
+                    const needsNewSelection = state.selectedInstanceId === id;
+                    return {
+                        instances: remaining,
+                        ...(needsNewSelection && { selectedInstanceId: remaining[0]?.id ?? null }),
+                    };
+                });
             },
 
             duplicateInstance: (sourceId) => {
