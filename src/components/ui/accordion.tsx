@@ -36,12 +36,16 @@ type AccordionMultipleProps = React.ComponentProps<
 
 type AccordionProps = AccordionSingleProps | AccordionMultipleProps
 
-function Accordion({ className, variant, ...props }: AccordionProps) {
+function Accordion({ className, variant, style, dividerColor, ...props }: AccordionProps & { dividerColor?: string }) {
+  const mergedStyle = dividerColor
+    ? { ...style, ['--color-border' as string]: dividerColor }
+    : style;
   return (
     <AccordionPrimitive.Root
       data-slot="accordion"
       data-variant={variant}
       className={cn(accordionVariants({ variant }), className)}
+      style={mergedStyle}
       {...(props as React.ComponentProps<typeof AccordionPrimitive.Root>)}
     />
   )
@@ -83,7 +87,7 @@ function AccordionTrigger({
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(
-          "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+          "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-4 text-left font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
           className
         )}
         {...props}
@@ -113,7 +117,7 @@ function AccordionContent({
           exit={{ height: 0, opacity: 0 }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
         >
-          <div className={cn("pb-4 pt-0 text-sm", className)}>{children}</div>
+          <div className={cn("pb-4 pt-0", className)}>{children}</div>
         </motion.div>
       </AnimatePresence>
     </AccordionPrimitive.Content>

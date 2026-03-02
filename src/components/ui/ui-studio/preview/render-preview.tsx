@@ -158,7 +158,14 @@ export function componentSnippet(
     switch (instance.kind) {
         case 'accordion': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<Accordion type="${instance.style.accordionType}"${instance.style.accordionType === 'single' ? ` collapsible={${String(instance.style.accordionCollapsible)}}` : ''}${classNameSnippet}${previewStyleSnippet}>\n  <AccordionItem value="item-1">\n    <AccordionTrigger>Section 1</AccordionTrigger>\n    <AccordionContent>Content for section 1.</AccordionContent>\n  </AccordionItem>\n</Accordion>`;
+            const accProps = [
+                `type="${instance.style.accordionType}"`,
+                instance.style.accordionType === 'single' ? `collapsible={${String(instance.style.accordionCollapsible)}}` : '',
+                instance.style.accordionVariant !== 'default' ? `variant="${instance.style.accordionVariant}"` : '',
+                instance.style.accordionDividerColor ? `dividerColor="${instance.style.accordionDividerColor}"` : '',
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            return `${declarations ? `${declarations}\n\n` : ''}<Accordion\n  ${accProps}${previewStyleSnippet}\n>\n  <AccordionItem value="item-1">\n    <AccordionTrigger>Section 1</AccordionTrigger>\n    <AccordionContent>Content for section 1.</AccordionContent>\n  </AccordionItem>\n</Accordion>`;
         }
         case 'alert': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -214,7 +221,13 @@ export function componentSnippet(
         }
         case 'tabs': {
             const tabDeclarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}<Tabs defaultValue="style">\n  <TabsList>\n    <TabsTrigger value="style"${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Style${instance.style.iconPosition === 'right' ? iconRight : ''}</TabsTrigger>\n    <TabsTrigger value="effects"${classNameSnippet}${previewStyleSnippet}>Effects</TabsTrigger>\n  </TabsList>\n</Tabs>`;
+            const listProps = [
+                instance.style.tabsVariant !== 'default' ? `variant="${instance.style.tabsVariant}"` : '',
+                instance.style.tabsListBg ? `listBg="${instance.style.tabsListBg}"` : '',
+            ].filter(Boolean).join(' ');
+            const listAttr = listProps ? ` ${listProps}` : '';
+            const activeBgAttr = instance.style.tabsActiveBg ? ` activeBg="${instance.style.tabsActiveBg}"` : '';
+            return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}<Tabs defaultValue="tab-1">\n  <TabsList${listAttr}>\n    <TabsTrigger value="tab-1"${activeBgAttr}${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Tab 1${instance.style.iconPosition === 'right' ? iconRight : ''}</TabsTrigger>\n    <TabsTrigger value="tab-2"${activeBgAttr}${classNameSnippet}${previewStyleSnippet}>Tab 2</TabsTrigger>\n  </TabsList>\n  <TabsContent value="tab-1">Tab content</TabsContent>\n</Tabs>`;
         }
         case 'tooltip': {
             const tooltipDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
@@ -609,34 +622,39 @@ export function renderPreview(
             } satisfies CSSProperties;
             const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
             const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsTextMotionPresetId);
+            const tabLabels = ['Style', 'Effects', 'Layout', 'Tokens', 'Export'];
+            const tabCount = instance.style.tabsCount;
 
             return (
-                <Tabs defaultValue="style" className="w-full max-w-md">
-                    <TabsList className={cn(instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline')}>
-                        <TabsTrigger value="style" style={triggerStyle} className={cn('max-w-full overflow-hidden', instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger')}>
-                            {renderWithMotionControls(
-                                withIcon('Style', icon, instance.style.iconPosition),
-                                instance.style,
-                                false,
-                                true,
-                            )}
-                        </TabsTrigger>
-                        <TabsTrigger value="effects" style={triggerStyle} className={cn('max-w-full overflow-hidden', instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger')}>
-                            {renderWithMotionControls('Effects', instance.style, false, true)}
-                        </TabsTrigger>
+                <Tabs defaultValue="tab-0" className="w-full max-w-md">
+                    <TabsList
+                        variant={instance.style.tabsVariant}
+                        listBg={instance.style.tabsListBg || undefined}
+                        className={cn(instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline')}
+                        style={{ borderRadius: style.borderRadius, boxShadow: style.boxShadow }}
+                    >
+                        {Array.from({ length: tabCount }, (_, i) => (
+                            <TabsTrigger
+                                key={i}
+                                value={`tab-${i}`}
+                                style={triggerStyle}
+                                activeBg={instance.style.tabsActiveBg || undefined}
+                                className={cn('max-w-full overflow-hidden', instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger')}
+                            >
+                                {i === 0
+                                    ? renderWithMotionControls(withIcon(tabLabels[i] ?? `Tab ${i + 1}`, icon, instance.style.iconPosition), instance.style, false, true)
+                                    : renderWithMotionControls(tabLabels[i] ?? `Tab ${i + 1}`, instance.style, false, true)}
+                            </TabsTrigger>
+                        ))}
                     </TabsList>
-                    <TabsContent value="style" className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
-                        {renderEntryMotion(
-                            renderEntryMotion(<span>Style tab body</span>, tabsTextMotion),
-                            tabsBodyMotion,
-                        )}
-                    </TabsContent>
-                    <TabsContent value="effects" className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
-                        {renderEntryMotion(
-                            renderEntryMotion(<span>Effects tab body</span>, tabsTextMotion),
-                            tabsBodyMotion,
-                        )}
-                    </TabsContent>
+                    {Array.from({ length: tabCount }, (_, i) => (
+                        <TabsContent key={i} value={`tab-${i}`} className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
+                            {renderEntryMotion(
+                                renderEntryMotion(<span>{tabLabels[i] ?? `Tab ${i + 1}`} tab body</span>, tabsTextMotion),
+                                tabsBodyMotion,
+                            )}
+                        </TabsContent>
+                    ))}
                 </Tabs>
             );
         }
@@ -719,7 +737,12 @@ export function renderPreview(
             const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
             return (
                 <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
-                    <Accordion {...accordionProps} className={cn(motionClassName)}>
+                    <Accordion
+                        {...accordionProps}
+                        variant={instance.style.accordionVariant}
+                        dividerColor={instance.style.accordionDividerColor || undefined}
+                        className={cn(motionClassName)}
+                    >
                         {staggeredItems}
                     </Accordion>
                 </div>

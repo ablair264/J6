@@ -108,6 +108,8 @@ export function InspectorPanel() {
         selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
 
     const isDataTable = selectedInstance?.kind === 'data-table';
+    const isAccordion = selectedInstance?.kind === 'accordion';
+    const isTabs = selectedInstance?.kind === 'tabs';
 
     const showWidthControl =
         selectedInstance?.kind === 'slider' ||
@@ -692,6 +694,55 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Accordion Config */}
+                    {isAccordion && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Accordion Config" icon={Table} defaultOpen>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatField label="Type" stacked>
+                                        <FlatSelect value={selectedStyle.accordionType} onValueChange={(value) => updateSelectedStyle('accordionType', value as 'single' | 'multiple')} ariaLabel="Accordion type">
+                                            <option value="single">Single</option>
+                                            <option value="multiple">Multiple</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="Variant" stacked>
+                                        <FlatSelect value={selectedStyle.accordionVariant} onValueChange={(value) => updateSelectedStyle('accordionVariant', value as 'default' | 'bordered' | 'ghost')} ariaLabel="Accordion variant">
+                                            <option value="default">Default</option>
+                                            <option value="bordered">Bordered</option>
+                                            <option value="ghost">Ghost</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                </div>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    {selectedStyle.accordionType === 'single' ? (
+                                        <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
+                                    ) : null}
+                                    <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
+                                </div>
+                                <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Tabs Config */}
+                    {isTabs && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Tabs Config" icon={Table} defaultOpen>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatField label="Variant" stacked>
+                                        <FlatSelect value={selectedStyle.tabsVariant} onValueChange={(value) => updateSelectedStyle('tabsVariant', value as 'default' | 'line')} ariaLabel="Tabs variant">
+                                            <option value="default">Default</option>
+                                            <option value="line">Line</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                </div>
+                                <FlatColorControl label="List Background" value={selectedStyle.tabsListBg} onChange={(value) => updateSelectedStyle('tabsListBg', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Active Tab Background" value={selectedStyle.tabsActiveBg} onChange={(value) => updateSelectedStyle('tabsActiveBg', value)} tokens={activeTokenSet.tokens} />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Appearance / Panel Design */}
                     <div className="p-1">
                         <FlatInspectorSection
@@ -810,7 +861,7 @@ export function InspectorPanel() {
                                 </>
                             ) : (
                                 <>
-                                    {currentAppearanceValues && !isDataTable ? (
+                                    {currentAppearanceValues && !isDataTable && !isAccordion && !isTabs ? (
                                         <>
                                             <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} />
                                             <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} />

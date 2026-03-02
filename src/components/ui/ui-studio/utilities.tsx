@@ -696,9 +696,25 @@ export function buildComponentWrapperStyle(
         return kept;
     }
 
+    // Accordion: keep background (wrapper fill) but strip border/sizing
+    if (kind === 'accordion') {
+        const {
+            borderColor: _bc,
+            borderWidth: _bw,
+            borderStyle: _bs,
+            border: _b,
+            paddingInline: _pi,
+            minHeight: _mh,
+            height: _h,
+            width: _w,
+            ...rest
+        } = fullStyle;
+        return rest;
+    }
+
     // Components with variant-based visuals (own bg/border/sizing)
     const stripVisuals: UIComponentKind[] = [
-        'alert', 'accordion', 'progress', 'skeleton', 'data-table',
+        'alert', 'progress', 'skeleton', 'data-table',
     ];
     if (stripVisuals.includes(kind)) {
         const {

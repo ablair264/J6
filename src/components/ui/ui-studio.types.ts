@@ -33,6 +33,8 @@ export type GradientSlideDirection = 'left' | 'right' | 'top' | 'bottom';
 export type LoaderOutcome = 'success' | 'failure' | 'warning';
 export type CheckboxSelectionIcon = 'tick' | 'cross' | 'solid';
 export type AccordionType = 'single' | 'multiple';
+export type AccordionVariant = 'default' | 'bordered' | 'ghost';
+export type TabsVariant = 'default' | 'line';
 export type SkeletonVariant = 'text' | 'avatar' | 'card' | 'custom';
 export type AvatarShape = 'circle' | 'rounded';
 export type ProgressVariant = 'linear' | 'circular';
@@ -271,6 +273,10 @@ export interface ComponentStyleConfig {
   dropdownOptionTapY: number;
   inputAutocompleteEnabled: boolean;
   inputAutocompleteBodyMotionPresetId: string;
+  tabsVariant: TabsVariant;
+  tabsCount: number;
+  tabsListBg: string;
+  tabsActiveBg: string;
   tabsUnderlineMotionEnabled: boolean;
   tabsBodyMotionPresetId: string;
   tabsTextMotionPresetId: string;
@@ -291,6 +297,8 @@ export interface ComponentStyleConfig {
   accordionType: AccordionType;
   accordionCollapsible: boolean;
   accordionItemCount: number;
+  accordionVariant: AccordionVariant;
+  accordionDividerColor: string;
   // Avatar
   avatarSrc: string;
   avatarFallbackText: string;

@@ -901,6 +901,10 @@
   transform: scaleX(1);
 }
 
+[data-slot="tabs-trigger"][data-state="active"][style*="--tabs-active-bg"] {
+  background-color: var(--tabs-active-bg) !important;
+}
+
 .ui-studio-checkbox-indicator {
   color: currentColor;
   animation: ui-studio-loading-success-pop var(--ui-checkbox-selection-speed, 0.22s) ease-out both;
