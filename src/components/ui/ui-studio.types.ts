@@ -302,6 +302,8 @@ export interface ComponentStyleConfig {
   dataTableRows: number;
   dataTableSortable: boolean;
   dataTableStriped: boolean;
+  dataTableHeaderBg: string;
+  dataTableStripedBg: string;
   // Drawer
   drawerSide: DrawerSide;
   drawerWidth: number;

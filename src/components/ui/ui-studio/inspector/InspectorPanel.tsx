@@ -10,6 +10,7 @@ import {
     Ruler,
     Sparkles,
     Swatches,
+    Table,
     TextAlignCenter,
     TextAlignLeft,
     TextAlignRight,
@@ -105,6 +106,8 @@ export function InspectorPanel() {
 
     const supportsTextIconMode =
         selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
+
+    const isDataTable = selectedInstance?.kind === 'data-table';
 
     const showWidthControl =
         selectedInstance?.kind === 'slider' ||
@@ -669,6 +672,26 @@ export function InspectorPanel() {
                         </FlatInspectorSection>
                     </div>
 
+                    {/* DataTable Config */}
+                    {isDataTable && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Table Config" icon={Table} defaultOpen>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatSwitchRow label="Sortable" checked={selectedStyle.dataTableSortable} onCheckedChange={(value) => updateSelectedStyle('dataTableSortable', value)} />
+                                    <FlatSwitchRow label="Striped" checked={selectedStyle.dataTableStriped} onCheckedChange={(value) => updateSelectedStyle('dataTableStriped', value)} />
+                                </div>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatUnitField label="Columns" value={selectedStyle.dataTableColumns} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('dataTableColumns', value)} />
+                                    <FlatUnitField label="Rows" value={selectedStyle.dataTableRows} min={1} max={10} unit="" onChange={(value) => updateSelectedStyle('dataTableRows', value)} />
+                                </div>
+                                <FlatColorControl label="Header Background" value={selectedStyle.dataTableHeaderBg} onChange={(value) => updateSelectedStyle('dataTableHeaderBg', value)} tokens={activeTokenSet.tokens} />
+                                {selectedStyle.dataTableStriped ? (
+                                    <FlatColorControl label="Stripe Color" value={selectedStyle.dataTableStripedBg} onChange={(value) => updateSelectedStyle('dataTableStripedBg', value)} tokens={activeTokenSet.tokens} />
+                                ) : null}
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Appearance / Panel Design */}
                     <div className="p-1">
                         <FlatInspectorSection
@@ -787,7 +810,7 @@ export function InspectorPanel() {
                                 </>
                             ) : (
                                 <>
-                                    {currentAppearanceValues ? (
+                                    {currentAppearanceValues && !isDataTable ? (
                                         <>
                                             <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} />
                                             <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} />

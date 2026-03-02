@@ -11,47 +11,54 @@ import { cn } from "@/lib/utils"
 // ---------------------------------------------------------------------------
 
 const dataTableVariants = cva(
-  "w-full caption-bottom text-sm border-collapse",
+  "w-full caption-bottom border-collapse",
   {
     variants: {
       variant: {
         default: "",
         bordered: "border rounded-md",
       },
-      striped: {
-        true: "",
-        false: "",
+      size: {
+        sm: "text-xs",
+        md: "text-sm",
+        lg: "text-base",
       },
     },
     defaultVariants: {
       variant: "default",
-      striped: false,
+      size: "md",
     },
   }
 )
 
 const dataTableHeaderVariants = cva(
-  "h-10 px-4 text-left align-middle text-sm font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+  "text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
   {
     variants: {
       sortable: {
         true: "cursor-pointer select-none hover:text-foreground transition-colors",
         false: "",
       },
+      size: {
+        sm: "h-8 px-3 text-xs",
+        md: "h-10 px-4 text-sm",
+        lg: "h-12 px-5 text-sm",
+      },
     },
     defaultVariants: {
       sortable: false,
+      size: "md",
     },
   }
 )
 
 const dataTableRowVariants = cva(
-  "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+  "border-b transition-colors data-[state=selected]:bg-muted",
   {
     variants: {
       striped: {
-        true: "even:bg-muted/30",
-        false: "",
+        true: "",
+        false: "hover:bg-muted/50",
       },
     },
     defaultVariants: {
@@ -61,7 +68,7 @@ const dataTableRowVariants = cva(
 )
 
 const dataTableCellVariants = cva(
-  "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+  "align-middle [&:has([role=checkbox])]:pr-0",
   {
     variants: {
       align: {
@@ -69,9 +76,15 @@ const dataTableCellVariants = cva(
         center: "text-center",
         right: "text-right",
       },
+      size: {
+        sm: "px-3 py-2",
+        md: "p-4",
+        lg: "px-5 py-4",
+      },
     },
     defaultVariants: {
       align: "left",
+      size: "md",
     },
   }
 )
@@ -95,6 +108,10 @@ interface DataTableProps
   columns: DataTableColumn[]
   data: Record<string, string>[]
   sortable?: boolean
+  striped?: boolean
+  size?: "sm" | "md" | "lg"
+  headerBg?: string
+  stripedBg?: string
   onSort?: (columnKey: string, direction: SortDirection) => void
 }
 
@@ -124,7 +141,10 @@ function DataTable({
   data,
   sortable = false,
   striped = false,
+  size = "md",
   variant,
+  headerBg,
+  stripedBg,
   onSort,
   ...props
 }: DataTableProps) {
@@ -169,10 +189,13 @@ function DataTable({
       <table
         data-slot="data-table"
         data-variant={variant}
-        className={cn(dataTableVariants({ variant, striped }), className)}
+        className={cn(dataTableVariants({ variant, size }), className)}
         {...props}
       >
-        <thead className="border-b bg-muted/40 [&_tr]:border-b">
+        <thead
+          className={cn("border-b [&_tr]:border-b", !headerBg && "bg-muted/40")}
+          style={headerBg ? { backgroundColor: headerBg } : undefined}
+        >
           <tr data-slot="data-table-header-row" className="border-b">
             {columns.map((column) => {
               const isColumnSortable =
@@ -184,6 +207,7 @@ function DataTable({
                 <DataTableHeader
                   key={column.key}
                   sortable={isColumnSortable}
+                  size={size}
                   align={column.align}
                   onClick={
                     isColumnSortable
@@ -211,9 +235,17 @@ function DataTable({
         </thead>
         <tbody className="[&_tr:last-child]:border-0">
           {sortedData.map((row, rowIndex) => (
-            <DataTableRow key={rowIndex} striped={striped}>
+            <DataTableRow
+              key={rowIndex}
+              striped={striped}
+              style={
+                striped && stripedBg && rowIndex % 2 === 1
+                  ? { backgroundColor: stripedBg }
+                  : undefined
+              }
+            >
               {columns.map((column) => (
-                <DataTableCell key={column.key} align={column.align}>
+                <DataTableCell key={column.key} align={column.align} size={size}>
                   {row[column.key] ?? ""}
                 </DataTableCell>
               ))}
@@ -242,6 +274,7 @@ function DataTable({
 function DataTableHeader({
   className,
   sortable,
+  size,
   align,
   children,
   ...props
@@ -253,7 +286,7 @@ function DataTableHeader({
     <th
       data-slot="data-table-header"
       className={cn(
-        dataTableHeaderVariants({ sortable }),
+        dataTableHeaderVariants({ sortable, size }),
         align === "center" && "text-center",
         align === "right" && "text-right",
         className
@@ -282,12 +315,13 @@ function DataTableRow({
 function DataTableCell({
   className,
   align,
+  size,
   ...props
 }: React.ComponentProps<"td"> & VariantProps<typeof dataTableCellVariants>) {
   return (
     <td
       data-slot="data-table-cell"
-      className={cn(dataTableCellVariants({ align }), className)}
+      className={cn(dataTableCellVariants({ align, size }), className)}
       {...props}
     />
   )

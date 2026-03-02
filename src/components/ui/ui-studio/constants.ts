@@ -408,6 +408,8 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     dataTableRows: 5,
     dataTableSortable: true,
     dataTableStriped: true,
+    dataTableHeaderBg: '',
+    dataTableStripedBg: '',
     drawerSide: 'right',
     drawerWidth: 320,
     drawerOverlayBlur: 2,

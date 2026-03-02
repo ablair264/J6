@@ -222,7 +222,17 @@ export function componentSnippet(
         }
         case 'data-table': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<DataTable\n  columns={[{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }, { key: 'role', label: 'Role' }]}\n  data={[{ name: 'Alice', status: 'Active', role: 'Admin' }]}\n  sortable={${String(instance.style.dataTableSortable)}}\n  striped={${String(instance.style.dataTableStriped)}}\n  ${classNameSnippet.trim()}${previewStyleSnippet}\n/>`;
+            const dtProps = [
+                `columns={[{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }, { key: 'role', label: 'Role' }]}`,
+                `data={[{ name: 'Alice', status: 'Active', role: 'Admin' }]}`,
+                `sortable={${String(instance.style.dataTableSortable)}}`,
+                `striped={${String(instance.style.dataTableStriped)}}`,
+                `size="${instance.style.size}"`,
+                instance.style.dataTableHeaderBg ? `headerBg="${instance.style.dataTableHeaderBg}"` : '',
+                instance.style.dataTableStripedBg ? `stripedBg="${instance.style.dataTableStripedBg}"` : '',
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            return `${declarations ? `${declarations}\n\n` : ''}<DataTable\n  ${dtProps}${previewStyleSnippet}\n/>`;
         }
         case 'drawer': {
             const drawerDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
@@ -775,6 +785,9 @@ export function renderPreview(
                         data={data}
                         sortable={instance.style.dataTableSortable}
                         striped={instance.style.dataTableStriped}
+                        size={instance.style.size}
+                        headerBg={instance.style.dataTableHeaderBg || undefined}
+                        stripedBg={instance.style.dataTableStripedBg || undefined}
                         className={cn(motionClassName)}
                     />
                 </div>
