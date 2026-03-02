@@ -1,15 +1,23 @@
 export type UIComponentKind =
+  | 'accordion'
+  | 'alert'
+  | 'avatar'
   | 'badge'
   | 'button'
   | 'checkbox'
+  | 'data-table'
   | 'dialog'
+  | 'drawer'
   | 'dropdown'
-  | 'popover'
   | 'label'
   | 'input'
+  | 'navigation-menu'
+  | 'popover'
+  | 'progress'
+  | 'skeleton'
+  | 'slider'
   | 'tabs'
-  | 'tooltip'
-  | 'slider';
+  | 'tooltip';
 
 export type SizeOption = 'sm' | 'md' | 'lg';
 export type FillMode = 'solid' | 'gradient';
@@ -19,11 +27,21 @@ export type IconOptionId = 'none' | 'search' | 'lightning' | 'heart' | 'figma' |
 export type PrimitiveSide = 'top' | 'right' | 'bottom' | 'left';
 export type PrimitiveAlign = 'start' | 'center' | 'end';
 export type MotionTransitionType = 'tween' | 'spring';
-export type MotionEaseOption = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
+export type MotionEaseOption = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'anticipate' | 'backIn' | 'backOut' | 'backInOut' | 'circIn' | 'circOut' | 'circInOut' | 'cubicBezier';
 export type ButtonPreviewState = 'default' | 'hover' | 'active' | 'disabled';
 export type GradientSlideDirection = 'left' | 'right' | 'top' | 'bottom';
 export type LoaderOutcome = 'success' | 'failure' | 'warning';
 export type CheckboxSelectionIcon = 'tick' | 'cross' | 'solid';
+export type AccordionType = 'single' | 'multiple';
+export type SkeletonVariant = 'text' | 'avatar' | 'card' | 'custom';
+export type AvatarShape = 'circle' | 'rounded';
+export type ProgressVariant = 'linear' | 'circular';
+export type AlertVariant = 'info' | 'success' | 'warning' | 'error';
+export type DrawerSide = 'left' | 'right' | 'top' | 'bottom';
+export type NavMenuOrientation = 'horizontal' | 'vertical';
+export type BorderStyleOption = 'solid' | 'dashed' | 'dotted';
+export type TextTransformOption = 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+export type StaggerDirection = 'forward' | 'reverse';
 
 export interface ComponentInfo {
   kind: UIComponentKind;
@@ -267,6 +285,79 @@ export interface ComponentStyleConfig {
   sliderBarFillSpeed: number;
   sliderBarScale: number;
   sliderBarBounce: number;
+
+  // ─── Phase 2: New Component Properties ──────────────────────────
+  // Accordion
+  accordionType: AccordionType;
+  accordionCollapsible: boolean;
+  accordionItemCount: number;
+  // Avatar
+  avatarSrc: string;
+  avatarFallbackText: string;
+  avatarShape: AvatarShape;
+  avatarShowBadge: boolean;
+  avatarBadgeColor: string;
+  // DataTable
+  dataTableColumns: number;
+  dataTableRows: number;
+  dataTableSortable: boolean;
+  dataTableStriped: boolean;
+  // Drawer
+  drawerSide: DrawerSide;
+  drawerWidth: number;
+  drawerOverlayBlur: number;
+  drawerBodyMotionPresetId: string;
+  // Navigation Menu
+  navMenuOrientation: NavMenuOrientation;
+  navMenuActiveIndicator: boolean;
+  navMenuItemCount: number;
+  // Progress
+  progressValue: number;
+  progressVariant: ProgressVariant;
+  progressShowLabel: boolean;
+  progressAnimateValue: boolean;
+  // Skeleton
+  skeletonVariant: SkeletonVariant;
+  skeletonAnimationSpeed: number;
+  skeletonLines: number;
+  // Alert
+  alertVariant: AlertVariant;
+  alertDismissible: boolean;
+  alertShowIcon: boolean;
+
+  // ─── Phase 3: Refined Design Options ────────────────────────────
+  // Typography
+  letterSpacing: number;
+  lineHeight: number;
+  textTransform: TextTransformOption;
+  // Border Style
+  borderStyle: BorderStyleOption;
+  // Text Shadow
+  effectTextShadow: boolean;
+  textShadowColor: string;
+  textShadowBlur: number;
+  textShadowX: number;
+  textShadowY: number;
+  // Outline Glow
+  effectOutlineGlow: boolean;
+  outlineGlowColor: string;
+  outlineGlowSize: number;
+  // Enhanced Glass
+  effectGlassmorphism: boolean;
+  glassmorphismBlur: number;
+  glassmorphismOpacity: number;
+  glassmorphismBorderOpacity: number;
+
+  // ─── Phase 4: Motion Refinements ────────────────────────────────
+  // Entry scale
+  motionInitialScale: number;
+  motionAnimateScale: number;
+  // Custom bezier
+  motionCustomBezier: [number, number, number, number];
+  // Stagger
+  motionStaggerEnabled: boolean;
+  motionStaggerDelay: number;
+  motionStaggerDirection: StaggerDirection;
 }
 
 export interface ComponentInstance {

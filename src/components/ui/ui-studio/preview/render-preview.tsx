@@ -1,6 +1,13 @@
 import type { CSSProperties } from 'react';
 import { motion } from 'motion/react';
 import { Dialog as RadixDialogPrimitive } from 'radix-ui';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { DataTable } from '@/components/ui/data-table';
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from '@/components/ui/navigation-menu';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -145,6 +152,18 @@ export function componentSnippet(
         'data-[hovered]:!bg-[var(--ui-dropdown-hover-bg)] data-[focused]:!bg-[var(--ui-dropdown-hover-bg)] data-[hovered]:!text-[var(--ui-dropdown-hover-fg)] data-[focused]:!text-[var(--ui-dropdown-hover-fg)]';
 
     switch (instance.kind) {
+        case 'accordion': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<Accordion type="${instance.style.accordionType}"${instance.style.accordionType === 'single' ? ` collapsible={${String(instance.style.accordionCollapsible)}}` : ''}${classNameSnippet}${previewStyleSnippet}>\n  <AccordionItem value="item-1">\n    <AccordionTrigger>Section 1</AccordionTrigger>\n    <AccordionContent>Content for section 1.</AccordionContent>\n  </AccordionItem>\n</Accordion>`;
+        }
+        case 'alert': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<Alert variant="${instance.style.alertVariant}" dismissible={${String(instance.style.alertDismissible)}}${classNameSnippet}${previewStyleSnippet}>\n  <AlertTitle>Alert Title</AlertTitle>\n  <AlertDescription>This is an alert message.</AlertDescription>\n</Alert>`;
+        }
+        case 'avatar': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<Avatar shape="${instance.style.avatarShape}"${instance.style.avatarShowBadge ? ` badge badgeColor="${instance.style.avatarBadgeColor}"` : ''}${classNameSnippet}${previewStyleSnippet}>\n  ${instance.style.avatarSrc ? `<AvatarImage src="${instance.style.avatarSrc}" alt="User" />` : ''}\n  <AvatarFallback>${instance.style.avatarFallbackText}</AvatarFallback>\n</Avatar>`;
+        }
         case 'badge': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             return `${declarations ? `${declarations}\n\n` : ''}<Badge${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}${badgeText}${instance.style.iconPosition === 'right' ? iconRight : ''}</Badge>`;
@@ -196,6 +215,26 @@ export function componentSnippet(
         case 'tooltip': {
             const tooltipDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
             return `${tooltipDeclarations}\n\n<Tooltip delay={${instance.style.tooltipDelay}}>\n  <TooltipTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Hover for tooltip${instance.style.iconPosition === 'right' ? iconRight : ''}</TooltipTrigger>\n  <TooltipContent arrow={${String(instance.style.tooltipArrow)}} placement="${tooltipPlacement}" offset={${instance.style.tooltipSideOffset}}${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>Tooltip copy</TooltipContent>\n</Tooltip>`;
+        }
+        case 'data-table': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<DataTable\n  columns={[{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }, { key: 'role', label: 'Role' }]}\n  data={[{ name: 'Alice', status: 'Active', role: 'Admin' }]}\n  sortable={${String(instance.style.dataTableSortable)}}\n  striped={${String(instance.style.dataTableStriped)}}\n  ${classNameSnippet.trim()}${previewStyleSnippet}\n/>`;
+        }
+        case 'drawer': {
+            const drawerDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
+            return `${drawerDeclarations ? `${drawerDeclarations}\n\n` : ''}<Drawer>\n  <DrawerTrigger asChild>\n    <Button${buttonClassNameSnippet}${previewStyleSnippet}>Open drawer</Button>\n  </DrawerTrigger>\n  <DrawerContent side="${instance.style.drawerSide}"${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>\n    <DrawerHeader>\n      <DrawerTitle>Drawer</DrawerTitle>\n      <DrawerDescription>Drawer panel content.</DrawerDescription>\n    </DrawerHeader>\n  </DrawerContent>\n</Drawer>`;
+        }
+        case 'navigation-menu': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu orientation="${instance.style.navMenuOrientation}"${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active>Home</NavigationMenuLink>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuLink>About</NavigationMenuLink>\n    </NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>`;
+        }
+        case 'progress': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<Progress\n  value={${instance.style.progressValue}}\n  variant="${instance.style.progressVariant}"\n  showLabel={${String(instance.style.progressShowLabel)}}\n  ${classNameSnippet.trim()}${previewStyleSnippet}\n/>`;
+        }
+        case 'skeleton': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<div className="space-y-2">\n  <Skeleton variant="${instance.style.skeletonVariant}"${classNameSnippet}${previewStyleSnippet} />\n  ${instance.style.skeletonLines > 1 ? `<Skeleton variant="text" />\n  ` : ''}${instance.style.skeletonLines > 2 ? '<Skeleton variant="text" className="w-3/4" />' : ''}\n</div>`;
         }
         case 'slider': {
             const declarations = [previewBindings.declarations, sliderClassBinding.declarations].filter(Boolean).join('\n');
@@ -650,6 +689,188 @@ export function renderPreview(
                     </div>
                 </div>
             );
+
+        case 'accordion': {
+            const items = Array.from({ length: instance.style.accordionItemCount }, (_, i) => i + 1);
+            const accordionProps = instance.style.accordionType === 'single'
+                ? { type: 'single' as const, collapsible: instance.style.accordionCollapsible }
+                : { type: 'multiple' as const };
+            return (
+                <div className="w-full max-w-md" style={style}>
+                    <Accordion {...accordionProps} className={cn(motionClassName)}>
+                        {items.map((n) => (
+                            <AccordionItem key={n} value={`item-${n}`}>
+                                <AccordionTrigger>Section {n}</AccordionTrigger>
+                                <AccordionContent>Content for section {n}.</AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </div>
+            );
+        }
+
+        case 'alert':
+            return (
+                <Alert
+                    variant={instance.style.alertVariant}
+                    dismissible={instance.style.alertDismissible}
+                    style={style}
+                    className={cn('max-w-md', motionClassName)}
+                >
+                    <AlertTitle>Alert Title</AlertTitle>
+                    <AlertDescription>This is an alert message with relevant details.</AlertDescription>
+                </Alert>
+            );
+
+        case 'avatar':
+            return (
+                <div className="relative inline-flex">
+                    <Avatar
+                        shape={instance.style.avatarShape}
+                        size={instance.style.size}
+                        style={style}
+                        className={cn(motionClassName)}
+                    >
+                        {instance.style.avatarSrc ? (
+                            <AvatarImage src={instance.style.avatarSrc} alt="User" />
+                        ) : null}
+                        <AvatarFallback>{instance.style.avatarFallbackText}</AvatarFallback>
+                    </Avatar>
+                    {instance.style.avatarShowBadge && (
+                        <span
+                            className={cn(
+                                'absolute bottom-0 right-0 block rounded-full ring-2 ring-background',
+                                instance.style.size === 'sm' ? 'size-2' : instance.style.size === 'lg' ? 'size-3.5' : 'size-2.5',
+                            )}
+                            style={{ backgroundColor: instance.style.avatarBadgeColor }}
+                        />
+                    )}
+                </div>
+            );
+
+        case 'data-table': {
+            const columns = Array.from({ length: instance.style.dataTableColumns }, (_, i) => ({
+                key: `col${i}`,
+                label: ['Name', 'Status', 'Role', 'Email', 'Department'][i] ?? `Column ${i + 1}`,
+            }));
+            const sampleRows = [
+                ['Alice', 'Active', 'Admin', 'alice@co.com', 'Engineering'],
+                ['Bob', 'Inactive', 'User', 'bob@co.com', 'Design'],
+                ['Carol', 'Active', 'Editor', 'carol@co.com', 'Marketing'],
+                ['Dave', 'Pending', 'Viewer', 'dave@co.com', 'Sales'],
+                ['Eve', 'Active', 'Admin', 'eve@co.com', 'Product'],
+            ];
+            const data = Array.from({ length: instance.style.dataTableRows }, (_, rowIdx) =>
+                Object.fromEntries(columns.map((col, colIdx) => [col.key, sampleRows[rowIdx % 5]?.[colIdx] ?? `R${rowIdx + 1}`]))
+            );
+            return (
+                <div className="w-full max-w-lg overflow-auto" style={style}>
+                    <DataTable
+                        columns={columns}
+                        data={data}
+                        sortable={instance.style.dataTableSortable}
+                        striped={instance.style.dataTableStriped}
+                        className={cn(motionClassName)}
+                    />
+                </div>
+            );
+        }
+
+        case 'drawer': {
+            const drawerBodyMotion = buildEntryPresetMotionConfig('drawer', instance.style, instance.style.drawerBodyMotionPresetId);
+            const drawerSide = instance.style.drawerSide;
+            const isDrawerH = drawerSide === 'left' || drawerSide === 'right';
+            const drawerPanelW = Math.min(instance.style.drawerWidth, 240);
+            const drawerPanel = (
+                <div
+                    className={cn(
+                        'shrink-0 border-border/40',
+                        drawerSide === 'left' && 'border-r',
+                        drawerSide === 'right' && 'border-l',
+                        drawerSide === 'top' && 'border-b',
+                        drawerSide === 'bottom' && 'border-t',
+                    )}
+                    style={{
+                        ...panelStyle,
+                        ...(isDrawerH ? { width: `${drawerPanelW}px` } : { height: '120px' }),
+                    }}
+                >
+                    {renderEntryMotion(
+                        <div className="space-y-2 p-4">
+                            <div className="text-sm font-semibold">Drawer</div>
+                            <div className="text-xs text-muted-foreground">Panel content area.</div>
+                        </div>,
+                        drawerBodyMotion,
+                    )}
+                </div>
+            );
+            const drawerMain = (
+                <div className="flex-1 bg-muted/10 p-3">
+                    <div className="text-[10px] text-muted-foreground/60">Main content</div>
+                </div>
+            );
+            return (
+                <div className={cn(
+                    'relative overflow-hidden rounded-xl border border-border/40',
+                    isDrawerH ? 'flex h-[240px] w-full max-w-lg' : 'flex h-[280px] w-full max-w-lg flex-col',
+                )}>
+                    {(drawerSide === 'left' || drawerSide === 'top')
+                        ? <>{drawerPanel}{drawerMain}</>
+                        : <>{drawerMain}{drawerPanel}</>}
+                </div>
+            );
+        }
+
+        case 'navigation-menu': {
+            const navItems = ['Home', 'About', 'Services', 'Contact', 'Blog'].slice(0, instance.style.navMenuItemCount);
+            return (
+                <NavigationMenu
+                    orientation={instance.style.navMenuOrientation}
+                    style={style}
+                    className={cn(motionClassName)}
+                >
+                    <NavigationMenuList>
+                        {navItems.map((label, idx) => (
+                            <NavigationMenuItem key={label}>
+                                <NavigationMenuLink active={instance.style.navMenuActiveIndicator && idx === 0}>
+                                    {label}
+                                </NavigationMenuLink>
+                            </NavigationMenuItem>
+                        ))}
+                    </NavigationMenuList>
+                </NavigationMenu>
+            );
+        }
+
+        case 'progress':
+            return (
+                <div className="w-full max-w-sm" style={style}>
+                    <Progress
+                        value={instance.style.progressValue}
+                        variant={instance.style.progressVariant}
+                        size={instance.style.size}
+                        showLabel={instance.style.progressShowLabel}
+                        className={cn(motionClassName)}
+                    />
+                </div>
+            );
+
+        case 'skeleton': {
+            const animSpeed = instance.style.skeletonAnimationSpeed <= 0.75 ? 'fast' as const
+                : instance.style.skeletonAnimationSpeed >= 1.5 ? 'slow' as const
+                : 'normal' as const;
+            return (
+                <div className="w-full max-w-sm space-y-2" style={style}>
+                    <Skeleton
+                        variant={instance.style.skeletonVariant}
+                        animationSpeed={animSpeed}
+                        className={cn(motionClassName)}
+                    />
+                    {instance.style.skeletonLines > 1 && <Skeleton variant="text" animationSpeed={animSpeed} />}
+                    {instance.style.skeletonLines > 2 && <Skeleton variant="text" animationSpeed={animSpeed} className="w-3/4" />}
+                </div>
+            );
+        }
 
         default:
             return null;

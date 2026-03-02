@@ -123,11 +123,12 @@ export function isUIComponentKind(value: string | undefined): value is UICompone
 // ─── Feature Support Utilities ────────────────────────────────────────────────
 
 export function supportsIconSelection(kind: UIComponentKind): boolean {
-    return kind !== 'slider' && kind !== 'checkbox' && kind !== 'dialog' && kind !== 'input';
+    return kind !== 'slider' && kind !== 'checkbox' && kind !== 'dialog' && kind !== 'input'
+        && kind !== 'skeleton' && kind !== 'avatar' && kind !== 'progress' && kind !== 'data-table';
 }
 
 export function supportsPanelStyle(kind: UIComponentKind): boolean {
-    return kind === 'dialog' || kind === 'dropdown' || kind === 'tooltip' || kind === 'popover';
+    return kind === 'dialog' || kind === 'dropdown' || kind === 'tooltip' || kind === 'popover' || kind === 'drawer';
 }
 
 export function supportsDropdownHoverStyle(kind: UIComponentKind): boolean {
@@ -139,27 +140,32 @@ export function supportsButtonStateStyle(kind: UIComponentKind): boolean {
 }
 
 export function supportsTypographyStyle(kind: UIComponentKind): boolean {
-    return kind !== 'checkbox' && kind !== 'slider';
+    return kind !== 'checkbox' && kind !== 'slider' && kind !== 'skeleton' && kind !== 'avatar' && kind !== 'progress';
 }
 
 export function supportsPrimitiveControls(kind: UIComponentKind): boolean {
-    return kind === 'checkbox' || kind === 'dialog' || kind === 'dropdown' || kind === 'label' || kind === 'tooltip';
+    return kind === 'checkbox' || kind === 'dialog' || kind === 'dropdown' || kind === 'label' || kind === 'tooltip'
+        || kind === 'accordion' || kind === 'drawer';
 }
 
 export function supportsEntryMotion(kind: UIComponentKind): boolean {
-    return kind === 'dialog' || kind === 'dropdown' || kind === 'popover' || kind === 'tooltip';
+    return kind === 'dialog' || kind === 'dropdown' || kind === 'popover' || kind === 'tooltip'
+        || kind === 'drawer' || kind === 'accordion' || kind === 'alert' || kind === 'progress'
+        || kind === 'label';
 }
 
 export function supportsGradientSlideEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge';
+    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
+        || kind === 'accordion' || kind === 'alert';
 }
 
 export function supportsAnimatedBorderEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || supportsPanelStyle(kind);
+    return kind === 'button' || kind === 'badge' || kind === 'input' || supportsPanelStyle(kind)
+        || kind === 'tabs' || kind === 'accordion' || kind === 'alert' || kind === 'navigation-menu';
 }
 
 export function supportsRippleFillEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge';
+    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs';
 }
 
 export function supportsLoadingEffect(kind: UIComponentKind): boolean {
@@ -167,7 +173,12 @@ export function supportsLoadingEffect(kind: UIComponentKind): boolean {
 }
 
 export function supportsSweepEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge';
+    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
+        || kind === 'accordion' || kind === 'alert';
+}
+
+export function supportsStaggerMotion(kind: UIComponentKind): boolean {
+    return kind === 'dropdown' || kind === 'accordion' || kind === 'navigation-menu' || kind === 'data-table';
 }
 
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
@@ -585,23 +596,47 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
             )}`,
         );
     }
+    if (config.effectOutlineGlow) {
+        shadowParts.push(`0 0 ${config.outlineGlowSize}px ${config.outlineGlowColor}`);
+    }
 
     const textAlign: CSSProperties['textAlign'] = config.fontPosition;
     const justifyContent = fontPositionToJustify(config.fontPosition);
 
     const blurValue = config.effectBlur ? config.blurAmount : 0;
+    const glassmorphismActive = config.effectGlassmorphism;
     const backdropFilter =
-        config.effectGlass || blurValue > 0
-            ? `blur(${Math.max(config.effectGlass ? 8 : 0, blurValue)}px) saturate(${config.effectGlass ? 140 : 100}%)`
+        config.effectGlass || glassmorphismActive || blurValue > 0
+            ? `blur(${Math.max(
+                  config.effectGlass ? 8 : 0,
+                  glassmorphismActive ? config.glassmorphismBlur : 0,
+                  blurValue,
+              )}px) saturate(${config.effectGlass ? 140 : 100}%)`
             : undefined;
 
     const glassTint = config.effectGlass ? hexToRgba('#ffffff', config.glassOpacity / 100) : undefined;
 
-    return {
-        background: config.effectGlass ? glassTint ?? background : background,
-        borderStyle: 'solid',
-        borderWidth: `${config.strokeWeight}px`,
-        borderColor,
+    // Resolve background: glassmorphism overrides glass which overrides standard fill
+    let resolvedBackground: string;
+    if (glassmorphismActive) {
+        resolvedBackground = `rgba(255,255,255,${(config.glassmorphismOpacity / 100).toFixed(3)})`;
+    } else if (config.effectGlass) {
+        resolvedBackground = glassTint ?? background;
+    } else {
+        resolvedBackground = background;
+    }
+
+    // Text shadow
+    const textShadow = config.effectTextShadow
+        ? `${config.textShadowX}px ${config.textShadowY}px ${config.textShadowBlur}px ${config.textShadowColor}`
+        : undefined;
+
+    const result: CSSProperties = {
+        background: resolvedBackground,
+        borderStyle: glassmorphismActive ? undefined : config.borderStyle,
+        borderWidth: glassmorphismActive ? undefined : `${config.strokeWeight}px`,
+        border: glassmorphismActive ? `1px solid rgba(255,255,255,${(config.glassmorphismBorderOpacity / 100).toFixed(3)})` : undefined,
+        borderColor: glassmorphismActive ? undefined : borderColor,
         borderRadius: `${config.cornerRadius}px`,
         color: fontColor,
         fontSize: `${Math.round(config.fontSize * scale)}px`,
@@ -618,6 +653,28 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
         transition:
             'background 180ms ease, border-color 180ms ease, color 180ms ease, border-radius 180ms ease, box-shadow 180ms ease',
     };
+
+    // Typography: letter-spacing
+    if (config.letterSpacing !== 0) {
+        result.letterSpacing = `${config.letterSpacing}px`;
+    }
+
+    // Typography: line-height (0 = auto, otherwise unitless multiplier)
+    if (config.lineHeight !== 0) {
+        result.lineHeight = config.lineHeight;
+    }
+
+    // Typography: text-transform
+    if (config.textTransform !== 'none') {
+        result.textTransform = config.textTransform;
+    }
+
+    // Text shadow
+    if (textShadow) {
+        result.textShadow = textShadow;
+    }
+
+    return result;
 }
 
 export function buildMotionVariables(config: ComponentStyleConfig): CSSProperties {
@@ -1050,9 +1107,17 @@ export function buildTailwindStylePayload(
             case 'borderStyle':
                 if (value === 'solid') {
                     classes.push('border-solid');
+                } else if (value === 'dashed') {
+                    classes.push('border-dashed');
+                } else if (value === 'dotted') {
+                    classes.push('border-dotted');
                 } else {
                     classes.push(`[border-style:${toTailwindArbitraryValue(value)}]`);
                 }
+                break;
+            case 'border':
+                // Glassmorphism composite border value — use arbitrary property
+                fallbackStyle.border = rawValue as never;
                 break;
             case 'borderRadius':
                 classes.push(mapRadiusClass(value) ?? `rounded-[${toTailwindArbitraryValue(value)}]`);
@@ -1107,6 +1172,28 @@ export function buildTailwindStylePayload(
                 break;
             case 'WebkitBackdropFilter':
                 // WebKit variant is redundant when using backdrop utility classes.
+                break;
+            case 'letterSpacing':
+                classes.push(`tracking-[${toTailwindArbitraryValue(value)}]`);
+                break;
+            case 'lineHeight':
+                classes.push(`leading-[${toTailwindArbitraryValue(value)}]`);
+                break;
+            case 'textTransform':
+                if (value === 'uppercase') {
+                    classes.push('uppercase');
+                } else if (value === 'lowercase') {
+                    classes.push('lowercase');
+                } else if (value === 'capitalize') {
+                    classes.push('capitalize');
+                } else if (value === 'none') {
+                    classes.push('normal-case');
+                } else {
+                    classes.push(`[text-transform:${toTailwindArbitraryValue(value)}]`);
+                }
+                break;
+            case 'textShadow':
+                classes.push(`[text-shadow:${toTailwindArbitraryValue(value)}]`);
                 break;
             case 'transition': {
                 const normalized = value.replace(/\s+/g, ' ').trim();

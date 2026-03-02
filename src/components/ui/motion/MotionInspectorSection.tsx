@@ -9,8 +9,10 @@ import type {
     ComponentStyleConfig,
     MotionEaseOption,
     MotionTransitionType,
+    StaggerDirection,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
+import { supportsStaggerMotion } from '@/components/ui/ui-studio/utilities';
 
 export type MotionPresetOption = { id: string; label: string; description: string; values?: Partial<ComponentStyleConfig> };
 
@@ -434,6 +436,7 @@ function MotionTransitionCard({
     stiffness,
     damping,
     mass,
+    customBezier,
     onTransitionTypeChange,
     onEaseChange,
     onDurationChange,
@@ -441,6 +444,7 @@ function MotionTransitionCard({
     onStiffnessChange,
     onDampingChange,
     onMassChange,
+    onCustomBezierChange,
 }: {
     transitionType: MotionTransitionType;
     ease: MotionEaseOption;
@@ -449,6 +453,7 @@ function MotionTransitionCard({
     stiffness: number;
     damping: number;
     mass: number;
+    customBezier?: [number, number, number, number];
     onTransitionTypeChange: (v: MotionTransitionType) => void;
     onEaseChange: (v: MotionEaseOption) => void;
     onDurationChange: (v: number) => void;
@@ -456,6 +461,7 @@ function MotionTransitionCard({
     onStiffnessChange: (v: number) => void;
     onDampingChange: (v: number) => void;
     onMassChange: (v: number) => void;
+    onCustomBezierChange?: (v: [number, number, number, number]) => void;
 }) {
     return (
         <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
@@ -502,12 +508,54 @@ function MotionTransitionCard({
                             aria-label="Easing curve"
                             className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
                         >
-                            <option value="linear">Linear</option>
-                            <option value="easeIn">Ease In</option>
-                            <option value="easeOut">Ease Out</option>
-                            <option value="easeInOut">Ease In Out</option>
+                            <optgroup label="Standard">
+                                <option value="linear">Linear</option>
+                                <option value="easeIn">Ease In</option>
+                                <option value="easeOut">Ease Out</option>
+                                <option value="easeInOut">Ease In Out</option>
+                            </optgroup>
+                            <optgroup label="Back">
+                                <option value="backIn">Back In</option>
+                                <option value="backOut">Back Out</option>
+                                <option value="backInOut">Back In Out</option>
+                            </optgroup>
+                            <optgroup label="Circular">
+                                <option value="circIn">Circ In</option>
+                                <option value="circOut">Circ Out</option>
+                                <option value="circInOut">Circ In Out</option>
+                            </optgroup>
+                            <optgroup label="Special">
+                                <option value="anticipate">Anticipate</option>
+                                <option value="cubicBezier">Custom Bezier</option>
+                            </optgroup>
                         </select>
                     </div>
+                    {ease === 'cubicBezier' && customBezier && onCustomBezierChange ? (
+                        <div className="space-y-1">
+                            <span className="text-[10px] text-[#64748b]">Control points</span>
+                            <div className="grid grid-cols-4 gap-1">
+                                {(['P1x', 'P1y', 'P2x', 'P2y'] as const).map((label, idx) => (
+                                    <div key={label} className="space-y-0.5">
+                                        <span className="text-[9px] text-[#475569]">{label}</span>
+                                        <input
+                                            type="number"
+                                            value={customBezier[idx]}
+                                            onChange={(event) => {
+                                                const next = [...customBezier] as [number, number, number, number];
+                                                next[idx] = Number.parseFloat(event.target.value) || 0;
+                                                onCustomBezierChange(next);
+                                            }}
+                                            step={0.05}
+                                            min={0}
+                                            max={1}
+                                            className="h-6 w-full rounded bg-[#111827] px-1.5 text-[10px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
+                                            aria-label={`Bezier ${label}`}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : null}
                     <MotionParamRow label="Duration" value={duration} min={0} max={2} step={0.05} unit="s" onChange={onDurationChange} />
                 </div>
             )}
@@ -714,6 +762,8 @@ export function MotionInspectorSection({
                 onStiffnessChange={(v) => updateSelectedStyle('motionStiffness', v)}
                 onDampingChange={(v) => updateSelectedStyle('motionDamping', v)}
                 onMassChange={(v) => updateSelectedStyle('motionMass', v)}
+                customBezier={selectedStyle.motionCustomBezier}
+                onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
             />
         </div>
     );
@@ -722,14 +772,6 @@ export function MotionInspectorSection({
             setActiveTab('hover');
         }
     }, [activeTab, isOverlayComponent, hasSplitOverlayMotion, showTriggerTabs]);
-
-    if (componentKind === 'label') {
-        return (
-            <div className="rounded-md border border-white/[0.08] bg-[#0b1220]/50 p-3 text-[12px] text-[#8fa6c7]">
-                Label has no Motion FX controls.
-            </div>
-        );
-    }
 
     return (
         <div className="min-w-0 space-y-2.5">
@@ -959,6 +1001,8 @@ export function MotionInspectorSection({
                                         onStiffnessChange={(v) => updateSelectedStyle('motionHoverStiffness', v)}
                                         onDampingChange={(v) => updateSelectedStyle('motionHoverDamping', v)}
                                         onMassChange={(v) => updateSelectedStyle('motionHoverMass', v)}
+                                        customBezier={selectedStyle.motionCustomBezier}
+                                        onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
                                     />
                                 </motion.div>
                             ) : null}
@@ -1044,6 +1088,8 @@ export function MotionInspectorSection({
                                         onStiffnessChange={(v) => updateSelectedStyle('motionTapStiffness', v)}
                                         onDampingChange={(v) => updateSelectedStyle('motionTapDamping', v)}
                                         onMassChange={(v) => updateSelectedStyle('motionTapMass', v)}
+                                        customBezier={selectedStyle.motionCustomBezier}
+                                        onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
                                     />
                                 </motion.div>
                             ) : null}
@@ -1355,6 +1401,60 @@ export function MotionInspectorSection({
                     <MotionParamRow label="Bar Fill Speed" value={selectedStyle.sliderBarFillSpeed} min={0.05} max={1.2} step={0.01} unit="s" onChange={(v) => updateSelectedStyle('sliderBarFillSpeed', v)} />
                     <MotionParamRow label="Bar Scale" value={selectedStyle.sliderBarScale} min={0.9} max={1.5} step={0.01} onChange={(v) => updateSelectedStyle('sliderBarScale', v)} />
                     <MotionParamRow label="Bar Bounce" value={selectedStyle.sliderBarBounce} min={0} max={0.8} step={0.02} unit="s" onChange={(v) => updateSelectedStyle('sliderBarBounce', v)} />
+                </div>
+            ) : null}
+
+            {supportsStaggerMotion(componentKind) ? (
+                <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[12px] text-[#e2e8f0]">Stagger children</span>
+                        <Switch.Root
+                            checked={selectedStyle.motionStaggerEnabled}
+                            onCheckedChange={(checked) => updateSelectedStyle('motionStaggerEnabled', checked)}
+                            aria-label="Enable stagger animation"
+                            className={cn(
+                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                selectedStyle.motionStaggerEnabled
+                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                    : 'border-white/[0.12] bg-[#13161b]',
+                            )}
+                        >
+                            <Switch.Thumb
+                                className={cn(
+                                    'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                    selectedStyle.motionStaggerEnabled
+                                        ? 'translate-x-[18px] bg-[#2dd4bf]'
+                                        : 'translate-x-[2px] bg-[#64748b]',
+                                )}
+                            />
+                        </Switch.Root>
+                    </div>
+                    {selectedStyle.motionStaggerEnabled ? (
+                        <div className="space-y-2.5">
+                            <MotionParamRow label="Stagger Delay" value={selectedStyle.motionStaggerDelay} min={0.01} max={0.3} step={0.01} unit="s" onChange={(v) => updateSelectedStyle('motionStaggerDelay', v)} />
+                            <div className="space-y-1">
+                                <span className="text-[11px] text-[#8fa6c7]">Direction</span>
+                                <div className="flex gap-1">
+                                    {(['forward', 'reverse'] as const).map((dir) => (
+                                        <button
+                                            key={dir}
+                                            type="button"
+                                            onClick={() => updateSelectedStyle('motionStaggerDirection', dir as StaggerDirection)}
+                                            className={cn(
+                                                'rounded px-2.5 py-1 text-[10px] font-semibold transition-colors',
+                                                selectedStyle.motionStaggerDirection === dir
+                                                    ? 'bg-[rgba(45,212,191,0.12)] text-[#2dd4bf]'
+                                                    : 'text-[#64748b] hover:text-[#8fa6c7]',
+                                            )}
+                                        >
+                                            {dir.charAt(0).toUpperCase() + dir.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
             ) : null}
         </div>

@@ -1,0 +1,959 @@
+import { useEffect, useMemo } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Check, ChevronDown, Minus, SlidersHorizontal } from 'lucide-react';
+import {
+    Config,
+    Delete,
+    EditOne,
+    Moon,
+    Plus,
+    Ruler,
+    Sparkles,
+    Swatches,
+    TextAlignCenter,
+    TextAlignLeft,
+    TextAlignRight,
+} from '@mynaui/icons-react';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import type {
+    ButtonPreviewState,
+    ComponentInstance,
+    ComponentStyleConfig,
+    FillMode,
+    FontPosition,
+    IconOptionId,
+} from '@/components/ui/ui-studio.types';
+import {
+    BUTTON_STATE_FIELD_KEYS,
+    ICON_OPTIONS,
+} from '../constants';
+import type { ButtonStateField } from '../constants';
+import {
+    buildKindTitle,
+    getComponentVisualPreset,
+    getComponentVisualPresets,
+    supportsAnimatedBorderEffect,
+    supportsButtonStateStyle,
+    supportsDropdownHoverStyle,
+    supportsGradientSlideEffect,
+    supportsIconSelection,
+    supportsLoadingEffect,
+    supportsPanelStyle,
+    supportsRippleFillEffect,
+    supportsSweepEffect,
+    supportsTypographyStyle,
+} from '../utilities';
+import {
+    useStudioStore,
+    selectSelectedInstance,
+    selectActiveTokenSet,
+    selectSelectedStyle,
+} from '../store';
+import {
+    FlatColorControl,
+    FlatField,
+    FlatInspectorSection,
+    FlatSelect,
+    FlatSwitchRow,
+    FlatUnitField,
+    MiniNumberField,
+} from './index';
+
+const studioInputClass =
+    'h-8 w-full rounded-lg bg-[#0e182a] px-2.5 text-[11px] text-[#e6f0ff] outline-none ring-1 ring-inset ring-white/12 transition placeholder:text-[#5f7597] focus:ring-[#63e8da]/45';
+const inspectorChoiceButtonBase = 'h-6 flex-1 rounded-sm px-2.5 text-[13px] font-medium transition-colors';
+const inspectorChoiceButtonActive = 'bg-white/[0.10] text-[#eef5ff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]';
+const inspectorChoiceButtonIdle = 'text-[#7f8ca3] hover:bg-white/[0.03] hover:text-[#dfe7f5]';
+const inspectorIconChoiceButtonBase = 'inline-flex h-7 flex-1 items-center justify-center rounded-lg transition-colors';
+
+export function InspectorPanel() {
+    const selectedInstance = useStudioStore(selectSelectedInstance);
+    const selectedStyle = useStudioStore(selectSelectedStyle);
+    const activeTokenSet = useStudioStore(selectActiveTokenSet);
+    const editingVariantId = useStudioStore((s) => s.editingVariantId);
+    const setEditingVariantId = useStudioStore((s) => s.setEditingVariantId);
+    const editingVariantName = useStudioStore((s) => s.editingVariantName);
+    const setEditingVariantName = useStudioStore((s) => s.setEditingVariantName);
+    const effectsBuilderOpen = useStudioStore((s) => s.effectsBuilderOpen);
+    const setEffectsBuilderOpen = useStudioStore((s) => s.setEffectsBuilderOpen);
+    const pendingEffectId = useStudioStore((s) => s.pendingEffectId);
+    const setPendingEffectId = useStudioStore((s) => s.setPendingEffectId);
+    const updateSelectedStyle = useStudioStore((s) => s.updateSelectedStyle);
+    const updateSelectedStyles = useStudioStore((s) => s.updateSelectedStyles);
+    const applySizeTokenToSelected = useStudioStore((s) => s.applySizeTokenToSelected);
+    const deleteInstance = useStudioStore((s) => s.deleteInstance);
+    const updateInstanceName = useStudioStore((s) => s.updateInstanceName);
+    const applyComponentVisualPreset = useStudioStore((s) => s.applyComponentVisualPreset);
+
+    // ─── Derived state ────────────────────────────────────────────────────
+
+    const hasPanelElementControls = selectedInstance ? supportsPanelStyle(selectedInstance.kind) : false;
+    const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
+    const supportsGradientSlide = selectedInstance ? supportsGradientSlideEffect(selectedInstance.kind) : false;
+    const supportsAnimatedBorder = selectedInstance ? supportsAnimatedBorderEffect(selectedInstance.kind) : false;
+    const supportsRippleFill = selectedInstance ? supportsRippleFillEffect(selectedInstance.kind) : false;
+    const supportsLoadingState = selectedInstance ? supportsLoadingEffect(selectedInstance.kind) : false;
+    const supportsSweep = selectedInstance ? supportsSweepEffect(selectedInstance.kind) : false;
+
+    const supportsTextIconMode =
+        selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
+
+    const showWidthControl =
+        selectedInstance?.kind === 'slider' ||
+        selectedInstance?.kind === 'checkbox' ||
+        selectedInstance?.kind === 'input' ||
+        selectedInstance?.kind === 'tabs';
+
+    const appearanceSectionTitle = selectedInstance
+        ? `${buildKindTitle(selectedInstance.kind)} Appearance`
+        : 'Appearance';
+
+    const contentDisplayMode: 'text' | 'text-icon' | 'icon' = selectedStyle
+        ? selectedInstance?.kind === 'button'
+            ? selectedStyle.buttonShowText
+                ? selectedStyle.icon === 'none'
+                    ? 'text'
+                    : 'text-icon'
+                : 'icon'
+            : selectedInstance?.kind === 'badge'
+                ? selectedStyle.badgeShowText
+                    ? selectedStyle.icon === 'none'
+                        ? 'text'
+                        : 'text-icon'
+                    : 'icon'
+                : 'text'
+        : 'text';
+
+    const componentVisualPresets = selectedInstance ? getComponentVisualPresets(selectedInstance.kind) : [];
+    const designVisualPresets = componentVisualPresets.filter((preset) => !preset.id.startsWith('motion-'));
+    const activeDesignPresetId =
+        selectedStyle && designVisualPresets.some((preset) => preset.id === selectedStyle.componentPreset)
+            ? selectedStyle.componentPreset
+            : designVisualPresets[0]?.id;
+    const activeComponentPreset = selectedInstance && selectedStyle?.componentPreset
+        ? getComponentVisualPreset(selectedInstance.kind, selectedStyle.componentPreset)
+        : undefined;
+
+    // ─── Effect options ───────────────────────────────────────────────────
+
+    const effectOptions = selectedStyle
+        ? [
+            { id: 'drop-shadow', label: 'Drop Shadow', enabled: selectedStyle.effectDropShadow, supported: true },
+            { id: 'inner-shadow', label: 'Inner Shadow', enabled: selectedStyle.effectInnerShadow, supported: true },
+            { id: 'background-blur', label: 'Background Blur', enabled: selectedStyle.effectBlur, supported: true },
+            { id: 'glass-tint', label: 'Glass Tint', enabled: selectedStyle.effectGlass, supported: true },
+            { id: 'gradient-slide', label: 'Gradient Slide', enabled: selectedStyle.effectGradientSlideEnabled, supported: supportsGradientSlide },
+            { id: 'animated-border', label: hasPanelElementControls ? 'Animated Border (Trigger)' : 'Animated Border', enabled: selectedStyle.effectAnimatedBorderEnabled, supported: supportsAnimatedBorder },
+            { id: 'ripple-fill', label: 'Ripple Fill (Hover)', enabled: selectedStyle.effectRippleFillEnabled, supported: supportsRippleFill },
+            { id: 'loading-state', label: 'Loading State Icon', enabled: selectedStyle.effectLoadingActiveEnabled, supported: supportsLoadingState },
+            { id: 'sweep', label: 'Sweep Animation', enabled: selectedStyle.effectSweepEnabled, supported: supportsSweep },
+        ].filter((item) => item.supported)
+        : [];
+    const inactiveEffectOptions = effectOptions.filter((item) => !item.enabled);
+
+    useEffect(() => {
+        if (!effectsBuilderOpen) return;
+        if (!pendingEffectId || !inactiveEffectOptions.some((option) => option.id === pendingEffectId)) {
+            setPendingEffectId(inactiveEffectOptions[0]?.id ?? null);
+        }
+    }, [effectsBuilderOpen, inactiveEffectOptions, pendingEffectId, setPendingEffectId]);
+
+    // ─── Appearance helpers ───────────────────────────────────────────────
+
+    const getButtonStateValues = (state: ButtonPreviewState) => {
+        if (!selectedStyle || !selectedInstance || !supportsButtonStateStyle(selectedInstance.kind)) {
+            return null;
+        }
+        const keys = BUTTON_STATE_FIELD_KEYS[state];
+        return {
+            fillMode: selectedStyle[keys.fillMode] as FillMode,
+            fillColor: selectedStyle[keys.fillColor] as string,
+            fillColorTo: selectedStyle[keys.fillColorTo] as string,
+            fillWeight: selectedStyle[keys.fillWeight] as number,
+            fillOpacity: selectedStyle[keys.fillOpacity] as number,
+            fontSize: selectedStyle[keys.fontSize] as number,
+            fontWeight: selectedStyle[keys.fontWeight] as number,
+            fontPosition: selectedStyle[keys.fontPosition] as FontPosition,
+            fontColor: selectedStyle[keys.fontColor] as string,
+            fontOpacity: selectedStyle[keys.fontOpacity] as number,
+            strokeColor: selectedStyle[keys.strokeColor] as string,
+            strokeOpacity: selectedStyle[keys.strokeOpacity] as number,
+            strokeWeight: selectedStyle[keys.strokeWeight] as number,
+        };
+    };
+
+    const updateButtonStateValue = (
+        state: ButtonPreviewState,
+        field: ButtonStateField,
+        value: string | number | FillMode,
+    ) => {
+        const key = BUTTON_STATE_FIELD_KEYS[state][field] as keyof ComponentStyleConfig;
+        updateSelectedStyle(key, value as never);
+    };
+
+    const currentAppearanceValues = selectedStyle
+        ? usesStateAppearanceControls
+            ? getButtonStateValues(selectedStyle.buttonPreviewState)
+            : {
+                fillMode: selectedStyle.fillMode,
+                fillColor: selectedStyle.fillColor,
+                fillColorTo: selectedStyle.fillColorTo,
+                fillWeight: selectedStyle.fillWeight,
+                fillOpacity: selectedStyle.fillOpacity,
+                fontSize: selectedStyle.fontSize,
+                fontWeight: selectedStyle.fontWeight,
+                fontPosition: selectedStyle.fontPosition,
+                fontColor: selectedStyle.fontColor,
+                fontOpacity: selectedStyle.fontOpacity,
+                strokeColor: selectedStyle.strokeColor,
+                strokeOpacity: selectedStyle.strokeOpacity,
+                strokeWeight: selectedStyle.strokeWeight,
+            }
+        : null;
+
+    const updateAppearanceField = (
+        field: ButtonStateField,
+        value: string | number | FillMode,
+    ) => {
+        if (!selectedStyle) return;
+        if (usesStateAppearanceControls) {
+            updateButtonStateValue(selectedStyle.buttonPreviewState, field, value);
+            return;
+        }
+        const key = BUTTON_STATE_FIELD_KEYS.default[field] as keyof ComponentStyleConfig;
+        updateSelectedStyle(key, value as never);
+    };
+
+    const updateContentDisplayMode = (mode: 'text' | 'text-icon' | 'icon') => {
+        if (!selectedInstance || !supportsTextIconMode) return;
+        const defaultIcon: IconOptionId = selectedStyle?.icon === 'none' ? 'search' : selectedStyle?.icon ?? 'search';
+        if (selectedInstance.kind === 'button') {
+            updateSelectedStyle('buttonShowText', mode !== 'icon');
+            updateSelectedStyle('icon', mode === 'text' ? 'none' : defaultIcon);
+            return;
+        }
+        updateSelectedStyle('badgeShowText', mode !== 'icon');
+        updateSelectedStyle('icon', mode === 'text' ? 'none' : defaultIcon);
+    };
+
+    // ─── Effect helpers ───────────────────────────────────────────────────
+
+    type EffectId = 'drop-shadow' | 'inner-shadow' | 'background-blur' | 'glass-tint' | 'gradient-slide' | 'animated-border' | 'ripple-fill' | 'loading-state' | 'sweep';
+
+    const setEffectEnabled = (effectId: EffectId, enabled: boolean) => {
+        switch (effectId) {
+            case 'drop-shadow': updateSelectedStyle('effectDropShadow', enabled); break;
+            case 'inner-shadow': updateSelectedStyle('effectInnerShadow', enabled); break;
+            case 'background-blur': updateSelectedStyle('effectBlur', enabled); break;
+            case 'glass-tint': updateSelectedStyle('effectGlass', enabled); break;
+            case 'gradient-slide': updateSelectedStyle('effectGradientSlideEnabled', enabled); break;
+            case 'animated-border': updateSelectedStyle('effectAnimatedBorderEnabled', enabled); break;
+            case 'ripple-fill': updateSelectedStyle('effectRippleFillEnabled', enabled); break;
+            case 'loading-state': updateSelectedStyle('effectLoadingActiveEnabled', enabled); break;
+            case 'sweep': updateSelectedStyle('effectSweepEnabled', enabled); break;
+        }
+    };
+
+    const renderEffectStateSelect = (effectId: 'animated-border' | 'sweep') => {
+        if (!selectedStyle) return null;
+        const optionKeys = effectId === 'animated-border'
+            ? [
+                { label: 'Default', key: 'effectAnimatedBorderStateDefault' as const },
+                { label: 'Hover', key: 'effectAnimatedBorderStateHover' as const },
+                { label: 'Active', key: 'effectAnimatedBorderStateActive' as const },
+                { label: 'Disabled', key: 'effectAnimatedBorderStateDisabled' as const },
+            ]
+            : [
+                { label: 'Default', key: 'effectSweepStateDefault' as const },
+                { label: 'Hover', key: 'effectSweepStateHover' as const },
+                { label: 'Active', key: 'effectSweepStateActive' as const },
+                { label: 'Disabled', key: 'effectSweepStateDisabled' as const },
+            ];
+        const activeLabels = optionKeys.filter((option) => selectedStyle[option.key]).map((option) => option.label);
+
+        return (
+            <FlatField label="States" stacked>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button
+                            type="button"
+                            className="ui-studio-inspector-input inline-flex h-6 w-full items-center justify-between gap-2 rounded-sm border-[var(--inspector-border-soft)] bg-[#0c121d] px-2 text-[12px] font-medium text-[var(--inspector-text)]"
+                        >
+                            <span className="min-w-0 truncate text-left">
+                                {activeLabels.length > 0 ? activeLabels.join(', ') : 'No states'}
+                            </span>
+                            <ChevronDown className="size-3.5 shrink-0 text-[var(--inspector-muted-text)]" />
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        side="left"
+                        align="start"
+                        sideOffset={10}
+                        className="w-[220px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-2 text-[var(--inspector-text)]"
+                    >
+                        <div className="space-y-1">
+                            {optionKeys.map((option) => {
+                                const checked = selectedStyle[option.key];
+                                return (
+                                    <button
+                                        key={option.key}
+                                        type="button"
+                                        onClick={() => updateSelectedStyle(option.key, !checked)}
+                                        className={cn(
+                                            'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-[12px] font-medium transition',
+                                            checked
+                                                ? 'bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)]'
+                                                : 'text-[var(--inspector-muted-text)] hover:bg-white/[0.04] hover:text-[var(--inspector-text)]',
+                                        )}
+                                    >
+                                        <Check className={cn('size-3.5 shrink-0', checked ? 'opacity-100' : 'opacity-0')} />
+                                        <span>{option.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </FlatField>
+        );
+    };
+
+    const renderEffectConfigurator = (effectId: EffectId) => {
+        if (!selectedStyle || !selectedInstance) return null;
+
+        switch (effectId) {
+            case 'drop-shadow':
+                return (
+                    <div className="grid grid-cols-2 gap-2">
+                        <MiniNumberField label="Distance" value={Math.max(0, selectedStyle.dropShadowY)} min={0} max={80} onChange={(value) => updateSelectedStyles({ dropShadowStrength: value, dropShadowY: value })} />
+                        <MiniNumberField label="X" value={selectedStyle.dropShadowX} min={-80} max={80} onChange={(value) => updateSelectedStyle('dropShadowX', value)} />
+                        <MiniNumberField label="Blur" value={selectedStyle.dropShadowBlur} min={0} max={80} onChange={(value) => updateSelectedStyle('dropShadowBlur', value)} />
+                        <MiniNumberField label="Spread" value={selectedStyle.dropShadowSpread} min={-40} max={40} onChange={(value) => updateSelectedStyle('dropShadowSpread', value)} />
+                    </div>
+                );
+            case 'inner-shadow':
+                return (
+                    <div className="grid grid-cols-2 gap-2">
+                        <MiniNumberField label="X" value={selectedStyle.innerShadowX} min={-80} max={80} onChange={(value) => updateSelectedStyle('innerShadowX', value)} />
+                        <MiniNumberField label="Y" value={selectedStyle.innerShadowY} min={-80} max={80} onChange={(value) => updateSelectedStyle('innerShadowY', value)} />
+                        <MiniNumberField label="Blur" value={selectedStyle.innerShadowBlur} min={0} max={80} onChange={(value) => updateSelectedStyle('innerShadowBlur', value)} />
+                        <MiniNumberField label="Spread" value={selectedStyle.innerShadowSpread} min={-40} max={40} onChange={(value) => updateSelectedStyle('innerShadowSpread', value)} />
+                    </div>
+                );
+            case 'background-blur':
+                return <MiniNumberField label="Amount" value={selectedStyle.blurAmount} min={0} max={30} unit="px" onChange={(value) => updateSelectedStyle('blurAmount', value)} />;
+            case 'glass-tint':
+                return <MiniNumberField label="Opacity" value={selectedStyle.glassOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('glassOpacity', value)} />;
+            case 'gradient-slide':
+                return (
+                    <div className="space-y-3">
+                        <FlatField label="Direction" stacked>
+                            <FlatSelect value={selectedStyle.effectGradientSlideDirection} onValueChange={(value) => updateSelectedStyle('effectGradientSlideDirection', value as ComponentStyleConfig['effectGradientSlideDirection'])}>
+                                <option value="left">Left → Right</option>
+                                <option value="right">Right → Left</option>
+                                <option value="top">Top → Bottom</option>
+                                <option value="bottom">Bottom → Top</option>
+                            </FlatSelect>
+                        </FlatField>
+                        <FlatColorControl
+                            label="Slide Color"
+                            value={selectedStyle.effectGradientSlideColor}
+                            onChange={(value) => updateSelectedStyle('effectGradientSlideColor', value)}
+                            tokens={activeTokenSet.tokens}
+                            allowGradient
+                            mode={selectedStyle.effectGradientSlideFillMode}
+                            onModeChange={(mode) => updateSelectedStyle('effectGradientSlideFillMode', mode)}
+                            secondaryValue={selectedStyle.effectGradientSlideColorTo}
+                            onSecondaryChange={(value) => updateSelectedStyle('effectGradientSlideColorTo', value)}
+                        />
+                        <FlatUnitField label="Motion Speed" value={selectedStyle.effectGradientSlideSpeed} min={0.1} max={2} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('effectGradientSlideSpeed', value)} />
+                    </div>
+                );
+            case 'animated-border':
+                return (
+                    <div className="space-y-3">
+                        <FlatUnitField label="Preset Speed" value={selectedStyle.effectAnimatedBorderSpeed} min={0.6} max={8} step={0.1} unit="s" onChange={(value) => updateSelectedStyle('effectAnimatedBorderSpeed', value)} />
+                        <FlatField label="Color Count" stacked>
+                            <FlatSelect value={selectedStyle.effectAnimatedBorderColorCount} onValueChange={(value) => updateSelectedStyle('effectAnimatedBorderColorCount', Math.max(2, Math.min(5, Number(value))))}>
+                                {[2, 3, 4, 5].map((count) => (<option key={count} value={count}>{count}</option>))}
+                            </FlatSelect>
+                        </FlatField>
+                        <FlatColorControl label="Color 1" value={selectedStyle.effectAnimatedBorderColor1} onChange={(value) => updateSelectedStyle('effectAnimatedBorderColor1', value)} tokens={activeTokenSet.tokens} />
+                        <FlatColorControl label="Color 2" value={selectedStyle.effectAnimatedBorderColor2} onChange={(value) => updateSelectedStyle('effectAnimatedBorderColor2', value)} tokens={activeTokenSet.tokens} />
+                        {selectedStyle.effectAnimatedBorderColorCount >= 3 ? <FlatColorControl label="Color 3" value={selectedStyle.effectAnimatedBorderColor3} onChange={(value) => updateSelectedStyle('effectAnimatedBorderColor3', value)} tokens={activeTokenSet.tokens} /> : null}
+                        {selectedStyle.effectAnimatedBorderColorCount >= 4 ? <FlatColorControl label="Color 4" value={selectedStyle.effectAnimatedBorderColor4} onChange={(value) => updateSelectedStyle('effectAnimatedBorderColor4', value)} tokens={activeTokenSet.tokens} /> : null}
+                        {selectedStyle.effectAnimatedBorderColorCount >= 5 ? <FlatColorControl label="Color 5" value={selectedStyle.effectAnimatedBorderColor5} onChange={(value) => updateSelectedStyle('effectAnimatedBorderColor5', value)} tokens={activeTokenSet.tokens} /> : null}
+                        <p className="text-[11px] text-[var(--inspector-muted-text)]">Border width is linked to Stroke Width.</p>
+                        {renderEffectStateSelect('animated-border')}
+                    </div>
+                );
+            case 'ripple-fill':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Ripple Color" value={selectedStyle.effectRippleFillColor} onChange={(value) => updateSelectedStyle('effectRippleFillColor', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Fill Speed" value={selectedStyle.effectRippleFillSpeed} min={0.2} max={1.8} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('effectRippleFillSpeed', value)} />
+                    </div>
+                );
+            case 'loading-state':
+                return (
+                    <div className="space-y-3">
+                        <FlatField label="Icon Position" stacked>
+                            <FlatSelect value={selectedStyle.effectLoadingPosition} onValueChange={(value) => updateSelectedStyle('effectLoadingPosition', value as 'left' | 'right')}>
+                                <option value="left">Left</option>
+                                <option value="right">Right</option>
+                            </FlatSelect>
+                        </FlatField>
+                        <FlatField label="Outcome Icon" stacked>
+                            <FlatSelect value={selectedStyle.effectLoadingOutcome} onValueChange={(value) => updateSelectedStyle('effectLoadingOutcome', value as ComponentStyleConfig['effectLoadingOutcome'])}>
+                                <option value="success">Success</option>
+                                <option value="failure">Failure</option>
+                                <option value="warning">Warning</option>
+                            </FlatSelect>
+                        </FlatField>
+                        {selectedInstance.kind === 'badge' ? (
+                            <FlatSwitchRow
+                                label="Show in Default State"
+                                checked={selectedStyle.effectLoadingBadgeDefaultEnabled}
+                                onCheckedChange={(checked) => updateSelectedStyle('effectLoadingBadgeDefaultEnabled', checked)}
+                            />
+                        ) : null}
+                    </div>
+                );
+            case 'sweep':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl
+                            label="Sweep Color"
+                            value={selectedStyle.effectSweepColor}
+                            opacity={selectedStyle.effectSweepOpacity}
+                            onOpacityChange={(value) => updateSelectedStyle('effectSweepOpacity', value)}
+                            onChange={(value) => updateSelectedStyle('effectSweepColor', value)}
+                            tokens={activeTokenSet.tokens}
+                        />
+                        <FlatUnitField label="Sweep Width" value={selectedStyle.effectSweepWidth} min={8} max={60} unit="%" onChange={(value) => updateSelectedStyle('effectSweepWidth', value)} />
+                        <FlatUnitField label="Sweep Speed" value={selectedStyle.effectSweepSpeed} min={0.4} max={4} step={0.1} unit="s" onChange={(value) => updateSelectedStyle('effectSweepSpeed', value)} />
+                        {renderEffectStateSelect('sweep')}
+                    </div>
+                );
+        }
+    };
+
+    // ─── Rename helpers ───────────────────────────────────────────────────
+
+    const startRenameVariant = (instance: ComponentInstance) => {
+        setEditingVariantId(instance.id);
+        setEditingVariantName(instance.name);
+    };
+
+    const commitRenameVariant = (instanceId: string) => {
+        const trimmed = editingVariantName.trim();
+        if (trimmed.length > 0) {
+            updateInstanceName(instanceId, trimmed);
+        }
+        setEditingVariantId(null);
+        setEditingVariantName('');
+    };
+
+    // ─── Render ───────────────────────────────────────────────────────────
+
+    if (!selectedStyle || !selectedInstance) {
+        return <div className="p-4 text-sm text-[#87a0c2]">Select a variant to open the design inspector.</div>;
+    }
+
+    return (
+        <ScrollArea className="ui-studio-inspector-scroll min-h-0 h-full min-w-0 flex-1 overflow-x-hidden">
+            <div className="min-w-0 overflow-x-hidden px-2 pb-6 pt-2">
+                <div className="mx-1 mb-1.5 flex items-center justify-between border-b border-white/8 px-2 pb-2 pt-1">
+                    {editingVariantId === selectedInstance.id ? (
+                        <input
+                            value={editingVariantName}
+                            onChange={(event) => setEditingVariantName(event.target.value)}
+                            onBlur={() => commitRenameVariant(selectedInstance.id)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') { event.preventDefault(); commitRenameVariant(selectedInstance.id); }
+                                if (event.key === 'Escape') { event.preventDefault(); setEditingVariantId(null); setEditingVariantName(''); }
+                            }}
+                            className={cn(studioInputClass, 'h-8 max-w-[220px]')}
+                            autoFocus
+                        />
+                    ) : (
+                        <div className="inline-flex items-center gap-2">
+                            <h2 className="truncate text-sm font-semibold text-[#edf5ff]">{selectedInstance.name}</h2>
+                            <button
+                                type="button"
+                                onClick={() => startRenameVariant(selectedInstance)}
+                                className="rounded-md p-1 text-[#8fa6c7] transition hover:bg-white/[0.06] hover:text-[#eaf2ff]"
+                                aria-label="Rename component"
+                            >
+                                <EditOne className="size-4" />
+                            </button>
+                        </div>
+                    )}
+                    <Tooltip delay={800}>
+                        <TooltipTrigger
+                            className="inline-flex size-8 items-center justify-center rounded-md text-[#8fa6c7] transition hover:bg-white/[0.06] hover:text-[#ff9ca4]"
+                            onPress={() => deleteInstance(selectedInstance.id)}
+                            aria-label="Clear selected component"
+                        >
+                            <Delete className="size-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>Clear</TooltipContent>
+                    </Tooltip>
+                </div>
+                <div className="flex flex-col divide-y divide-[var(--inspector-border-soft)]">
+                    {/* Presets */}
+                    {designVisualPresets.length > 0 && activeDesignPresetId ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Presets" icon={Sparkles} defaultOpen={false} subtitle={`${designVisualPresets.length} presets`}>
+                                <FlatSelect
+                                    value={activeDesignPresetId}
+                                    onValueChange={(value) => applyComponentVisualPreset(value)}
+                                    ariaLabel={`${buildKindTitle(selectedInstance.kind)} preset`}
+                                >
+                                    {designVisualPresets.map((preset) => (
+                                        <option key={preset.id} value={preset.id}>{preset.label}</option>
+                                    ))}
+                                </FlatSelect>
+                                {activeComponentPreset ? (
+                                    <p className="text-[10px] leading-relaxed text-[var(--inspector-muted-text)]">{activeComponentPreset.description}</p>
+                                ) : null}
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Dimensions */}
+                    <div className="p-1">
+                        <FlatInspectorSection
+                            title={hasPanelElementControls ? 'Button Design' : 'Dimensions'}
+                            icon={Ruler}
+                            defaultOpen
+                            subtitle={hasPanelElementControls ? 'Button trigger sizing and visual styling.' : undefined}
+                        >
+                            <div className={cn('flex items-start gap-3', showWidthControl ? 'flex-wrap' : 'flex-nowrap')}>
+                                <div className="w-[112px] shrink-0">
+                                    <FlatField label="Size" stacked>
+                                        <div className="flex h-6 w-full items-center gap-1 rounded-sm bg-[var(--inspector-input)]">
+                                            {([
+                                                { label: 'S', value: 'sm' },
+                                                { label: 'M', value: 'md' },
+                                                { label: 'L', value: 'lg' },
+                                            ] as const).map((option) => (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => applySizeTokenToSelected(option.value, activeTokenSet.sizeTokens[option.value])}
+                                                    className={cn(
+                                                        inspectorChoiceButtonBase,
+                                                        selectedStyle.size === option.value
+                                                            ? inspectorChoiceButtonActive
+                                                            : inspectorChoiceButtonIdle,
+                                                    )}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                </div>
+                                {showWidthControl ? (
+                                    <FlatUnitField label="Width" value={selectedStyle.customWidth} min={0} max={640} unit="px" onChange={(value) => updateSelectedStyle('customWidth', value)} zeroLabel="auto" />
+                                ) : null}
+                                <FlatUnitField label="Height" value={selectedStyle.customHeight} min={0} max={720} unit="px" onChange={(value) => updateSelectedStyle('customHeight', value)} zeroLabel="auto" />
+                                <FlatUnitField label="Radius" value={selectedStyle.cornerRadius} min={0} max={40} unit="px" onChange={(value) => updateSelectedStyle('cornerRadius', value)} />
+                            </div>
+                            {hasPanelElementControls ? (
+                                <>
+                                    {currentAppearanceValues ? (
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="min-w-0 flex-1">
+                                                <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} stacked compact />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} stacked compact />
+                                            </div>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <button type="button" aria-label="Adjust stroke width" className="inline-flex size-7 shrink-0 items-center justify-center rounded-sm border border-[color:var(--inspector-accent)]/30 bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)] transition hover:border-[color:var(--inspector-accent)]/50 hover:bg-[color:var(--inspector-accent-soft)]/80 hover:text-[var(--inspector-text)]">
+                                                        <SlidersHorizontal className="size-4" />
+                                                    </button>
+                                                </PopoverTrigger>
+                                                <PopoverContent side="left" align="start" sideOffset={10} className="w-[220px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-3 text-[var(--inspector-text)]">
+                                                    <div className="space-y-3">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[12px] font-medium text-[var(--inspector-text)]">Stroke Width</p>
+                                                            <p className="text-[11px] text-[var(--inspector-muted-text)]">{currentAppearanceValues.strokeWeight}px</p>
+                                                        </div>
+                                                        <Slider value={[currentAppearanceValues.strokeWeight]} onValueChange={(values: number[]) => updateAppearanceField('strokeWeight', values[0] ?? 0)} min={0} max={8} step={0.5} />
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    ) : null}
+
+                                    {supportsTypographyStyle(selectedInstance.kind) && currentAppearanceValues ? (
+                                        <>
+                                            <FlatField label="Typography" stacked>
+                                                <div className="flex flex-wrap items-end gap-3">
+                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={36} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
+                                                    <div className="w-[92px] shrink-0">
+                                                        <FlatField label="Weight" stacked>
+                                                            <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
+                                                                {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                            </FlatSelect>
+                                                        </FlatField>
+                                                    </div>
+                                                </div>
+                                            </FlatField>
+                                            <FlatField label="Align">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    {[
+                                                        { value: 'left' as const, icon: TextAlignLeft },
+                                                        { value: 'center' as const, icon: TextAlignCenter },
+                                                        { value: 'right' as const, icon: TextAlignRight },
+                                                    ].map((item) => {
+                                                        const Icon = item.icon;
+                                                        return (
+                                                            <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                <Icon className="size-4" />
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </FlatField>
+                                            <FlatField label="Text" stacked>
+                                                <FlatColorControl label="Color" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} compact />
+                                            </FlatField>
+                                        </>
+                                    ) : null}
+
+                                    {supportsTextIconMode ? (
+                                        <FlatField label="Content Mode" stacked>
+                                            <FlatSelect value={contentDisplayMode} onValueChange={(value) => updateContentDisplayMode(value as 'text' | 'text-icon' | 'icon')} ariaLabel="Content mode">
+                                                <option value="text">Text only</option>
+                                                <option value="text-icon">Text + Icon</option>
+                                                <option value="icon">Icon only</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    ) : null}
+
+                                    <AnimatePresence initial={false}>
+                                        {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon') ? (
+                                            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3">
+                                                <FlatField label="Icon">
+                                                    <FlatSelect value={selectedStyle.icon} onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)} ariaLabel="Icon">
+                                                        {ICON_OPTIONS.map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Icon Position">
+                                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                        {(['left', 'right'] as const).map((position) => (
+                                                            <button key={position} type="button" onClick={() => updateSelectedStyle('iconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.iconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                {position}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </FlatField>
+                                            </motion.div>
+                                        ) : null}
+                                    </AnimatePresence>
+                                </>
+                            ) : null}
+                        </FlatInspectorSection>
+                    </div>
+
+                    {/* Appearance / Panel Design */}
+                    <div className="p-1">
+                        <FlatInspectorSection
+                            title={hasPanelElementControls ? 'Panel Design' : appearanceSectionTitle}
+                            icon={Swatches}
+                            defaultOpen
+                            subtitle={hasPanelElementControls ? 'Overlay dimensions and styling.' : undefined}
+                        >
+                            {hasPanelElementControls ? (
+                                <>
+                                    <>
+                                        {selectedInstance && supportsDropdownHoverStyle(selectedInstance.kind) ? (
+                                            <>
+                                                <FlatColorControl label="Item Hover Fill" value={selectedStyle.dropdownHoverFill} opacity={selectedStyle.dropdownHoverFillOpacity} onOpacityChange={(value) => updateSelectedStyle('dropdownHoverFillOpacity', value)} onChange={(value) => updateSelectedStyle('dropdownHoverFill', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatColorControl label="Item Hover Text" value={selectedStyle.dropdownHoverText} onChange={(value) => updateSelectedStyle('dropdownHoverText', value)} tokens={activeTokenSet.tokens} />
+                                            </>
+                                        ) : null}
+                                        <div className="flex flex-wrap items-start gap-4">
+                                            <FlatUnitField label="Width" value={selectedStyle.panelCustomWidth} min={0} max={720} unit="px" onChange={(value) => updateSelectedStyle('panelCustomWidth', value)} />
+                                            <FlatUnitField label="Height" value={selectedStyle.panelCustomHeight} min={0} max={720} unit="px" onChange={(value) => updateSelectedStyle('panelCustomHeight', value)} />
+                                            <FlatUnitField label="Radius" value={selectedStyle.panelCornerRadius} min={0} max={40} unit="px" onChange={(value) => updateSelectedStyle('panelCornerRadius', value)} />
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="min-w-0 flex-1">
+                                                <FlatColorControl label="Fill" value={selectedStyle.panelFillColor} opacity={selectedStyle.panelFillOpacity} onOpacityChange={(value) => updateSelectedStyle('panelFillOpacity', value)} onChange={(value) => updateSelectedStyle('panelFillColor', value)} tokens={activeTokenSet.tokens} stacked compact />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <FlatColorControl label="Stroke" value={selectedStyle.panelStrokeColor} opacity={selectedStyle.panelStrokeOpacity} onOpacityChange={(value) => updateSelectedStyle('panelStrokeOpacity', value)} onChange={(value) => updateSelectedStyle('panelStrokeColor', value)} tokens={activeTokenSet.tokens} stacked compact />
+                                            </div>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <button type="button" aria-label="Adjust stroke width" className="inline-flex size-7 shrink-0 items-center justify-center rounded-sm border border-[color:var(--inspector-accent)]/30 bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)] transition hover:border-[color:var(--inspector-accent)]/50 hover:bg-[color:var(--inspector-accent-soft)]/80 hover:text-[var(--inspector-text)]">
+                                                        <SlidersHorizontal className="size-4" />
+                                                    </button>
+                                                </PopoverTrigger>
+                                                <PopoverContent side="left" align="start" sideOffset={10} className="w-[220px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-3 text-[var(--inspector-text)]">
+                                                    <div className="space-y-3">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[12px] font-medium text-[var(--inspector-text)]">Stroke Width</p>
+                                                            <p className="text-[11px] text-[var(--inspector-muted-text)]">{selectedStyle.panelStrokeWeight}px</p>
+                                                        </div>
+                                                        <Slider value={[selectedStyle.panelStrokeWeight]} onValueChange={(values: number[]) => updateSelectedStyle('panelStrokeWeight', values[0] ?? 0)} min={0} max={8} step={0.5} />
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                        <FlatField label="Typography" stacked>
+                                            <div className="flex flex-wrap items-end gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.panelFontSize} min={10} max={36} unit="px" onChange={(value) => updateSelectedStyle('panelFontSize', value)} />
+                                                <div className="w-[92px] shrink-0">
+                                                    <FlatField label="Weight" stacked>
+                                                        <FlatSelect value={selectedStyle.panelFontWeight} onValueChange={(value) => updateSelectedStyle('panelFontWeight', Number(value))} ariaLabel="Typography weight">
+                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                </div>
+                                            </div>
+                                        </FlatField>
+                                        <FlatField label="Text" stacked>
+                                            <div className="flex items-end gap-1.5">
+                                                <div className="min-w-0 flex-1">
+                                                    <FlatColorControl label="Color" value={selectedStyle.panelFontColor} opacity={selectedStyle.panelFontOpacity} onOpacityChange={(value) => updateSelectedStyle('panelFontOpacity', value)} onChange={(value) => updateSelectedStyle('panelFontColor', value)} tokens={activeTokenSet.tokens} compact />
+                                                </div>
+                                                <div className="flex flex-wrap items-end gap-1.5">
+                                                    <div className="flex items-center gap-1">
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <button type="button" aria-label="Configure panel text shadow" className={cn('inline-flex size-7 shrink-0 items-center justify-center rounded-sm border transition', selectedStyle.panelEffectDropShadow ? 'border-[color:var(--inspector-accent)]/30 bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)]' : 'border-[var(--inspector-border-soft)] bg-[#0c121d] text-[var(--inspector-muted-text)] hover:border-[var(--inspector-border-strong)] hover:text-[var(--inspector-text)]')}>
+                                                                    <Sparkles className="size-4" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent side="left" align="end" sideOffset={12} collisionPadding={16} className="w-[220px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-3 text-[var(--inspector-text)]">
+                                                                <div className="space-y-3">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-[12px] font-medium text-[var(--inspector-text)]">Drop Shadow</p>
+                                                                        <p className="text-[11px] text-[var(--inspector-muted-text)]">Adjusting any value enables it.</p>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        <MiniNumberField label="Distance" value={Math.max(0, selectedStyle.panelDropShadowY)} min={0} max={80} onChange={(value) => updateSelectedStyles({ panelEffectDropShadow: true, panelDropShadowY: value })} />
+                                                                        <MiniNumberField label="X" value={selectedStyle.panelDropShadowX} min={-80} max={80} onChange={(value) => updateSelectedStyles({ panelEffectDropShadow: true, panelDropShadowX: value })} />
+                                                                        <MiniNumberField label="Blur" value={selectedStyle.panelDropShadowBlur} min={0} max={80} onChange={(value) => updateSelectedStyles({ panelEffectDropShadow: true, panelDropShadowBlur: value })} />
+                                                                        <MiniNumberField label="Spread" value={selectedStyle.panelDropShadowSpread} min={-40} max={40} onChange={(value) => updateSelectedStyles({ panelEffectDropShadow: true, panelDropShadowSpread: value })} />
+                                                                    </div>
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                        {selectedStyle.panelEffectDropShadow ? (
+                                                            <button type="button" onClick={() => updateSelectedStyle('panelEffectDropShadow', false)} className="inline-flex h-6 items-center rounded-sm border border-white/10 px-2 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]">Remove</button>
+                                                        ) : null}
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <button type="button" aria-label="Configure panel text blur" className={cn('inline-flex size-7 shrink-0 items-center justify-center rounded-sm border transition', selectedStyle.panelEffectBlur ? 'border-[color:var(--inspector-accent)]/30 bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)]' : 'border-[var(--inspector-border-soft)] bg-[#0c121d] text-[var(--inspector-muted-text)] hover:border-[var(--inspector-border-strong)] hover:text-[var(--inspector-text)]')}>
+                                                                    <Moon className="size-4" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent side="left" align="end" sideOffset={12} collisionPadding={16} className="w-[220px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-3 text-[var(--inspector-text)]">
+                                                                <div className="space-y-3">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-[12px] font-medium text-[var(--inspector-text)]">Background Blur</p>
+                                                                        <p className="text-[11px] text-[var(--inspector-muted-text)]">Adjusting the amount enables it.</p>
+                                                                    </div>
+                                                                    <MiniNumberField label="Amount" value={selectedStyle.panelBlurAmount} min={0} max={30} unit="px" onChange={(value) => updateSelectedStyles({ panelEffectBlur: true, panelBlurAmount: value })} />
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                        {selectedStyle.panelEffectBlur ? (
+                                                            <button type="button" onClick={() => updateSelectedStyle('panelEffectBlur', false)} className="inline-flex h-6 items-center rounded-sm border border-white/10 px-2 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]">Remove</button>
+                                                        ) : null}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </FlatField>
+                                    </>
+                                </>
+                            ) : (
+                                <>
+                                    {currentAppearanceValues ? (
+                                        <>
+                                            <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} />
+                                            <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatUnitField label="Stroke Width" value={currentAppearanceValues.strokeWeight} min={0} max={8} unit="px" onChange={(value) => updateAppearanceField('strokeWeight', value)} />
+                                        </>
+                                    ) : null}
+
+                                    {supportsTypographyStyle(selectedInstance.kind) && currentAppearanceValues ? (
+                                        <>
+                                            <FlatField label="Typography" stacked>
+                                                <div className="flex gap-2 [&>*]:min-w-0 [&>*]:flex-1">
+                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={36} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
+                                                    <FlatField label="Weight">
+                                                        <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
+                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                </div>
+                                            </FlatField>
+                                            <FlatField label="Align">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    {[
+                                                        { value: 'left' as const, icon: TextAlignLeft },
+                                                        { value: 'center' as const, icon: TextAlignCenter },
+                                                        { value: 'right' as const, icon: TextAlignRight },
+                                                    ].map((item) => {
+                                                        const Icon = item.icon;
+                                                        return (
+                                                            <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                <Icon className="size-4" />
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </FlatField>
+                                            <FlatColorControl label="Text" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} />
+                                        </>
+                                    ) : null}
+
+                                    {supportsTextIconMode ? (
+                                        <FlatField label="Content Mode" stacked>
+                                            <FlatSelect value={contentDisplayMode} onValueChange={(value) => updateContentDisplayMode(value as 'text' | 'text-icon' | 'icon')} ariaLabel="Content mode">
+                                                <option value="text">Text only</option>
+                                                <option value="text-icon">Text + Icon</option>
+                                                <option value="icon">Icon only</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    ) : null}
+
+                                    <AnimatePresence initial={false}>
+                                        {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon') ? (
+                                            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3">
+                                                <FlatField label="Icon">
+                                                    <FlatSelect value={selectedStyle.icon} onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)} ariaLabel="Icon">
+                                                        {ICON_OPTIONS.map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Icon Position">
+                                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                        {(['left', 'right'] as const).map((position) => (
+                                                            <button key={position} type="button" onClick={() => updateSelectedStyle('iconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.iconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                {position}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </FlatField>
+                                            </motion.div>
+                                        ) : null}
+                                    </AnimatePresence>
+                                </>
+                            )}
+                        </FlatInspectorSection>
+                    </div>
+
+                    {/* Effects */}
+                    <div className="p-1">
+                        <section className="py-0.5">
+                            <div className="flex items-center justify-between rounded-md px-2 py-2">
+                                <div className="inline-flex min-w-0 items-center gap-2.5">
+                                    <Sparkles className="size-4 shrink-0 text-[var(--inspector-muted-text)]" />
+                                    <p className="truncate text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--inspector-text)]">Effects</p>
+                                </div>
+                                <Popover open={effectsBuilderOpen} onOpenChange={setEffectsBuilderOpen}>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            type="button"
+                                            disabled={inactiveEffectOptions.length === 0}
+                                            aria-label="Add effect"
+                                            className={cn(
+                                                'inline-flex size-7 shrink-0 items-center justify-center rounded-sm border transition',
+                                                inactiveEffectOptions.length === 0
+                                                    ? 'cursor-not-allowed border-white/8 bg-white/[0.02] text-white/20'
+                                                    : 'border-[color:var(--inspector-accent)]/30 bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)] hover:border-[color:var(--inspector-accent)]/50 hover:bg-[color:var(--inspector-accent-soft)]/80 hover:text-[var(--inspector-text)]',
+                                            )}
+                                        >
+                                            <Plus className="size-4" />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent side="left" align="end" sideOffset={12} collisionPadding={16} className="w-[248px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-3 text-[var(--inspector-text)]">
+                                        <div className="space-y-3">
+                                            <FlatField label="Effect" stacked>
+                                                <FlatSelect value={pendingEffectId ?? inactiveEffectOptions[0]?.id ?? ''} onValueChange={(value) => setPendingEffectId(value)} ariaLabel="Effect to add">
+                                                    {inactiveEffectOptions.map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                            {pendingEffectId ? renderEffectConfigurator(pendingEffectId as EffectId) : null}
+                                            <button
+                                                type="button"
+                                                disabled={!pendingEffectId}
+                                                onClick={() => {
+                                                    if (!pendingEffectId) return;
+                                                    setEffectEnabled(pendingEffectId as EffectId, true);
+                                                    setEffectsBuilderOpen(false);
+                                                }}
+                                                className={cn(
+                                                    'inline-flex h-8 w-full items-center justify-center rounded-sm text-[12px] font-semibold transition',
+                                                    pendingEffectId
+                                                        ? 'bg-[color:var(--inspector-accent-soft)] text-[color:var(--inspector-accent)] hover:bg-[color:var(--inspector-accent-soft)]/80'
+                                                        : 'cursor-not-allowed bg-white/[0.04] text-white/25',
+                                                )}
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                            {effectOptions.filter((option) => option.enabled).length > 0 ? (
+                                <div className="space-y-2 px-2 pb-3 pt-1">
+                                    {effectOptions
+                                        .filter((option) => option.enabled)
+                                        .map((option) => (
+                                            <div key={option.id} className="flex items-center gap-2">
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <button type="button" className="inline-flex min-w-0 flex-1 items-center justify-between gap-2 rounded-sm border border-[var(--inspector-border-soft)] bg-[#0c121d] px-2.5 py-2 text-left transition hover:border-[var(--inspector-border-strong)]">
+                                                            <span className="truncate text-[12px] font-medium text-[var(--inspector-text)]">{option.label}</span>
+                                                            <Config className="size-4 shrink-0 text-[var(--inspector-muted-text)]" />
+                                                        </button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent side="left" align="end" sideOffset={12} collisionPadding={16} className="w-[248px] border-[var(--inspector-border-soft)] bg-[var(--inspector-panel)] p-3 text-[var(--inspector-text)]">
+                                                        <div className="space-y-3">
+                                                            <div className="space-y-1">
+                                                                <p className="text-[12px] font-medium text-[var(--inspector-text)]">{option.label}</p>
+                                                                <p className="text-[11px] text-[var(--inspector-muted-text)]">Changes apply instantly.</p>
+                                                            </div>
+                                                            {renderEffectConfigurator(option.id as EffectId)}
+                                                        </div>
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEffectEnabled(option.id as EffectId, false)}
+                                                    aria-label={`Remove ${option.label}`}
+                                                    className="inline-flex size-7 shrink-0 items-center justify-center rounded-sm border border-white/10 bg-white/[0.02] text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                                >
+                                                    <Minus className="size-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                </div>
+                            ) : null}
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </ScrollArea>
+    );
+}

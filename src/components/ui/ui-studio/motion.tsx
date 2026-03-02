@@ -1,9 +1,36 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { normalizeStyleConfig, MOTION_COMPONENT_PRESETS, SURFACE_MOTION_PRESET_IDS } from './constants';
-import type { ComponentStyleConfig, UIComponentKind } from '@/components/ui/ui-studio.types';
+import type { ComponentStyleConfig, MotionEaseOption, UIComponentKind } from '@/components/ui/ui-studio.types';
 
 export type MotionTransitionScope = 'entry' | 'hover' | 'tap';
+
+// ─── Easing Resolution ────────────────────────────────────────────────────
+
+type MotionEasingValue =
+    | 'linear' | 'easeIn' | 'easeOut' | 'easeInOut'
+    | 'circIn' | 'circOut' | 'circInOut'
+    | 'backIn' | 'backOut' | 'backInOut'
+    | 'anticipate'
+    | [number, number, number, number];
+
+export function resolveEase(ease: MotionEaseOption, customBezier?: [number, number, number, number]): MotionEasingValue {
+    switch (ease) {
+        case 'linear': return 'linear';
+        case 'easeIn': return 'easeIn';
+        case 'easeOut': return 'easeOut';
+        case 'easeInOut': return 'easeInOut';
+        case 'anticipate': return 'anticipate';
+        case 'backIn': return 'backIn';
+        case 'backOut': return 'backOut';
+        case 'backInOut': return 'backInOut';
+        case 'circIn': return 'circIn';
+        case 'circOut': return 'circOut';
+        case 'circInOut': return 'circInOut';
+        case 'cubicBezier': return customBezier ?? [0.4, 0, 0.2, 1] as [number, number, number, number];
+        default: return 'easeInOut';
+    }
+}
 
 export function getMotionTransitionValues(config: ComponentStyleConfig, scope: MotionTransitionScope) {
     if (scope === 'hover') {
@@ -41,6 +68,7 @@ export function getMotionTransitionValues(config: ComponentStyleConfig, scope: M
 
 export function buildMotionTransition(config: ComponentStyleConfig, scope: MotionTransitionScope = 'entry') {
     const transition = getMotionTransitionValues(config, scope);
+    const ease = resolveEase(transition.ease, config.motionCustomBezier);
     return transition.transitionType === 'spring'
         ? {
             type: 'spring' as const,
@@ -54,15 +82,19 @@ export function buildMotionTransition(config: ComponentStyleConfig, scope: Motio
             type: 'tween' as const,
             duration: transition.duration,
             delay: transition.delay,
-            ease: transition.ease,
+            ease,
         };
 }
 
 export function buildMotionTransitionSnippet(config: ComponentStyleConfig, scope: MotionTransitionScope = 'entry'): string {
     const transition = getMotionTransitionValues(config, scope);
-    return transition.transitionType === 'spring'
-        ? `{ type: 'spring', duration: ${transition.duration}, delay: ${transition.delay}, stiffness: ${transition.stiffness}, damping: ${transition.damping}, mass: ${transition.mass} }`
-        : `{ type: 'tween', duration: ${transition.duration}, delay: ${transition.delay}, ease: '${transition.ease}' }`;
+    if (transition.transitionType === 'spring') {
+        return `{ type: 'spring', duration: ${transition.duration}, delay: ${transition.delay}, stiffness: ${transition.stiffness}, damping: ${transition.damping}, mass: ${transition.mass} }`;
+    }
+    if (transition.ease === 'cubicBezier' && config.motionCustomBezier) {
+        return `{ type: 'tween', duration: ${transition.duration}, delay: ${transition.delay}, ease: [${config.motionCustomBezier.join(', ')}] }`;
+    }
+    return `{ type: 'tween', duration: ${transition.duration}, delay: ${transition.delay}, ease: '${transition.ease}' }`;
 }
 
 export function getMotionComponentPresets(kind: UIComponentKind) {
@@ -117,6 +149,7 @@ function buildMotionExitValues(config: ComponentStyleConfig) {
         opacity: config.motionInitialOpacity / 100,
         x: config.motionInitialX,
         y: config.motionInitialY,
+        scale: config.motionInitialScale / 100,
         rotate: config.motionAnimateRotate === 0 ? 0 : config.motionAnimateRotate,
     };
 }
@@ -129,6 +162,10 @@ export function renderEntryMotion(content: ReactNode, config: ComponentStyleConf
     const animateX = config.motionAnimateX === 0 ? 0 : [config.motionAnimateX, 0];
     const animateY = config.motionAnimateY === 0 ? 0 : [config.motionAnimateY, 0];
     const animateRotate = config.motionAnimateRotate === 0 ? 0 : [config.motionAnimateRotate, 0];
+    const initialScale = config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
+    const animateScale = config.motionAnimateScale !== 100
+        ? [config.motionAnimateScale / 100, 1]
+        : initialScale !== undefined ? 1 : undefined;
 
     return (
         <motion.div
@@ -136,12 +173,14 @@ export function renderEntryMotion(content: ReactNode, config: ComponentStyleConf
                 opacity: config.motionInitialOpacity / 100,
                 x: config.motionInitialX,
                 y: config.motionInitialY,
+                ...(initialScale !== undefined && { scale: initialScale }),
             }}
             animate={{
                 opacity: config.motionAnimateOpacity / 100,
                 x: animateX,
                 y: animateY,
                 rotate: animateRotate,
+                ...(animateScale !== undefined && { scale: animateScale }),
             }}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
             transition={buildMotionTransition(config, 'entry')}
@@ -167,6 +206,10 @@ export function renderWithMotionControls(
     const animateX = config.motionAnimateX === 0 ? 0 : [config.motionAnimateX, 0];
     const animateY = config.motionAnimateY === 0 ? 0 : [config.motionAnimateY, 0];
     const animateRotate = config.motionAnimateRotate === 0 ? 0 : [config.motionAnimateRotate, 0];
+    const initialScale = config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
+    const animateScale = config.motionAnimateScale !== 100
+        ? [config.motionAnimateScale / 100, 1]
+        : initialScale !== undefined ? 1 : undefined;
 
     const whileHover = allowInteraction && config.motionHoverEnabled
         ? {
@@ -199,6 +242,7 @@ export function renderWithMotionControls(
                         opacity: config.motionInitialOpacity / 100,
                         x: config.motionInitialX,
                         y: config.motionInitialY,
+                        ...(initialScale !== undefined && { scale: initialScale }),
                     }
                     : undefined
             }
@@ -209,6 +253,7 @@ export function renderWithMotionControls(
                         x: animateX,
                         y: animateY,
                         rotate: animateRotate,
+                        ...(animateScale !== undefined && { scale: animateScale }),
                     }
                     : undefined
             }
@@ -222,6 +267,40 @@ export function renderWithMotionControls(
     );
 }
 
+// ─── Stagger Wrapper ──────────────────────────────────────────────────────
+
+export function renderStaggeredChildren(
+    children: ReactNode[],
+    config: ComponentStyleConfig,
+): ReactNode[] {
+    if (!config.motionStaggerEnabled) {
+        return children;
+    }
+
+    const direction = config.motionStaggerDirection;
+    const delay = config.motionStaggerDelay;
+
+    return children.map((child, index) => {
+        const staggerIndex = direction === 'reverse' ? children.length - 1 - index : index;
+        return (
+            <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                    delay: staggerIndex * delay,
+                    duration: 0.25,
+                    ease: 'easeOut',
+                }}
+            >
+                {child}
+            </motion.div>
+        );
+    });
+}
+
+// ─── Snippet Generation ───────────────────────────────────────────────────
+
 export function buildMotionComponentSnippet(config: ComponentStyleConfig): string {
     if (!hasAnyMotionEnabled(config)) {
         return '';
@@ -234,11 +313,17 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
     const hoverTransitionSnippet = buildMotionTransitionSnippet(config, 'hover');
     const tapTransitionSnippet = buildMotionTransitionSnippet(config, 'tap');
 
+    const hasScale = config.motionInitialScale !== 100 || config.motionAnimateScale !== 100;
+    const scaleInitial = hasScale ? `, scale: ${(config.motionInitialScale / 100).toFixed(2)}` : '';
+    const scaleAnimate = config.motionAnimateScale !== 100
+        ? `, scale: [${(config.motionAnimateScale / 100).toFixed(2)}, 1]`
+        : config.motionInitialScale !== 100 ? ', scale: 1' : '';
+
     const entrySnippet = config.motionEntryEnabled
-        ? `\n  initial: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY} },\n  animate: { opacity: ${(config.motionAnimateOpacity / 100).toFixed(2)}, x: ${animateX}, y: ${animateY}, rotate: ${animateRotate} },`
+        ? `\n  initial: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial} },\n  animate: { opacity: ${(config.motionAnimateOpacity / 100).toFixed(2)}, x: ${animateX}, y: ${animateY}, rotate: ${animateRotate}${scaleAnimate} },`
         : '';
     const exitSnippet = config.motionExitEnabled
-        ? `\n  exit: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}, rotate: ${config.motionAnimateRotate === 0 ? '0' : config.motionAnimateRotate} },`
+        ? `\n  exit: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial}, rotate: ${config.motionAnimateRotate === 0 ? '0' : config.motionAnimateRotate} },`
         : '';
 
     const hoverSnippet = config.motionHoverEnabled
@@ -247,5 +332,12 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
     const tapSnippet = config.motionTapEnabled
         ? `\n  whileTap: { scale: ${(config.motionTapScale / 100).toFixed(2)}, x: ${config.motionTapX}, y: ${config.motionTapY}, rotate: ${config.motionTapRotate}, opacity: ${(config.motionTapOpacity / 100).toFixed(2)}, transition: ${tapTransitionSnippet} },`
         : '';
-    return `const motionProps = {${entrySnippet}${exitSnippet}${hoverSnippet}${tapSnippet}\n  transition: ${entryTransitionSnippet},\n};\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
+
+    let snippet = `const motionProps = {${entrySnippet}${exitSnippet}${hoverSnippet}${tapSnippet}\n  transition: ${entryTransitionSnippet},\n};\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
+
+    if (config.motionStaggerEnabled) {
+        snippet += `\n\n// Stagger children\nconst staggerDelay = ${config.motionStaggerDelay};\n{items.map((item, i) => (\n  <motion.div\n    key={item.id}\n    initial={{ opacity: 0, y: 8 }}\n    animate={{ opacity: 1, y: 0 }}\n    transition={{ delay: i * staggerDelay, duration: 0.25, ease: 'easeOut' }}\n  >\n    {item.content}\n  </motion.div>\n))}`;
+    }
+
+    return snippet;
 }
