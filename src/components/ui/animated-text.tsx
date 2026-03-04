@@ -33,10 +33,10 @@ function splitText(text: string, splitBy: AnimatedTextSplitBy): string[] {
     return text.split('\n');
 }
 
-// ─── Typewriter (Cult UI pattern: useMotionValue + string slice) ────────────
+// ─── Typewriter (speed = total duration in seconds) ─────────────────────────
 
 function TypewriterText({
-    text, speed = 0.05, className, style,
+    text, speed = 1, className, style,
 }: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
     const [displayText, setDisplayText] = useState('');
     const [showCursor, setShowCursor] = useState(true);
@@ -46,15 +46,17 @@ function TypewriterText({
         indexRef.current = 0;
         setDisplayText('');
         setShowCursor(true);
-        const interval = setInterval(() => {
+        const charCount = text.length;
+        const interval = Math.max(10, ((speed ?? 1) * 1000) / charCount);
+        const timer = setInterval(() => {
             indexRef.current += 1;
             setDisplayText(text.slice(0, indexRef.current));
-            if (indexRef.current >= text.length) {
-                clearInterval(interval);
+            if (indexRef.current >= charCount) {
+                clearInterval(timer);
                 setTimeout(() => setShowCursor(false), 800);
             }
-        }, (speed ?? 0.05) * 1000);
-        return () => clearInterval(interval);
+        }, interval);
+        return () => clearInterval(timer);
     }, [text, speed]);
 
     return (
@@ -162,12 +164,12 @@ function CountingNumberText({
     );
 }
 
-// ─── Decrypt (React Bits DecryptedText: random chars resolve to real) ───────
+// ─── Decrypt (speed = total duration in seconds) ────────────────────────────
 
 const DECRYPT_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
 
 function DecryptText({
-    text, speed = 0.04, className, style,
+    text, speed = 1, className, style,
 }: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
     const [display, setDisplay] = useState(() =>
         text.split('').map(() => DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)]).join('')
@@ -178,10 +180,12 @@ function DecryptText({
         resolvedRef.current = 0;
         setDisplay(text.split('').map(() => DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)]).join(''));
 
-        const interval = setInterval(() => {
+        const charCount = text.length;
+        const interval = Math.max(10, ((speed ?? 1) * 1000) / charCount);
+        const timer = setInterval(() => {
             resolvedRef.current += 1;
-            if (resolvedRef.current > text.length) {
-                clearInterval(interval);
+            if (resolvedRef.current > charCount) {
+                clearInterval(timer);
                 return;
             }
             setDisplay(
@@ -191,9 +195,9 @@ function DecryptText({
                         : DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)]
                 ).join('')
             );
-        }, (speed ?? 0.04) * 1000);
+        }, interval);
 
-        return () => clearInterval(interval);
+        return () => clearInterval(timer);
     }, [text, speed]);
 
     return (
@@ -275,38 +279,45 @@ export function AnimatedText({
     className,
     style,
 }: AnimatedTextProps) {
-    const [isTriggered, setIsTriggered] = useState(trigger === 'mount');
+    const [hoverKey, setHoverKey] = useState(0);
+    const [hasHovered, setHasHovered] = useState(trigger === 'mount');
 
     const wrapperProps = trigger === 'hover'
-        ? { onMouseEnter: () => setIsTriggered(true), onMouseLeave: () => setIsTriggered(false) }
+        ? { onMouseEnter: () => { setHasHovered(true); setHoverKey((k) => k + 1); } }
         : {};
 
-    if (!isTriggered && trigger === 'hover') {
+    // Before first hover: show static text
+    if (trigger === 'hover' && !hasHovered) {
         return (
-            <span {...wrapperProps} className={className} style={style} data-slot="animated-text">
+            <span {...wrapperProps} className={className} style={{ ...style, cursor: 'pointer' }} data-slot="animated-text">
                 {text}
             </span>
         );
     }
 
     const commonProps = { text, speed, className, style };
+    const animKey = trigger === 'hover' ? hoverKey : undefined;
 
-    switch (variant) {
-        case 'typewriter':
-            return <span {...wrapperProps}><TypewriterText {...commonProps} /></span>;
-        case 'blur-in':
-            return <span {...wrapperProps}><BlurInText {...commonProps} stagger={stagger} splitBy={splitBy} /></span>;
-        case 'split-entrance':
-            return <span {...wrapperProps}><SplitEntranceText {...commonProps} stagger={stagger} splitBy={splitBy} /></span>;
-        case 'counting-number':
-            return <span {...wrapperProps}><CountingNumberText {...commonProps} /></span>;
-        case 'decrypt':
-            return <span {...wrapperProps}><DecryptText {...commonProps} /></span>;
-        case 'gradient-sweep':
-            return <span {...wrapperProps}><GradientSweepText {...commonProps} gradientColor1={gradientColor1} gradientColor2={gradientColor2} /></span>;
-        case 'shiny-text':
-            return <span {...wrapperProps}><ShinyText {...commonProps} gradientColor1={gradientColor1} gradientColor2={gradientColor2} /></span>;
-        default:
-            return <span className={className} style={style} data-slot="animated-text">{text}</span>;
-    }
+    const content = (() => {
+        switch (variant) {
+            case 'typewriter':
+                return <TypewriterText key={animKey} {...commonProps} />;
+            case 'blur-in':
+                return <BlurInText key={animKey} {...commonProps} stagger={stagger} splitBy={splitBy} />;
+            case 'split-entrance':
+                return <SplitEntranceText key={animKey} {...commonProps} stagger={stagger} splitBy={splitBy} />;
+            case 'counting-number':
+                return <CountingNumberText key={animKey} {...commonProps} />;
+            case 'decrypt':
+                return <DecryptText key={animKey} {...commonProps} />;
+            case 'gradient-sweep':
+                return <GradientSweepText key={animKey} {...commonProps} gradientColor1={gradientColor1} gradientColor2={gradientColor2} />;
+            case 'shiny-text':
+                return <ShinyText key={animKey} {...commonProps} gradientColor1={gradientColor1} gradientColor2={gradientColor2} />;
+            default:
+                return <span className={className} style={style} data-slot="animated-text">{text}</span>;
+        }
+    })();
+
+    return <span {...wrapperProps}>{content}</span>;
 }

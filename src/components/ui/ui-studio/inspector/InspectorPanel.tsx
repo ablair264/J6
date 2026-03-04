@@ -44,21 +44,12 @@ import {
     buildKindTitle,
     getComponentVisualPreset,
     getComponentVisualPresets,
-    supportsAnimatedBorderEffect,
-    supportsBorderBeamEffect,
     supportsButtonStateStyle,
     supportsDropdownHoverStyle,
-    supportsGradientSlideEffect,
     supportsIconSelection,
-    supportsLoadingEffect,
-    supportsNeonGlowEffect,
-    supportsPanelStyle,
-    supportsPulseRingEffect,
-    supportsRippleFillEffect,
-    supportsShineBorderEffect,
-    supportsSweepEffect,
     supportsTypographyStyle,
 } from '../utilities';
+import { getInspectorLayout } from './inspector-registry';
 import {
     useStudioStore,
     selectSelectedInstance,
@@ -101,29 +92,14 @@ export function InspectorPanel() {
     const updateInstanceName = useStudioStore((s) => s.updateInstanceName);
     const applyComponentVisualPreset = useStudioStore((s) => s.applyComponentVisualPreset);
 
-    // ─── Derived state ────────────────────────────────────────────────────
+    // ─── Derived state (driven by inspector registry) ──────────────────────
 
-    const hasPanelElementControls = selectedInstance ? supportsPanelStyle(selectedInstance.kind) : false;
+    const layout = selectedInstance ? getInspectorLayout(selectedInstance.kind) : null;
+    const hasPanelElementControls = layout?.panelStyle ?? false;
     const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
-    const supportsGradientSlide = selectedInstance ? supportsGradientSlideEffect(selectedInstance.kind) : false;
-    const supportsAnimatedBorder = selectedInstance ? supportsAnimatedBorderEffect(selectedInstance.kind) : false;
-    const supportsRippleFill = selectedInstance ? supportsRippleFillEffect(selectedInstance.kind) : false;
-    const supportsLoadingState = selectedInstance ? supportsLoadingEffect(selectedInstance.kind) : false;
-    const supportsSweep = selectedInstance ? supportsSweepEffect(selectedInstance.kind) : false;
-    const supportsBorderBeam = selectedInstance ? supportsBorderBeamEffect(selectedInstance.kind) : false;
-    const supportsShineBorder = selectedInstance ? supportsShineBorderEffect(selectedInstance.kind) : false;
-    const supportsNeonGlow = selectedInstance ? supportsNeonGlowEffect(selectedInstance.kind) : false;
-    const supportsPulseRing = selectedInstance ? supportsPulseRingEffect(selectedInstance.kind) : false;
 
     const supportsTextIconMode =
         selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
-
-    const isDataTable = selectedInstance?.kind === 'data-table';
-    const isAccordion = selectedInstance?.kind === 'accordion';
-    const isTabs = selectedInstance?.kind === 'tabs';
-    const isCard = selectedInstance?.kind === 'card';
-    const isSwitch = selectedInstance?.kind === 'switch';
-    const isAnimatedText = selectedInstance?.kind === 'animated-text';
 
     const showWidthControl =
         selectedInstance?.kind === 'slider' ||
@@ -163,21 +139,21 @@ export function InspectorPanel() {
 
     // ─── Effect options ───────────────────────────────────────────────────
 
-    const effectOptions = selectedStyle
+    const effectOptions = selectedStyle && layout
         ? [
-            { id: 'drop-shadow', label: 'Drop Shadow', enabled: selectedStyle.effectDropShadow, supported: true },
-            { id: 'inner-shadow', label: 'Inner Shadow', enabled: selectedStyle.effectInnerShadow, supported: true },
-            { id: 'background-blur', label: 'Background Blur', enabled: selectedStyle.effectBlur, supported: true },
-            { id: 'glass-tint', label: 'Glass Tint', enabled: selectedStyle.effectGlass, supported: true },
-            { id: 'gradient-slide', label: 'Gradient Slide', enabled: selectedStyle.effectGradientSlideEnabled, supported: supportsGradientSlide },
-            { id: 'animated-border', label: hasPanelElementControls ? 'Animated Border (Trigger)' : 'Animated Border', enabled: selectedStyle.effectAnimatedBorderEnabled, supported: supportsAnimatedBorder },
-            { id: 'ripple-fill', label: 'Ripple Fill (Hover)', enabled: selectedStyle.effectRippleFillEnabled, supported: supportsRippleFill },
-            { id: 'loading-state', label: 'Loading State Icon', enabled: selectedStyle.effectLoadingActiveEnabled, supported: supportsLoadingState },
-            { id: 'sweep', label: 'Sweep Animation', enabled: selectedStyle.effectSweepEnabled, supported: supportsSweep },
-            { id: 'border-beam', label: 'Border Beam', enabled: selectedStyle.effectBorderBeamEnabled, supported: supportsBorderBeam },
-            { id: 'shine-border', label: 'Shine Border', enabled: selectedStyle.effectShineBorderEnabled, supported: supportsShineBorder },
-            { id: 'neon-glow', label: 'Neon Glow', enabled: selectedStyle.effectNeonGlowEnabled, supported: supportsNeonGlow },
-            { id: 'pulse-ring', label: 'Pulse Ring', enabled: selectedStyle.effectPulseRingEnabled, supported: supportsPulseRing },
+            { id: 'drop-shadow', label: 'Drop Shadow', enabled: selectedStyle.effectDropShadow, supported: layout.effects.dropShadow },
+            { id: 'inner-shadow', label: 'Inner Shadow', enabled: selectedStyle.effectInnerShadow, supported: layout.effects.innerShadow },
+            { id: 'background-blur', label: 'Background Blur', enabled: selectedStyle.effectBlur, supported: layout.effects.backgroundBlur },
+            { id: 'glass-tint', label: 'Glass Tint', enabled: selectedStyle.effectGlass, supported: layout.effects.glassTint },
+            { id: 'gradient-slide', label: 'Gradient Slide', enabled: selectedStyle.effectGradientSlideEnabled, supported: layout.effects.gradientSlide },
+            { id: 'animated-border', label: hasPanelElementControls ? 'Animated Border (Trigger)' : 'Animated Border', enabled: selectedStyle.effectAnimatedBorderEnabled, supported: layout.effects.animatedBorder },
+            { id: 'ripple-fill', label: 'Ripple Fill (Hover)', enabled: selectedStyle.effectRippleFillEnabled, supported: layout.effects.rippleFill },
+            { id: 'loading-state', label: 'Loading State Icon', enabled: selectedStyle.effectLoadingActiveEnabled, supported: layout.effects.loading },
+            { id: 'sweep', label: 'Sweep Animation', enabled: selectedStyle.effectSweepEnabled, supported: layout.effects.sweep },
+            { id: 'border-beam', label: 'Border Beam', enabled: selectedStyle.effectBorderBeamEnabled, supported: layout.effects.borderBeam },
+            { id: 'shine-border', label: 'Shine Border', enabled: selectedStyle.effectShineBorderEnabled, supported: layout.effects.shineBorder },
+            { id: 'neon-glow', label: 'Neon Glow', enabled: selectedStyle.effectNeonGlowEnabled, supported: layout.effects.neonGlow },
+            { id: 'pulse-ring', label: 'Pulse Ring', enabled: selectedStyle.effectPulseRingEnabled, supported: layout.effects.pulseRing },
         ].filter((item) => item.supported)
         : [];
     const inactiveEffectOptions = effectOptions.filter((item) => !item.enabled);
@@ -590,7 +566,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Dimensions */}
-                    <div className="p-1">
+                    {layout?.sections.dimensions && <div className="p-1">
                         <FlatInspectorSection
                             title={hasPanelElementControls ? 'Button Design' : 'Dimensions'}
                             icon={Ruler}
@@ -727,10 +703,10 @@ export function InspectorPanel() {
                                 </>
                             ) : null}
                         </FlatInspectorSection>
-                    </div>
+                    </div>}
 
                     {/* DataTable Config */}
-                    {isDataTable && selectedStyle ? (
+                    {selectedInstance?.kind === 'data-table' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Table Config" icon={Table} defaultOpen>
                                 <div className="space-y-1.5">
@@ -751,7 +727,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Accordion Config */}
-                    {isAccordion && selectedStyle ? (
+                    {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Accordion Config" icon={Table} defaultOpen>
                                 <div className="flex flex-wrap items-start gap-3">
@@ -781,7 +757,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Tabs Config */}
-                    {isTabs && selectedStyle ? (
+                    {selectedInstance?.kind === 'tabs' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Tabs Config" icon={Table} defaultOpen>
                                 <div className="flex flex-wrap items-start gap-3">
@@ -800,7 +776,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Card Config */}
-                    {isCard && selectedStyle ? (
+                    {selectedInstance?.kind === 'card' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-1.5">
@@ -814,7 +790,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Switch Config */}
-                    {isSwitch && selectedStyle ? (
+                    {selectedInstance?.kind === 'switch' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Switch Config" icon={Table} defaultOpen>
                                 <div className="space-y-1.5">
@@ -830,7 +806,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Animated Text Config */}
-                    {isAnimatedText && selectedStyle ? (
+                    {selectedInstance?.kind === 'animated-text' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Text Animation" icon={Sparkles} defaultOpen>
                                 <FlatField label="Variant" stacked>
@@ -1002,7 +978,7 @@ export function InspectorPanel() {
                                 </>
                             ) : (
                                 <>
-                                    {currentAppearanceValues && !isDataTable && !isAccordion && !isTabs ? (
+                                    {currentAppearanceValues && layout?.sections.appearance ? (
                                         <>
                                             <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} />
                                             <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} />
@@ -1077,8 +1053,8 @@ export function InspectorPanel() {
                         </FlatInspectorSection>
                     </div>
 
-                    {/* Advanced Hover (Premium — Card only) */}
-                    {isCard && selectedStyle ? (
+                    {/* Advanced Hover (Premium) */}
+                    {layout?.sections.advancedHover && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Advanced Hover" icon={Sparkles} defaultOpen={selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled}>
                                 <div className="space-y-1.5">
@@ -1106,7 +1082,7 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Effects */}
-                    <div className="p-1">
+                    {layout?.sections.effects && <div className="p-1">
                         <section className="py-0.5">
                             <div className="flex items-center justify-between rounded-md px-2 py-2">
                                 <div className="inline-flex min-w-0 items-center gap-2.5">
@@ -1194,7 +1170,7 @@ export function InspectorPanel() {
                                 </div>
                             ) : null}
                         </section>
-                    </div>
+                    </div>}
                 </div>
             </div>
         </ScrollArea>

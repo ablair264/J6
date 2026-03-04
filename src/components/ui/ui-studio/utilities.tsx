@@ -121,14 +121,16 @@ export function isUIComponentKind(value: string | undefined): value is UICompone
 }
 
 // ─── Feature Support Utilities ────────────────────────────────────────────────
+// All driven by the inspector registry — single source of truth.
+
+import { INSPECTOR_REGISTRY } from './inspector/inspector-registry';
 
 export function supportsIconSelection(kind: UIComponentKind): boolean {
-    return kind !== 'slider' && kind !== 'checkbox' && kind !== 'dialog' && kind !== 'input'
-        && kind !== 'skeleton' && kind !== 'avatar' && kind !== 'progress' && kind !== 'data-table';
+    return INSPECTOR_REGISTRY[kind].iconSelection;
 }
 
 export function supportsPanelStyle(kind: UIComponentKind): boolean {
-    return kind === 'dialog' || kind === 'dropdown' || kind === 'tooltip' || kind === 'popover' || kind === 'drawer';
+    return INSPECTOR_REGISTRY[kind].panelStyle;
 }
 
 export function supportsDropdownHoverStyle(kind: UIComponentKind): boolean {
@@ -136,68 +138,59 @@ export function supportsDropdownHoverStyle(kind: UIComponentKind): boolean {
 }
 
 export function supportsButtonStateStyle(kind: UIComponentKind): boolean {
-    return kind === 'button' || supportsPanelStyle(kind) || kind === 'slider';
+    return INSPECTOR_REGISTRY[kind].buttonStateStyle;
 }
 
 export function supportsTypographyStyle(kind: UIComponentKind): boolean {
-    return kind !== 'checkbox' && kind !== 'slider' && kind !== 'skeleton' && kind !== 'avatar' && kind !== 'progress';
+    return INSPECTOR_REGISTRY[kind].sections.typography;
 }
 
 export function supportsPrimitiveControls(kind: UIComponentKind): boolean {
-    return kind === 'checkbox' || kind === 'dialog' || kind === 'dropdown' || kind === 'label' || kind === 'tooltip'
-        || kind === 'accordion' || kind === 'drawer';
+    return INSPECTOR_REGISTRY[kind].primitiveControls;
 }
 
 export function supportsEntryMotion(kind: UIComponentKind): boolean {
-    return kind === 'dialog' || kind === 'dropdown' || kind === 'popover' || kind === 'tooltip'
-        || kind === 'drawer' || kind === 'accordion' || kind === 'alert' || kind === 'progress'
-        || kind === 'label';
+    return INSPECTOR_REGISTRY[kind].motion.entryPresets;
 }
 
 export function supportsGradientSlideEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
-        || kind === 'accordion' || kind === 'alert' || kind === 'card';
+    return INSPECTOR_REGISTRY[kind].effects.gradientSlide;
 }
 
 export function supportsAnimatedBorderEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || supportsPanelStyle(kind)
-        || kind === 'tabs' || kind === 'accordion' || kind === 'alert' || kind === 'navigation-menu'
-        || kind === 'card';
+    return INSPECTOR_REGISTRY[kind].effects.animatedBorder;
 }
 
 export function supportsRippleFillEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs';
+    return INSPECTOR_REGISTRY[kind].effects.rippleFill;
 }
 
 export function supportsLoadingEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input';
+    return INSPECTOR_REGISTRY[kind].effects.loading;
 }
 
 export function supportsSweepEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
-        || kind === 'accordion' || kind === 'alert' || kind === 'card';
+    return INSPECTOR_REGISTRY[kind].effects.sweep;
 }
 
 export function supportsStaggerMotion(kind: UIComponentKind): boolean {
-    return kind === 'dropdown' || kind === 'accordion' || kind === 'navigation-menu' || kind === 'data-table';
+    return INSPECTOR_REGISTRY[kind].motion.stagger;
 }
 
 export function supportsBorderBeamEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
-        || kind === 'accordion' || kind === 'alert' || supportsPanelStyle(kind);
+    return INSPECTOR_REGISTRY[kind].effects.borderBeam;
 }
 
 export function supportsShineBorderEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
-        || kind === 'accordion' || kind === 'alert' || supportsPanelStyle(kind);
+    return INSPECTOR_REGISTRY[kind].effects.shineBorder;
 }
 
 export function supportsNeonGlowEffect(kind: UIComponentKind): boolean {
-    return supportsPanelStyle(kind) || kind === 'accordion' || kind === 'alert' || kind === 'card';
+    return INSPECTOR_REGISTRY[kind].effects.neonGlow;
 }
 
 export function supportsPulseRingEffect(kind: UIComponentKind): boolean {
-    return kind === 'button' || kind === 'badge';
+    return INSPECTOR_REGISTRY[kind].effects.pulseRing;
 }
 
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
@@ -712,109 +705,107 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
  * For components with internal styling (Progress, Skeleton, DataTable, etc.),
  * strip background/border/fill properties from the wrapper style so they
  * don't override the component's own visuals. Keep layout properties.
+ *
+ * Strategy is driven by the inspector registry's `wrapperStyle` field.
  */
 export function buildComponentWrapperStyle(
     fullStyle: CSSProperties,
     kind: UIComponentKind,
 ): CSSProperties {
-    // Components that manage their own visual appearance entirely —
-    // only keep borderRadius and boxShadow
-    const stripAll: UIComponentKind[] = ['avatar'];
-    if (stripAll.includes(kind)) {
-        const kept: CSSProperties = {};
-        if (fullStyle.borderRadius) kept.borderRadius = fullStyle.borderRadius;
-        if (fullStyle.boxShadow) kept.boxShadow = fullStyle.boxShadow;
-        return kept;
-    }
+    const strategy = INSPECTOR_REGISTRY[kind].wrapperStyle;
 
-    // Accordion: keep background (wrapper fill) but strip border/sizing
-    if (kind === 'accordion') {
-        const {
-            borderColor: _bc,
-            borderWidth: _bw,
-            borderStyle: _bs,
-            border: _b,
-            paddingInline: _pi,
-            minHeight: _mh,
-            height: _h,
-            width: _w,
-            ...rest
-        } = fullStyle;
-        return rest;
-    }
+    switch (strategy) {
+        case 'full':
+            return fullStyle;
 
-    // Animated Text: strip everything, text manages itself
-    if (kind === 'animated-text') {
-        const kept: CSSProperties = {};
-        if (fullStyle.color) kept.color = fullStyle.color;
-        if (fullStyle.fontSize) kept.fontSize = fullStyle.fontSize;
-        if (fullStyle.fontWeight) kept.fontWeight = fullStyle.fontWeight;
-        if (fullStyle.letterSpacing) kept.letterSpacing = fullStyle.letterSpacing;
-        if (fullStyle.lineHeight) kept.lineHeight = fullStyle.lineHeight;
-        if (fullStyle.textTransform) kept.textTransform = fullStyle.textTransform;
-        if (fullStyle.textShadow) kept.textShadow = fullStyle.textShadow;
-        return kept;
-    }
+        case 'typography-only': {
+            const kept: CSSProperties = {};
+            if (fullStyle.color) kept.color = fullStyle.color;
+            if (fullStyle.fontSize) kept.fontSize = fullStyle.fontSize;
+            if (fullStyle.fontWeight) kept.fontWeight = fullStyle.fontWeight;
+            if (fullStyle.textAlign) kept.textAlign = fullStyle.textAlign;
+            if (fullStyle.letterSpacing) kept.letterSpacing = fullStyle.letterSpacing;
+            if (fullStyle.lineHeight) kept.lineHeight = fullStyle.lineHeight;
+            if (fullStyle.textTransform) kept.textTransform = fullStyle.textTransform;
+            if (fullStyle.textShadow) kept.textShadow = fullStyle.textShadow;
+            return kept;
+        }
 
-    // Card: keep shadow, strip border/bg (variant handles these)
-    if (kind === 'card') {
-        const {
-            background: _bg,
-            borderColor: _bc,
-            borderWidth: _bw,
-            borderStyle: _bs,
-            border: _b,
-            paddingInline: _pi,
-            ...rest
-        } = fullStyle;
-        return rest;
-    }
+        case 'shadow-only': {
+            const kept: CSSProperties = {};
+            if (fullStyle.boxShadow) kept.boxShadow = fullStyle.boxShadow;
+            return kept;
+        }
 
-    // Switch: strip everything except shadow
-    if (kind === 'switch') {
-        const kept: CSSProperties = {};
-        if (fullStyle.boxShadow) kept.boxShadow = fullStyle.boxShadow;
-        return kept;
-    }
+        case 'minimal': {
+            const kept: CSSProperties = {};
+            if (fullStyle.borderRadius) kept.borderRadius = fullStyle.borderRadius;
+            if (fullStyle.boxShadow) kept.boxShadow = fullStyle.boxShadow;
+            return kept;
+        }
 
-    // Components with variant-based visuals (own bg/border/sizing)
-    const stripVisuals: UIComponentKind[] = [
-        'alert', 'progress', 'skeleton', 'data-table',
-    ];
-    if (stripVisuals.includes(kind)) {
-        const {
-            background: _bg,
-            borderColor: _bc,
-            borderWidth: _bw,
-            borderStyle: _bs,
-            border: _b,
-            paddingInline: _pi,
-            minHeight: _mh,
-            height: _h,
-            width: _w,
-            ...rest
-        } = fullStyle;
-        return rest;
-    }
+        case 'strip-border': {
+            const {
+                borderColor: _bc,
+                borderWidth: _bw,
+                borderStyle: _bs,
+                border: _b,
+                paddingInline: _pi,
+                minHeight: _mh,
+                height: _h,
+                width: _w,
+                ...rest
+            } = fullStyle;
+            return rest;
+        }
 
-    // Layout-heavy components
-    const stripLayout: UIComponentKind[] = ['navigation-menu'];
-    if (stripLayout.includes(kind)) {
-        const {
-            background: _bg,
-            borderColor: _bc,
-            borderWidth: _bw,
-            borderStyle: _bs,
-            border: _b,
-            paddingInline: _pi,
-            minHeight: _mh,
-            height: _h,
-            ...rest
-        } = fullStyle;
-        return rest;
-    }
+        case 'strip-structural': {
+            const {
+                background: _bg,
+                borderColor: _bc,
+                borderWidth: _bw,
+                borderStyle: _bs,
+                border: _b,
+                paddingInline: _pi,
+                ...rest
+            } = fullStyle;
+            return rest;
+        }
 
-    return fullStyle;
+        case 'strip-all': {
+            const {
+                background: _bg,
+                borderColor: _bc,
+                borderWidth: _bw,
+                borderStyle: _bs,
+                border: _b,
+                paddingInline: _pi,
+                minHeight: _mh,
+                height: _h,
+                width: _w,
+                ...rest
+            } = fullStyle;
+            return rest;
+        }
+
+        case 'strip-layout': {
+            const {
+                background: _bg,
+                borderColor: _bc,
+                borderWidth: _bw,
+                borderStyle: _bs,
+                border: _b,
+                paddingInline: _pi,
+                minHeight: _mh,
+                height: _h,
+                ...rest
+            } = fullStyle;
+            return rest;
+        }
+
+        default:
+            return fullStyle;
+    }
 }
 
 /**
@@ -887,7 +878,7 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
 }
 
 export function supportsMotionPreset(kind: UIComponentKind): boolean {
-    return kind === 'badge' || kind === 'button';
+    return INSPECTOR_REGISTRY[kind].motionPreset;
 }
 
 export function buildMotionClassName(kind: UIComponentKind, preset: MotionPresetId): string | undefined {

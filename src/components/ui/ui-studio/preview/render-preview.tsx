@@ -1021,8 +1021,9 @@ export function renderPreview(
         case 'animated-text': {
             // Key forces remount (and animation replay) when variant/content/speed/split change
             const animKey = `${instance.style.animatedTextVariant}-${instance.style.animatedTextContent}-${instance.style.animatedTextSpeed}-${instance.style.animatedTextStaggerDelay}-${instance.style.animatedTextSplitBy}-${instance.style.animatedTextTrigger}`;
+            const animWrapperStyle = buildComponentWrapperStyle(style, 'animated-text');
             return (
-                <div style={buildComponentWrapperStyle(style, 'animated-text')}>
+                <div style={animWrapperStyle}>
                     <AnimatedText
                         key={animKey}
                         text={instance.style.animatedTextContent || 'Hello World'}

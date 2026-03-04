@@ -1901,7 +1901,43 @@ const DEFAULT_KIND_VISUAL_PRESETS = (kind: UIComponentKind): ComponentVisualPres
 ];
 
 export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPreset[]> = {
-    'animated-text': DEFAULT_KIND_VISUAL_PRESETS('animated-text'),
+    'animated-text': [
+        {
+            id: 'default',
+            label: 'Default',
+            description: 'Light text, blur-in animation.',
+            kind: 'animated-text',
+            values: { componentPreset: 'default', motionPreset: 'none', fontSize: 32, fontColor: '#f1f5f9', animatedTextVariant: 'blur-in' as const },
+        },
+        {
+            id: 'typewriter',
+            label: 'Typewriter',
+            description: 'Character-by-character reveal with blinking cursor.',
+            kind: 'animated-text',
+            values: { componentPreset: 'typewriter', fontSize: 28, fontColor: '#e2e8f0', fontWeight: 400, animatedTextVariant: 'typewriter' as const, animatedTextSpeed: 1.2 },
+        },
+        {
+            id: 'decrypt',
+            label: 'Decrypt',
+            description: 'Scrambled characters resolve to real text.',
+            kind: 'animated-text',
+            values: { componentPreset: 'decrypt', fontSize: 32, fontColor: '#22d3ee', fontWeight: 600, animatedTextVariant: 'decrypt' as const, animatedTextSpeed: 1.5 },
+        },
+        {
+            id: 'gradient',
+            label: 'Gradient',
+            description: 'Animated gradient sweep across text.',
+            kind: 'animated-text',
+            values: { componentPreset: 'gradient', fontSize: 36, fontWeight: 700, animatedTextVariant: 'gradient-sweep' as const, animatedTextGradientColor1: '#6366f1', animatedTextGradientColor2: '#06b6d4', animatedTextSpeed: 3 },
+        },
+        {
+            id: 'shiny',
+            label: 'Shiny',
+            description: 'Light sweep reflection across text.',
+            kind: 'animated-text',
+            values: { componentPreset: 'shiny', fontSize: 36, fontColor: '#94a3b8', fontWeight: 700, animatedTextVariant: 'shiny-text' as const, animatedTextSpeed: 2 },
+        },
+    ],
     accordion: DEFAULT_KIND_VISUAL_PRESETS('accordion'),
     alert: DEFAULT_KIND_VISUAL_PRESETS('alert'),
     avatar: DEFAULT_KIND_VISUAL_PRESETS('avatar'),
