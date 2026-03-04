@@ -425,6 +425,7 @@ export function Sidebar() {
                                                                 renderPreview(instance, preview.style, preview.motionClassName),
                                                                 instance.style,
                                                                 supportsEntryMotion(instance.kind),
+                                                                instance.kind !== 'switch',
                                                             )}
                                                         </div>
                                                     </div>
@@ -484,6 +485,7 @@ export function Sidebar() {
                                                             renderPreview(instance, preview.style, preview.motionClassName),
                                                             instance.style,
                                                             supportsEntryMotion(instance.kind),
+                                                            instance.kind !== 'switch',
                                                         )}
                                                     </div>
                                                 </div>

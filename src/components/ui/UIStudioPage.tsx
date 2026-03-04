@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Play } from 'lucide-react';
 import { Grid, Moon, Sun } from '@mynaui/icons-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -118,6 +118,7 @@ export function UIStudioComponentPage() {
     const setRightSidebarTab = useStudioStore((s) => s.setRightSidebarTab);
     const pinOverlayPreviews = useStudioStore((s) => s.pinOverlayPreviews);
     const setPinOverlayPreviews = useStudioStore((s) => s.setPinOverlayPreviews);
+    const motionPreviewKey = useStudioStore((s) => s.motionPreviewKey);
     const showTokenManager = useStudioStore((s) => s.showTokenManager);
     const showProfile = useStudioStore((s) => s.showProfile);
     const inspectorTab = useStudioStore((s) => s.inspectorTab);
@@ -136,6 +137,7 @@ export function UIStudioComponentPage() {
     const setTokenSyncMessage = useStudioStore((s) => s.setTokenSyncMessage);
     const setTokensLoading = useStudioStore((s) => s.setTokensLoading);
     const setSelectedInstanceId = useStudioStore((s) => s.setSelectedInstanceId);
+    const replayMotion = useStudioStore((s) => s.replayMotion);
 
     // ─── Debounced preview ────────────────────────────────────────
     const [debouncedPreviewInstance, setDebouncedPreviewInstance] = useState<ComponentInstance | null>(null);
@@ -195,6 +197,7 @@ export function UIStudioComponentPage() {
 
     const isOverlayComponent = selectedInstance ? supportsEntryMotion(selectedInstance.kind) : false;
     const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
+    const canReplayOverlayMotion = Boolean(isOverlayComponent && selectedInstance?.style.motionEntryEnabled);
 
     useEffect(() => {
         if (!isOverlayComponent && pinOverlayPreviews) setPinOverlayPreviews(false);
@@ -289,6 +292,19 @@ export function UIStudioComponentPage() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
+                                        {canReplayOverlayMotion ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (!pinOverlayPreviews) setPinOverlayPreviews(true);
+                                                    replayMotion();
+                                                }}
+                                                className={studioActionButtonClass}
+                                            >
+                                                <Play className="size-3.5 fill-current" />
+                                                Play Motion
+                                            </button>
+                                        ) : null}
                                         {isOverlayComponent ? (
                                             <button
                                                 type="button"
@@ -339,7 +355,7 @@ export function UIStudioComponentPage() {
                                 >
                                     <div className="relative grid min-h-0 flex-[3_1_0%] place-items-center p-8">
                                         {selectedInstance && stagePreview && stagePreviewInstance ? (
-                                            <div className="pointer-events-auto">
+                                            <div key={`stage-preview-${stagePreviewInstance.id}-${motionPreviewKey}`} className="pointer-events-auto">
                                                 {hasAdvancedHoverEnabled(stagePreviewInstance.style) ? (
                                                     <AdvancedHoverWrapper config={stagePreviewInstance.style}>
                                                         {renderWithMotionControls(
@@ -348,7 +364,7 @@ export function UIStudioComponentPage() {
                                                             }),
                                                             stagePreviewInstance.style,
                                                             !supportsEntryMotion(stagePreviewInstance.kind),
-                                                            !supportsEntryMotion(stagePreviewInstance.kind),
+                                                            stagePreviewInstance.kind !== 'switch' && !supportsEntryMotion(stagePreviewInstance.kind),
                                                         )}
                                                     </AdvancedHoverWrapper>
                                                 ) : (
@@ -358,7 +374,7 @@ export function UIStudioComponentPage() {
                                                         }),
                                                         stagePreviewInstance.style,
                                                         !supportsEntryMotion(stagePreviewInstance.kind),
-                                                        !supportsEntryMotion(stagePreviewInstance.kind),
+                                                        stagePreviewInstance.kind !== 'switch' && !supportsEntryMotion(stagePreviewInstance.kind),
                                                     )
                                                 )}
                                             </div>

@@ -1321,21 +1321,43 @@ export function renderPreview(
 
         case 'switch': {
             const switchId = `${instance.id}-switch`;
+            const switchHover = instance.style.motionHoverEnabled
+                ? {
+                    scale: instance.style.motionHoverScale / 100,
+                    x: instance.style.motionHoverX,
+                    y: instance.style.motionHoverY,
+                    rotate: instance.style.motionHoverRotate,
+                    opacity: instance.style.motionHoverOpacity / 100,
+                    transition: buildMotionTransition(instance.style, 'hover'),
+                }
+                : undefined;
+            const switchTap = instance.style.motionTapEnabled
+                ? {
+                    scale: instance.style.motionTapScale / 100,
+                    x: instance.style.motionTapX,
+                    y: instance.style.motionTapY,
+                    rotate: instance.style.motionTapRotate,
+                    opacity: instance.style.motionTapOpacity / 100,
+                    transition: buildMotionTransition(instance.style, 'tap'),
+                }
+                : undefined;
 
             return (
                 <div className="flex items-center gap-3" style={buildComponentWrapperStyle(style, 'switch')}>
-                    <Switch
-                        id={switchId}
-                        key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}
-                        defaultChecked={instance.style.switchChecked}
-                        disabled={instance.style.switchDisabled}
-                        size={instance.style.size === 'sm' ? 'sm' : 'default'}
-                        trackColor={instance.style.switchTrackColor || undefined}
-                        trackActiveColor={instance.style.switchTrackActiveColor || undefined}
-                        thumbColor={instance.style.switchThumbColor || undefined}
-                        thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
-                        className={cn(motionClassName)}
-                    />
+                    <motion.div whileHover={switchHover} whileTap={switchTap} className="shrink-0">
+                        <Switch
+                            id={switchId}
+                            key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}
+                            defaultChecked={instance.style.switchChecked}
+                            disabled={instance.style.switchDisabled}
+                            size={instance.style.size === 'sm' ? 'sm' : 'default'}
+                            trackColor={instance.style.switchTrackColor || undefined}
+                            trackActiveColor={instance.style.switchTrackActiveColor || undefined}
+                            thumbColor={instance.style.switchThumbColor || undefined}
+                            thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
+                            className={cn(motionClassName)}
+                        />
+                    </motion.div>
                     {instance.style.switchLabel && (
                         <Label htmlFor={switchId} className="cursor-pointer text-sm">
                             {instance.style.switchLabel}
