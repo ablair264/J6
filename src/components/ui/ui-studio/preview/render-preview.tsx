@@ -179,6 +179,9 @@ export function componentSnippet(
                 `variant="${instance.style.alertVariant}"`,
                 `dismissible={${String(instance.style.alertDismissible)}}`,
                 instance.style.alertShowIcon ? '' : 'showIcon={false}',
+                instance.style.alertDismissible
+                    ? `dismissMotion={{ hoverEnabled: ${String(instance.style.alertCloseHoverEnabled)}, hoverScale: ${instance.style.alertCloseHoverScale}, tapEnabled: ${String(instance.style.alertCloseTapEnabled)}, tapScale: ${instance.style.alertCloseTapScale} }}`
+                    : '',
             ].filter(Boolean).join('\n  ');
             return `${declarations ? `${declarations}\n\n` : ''}<Alert\n  ${alertProps}${classNameSnippet}${previewStyleSnippet}\n>\n  <AlertTitle>Alert Title</AlertTitle>\n  <AlertDescription>This is an alert message.</AlertDescription>\n</Alert>`;
         }
@@ -898,6 +901,10 @@ export function renderPreview(
                     alertVariant={instance.style.alertVariant}
                     alertDismissible={instance.style.alertDismissible}
                     alertShowIcon={instance.style.alertShowIcon}
+                    alertCloseHoverEnabled={instance.style.alertCloseHoverEnabled}
+                    alertCloseHoverScale={instance.style.alertCloseHoverScale}
+                    alertCloseTapEnabled={instance.style.alertCloseTapEnabled}
+                    alertCloseTapScale={instance.style.alertCloseTapScale}
                     style={style}
                     motionClassName={motionClassName}
                 />,

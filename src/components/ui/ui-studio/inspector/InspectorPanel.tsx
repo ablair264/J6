@@ -788,6 +788,22 @@ export function InspectorPanel() {
                                     <FlatSwitchRow label="Dismissible" checked={selectedStyle.alertDismissible} onCheckedChange={(value) => updateSelectedStyle('alertDismissible', value)} />
                                     <FlatSwitchRow label="Show Icon" checked={selectedStyle.alertShowIcon} onCheckedChange={(value) => updateSelectedStyle('alertShowIcon', value)} />
                                 </div>
+                                {selectedStyle.alertDismissible ? (
+                                    <FlatField label="Close Button Motion" stacked>
+                                        <div className="space-y-2">
+                                            <div className="space-y-1.5">
+                                                <FlatSwitchRow label="Hover" checked={selectedStyle.alertCloseHoverEnabled} onCheckedChange={(value) => updateSelectedStyle('alertCloseHoverEnabled', value)} />
+                                                {selectedStyle.alertCloseHoverEnabled ? (
+                                                    <FlatUnitField label="Hover Scale" value={selectedStyle.alertCloseHoverScale} min={90} max={120} unit="%" onChange={(value) => updateSelectedStyle('alertCloseHoverScale', value)} />
+                                                ) : null}
+                                                <FlatSwitchRow label="Tap" checked={selectedStyle.alertCloseTapEnabled} onCheckedChange={(value) => updateSelectedStyle('alertCloseTapEnabled', value)} />
+                                                {selectedStyle.alertCloseTapEnabled ? (
+                                                    <FlatUnitField label="Tap Scale" value={selectedStyle.alertCloseTapScale} min={80} max={110} unit="%" onChange={(value) => updateSelectedStyle('alertCloseTapScale', value)} />
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
