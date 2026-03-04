@@ -734,7 +734,7 @@ export function InspectorPanel() {
                     {isDataTable && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Table Config" icon={Table} defaultOpen>
-                                <div className="flex flex-wrap items-start gap-3">
+                                <div className="space-y-1.5">
                                     <FlatSwitchRow label="Sortable" checked={selectedStyle.dataTableSortable} onCheckedChange={(value) => updateSelectedStyle('dataTableSortable', value)} />
                                     <FlatSwitchRow label="Striped" checked={selectedStyle.dataTableStriped} onCheckedChange={(value) => updateSelectedStyle('dataTableStriped', value)} />
                                 </div>
@@ -770,7 +770,7 @@ export function InspectorPanel() {
                                         </FlatSelect>
                                     </FlatField>
                                 </div>
-                                <div className="flex flex-wrap items-start gap-3">
+                                <div className="space-y-2">
                                     {selectedStyle.accordionType === 'single' ? (
                                         <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
                                     ) : null}
@@ -812,7 +812,7 @@ export function InspectorPanel() {
                                         <option value="glass">Glass</option>
                                     </FlatSelect>
                                 </FlatField>
-                                <div className="flex flex-wrap items-start gap-3">
+                                <div className="space-y-1.5">
                                     <FlatSwitchRow label="Show Header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
                                     <FlatSwitchRow label="Show Footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
                                     <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
@@ -825,7 +825,7 @@ export function InspectorPanel() {
                     {isSwitch && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Switch Config" icon={Table} defaultOpen>
-                                <div className="flex flex-wrap items-start gap-3">
+                                <div className="space-y-1.5">
                                     <FlatSwitchRow label="Checked" checked={selectedStyle.switchChecked} onCheckedChange={(value) => updateSelectedStyle('switchChecked', value)} />
                                     <FlatSwitchRow label="Disabled" checked={selectedStyle.switchDisabled} onCheckedChange={(value) => updateSelectedStyle('switchDisabled', value)} />
                                 </div>
@@ -1085,11 +1085,11 @@ export function InspectorPanel() {
                         </FlatInspectorSection>
                     </div>
 
-                    {/* Advanced Hover (Premium) */}
-                    {selectedStyle ? (
+                    {/* Advanced Hover (Premium — Card only) */}
+                    {isCard && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Advanced Hover" icon={Sparkles} defaultOpen={selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled}>
-                                <div className="flex flex-wrap items-start gap-3">
+                                <div className="space-y-1.5">
                                     <FlatSwitchRow label="Tilt 3D" checked={selectedStyle.motionHoverTiltEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverTiltEnabled', value)} />
                                     <FlatSwitchRow label="Glare" checked={selectedStyle.motionHoverGlareEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverGlareEnabled', value)} />
                                     <FlatSwitchRow label="Spotlight" checked={selectedStyle.motionHoverSpotlightEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverSpotlightEnabled', value)} />

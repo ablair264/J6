@@ -5,6 +5,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─── CSS Houdini @property for conic-gradient angle animation ────────── */
+@property --ui-effect-beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --ui-effect-shine-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 :root {
   /* Customer website fixed theme tokens */
   --site-bg: #ececec;
@@ -475,6 +488,26 @@
   }
 }
 
+@keyframes ui-studio-effect-beam-rotate {
+  0% { --ui-effect-beam-angle: 0deg; }
+  100% { --ui-effect-beam-angle: 360deg; }
+}
+
+@keyframes ui-studio-effect-shine-rotate {
+  0% { --ui-effect-shine-angle: 0deg; }
+  100% { --ui-effect-shine-angle: 360deg; }
+}
+
+@keyframes ui-studio-effect-neon-pulse {
+  0% { box-shadow: 0 0 var(--ui-effect-neon-size, 16px) color-mix(in srgb, var(--ui-effect-neon-color1, #22d3ee) 60%, transparent); }
+  100% { box-shadow: 0 0 var(--ui-effect-neon-size, 16px) color-mix(in srgb, var(--ui-effect-neon-color2, #a78bfa) 60%, transparent); }
+}
+
+@keyframes ui-studio-effect-pulse-expand {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
 @keyframes ui-studio-loading-success-pop {
   0% {
     transform: scale(0.72);
@@ -861,6 +894,83 @@
 .ui-studio-effect-sweep-state-disabled:disabled::after,
 .ui-studio-effect-sweep-state-disabled.ui-studio-button-preview-disabled::after {
   animation: ui-studio-effect-sweep-pass var(--ui-effect-sweep-speed, 1.6s) ease-in-out infinite;
+}
+
+/* ─── Border Beam (Magic UI — conic-gradient beam rotating around border) ─── */
+.ui-studio-effect-border-beam {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+  isolation: isolate;
+}
+
+.ui-studio-effect-border-beam::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--ui-effect-beam-angle, 0deg),
+    transparent 0%,
+    var(--ui-effect-beam-from, #22d3ee) 10%,
+    var(--ui-effect-beam-to, #a78bfa) 20%,
+    transparent 30%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: ui-studio-effect-beam-rotate var(--ui-effect-beam-speed, 6s) linear infinite;
+}
+
+/* ─── Shine Border (Magic UI — conic-gradient sweep along border) ─── */
+.ui-studio-effect-shine-border {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+  isolation: isolate;
+}
+
+.ui-studio-effect-shine-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--ui-effect-shine-width, 2px);
+  background: conic-gradient(
+    from calc(var(--ui-effect-shine-angle, 0deg) - 60deg),
+    transparent 0%,
+    var(--ui-effect-shine-color, #ffffff) 20%,
+    transparent 40%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: ui-studio-effect-shine-rotate var(--ui-effect-shine-speed, 4s) linear infinite;
+}
+
+/* ─── Neon Glow (Magic UI — animated box-shadow color cycling) ─── */
+.ui-studio-effect-neon-glow {
+  animation: ui-studio-effect-neon-pulse var(--ui-effect-neon-speed, 3s) ease-in-out infinite alternate;
+}
+
+/* ─── Pulse Ring (Animate UI — ::after ring scales out + fades) ─── */
+.ui-studio-effect-pulse-ring {
+  position: relative;
+}
+
+.ui-studio-effect-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--ui-effect-pulse-color, #22d3ee);
+  pointer-events: none;
+  animation: ui-studio-effect-pulse-expand var(--ui-effect-pulse-speed, 1.5s) ease-out infinite;
 }
 
 .ui-studio-loading-icon-success {

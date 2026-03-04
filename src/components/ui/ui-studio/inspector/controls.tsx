@@ -691,14 +691,14 @@ export function FlatSwitchRow({
     onCheckedChange: (checked: boolean) => void;
 }) {
     return (
-        <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
             <span className="text-[12px] font-medium text-[var(--inspector-text)]">{label}</span>
             <Switch.Root
                 checked={checked}
                 onCheckedChange={onCheckedChange}
                 aria-label={label}
                 className={cn(
-                    'relative h-5 w-10 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                    'relative h-4 w-7 shrink-0 rounded-full border transition-colors duration-200 outline-none',
                     'focus-visible:ring-2 focus-visible:ring-[color:var(--inspector-accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--inspector-bg)]',
                     'border-[var(--inspector-border-soft)] bg-[var(--inspector-input)]',
                     'data-[state=checked]:border-[var(--inspector-border-strong)] data-[state=checked]:bg-[color:var(--inspector-accent-soft)]',
@@ -706,9 +706,9 @@ export function FlatSwitchRow({
             >
                 <Switch.Thumb
                     className={cn(
-                        'block size-4 rounded-full transition-transform duration-200 will-change-transform',
-                        'translate-x-[2px] bg-[var(--inspector-muted-text)]',
-                        'data-[state=checked]:translate-x-[20px] data-[state=checked]:bg-[var(--inspector-accent)]',
+                        'block size-3 rounded-full transition-transform duration-200 will-change-transform',
+                        'translate-x-[1px] bg-[var(--inspector-muted-text)]',
+                        'data-[state=checked]:translate-x-[12px] data-[state=checked]:bg-[var(--inspector-accent)]',
                     )}
                 />
             </Switch.Root>
