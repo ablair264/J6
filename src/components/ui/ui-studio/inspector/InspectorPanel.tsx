@@ -221,6 +221,18 @@ export function InspectorPanel() {
             }
         : null;
 
+    const showAppearanceSection = Boolean(
+        selectedInstance &&
+        selectedStyle &&
+        (
+            hasPanelElementControls ||
+            layout?.sections.appearance ||
+            supportsTypographyStyle(selectedInstance.kind) ||
+            supportsTextIconMode ||
+            supportsIconSelection(selectedInstance.kind)
+        ),
+    );
+
     const updateAppearanceField = (
         field: ButtonStateField,
         value: string | number | FillMode,
@@ -454,7 +466,7 @@ export function InspectorPanel() {
                     <div className="space-y-3">
                         <FlatColorControl label="Color From" value={selectedStyle.effectBorderBeamColorFrom} onChange={(value) => updateSelectedStyle('effectBorderBeamColorFrom', value)} tokens={activeTokenSet.tokens} />
                         <FlatColorControl label="Color To" value={selectedStyle.effectBorderBeamColorTo} onChange={(value) => updateSelectedStyle('effectBorderBeamColorTo', value)} tokens={activeTokenSet.tokens} />
-                        <FlatUnitField label="Beam Size" value={selectedStyle.effectBorderBeamSize} min={20} max={200} step={5} unit="px" onChange={(value) => updateSelectedStyle('effectBorderBeamSize', value)} />
+                        <FlatUnitField label="Beam Spread" value={selectedStyle.effectBorderBeamSize} min={20} max={200} step={5} unit="px" onChange={(value) => updateSelectedStyle('effectBorderBeamSize', value)} />
                         <FlatUnitField label="Speed" value={selectedStyle.effectBorderBeamSpeed} min={1} max={12} step={0.5} unit="s" onChange={(value) => updateSelectedStyle('effectBorderBeamSpeed', value)} />
                     </div>
                 );
@@ -462,7 +474,6 @@ export function InspectorPanel() {
                 return (
                     <div className="space-y-3">
                         <FlatColorControl label="Shine Color" value={selectedStyle.effectShineBorderColor} onChange={(value) => updateSelectedStyle('effectShineBorderColor', value)} tokens={activeTokenSet.tokens} />
-                        <FlatUnitField label="Border Width" value={selectedStyle.effectShineBorderWidth} min={1} max={4} step={0.5} unit="px" onChange={(value) => updateSelectedStyle('effectShineBorderWidth', value)} />
                         <FlatUnitField label="Speed" value={selectedStyle.effectShineBorderSpeed} min={1} max={10} step={0.5} unit="s" onChange={(value) => updateSelectedStyle('effectShineBorderSpeed', value)} />
                     </div>
                 );
@@ -754,7 +765,51 @@ export function InspectorPanel() {
                                     ) : null}
                                     <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
                                 </div>
-                                <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                {selectedStyle.accordionVariant !== 'ghost' ? (
+                                    <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                ) : null}
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Alert Config */}
+                    {selectedInstance?.kind === 'alert' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Alert Config" icon={Table} defaultOpen>
+                                <FlatField label="Variant" stacked>
+                                    <FlatSelect value={selectedStyle.alertVariant} onValueChange={(value) => updateSelectedStyle('alertVariant', value as ComponentStyleConfig['alertVariant'])} ariaLabel="Alert variant">
+                                        <option value="info">Info</option>
+                                        <option value="success">Success</option>
+                                        <option value="warning">Warning</option>
+                                        <option value="error">Error</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                <div className="space-y-1.5">
+                                    <FlatSwitchRow label="Dismissible" checked={selectedStyle.alertDismissible} onCheckedChange={(value) => updateSelectedStyle('alertDismissible', value)} />
+                                    <FlatSwitchRow label="Show Icon" checked={selectedStyle.alertShowIcon} onCheckedChange={(value) => updateSelectedStyle('alertShowIcon', value)} />
+                                </div>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Progress Config */}
+                    {selectedInstance?.kind === 'progress' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Progress Config" icon={Table} defaultOpen>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatUnitField label="Value" value={selectedStyle.progressValue} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('progressValue', value)} />
+                                    <FlatUnitField label="Width" value={selectedStyle.customWidth} min={0} max={640} unit="px" onChange={(value) => updateSelectedStyle('customWidth', value)} zeroLabel="auto" />
+                                </div>
+                                <FlatField label="Variant" stacked>
+                                    <FlatSelect value={selectedStyle.progressVariant} onValueChange={(value) => updateSelectedStyle('progressVariant', value as ComponentStyleConfig['progressVariant'])} ariaLabel="Progress variant">
+                                        <option value="linear">Linear</option>
+                                        <option value="circular">Circular</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                <div className="space-y-1.5">
+                                    <FlatSwitchRow label="Show Label" checked={selectedStyle.progressShowLabel} onCheckedChange={(value) => updateSelectedStyle('progressShowLabel', value)} />
+                                    <FlatSwitchRow label="Animate Value" checked={selectedStyle.progressAnimateValue} onCheckedChange={(value) => updateSelectedStyle('progressAnimateValue', value)} />
+                                </div>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -812,6 +867,114 @@ export function InspectorPanel() {
                                         <option value="glass">Glass</option>
                                     </FlatSelect>
                                 </FlatField>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                    <FlatField label="Image Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="Price Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="Actions Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Actions position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                </div>
+                                {selectedStyle.cardShowTitle ? (
+                                    <FlatField label="Title Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardTitleColor} onChange={(value) => updateSelectedStyle('cardTitleColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardTitleSize} min={10} max={40} unit="px" onChange={(value) => updateSelectedStyle('cardTitleSize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardTitleWeight} onValueChange={(value) => updateSelectedStyle('cardTitleWeight', Number(value))} ariaLabel="Title weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardTitleAlign} onValueChange={(value) => updateSelectedStyle('cardTitleAlign', value as FontPosition)} ariaLabel="Title alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
+                                {selectedStyle.cardShowSubtitle ? (
+                                    <FlatField label="Subtitle Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardSubtitleColor} onChange={(value) => updateSelectedStyle('cardSubtitleColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardSubtitleSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardSubtitleSize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardSubtitleWeight} onValueChange={(value) => updateSelectedStyle('cardSubtitleWeight', Number(value))} ariaLabel="Subtitle weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardSubtitleAlign} onValueChange={(value) => updateSelectedStyle('cardSubtitleAlign', value as FontPosition)} ariaLabel="Subtitle alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
+                                {selectedStyle.cardShowBody ? (
+                                    <FlatField label="Body Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardBodyColor} onChange={(value) => updateSelectedStyle('cardBodyColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardBodySize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardBodySize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBodyWeight} onValueChange={(value) => updateSelectedStyle('cardBodyWeight', Number(value))} ariaLabel="Body weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBodyAlign} onValueChange={(value) => updateSelectedStyle('cardBodyAlign', value as FontPosition)} ariaLabel="Body alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
+                                {selectedStyle.cardShowPrice ? (
+                                    <FlatField label="Price Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardPriceColor} onChange={(value) => updateSelectedStyle('cardPriceColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardPriceSize} min={10} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardPriceSize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardPriceWeight} onValueChange={(value) => updateSelectedStyle('cardPriceWeight', Number(value))} ariaLabel="Price weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardPriceAlign} onValueChange={(value) => updateSelectedStyle('cardPriceAlign', value as FontPosition)} ariaLabel="Price alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -835,6 +998,112 @@ export function InspectorPanel() {
                                         <option value="glass">Glass</option>
                                     </FlatSelect>
                                 </FlatField>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                    <FlatField label="Image Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="Price Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="Footer Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Footer position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                </div>
+                                {selectedStyle.cardShowHeader ? (
+                                    <>
+                                        <FlatField label="Title Style" stacked>
+                                            <div className="space-y-2">
+                                                <FlatColorControl label="Color" value={selectedStyle.cardTitleColor} onChange={(value) => updateSelectedStyle('cardTitleColor', value)} tokens={activeTokenSet.tokens} />
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatUnitField label="Size" value={selectedStyle.cardTitleSize} min={10} max={40} unit="px" onChange={(value) => updateSelectedStyle('cardTitleSize', value)} />
+                                                    <FlatField label="Weight" stacked>
+                                                        <FlatSelect value={selectedStyle.cardTitleWeight} onValueChange={(value) => updateSelectedStyle('cardTitleWeight', Number(value))} ariaLabel="Title weight">
+                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                    <FlatField label="Align" stacked>
+                                                        <FlatSelect value={selectedStyle.cardTitleAlign} onValueChange={(value) => updateSelectedStyle('cardTitleAlign', value as FontPosition)} ariaLabel="Title alignment">
+                                                            <option value="left">Left</option>
+                                                            <option value="center">Center</option>
+                                                            <option value="right">Right</option>
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                </div>
+                                            </div>
+                                        </FlatField>
+                                        <FlatField label="Subtitle Style" stacked>
+                                            <div className="space-y-2">
+                                                <FlatColorControl label="Color" value={selectedStyle.cardSubtitleColor} onChange={(value) => updateSelectedStyle('cardSubtitleColor', value)} tokens={activeTokenSet.tokens} />
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatUnitField label="Size" value={selectedStyle.cardSubtitleSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardSubtitleSize', value)} />
+                                                    <FlatField label="Weight" stacked>
+                                                        <FlatSelect value={selectedStyle.cardSubtitleWeight} onValueChange={(value) => updateSelectedStyle('cardSubtitleWeight', Number(value))} ariaLabel="Subtitle weight">
+                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                    <FlatField label="Align" stacked>
+                                                        <FlatSelect value={selectedStyle.cardSubtitleAlign} onValueChange={(value) => updateSelectedStyle('cardSubtitleAlign', value as FontPosition)} ariaLabel="Subtitle alignment">
+                                                            <option value="left">Left</option>
+                                                            <option value="center">Center</option>
+                                                            <option value="right">Right</option>
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                </div>
+                                            </div>
+                                        </FlatField>
+                                    </>
+                                ) : null}
+                                <FlatField label="Body Style" stacked>
+                                    <div className="space-y-2">
+                                        <FlatColorControl label="Color" value={selectedStyle.cardBodyColor} onChange={(value) => updateSelectedStyle('cardBodyColor', value)} tokens={activeTokenSet.tokens} />
+                                        <div className="flex flex-wrap items-start gap-3">
+                                            <FlatUnitField label="Size" value={selectedStyle.cardBodySize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardBodySize', value)} />
+                                            <FlatField label="Weight" stacked>
+                                                <FlatSelect value={selectedStyle.cardBodyWeight} onValueChange={(value) => updateSelectedStyle('cardBodyWeight', Number(value))} ariaLabel="Body weight">
+                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <FlatField label="Align" stacked>
+                                                <FlatSelect value={selectedStyle.cardBodyAlign} onValueChange={(value) => updateSelectedStyle('cardBodyAlign', value as FontPosition)} ariaLabel="Body alignment">
+                                                    <option value="left">Left</option>
+                                                    <option value="center">Center</option>
+                                                    <option value="right">Right</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        </div>
+                                    </div>
+                                </FlatField>
+                                {selectedStyle.cardShowPrice ? (
+                                    <FlatField label="Price Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardPriceColor} onChange={(value) => updateSelectedStyle('cardPriceColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardPriceSize} min={10} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardPriceSize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardPriceWeight} onValueChange={(value) => updateSelectedStyle('cardPriceWeight', Number(value))} ariaLabel="Price weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardPriceAlign} onValueChange={(value) => updateSelectedStyle('cardPriceAlign', value as FontPosition)} ariaLabel="Price alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -883,6 +1152,110 @@ export function InspectorPanel() {
                                         <option value="glass">Glass</option>
                                     </FlatSelect>
                                 </FlatField>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                    <FlatField label="Image Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="Pricing Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Pricing position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatField label="CTA Position" stacked>
+                                        <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="CTA position">
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                </div>
+                                <FlatField label="Title Style" stacked>
+                                    <div className="space-y-2">
+                                        <FlatColorControl label="Color" value={selectedStyle.cardTitleColor} onChange={(value) => updateSelectedStyle('cardTitleColor', value)} tokens={activeTokenSet.tokens} />
+                                        <div className="flex flex-wrap items-start gap-3">
+                                            <FlatUnitField label="Size" value={selectedStyle.cardTitleSize} min={10} max={40} unit="px" onChange={(value) => updateSelectedStyle('cardTitleSize', value)} />
+                                            <FlatField label="Weight" stacked>
+                                                <FlatSelect value={selectedStyle.cardTitleWeight} onValueChange={(value) => updateSelectedStyle('cardTitleWeight', Number(value))} ariaLabel="Title weight">
+                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <FlatField label="Align" stacked>
+                                                <FlatSelect value={selectedStyle.cardTitleAlign} onValueChange={(value) => updateSelectedStyle('cardTitleAlign', value as FontPosition)} ariaLabel="Title alignment">
+                                                    <option value="left">Left</option>
+                                                    <option value="center">Center</option>
+                                                    <option value="right">Right</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        </div>
+                                    </div>
+                                </FlatField>
+                                <FlatField label="Subtitle Style" stacked>
+                                    <div className="space-y-2">
+                                        <FlatColorControl label="Color" value={selectedStyle.cardSubtitleColor} onChange={(value) => updateSelectedStyle('cardSubtitleColor', value)} tokens={activeTokenSet.tokens} />
+                                        <div className="flex flex-wrap items-start gap-3">
+                                            <FlatUnitField label="Size" value={selectedStyle.cardSubtitleSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardSubtitleSize', value)} />
+                                            <FlatField label="Weight" stacked>
+                                                <FlatSelect value={selectedStyle.cardSubtitleWeight} onValueChange={(value) => updateSelectedStyle('cardSubtitleWeight', Number(value))} ariaLabel="Subtitle weight">
+                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <FlatField label="Align" stacked>
+                                                <FlatSelect value={selectedStyle.cardSubtitleAlign} onValueChange={(value) => updateSelectedStyle('cardSubtitleAlign', value as FontPosition)} ariaLabel="Subtitle alignment">
+                                                    <option value="left">Left</option>
+                                                    <option value="center">Center</option>
+                                                    <option value="right">Right</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        </div>
+                                    </div>
+                                </FlatField>
+                                {(selectedStyle.cardShowPricing || selectedStyle.cardShowSpecs) ? (
+                                    <FlatField label="Body Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardBodyColor} onChange={(value) => updateSelectedStyle('cardBodyColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardBodySize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardBodySize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBodyWeight} onValueChange={(value) => updateSelectedStyle('cardBodyWeight', Number(value))} ariaLabel="Body weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBodyAlign} onValueChange={(value) => updateSelectedStyle('cardBodyAlign', value as FontPosition)} ariaLabel="Body alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
+                                {selectedStyle.cardShowPricing ? (
+                                    <FlatField label="Price Style" stacked>
+                                        <div className="space-y-2">
+                                            <FlatColorControl label="Color" value={selectedStyle.cardPriceColor} onChange={(value) => updateSelectedStyle('cardPriceColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Size" value={selectedStyle.cardPriceSize} min={10} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardPriceSize', value)} />
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.cardPriceWeight} onValueChange={(value) => updateSelectedStyle('cardPriceWeight', Number(value))} ariaLabel="Price weight">
+                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Align" stacked>
+                                                    <FlatSelect value={selectedStyle.cardPriceAlign} onValueChange={(value) => updateSelectedStyle('cardPriceAlign', value as FontPosition)} ariaLabel="Price alignment">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                    </FlatField>
+                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -895,6 +1268,15 @@ export function InspectorPanel() {
                                     <FlatSwitchRow label="Checked" checked={selectedStyle.switchChecked} onCheckedChange={(value) => updateSelectedStyle('switchChecked', value)} />
                                     <FlatSwitchRow label="Disabled" checked={selectedStyle.switchDisabled} onCheckedChange={(value) => updateSelectedStyle('switchDisabled', value)} />
                                 </div>
+                                <FlatField label="Label" stacked>
+                                    <input
+                                        type="text"
+                                        value={selectedStyle.switchLabel}
+                                        onChange={(e) => updateSelectedStyle('switchLabel', e.target.value)}
+                                        className={studioInputClass}
+                                        placeholder="Toggle"
+                                    />
+                                </FlatField>
                                 <FlatColorControl label="Track (Off)" value={selectedStyle.switchTrackColor} onChange={(value) => updateSelectedStyle('switchTrackColor', value)} tokens={activeTokenSet.tokens} />
                                 <FlatColorControl label="Track (On)" value={selectedStyle.switchTrackActiveColor} onChange={(value) => updateSelectedStyle('switchTrackActiveColor', value)} tokens={activeTokenSet.tokens} />
                                 <FlatColorControl label="Thumb (Off)" value={selectedStyle.switchThumbColor} onChange={(value) => updateSelectedStyle('switchThumbColor', value)} tokens={activeTokenSet.tokens} />
@@ -907,7 +1289,7 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'animated-text' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Text Animation" icon={Sparkles} defaultOpen>
-                                <FlatField label="Variant" stacked>
+                                <FlatField label="Animation" stacked>
                                     <FlatSelect value={selectedStyle.animatedTextVariant} onValueChange={(value) => updateSelectedStyle('animatedTextVariant', value as AnimatedTextVariant)} ariaLabel="Animation variant">
                                         <option value="typewriter">Typewriter</option>
                                         <option value="blur-in">Blur In</option>
@@ -943,9 +1325,9 @@ export function InspectorPanel() {
                                     </FlatField>
                                 )}
                                 <div className="flex flex-wrap items-start gap-4">
-                                    <FlatUnitField label="Speed" value={selectedStyle.animatedTextSpeed} min={0.01} max={5} unit="s" onChange={(value) => updateSelectedStyle('animatedTextSpeed', value)} />
+                                    <FlatUnitField label="Speed" value={selectedStyle.animatedTextSpeed} min={0.01} max={5} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('animatedTextSpeed', value)} />
                                     {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance') && (
-                                        <FlatUnitField label="Stagger" value={selectedStyle.animatedTextStaggerDelay} min={0.01} max={0.5} unit="s" onChange={(value) => updateSelectedStyle('animatedTextStaggerDelay', value)} />
+                                        <FlatUnitField label="Stagger" value={selectedStyle.animatedTextStaggerDelay} min={0.01} max={0.5} step={0.01} unit="s" onChange={(value) => updateSelectedStyle('animatedTextStaggerDelay', value)} />
                                     )}
                                 </div>
                                 {(selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text') && (
@@ -959,13 +1341,14 @@ export function InspectorPanel() {
                     ) : null}
 
                     {/* Appearance / Panel Design */}
-                    <div className="p-1">
-                        <FlatInspectorSection
-                            title={hasPanelElementControls ? 'Panel Design' : appearanceSectionTitle}
-                            icon={Swatches}
-                            defaultOpen
-                            subtitle={hasPanelElementControls ? 'Overlay dimensions and styling.' : undefined}
-                        >
+                    {showAppearanceSection ? (
+                        <div className="p-1">
+                            <FlatInspectorSection
+                                title={hasPanelElementControls ? 'Panel Design' : appearanceSectionTitle}
+                                icon={Swatches}
+                                defaultOpen
+                                subtitle={hasPanelElementControls ? 'Overlay dimensions and styling.' : undefined}
+                            >
                             {hasPanelElementControls ? (
                                 <>
                                     <>
@@ -1148,8 +1531,9 @@ export function InspectorPanel() {
                                     </AnimatePresence>
                                 </>
                             )}
-                        </FlatInspectorSection>
-                    </div>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
 
                     {/* Advanced Hover (Premium) */}
                     {layout?.sections.advancedHover && selectedStyle ? (

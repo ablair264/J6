@@ -876,12 +876,13 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         // Border Beam
         ['--ui-effect-beam-speed' as string]: `${config.effectBorderBeamSpeed}s`,
         ['--ui-effect-beam-size' as string]: `${config.effectBorderBeamSize}px`,
+        ['--ui-effect-beam-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
         ['--ui-effect-beam-from' as string]: config.effectBorderBeamColorFrom,
         ['--ui-effect-beam-to' as string]: config.effectBorderBeamColorTo,
         // Shine Border
         ['--ui-effect-shine-speed' as string]: `${config.effectShineBorderSpeed}s`,
         ['--ui-effect-shine-color' as string]: config.effectShineBorderColor,
-        ['--ui-effect-shine-width' as string]: `${config.effectShineBorderWidth}px`,
+        ['--ui-effect-shine-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
         // Neon Glow
         ['--ui-effect-neon-speed' as string]: `${config.effectNeonGlowSpeed}s`,
         ['--ui-effect-neon-color1' as string]: config.effectNeonGlowColor1,
@@ -889,6 +890,7 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         ['--ui-effect-neon-size' as string]: `${config.effectNeonGlowSize}px`,
         // Pulse Ring
         ['--ui-effect-pulse-speed' as string]: `${config.effectPulseRingSpeed}s`,
+        ['--ui-effect-pulse-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
         ['--ui-effect-pulse-color' as string]: config.effectPulseRingColor,
         ['--ui-checkbox-selection-speed' as string]: `${config.checkboxSelectionAnimationSpeed}s`,
         ['--ui-slider-thumb-hover-scale' as string]: String(config.sliderThumbHoverScale),

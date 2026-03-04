@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "motion/react"
 import {
   InfoIcon,
   CircleCheckIcon,
@@ -41,6 +42,13 @@ interface AlertProps
   extends React.ComponentProps<"div">,
     VariantProps<typeof alertVariants> {
   dismissible?: boolean
+  showIcon?: boolean
+  dismissMotion?: {
+    hoverEnabled?: boolean
+    hoverScale?: number
+    tapEnabled?: boolean
+    tapScale?: number
+  }
   onDismiss?: () => void
 }
 
@@ -48,12 +56,20 @@ function Alert({
   className,
   variant = "info",
   dismissible = false,
+  showIcon = true,
+  dismissMotion,
   onDismiss,
   children,
   ...props
 }: AlertProps) {
   const [visible, setVisible] = React.useState(true)
   const Icon = variantIcons[variant ?? "info"]
+  const dismissWhileHover = dismissMotion?.hoverEnabled
+    ? { scale: (dismissMotion.hoverScale ?? 105) / 100 }
+    : undefined
+  const dismissWhileTap = dismissMotion?.tapEnabled
+    ? { scale: (dismissMotion.tapScale ?? 94) / 100 }
+    : undefined
 
   if (!visible) return null
 
@@ -62,28 +78,31 @@ function Alert({
       data-slot="alert"
       data-variant={variant}
       role="alert"
-      className={cn(alertVariants({ variant }), className)}
+      className={cn(alertVariants({ variant }), !showIcon && "gap-0", className)}
       {...props}
     >
-      <Icon />
+      {showIcon ? <Icon /> : null}
       <div data-slot="alert-content" className="flex-1 space-y-1">
         {children}
       </div>
       {dismissible && (
-        <button
+        <motion.button
           data-slot="alert-close"
           type="button"
           onClick={() => {
             setVisible(false)
             onDismiss?.()
           }}
+          whileHover={dismissWhileHover}
+          whileTap={dismissWhileTap}
+          transition={{ type: "spring", stiffness: 320, damping: 22 }}
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-md p-0.5 opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            "inline-flex shrink-0 items-center justify-center rounded-md p-0.5 opacity-70 transition-opacity duration-150 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           )}
           aria-label="Dismiss"
         >
           <XIcon className="size-4" />
-        </button>
+        </motion.button>
       )}
     </div>
   )

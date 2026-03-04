@@ -257,14 +257,14 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
 
     // ── Display / feedback components ───────────────────────────────────────
     alert: {
-        sections: { presets: true, dimensions: false, componentConfig: false, appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Alert Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: false,
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: false },
-        wrapperStyle: 'strip-all',
+        wrapperStyle: 'full',
         iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     avatar: {
@@ -275,7 +275,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     progress: {
-        sections: { presets: true, dimensions: false, componentConfig: false, appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Progress Config', appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'strip-all',

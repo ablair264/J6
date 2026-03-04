@@ -899,7 +899,6 @@
 /* ─── Border Beam (Magic UI — conic-gradient beam rotating around border) ─── */
 .ui-studio-effect-border-beam {
   position: relative;
-  overflow: hidden;
   border-radius: inherit;
   isolation: isolate;
 }
@@ -909,7 +908,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1px;
+  padding: var(--ui-effect-beam-width, 1px);
   background: conic-gradient(
     from var(--ui-effect-beam-angle, 0deg),
     transparent 0%,
@@ -921,6 +920,7 @@
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+  filter: blur(calc(var(--ui-effect-beam-size, 80px) / 80));
   pointer-events: none;
   animation: ui-studio-effect-beam-rotate var(--ui-effect-beam-speed, 6s) linear infinite;
 }
@@ -928,7 +928,6 @@
 /* ─── Shine Border (Magic UI — conic-gradient sweep along border) ─── */
 .ui-studio-effect-shine-border {
   position: relative;
-  overflow: hidden;
   border-radius: inherit;
   isolation: isolate;
 }
@@ -968,9 +967,25 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border: 2px solid var(--ui-effect-pulse-color, #22d3ee);
+  border: var(--ui-effect-pulse-width, 2px) solid var(--ui-effect-pulse-color, #22d3ee);
   pointer-events: none;
   animation: ui-studio-effect-pulse-expand var(--ui-effect-pulse-speed, 1.5s) ease-out infinite;
+}
+
+[data-slot="switch"] {
+  background-color: var(--switch-track-color, hsl(var(--input)));
+}
+
+[data-slot="switch"][data-state="checked"] {
+  background-color: var(--switch-track-active, hsl(var(--primary)));
+}
+
+[data-slot="switch"] [data-slot="switch-thumb"] {
+  background-color: var(--switch-thumb-color, hsl(var(--background)));
+}
+
+[data-slot="switch"][data-state="checked"] [data-slot="switch-thumb"] {
+  background-color: var(--switch-thumb-active, hsl(var(--primary-foreground)));
 }
 
 .ui-studio-loading-icon-success {

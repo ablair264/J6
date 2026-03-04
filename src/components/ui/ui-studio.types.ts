@@ -365,6 +365,10 @@ export interface ComponentStyleConfig {
   alertVariant: AlertVariant;
   alertDismissible: boolean;
   alertShowIcon: boolean;
+  alertCloseHoverEnabled: boolean;
+  alertCloseHoverScale: number;
+  alertCloseTapEnabled: boolean;
+  alertCloseTapScale: number;
   // Card (shared)
   cardVariant: CardVariant;
   cardShowImage: boolean;
@@ -379,6 +383,25 @@ export interface ComponentStyleConfig {
   cardShowPrice: boolean;
   cardShowToggle: boolean;
   cardButtonText: string;
+  cardImagePosition: 'top' | 'bottom';
+  cardPricePosition: 'top' | 'bottom';
+  cardActionsPosition: 'top' | 'bottom';
+  cardTitleColor: string;
+  cardTitleSize: number;
+  cardTitleWeight: number;
+  cardTitleAlign: FontPosition;
+  cardSubtitleColor: string;
+  cardSubtitleSize: number;
+  cardSubtitleWeight: number;
+  cardSubtitleAlign: FontPosition;
+  cardBodyColor: string;
+  cardBodySize: number;
+  cardBodyWeight: number;
+  cardBodyAlign: FontPosition;
+  cardPriceColor: string;
+  cardPriceSize: number;
+  cardPriceWeight: number;
+  cardPriceAlign: FontPosition;
   // Listing card toggles
   cardShowBadge: boolean;
   cardShowSpecs: boolean;

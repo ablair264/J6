@@ -77,13 +77,21 @@ function isInspectorTab(value: string | null): value is InspectorTab {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
+function createDefaultStyle(kind: UIComponentKind): ComponentStyleConfig {
+    const defaultPreset = getComponentVisualPreset(kind, DEFAULT_STYLE.componentPreset);
+    return normalizeStyleConfig({
+        ...DEFAULT_STYLE,
+        ...(defaultPreset?.values ?? {}),
+    });
+}
+
 export function createInstance(kind: UIComponentKind, index: number): ComponentInstance {
     const component = COMPONENTS.find((item) => item.kind === kind);
     return {
         id: `${kind}-${index}-${Date.now()}`,
         kind,
         name: `${component?.label ?? kind} ${index}`,
-        style: { ...DEFAULT_STYLE },
+        style: createDefaultStyle(kind),
     };
 }
 
@@ -587,7 +595,7 @@ export const useStudioStore = create<StudioState>()(
                 set((state) => ({
                     instances: state.instances.map((instance) =>
                         instance.id === selectedInstanceId
-                            ? { ...instance, style: { ...DEFAULT_STYLE } }
+                            ? { ...instance, style: createDefaultStyle(instance.kind) }
                             : instance,
                     ),
                 }));

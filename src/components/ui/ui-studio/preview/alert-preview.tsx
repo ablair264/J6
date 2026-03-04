@@ -4,18 +4,25 @@ import { RotateCcw } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import type { AlertVariant } from '@/components/ui/ui-studio.types';
-import { buildComponentWrapperStyle } from '../utilities';
 
 export function AlertPreview({
     alertVariant,
     alertDismissible,
     alertShowIcon,
+    alertCloseHoverEnabled,
+    alertCloseHoverScale,
+    alertCloseTapEnabled,
+    alertCloseTapScale,
     style,
     motionClassName,
 }: {
     alertVariant: AlertVariant;
     alertDismissible: boolean;
     alertShowIcon: boolean;
+    alertCloseHoverEnabled: boolean;
+    alertCloseHoverScale: number;
+    alertCloseTapEnabled: boolean;
+    alertCloseTapScale: number;
     style: CSSProperties;
     motionClassName?: string;
 }) {
@@ -43,8 +50,15 @@ export function AlertPreview({
         <Alert
             variant={alertVariant}
             dismissible={alertDismissible}
+            showIcon={alertShowIcon}
+            dismissMotion={{
+                hoverEnabled: alertCloseHoverEnabled,
+                hoverScale: alertCloseHoverScale,
+                tapEnabled: alertCloseTapEnabled,
+                tapScale: alertCloseTapScale,
+            }}
             onDismiss={() => setDismissed(true)}
-            style={buildComponentWrapperStyle(style, 'alert')}
+            style={style}
             className={cn('max-w-md', motionClassName)}
         >
             <AlertTitle>Alert Title</AlertTitle>

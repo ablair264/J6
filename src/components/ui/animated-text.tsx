@@ -79,6 +79,7 @@ function BlurInText({
     text, speed = 0.3, stagger = 0.04, splitBy = 'word', className, style,
 }: Pick<AnimatedTextProps, 'text' | 'speed' | 'stagger' | 'splitBy' | 'className' | 'style'>) {
     const segments = useMemo(() => splitText(text, splitBy), [text, splitBy]);
+    const isLineSplit = splitBy === 'line';
     const transition = (i: number): Transition => ({
         delay: i * (stagger ?? 0.04),
         duration: speed ?? 0.3,
@@ -86,14 +87,14 @@ function BlurInText({
     });
 
     return (
-        <span className={cn('inline-flex flex-wrap', className)} style={style} data-slot="animated-text">
+        <span className={cn(isLineSplit ? 'inline-flex flex-col items-start' : 'inline-flex flex-wrap', className)} style={style} data-slot="animated-text">
             {segments.map((segment, i) => (
                 <motion.span
                     key={`${segment}-${i}`}
                     initial={{ opacity: 0, filter: 'blur(8px)' }}
                     animate={{ opacity: 1, filter: 'blur(0px)' }}
                     transition={transition(i)}
-                    className="inline-block"
+                    className={cn('inline-block', isLineSplit && 'block w-full')}
                     style={segment.match(/^\s+$/) ? { whiteSpace: 'pre' } : undefined}
                 >
                     {segment}
@@ -109,6 +110,7 @@ function SplitEntranceText({
     text, speed = 0.3, stagger = 0.03, splitBy = 'char', className, style,
 }: Pick<AnimatedTextProps, 'text' | 'speed' | 'stagger' | 'splitBy' | 'className' | 'style'>) {
     const segments = useMemo(() => splitText(text, splitBy), [text, splitBy]);
+    const isLineSplit = splitBy === 'line';
     const transition = (i: number): Transition => ({
         delay: i * (stagger ?? 0.03),
         duration: speed ?? 0.3,
@@ -116,14 +118,14 @@ function SplitEntranceText({
     });
 
     return (
-        <span className={cn('inline-flex flex-wrap', className)} style={style} data-slot="animated-text">
+        <span className={cn(isLineSplit ? 'inline-flex flex-col items-start' : 'inline-flex flex-wrap', className)} style={style} data-slot="animated-text">
             {segments.map((segment, i) => (
                 <motion.span
                     key={`${segment}-${i}`}
                     initial={{ opacity: 0, y: 12, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={transition(i)}
-                    className="inline-block"
+                    className={cn('inline-block', isLineSplit && 'block w-full')}
                     style={segment.match(/^\s+$/) ? { whiteSpace: 'pre' } : undefined}
                 >
                     {segment}
@@ -281,9 +283,19 @@ export function AnimatedText({
 }: AnimatedTextProps) {
     const [hoverKey, setHoverKey] = useState(0);
     const [hasHovered, setHasHovered] = useState(trigger === 'mount');
+    const triggerAnimation = () => {
+        setHasHovered(true);
+        setHoverKey((k) => k + 1);
+    };
 
     const wrapperProps = trigger === 'hover'
-        ? { onMouseEnter: () => { setHasHovered(true); setHoverKey((k) => k + 1); } }
+        ? {
+            onMouseEnter: triggerAnimation,
+            onFocus: triggerAnimation,
+            onClick: triggerAnimation,
+            tabIndex: 0,
+            role: 'button' as const,
+        }
         : {};
 
     // Before first hover: show static text

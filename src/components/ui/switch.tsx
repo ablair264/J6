@@ -18,11 +18,12 @@ function Switch({
   thumbColor?: string
   thumbActiveColor?: string
 }) {
-  const trackStyle = {} as Record<string, string | undefined>
-  if (trackColor || trackActiveColor) {
-    trackStyle['--switch-track-color'] = trackColor || undefined
-    trackStyle['--switch-track-active'] = trackActiveColor || undefined
-  }
+  const trackStyle = {
+    ['--switch-track-color' as string]: trackColor || undefined,
+    ['--switch-track-active' as string]: trackActiveColor || undefined,
+    ['--switch-thumb-color' as string]: thumbColor || undefined,
+    ['--switch-thumb-active' as string]: thumbActiveColor || undefined,
+  } as React.CSSProperties
 
   return (
     <SwitchPrimitive.Root
@@ -30,7 +31,6 @@ function Switch({
       data-size={size}
       className={cn(
         "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 group/switch inline-flex shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-[1.15rem] data-[size=default]:w-8 data-[size=sm]:h-3.5 data-[size=sm]:w-6",
-        (trackColor || trackActiveColor) && "!bg-transparent",
         className
       )}
       style={trackStyle}
@@ -40,12 +40,7 @@ function Switch({
         data-slot="switch-thumb"
         className={cn(
           "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block rounded-full ring-0 transition-transform group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0",
-          (thumbColor || thumbActiveColor) && "!bg-transparent",
         )}
-        style={{
-          ...(thumbColor && { ['--switch-thumb-color' as string]: thumbColor }),
-          ...(thumbActiveColor && { ['--switch-thumb-active' as string]: thumbActiveColor }),
-        }}
       />
     </SwitchPrimitive.Root>
   )

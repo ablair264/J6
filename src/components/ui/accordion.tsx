@@ -38,7 +38,7 @@ type AccordionProps = AccordionSingleProps | AccordionMultipleProps
 
 function Accordion({ className, variant, style, dividerColor, ...props }: AccordionProps & { dividerColor?: string }) {
   const mergedStyle = dividerColor
-    ? { ...style, ['--color-border' as string]: dividerColor }
+    ? { ...style, ['--border' as string]: dividerColor }
     : style;
   return (
     <AccordionPrimitive.Root

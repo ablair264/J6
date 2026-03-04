@@ -38,6 +38,7 @@ interface ProgressProps
   extends Omit<React.ComponentProps<typeof ProgressPrimitive.Root>, "children">,
     VariantProps<typeof progressVariants> {
   showLabel?: boolean
+  animateValue?: boolean
   indicatorClassName?: string
 }
 
@@ -48,7 +49,9 @@ function Progress({
   variant = "linear",
   size = "md",
   showLabel = false,
+  animateValue = true,
   indicatorClassName,
+  style,
   ...props
 }: ProgressProps) {
   const percentage = Math.round(((value ?? 0) / max) * 100)
@@ -65,6 +68,7 @@ function Progress({
         value={value}
         max={max}
         className={cn("relative inline-flex items-center justify-center", className)}
+        style={style}
         {...props}
       >
         <svg
@@ -90,7 +94,11 @@ function Progress({
             strokeDasharray={dims.circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className={cn("stroke-primary transition-[stroke-dashoffset] duration-500 ease-in-out", indicatorClassName)}
+            className={cn(
+              "stroke-primary",
+              animateValue && "transition-[stroke-dashoffset] duration-500 ease-in-out",
+              indicatorClassName
+            )}
           />
         </svg>
         {showLabel && (
@@ -120,6 +128,7 @@ function Progress({
       value={value}
       max={max}
       className={cn("relative w-full", className)}
+      style={style}
       {...props}
     >
       <div
@@ -127,14 +136,16 @@ function Progress({
           "w-full overflow-hidden rounded-full bg-muted",
           linearTrackSizes[size ?? "md"]
         )}
+        style={{ borderRadius: style?.borderRadius }}
       >
         <ProgressPrimitive.Indicator
           data-slot="progress-indicator"
           className={cn(
-            "h-full rounded-full bg-primary transition-[width] duration-500 ease-in-out",
+            "h-full rounded-full bg-primary",
+            animateValue && "transition-[width] duration-500 ease-in-out",
             indicatorClassName
           )}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${percentage}%`, borderRadius: style?.borderRadius }}
         />
       </div>
       {showLabel && (
