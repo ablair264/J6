@@ -957,6 +957,119 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {selectedInstance?.kind === 'tooltip' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Tooltip Config" icon={Sparkles} defaultOpen>
+                                <FlatSwitchRow
+                                    label="Show arrow"
+                                    checked={selectedStyle.tooltipArrow}
+                                    onCheckedChange={(value) => updateSelectedStyle('tooltipArrow', value)}
+                                />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {selectedInstance?.kind === 'dialog' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Dialog Config" icon={Sparkles} defaultOpen>
+                                <CardTypographyControls
+                                    title="Dialog Title"
+                                    textValue={selectedStyle.dialogTitleText}
+                                    color={selectedStyle.dialogTitleColor}
+                                    size={selectedStyle.dialogTitleSize}
+                                    weight={selectedStyle.dialogTitleWeight}
+                                    align={selectedStyle.dialogTitleAlign}
+                                    sizeMin={16}
+                                    sizeMax={32}
+                                    tokens={activeTokenSet.tokens}
+                                    textPlaceholder="Heading copy"
+                                    onTextChange={(value) => updateSelectedStyle('dialogTitleText', value)}
+                                    onColorChange={(value) => updateSelectedStyle('dialogTitleColor', value)}
+                                    onSizeChange={(value) => updateSelectedStyle('dialogTitleSize', value)}
+                                    onWeightChange={(value) => updateSelectedStyle('dialogTitleWeight', value)}
+                                    onAlignChange={(value) => updateSelectedStyle('dialogTitleAlign', value)}
+                                />
+                                <CardTypographyControls
+                                    title="Dialog Body"
+                                    textValue={selectedStyle.dialogBodyText}
+                                    color={selectedStyle.dialogBodyColor}
+                                    size={selectedStyle.dialogBodySize}
+                                    weight={selectedStyle.dialogBodyWeight}
+                                    align={selectedStyle.dialogBodyAlign}
+                                    sizeMin={12}
+                                    sizeMax={20}
+                                    tokens={activeTokenSet.tokens}
+                                    textPlaceholder="Body copy"
+                                    defaultOpen
+                                    onTextChange={(value) => updateSelectedStyle('dialogBodyText', value)}
+                                    onColorChange={(value) => updateSelectedStyle('dialogBodyColor', value)}
+                                    onSizeChange={(value) => updateSelectedStyle('dialogBodySize', value)}
+                                    onWeightChange={(value) => updateSelectedStyle('dialogBodyWeight', value)}
+                                    onAlignChange={(value) => updateSelectedStyle('dialogBodyAlign', value)}
+                                />
+                                <div className="space-y-2">
+                                    <FlatSwitchRow
+                                        label="Show close icon"
+                                        checked={selectedStyle.dialogShowCloseIcon}
+                                        onCheckedChange={(value) => updateSelectedStyle('dialogShowCloseIcon', value)}
+                                    />
+                                    <FlatSwitchRow
+                                        label="Show action button"
+                                        checked={selectedStyle.dialogShowActionButton}
+                                        onCheckedChange={(value) => updateSelectedStyle('dialogShowActionButton', value)}
+                                    />
+                                    {selectedStyle.dialogShowActionButton ? (
+                                        <FlatField label="Action button text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.dialogActionButtonText}
+                                                onChange={(event) => updateSelectedStyle('dialogActionButtonText', event.target.value)}
+                                                className={studioInputClass}
+                                            />
+                                        </FlatField>
+                                    ) : null}
+                                </div>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {selectedInstance?.kind === 'input' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Autocomplete Dropdown" icon={Config} defaultOpen>
+                                <FlatColorControl
+                                    label="Background"
+                                    value={selectedStyle.inputAutocompleteBgColor}
+                                    onChange={(value) => updateSelectedStyle('inputAutocompleteBgColor', value)}
+                                    tokens={activeTokenSet.tokens}
+                                />
+                                <FlatColorControl
+                                    label="Border"
+                                    value={selectedStyle.inputAutocompleteBorderColor}
+                                    onChange={(value) => updateSelectedStyle('inputAutocompleteBorderColor', value)}
+                                    tokens={activeTokenSet.tokens}
+                                />
+                                <FlatColorControl
+                                    label="Text"
+                                    value={selectedStyle.inputAutocompleteTextColor}
+                                    onChange={(value) => updateSelectedStyle('inputAutocompleteTextColor', value)}
+                                    tokens={activeTokenSet.tokens}
+                                />
+                                <FlatColorControl
+                                    label="Option hover background"
+                                    value={selectedStyle.inputAutocompleteOptionHoverBgColor}
+                                    onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverBgColor', value)}
+                                    tokens={activeTokenSet.tokens}
+                                />
+                                <FlatColorControl
+                                    label="Option hover text"
+                                    value={selectedStyle.inputAutocompleteOptionHoverTextColor}
+                                    onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverTextColor', value)}
+                                    tokens={activeTokenSet.tokens}
+                                />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Progress Config */}
                     {selectedInstance?.kind === 'progress' && selectedStyle ? (
                         <div className="p-1">

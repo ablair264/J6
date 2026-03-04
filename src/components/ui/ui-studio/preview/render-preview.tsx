@@ -545,53 +545,96 @@ export function renderPreview(
                 const dialogBodyMotion = buildEntryPresetMotionConfig('dialog', instance.style, instance.style.dialogBodyMotionPresetId);
                 const dialogTextMotion = buildEntryPresetMotionConfig('dialog', instance.style, instance.style.dialogTextMotionPresetId);
                 const dialogBody = renderEntryMotion(
-                    <div className="space-y-3 p-5">
-                        {renderEntryMotion(
-                            <div className="space-y-2">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                        <h3 className="text-base font-semibold">Dialog preview</h3>
-                                        <p className="mt-1 text-sm text-muted-foreground">Styled with your current controls.</p>
-                                    </div>
-                                    {pinOverlayOpen ? (
-                                        <button
-                                            type="button"
-                                            className="inline-flex size-7 items-center justify-center rounded-md border border-white/15 text-sm text-[#d9e5f7]"
-                                            aria-label="Close dialog"
-                                            tabIndex={-1}
-                                        >
-                                            ×
-                                        </button>
-                                    ) : (
-                                        <RadixDialogPrimitive.Close asChild>
+                <div className="space-y-3 p-5">
+                    {renderEntryMotion(
+                        <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <h3
+                                        className="text-base font-semibold"
+                                        style={{
+                                            color: instance.style.dialogTitleColor,
+                                            fontSize: instance.style.dialogTitleSize,
+                                            fontWeight: instance.style.dialogTitleWeight,
+                                            textAlign: instance.style.dialogTitleAlign,
+                                        }}
+                                    >
+                                        {instance.style.dialogTitleText}
+                                    </h3>
+                                    <p
+                                        className="mt-1 text-sm"
+                                        style={{
+                                            color: instance.style.dialogBodyColor,
+                                            fontSize: instance.style.dialogBodySize,
+                                            fontWeight: instance.style.dialogBodyWeight,
+                                            textAlign: instance.style.dialogBodyAlign,
+                                        }}
+                                    >
+                                        {instance.style.dialogBodyText}
+                                    </p>
+                                </div>
+                                {instance.style.dialogShowCloseIcon ? (
+                                    pinOverlayOpen ? (
+                                        renderWithMotionControls(
                                             <button
                                                 type="button"
-                                                className="inline-flex size-7 items-center justify-center rounded-md border border-white/15 text-sm text-[#d9e5f7] transition hover:bg-white/10"
+                                                className="inline-flex size-7 items-center justify-center rounded-md border border-white/15 text-sm text-[#d9e5f7]"
                                                 aria-label="Close dialog"
+                                                tabIndex={-1}
                                             >
                                                 ×
-                                            </button>
+                                            </button>,
+                                            instance.style,
+                                            false,
+                                            true,
+                                        )
+                                    ) : (
+                                        <RadixDialogPrimitive.Close asChild>
+                                            {renderWithMotionControls(
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex size-7 items-center justify-center rounded-md border border-white/15 text-sm text-[#d9e5f7] transition hover:bg-white/10"
+                                                    aria-label="Close dialog"
+                                                >
+                                                    ×
+                                                </button>,
+                                                instance.style,
+                                                false,
+                                                true,
+                                            )}
                                         </RadixDialogPrimitive.Close>
-                                    )}
-                                </div>
-                                <p className="text-sm text-muted-foreground">Use this to test border, fill, font, and effect settings.</p>
-                            </div>,
-                            dialogTextMotion,
-                        )}
+                                    )
+                                ) : null}
+                            </div>
+                        </div>,
+                        dialogTextMotion,
+                    )}
+                    {instance.style.dialogShowActionButton ? (
                         <div className="flex justify-end">
                             {pinOverlayOpen ? (
-                                <Button variant="outline" size="sm" tabIndex={-1}>
-                                    Close
-                                </Button>
+                                renderWithMotionControls(
+                                    <Button variant="outline" size="sm" tabIndex={-1}>
+                                        {instance.style.dialogActionButtonText}
+                                    </Button>,
+                                    instance.style,
+                                    false,
+                                    true,
+                                )
                             ) : (
                                 <RadixDialogPrimitive.Close asChild>
-                                    <Button variant="outline" size="sm">
-                                        Close
-                                    </Button>
+                                    {renderWithMotionControls(
+                                        <Button variant="outline" size="sm">
+                                            {instance.style.dialogActionButtonText}
+                                        </Button>,
+                                        instance.style,
+                                        false,
+                                        true,
+                                    )}
                                 </RadixDialogPrimitive.Close>
                             )}
                         </div>
-                    </div>,
+                    ) : null}
+                </div>,
                     dialogBodyMotion,
                 );
 
@@ -882,7 +925,7 @@ export function renderPreview(
 
         case 'slider':
             return (
-                <div className={cn('w-full max-w-sm rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={buildComponentWrapperStyle(style, 'slider')}>
+                <div className={cn('w-full rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={buildComponentWrapperStyle(style, 'slider')}>
                     <div className="flex items-center gap-2">
                         {instance.style.componentPreset === 'slider-elastic' ? <span className="text-sm text-muted-foreground">-</span> : null}
                         <Slider className={cn('ui-studio-slider-motion', motionClassName)} defaultValue={[55]} max={100} step={1} />
