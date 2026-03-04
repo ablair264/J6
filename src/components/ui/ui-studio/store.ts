@@ -627,8 +627,9 @@ export const useStudioStore = create<StudioState>()(
                     instances: state.instances.map((instance) =>
                         instance.id === selectedInstanceId
                             ? (() => {
+                                // Reset to defaults first so effects/motion from previous presets don't persist
                                 const mergedStyle: ComponentStyleConfig = {
-                                    ...instance.style,
+                                    ...DEFAULT_STYLE,
                                     ...preset.values,
                                     componentPreset: preset.id,
                                     motionPreset: preset.autoMotionPreset ?? (preset.id.startsWith('motion-') ? instance.style.motionPreset : 'none'),

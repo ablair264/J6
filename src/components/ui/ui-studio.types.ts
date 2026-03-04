@@ -365,6 +365,7 @@ export interface ComponentStyleConfig {
   alertShowIcon: boolean;
   // Card
   cardVariant: CardVariant;
+  cardShowImage: boolean;
   cardShowHeader: boolean;
   cardShowFooter: boolean;
   cardShowDividers: boolean;

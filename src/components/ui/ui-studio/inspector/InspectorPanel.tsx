@@ -29,7 +29,6 @@ import type {
     AnimatedTextTrigger,
     AnimatedTextVariant,
     ButtonPreviewState,
-    CardVariant,
     ComponentInstance,
     ComponentStyleConfig,
     FillMode,
@@ -804,17 +803,10 @@ export function InspectorPanel() {
                     {isCard && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
-                                <FlatField label="Variant" stacked>
-                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as CardVariant)} ariaLabel="Card variant">
-                                        <option value="default">Default</option>
-                                        <option value="bordered">Bordered</option>
-                                        <option value="elevated">Elevated</option>
-                                        <option value="glass">Glass</option>
-                                    </FlatSelect>
-                                </FlatField>
                                 <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Show Header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
-                                    <FlatSwitchRow label="Show Footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
+                                    <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
+                                    <FlatSwitchRow label="Header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
+                                    <FlatSwitchRow label="Footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
                                     <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
                                 </div>
                             </FlatInspectorSection>

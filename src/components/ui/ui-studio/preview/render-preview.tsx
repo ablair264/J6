@@ -278,15 +278,19 @@ export function componentSnippet(
             const cardProps = [
                 instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
                 instance.style.cardShowDividers ? `showDividers` : '',
+                `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
+            const imageSnippet = instance.style.cardShowImage
+                ? `\n  <img src="/placeholder.jpg" alt="Product" className="aspect-[16/10] w-full object-cover" />`
+                : '';
             const headerSnippet = instance.style.cardShowHeader
-                ? `\n  <CardHeader>\n    <CardTitle>Card Title</CardTitle>\n    <CardDescription>Card description goes here.</CardDescription>\n  </CardHeader>`
+                ? `\n  <CardHeader>\n    <CardTitle>Product Name</CardTitle>\n    <CardDescription>Brief description of the item or feature.</CardDescription>\n  </CardHeader>`
                 : '';
             const footerSnippet = instance.style.cardShowFooter
-                ? `\n  <CardFooter>\n    <Button variant="outline">Cancel</Button>\n    <Button>Save</Button>\n  </CardFooter>`
+                ? `\n  <CardFooter className="justify-between gap-2">\n    <span className="text-xs text-muted-foreground">In stock</span>\n    <Button size="sm">Add to Cart</Button>\n  </CardFooter>`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${headerSnippet}\n  <CardContent>\n    <p>Card content goes here.</p>\n  </CardContent>${footerSnippet}\n</Card>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>\n    <p>Card content goes here.</p>\n  </CardContent>${footerSnippet}\n</Card>`;
         }
         case 'switch': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -951,21 +955,32 @@ export function renderPreview(
                     <Card
                         variant={instance.style.cardVariant}
                         showDividers={instance.style.cardShowDividers}
-                        className={cn(motionClassName, dividerClass)}
+                        className={cn(motionClassName, dividerClass, 'overflow-hidden')}
                     >
+                        {instance.style.cardShowImage && (
+                            <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-muted/60 to-muted flex items-center justify-center overflow-hidden">
+                                <svg className="h-10 w-10 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                                </svg>
+                            </div>
+                        )}
                         {instance.style.cardShowHeader && (
                             <CardHeader>
-                                <CardTitle>Card Title</CardTitle>
-                                <CardDescription>Card description goes here.</CardDescription>
+                                <CardTitle>Product Name</CardTitle>
+                                <CardDescription>Brief description of the item or feature.</CardDescription>
                             </CardHeader>
                         )}
                         <CardContent>
-                            <p className="text-sm text-muted-foreground">This is the card content area. You can put any content here.</p>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-2xl font-bold">$49</span>
+                                <span className="text-sm text-muted-foreground line-through">$79</span>
+                            </div>
+                            <p className="mt-2 text-sm text-muted-foreground">Includes all premium features with lifetime updates and priority support.</p>
                         </CardContent>
                         {instance.style.cardShowFooter && (
-                            <CardFooter className="justify-end gap-2">
-                                <Button variant="outline" size="sm">Cancel</Button>
-                                <Button size="sm">Save</Button>
+                            <CardFooter className="justify-between gap-2">
+                                <span className="text-xs text-muted-foreground">In stock</span>
+                                <Button size="sm">Add to Cart</Button>
                             </CardFooter>
                         )}
                     </Card>
