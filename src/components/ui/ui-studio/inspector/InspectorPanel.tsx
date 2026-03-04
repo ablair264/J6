@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, ChevronDown, Minus, SlidersHorizontal } from 'lucide-react';
 import {
@@ -16,6 +16,11 @@ import {
     TextAlignRight,
 } from '@mynaui/icons-react';
 import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -24,6 +29,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import type { StudioColorToken } from '@/components/ui/token-sets';
 import type {
     AnimatedTextSplitBy,
     AnimatedTextTrigger,
@@ -72,6 +78,80 @@ const inspectorChoiceButtonBase = 'h-6 flex-1 rounded-sm px-2.5 text-[13px] font
 const inspectorChoiceButtonActive = 'bg-white/[0.10] text-[#eef5ff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]';
 const inspectorChoiceButtonIdle = 'text-[#7f8ca3] hover:bg-white/[0.03] hover:text-[#dfe7f5]';
 const inspectorIconChoiceButtonBase = 'inline-flex h-7 flex-1 items-center justify-center rounded-lg transition-colors';
+const cardWeightOptions = [300, 400, 500, 600, 700] as const;
+
+function CardConfigSubsection({
+    title,
+    children,
+    defaultOpen = false,
+}: {
+    title: string;
+    children: ReactNode;
+    defaultOpen?: boolean;
+}) {
+    return (
+        <Collapsible defaultOpen={defaultOpen}>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <CollapsibleTrigger className="group/card-subsection flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-white/[0.03]">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7f95b4]">{title}</p>
+                    <ChevronDown className="size-3.5 shrink-0 text-[#607595] transition-transform duration-200 group-data-[state=open]/card-subsection:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                    <div className="space-y-2.5 border-t border-white/[0.06] px-3 pb-3 pt-2.5">{children}</div>
+                </CollapsibleContent>
+            </div>
+        </Collapsible>
+    );
+}
+
+function CardTypographyControls({
+    title,
+    color,
+    size,
+    weight,
+    align,
+    sizeMin,
+    sizeMax,
+    tokens,
+    onColorChange,
+    onSizeChange,
+    onWeightChange,
+    onAlignChange,
+}: {
+    title: string;
+    color: string;
+    size: number;
+    weight: number;
+    align: FontPosition;
+    sizeMin: number;
+    sizeMax: number;
+    tokens: StudioColorToken[];
+    onColorChange: (value: string) => void;
+    onSizeChange: (value: number) => void;
+    onWeightChange: (value: number) => void;
+    onAlignChange: (value: FontPosition) => void;
+}) {
+    return (
+        <CardConfigSubsection title={title}>
+            <FlatColorControl label="Color" value={color} onChange={onColorChange} tokens={tokens} />
+            <FlatUnitField label="Size" value={size} min={sizeMin} max={sizeMax} unit="px" onChange={onSizeChange} />
+            <FlatField label="Weight" stacked>
+                <FlatSelect value={weight} onValueChange={(value) => onWeightChange(Number(value))} ariaLabel={`${title} weight`}>
+                    {cardWeightOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                    ))}
+                </FlatSelect>
+            </FlatField>
+            <FlatField label="Alignment" stacked>
+                <FlatSelect value={align} onValueChange={(value) => onAlignChange(value as FontPosition)} ariaLabel={`${title} alignment`}>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </FlatSelect>
+            </FlatField>
+        </CardConfigSubsection>
+    );
+}
 
 export function InspectorPanel() {
     const selectedInstance = useStudioStore(selectSelectedInstance);
@@ -853,144 +933,137 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'card' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
-                                <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
-                                    <FlatSwitchRow label="Title" checked={selectedStyle.cardShowTitle} onCheckedChange={(value) => updateSelectedStyle('cardShowTitle', value)} />
-                                    <FlatSwitchRow label="Subtitle" checked={selectedStyle.cardShowSubtitle} onCheckedChange={(value) => updateSelectedStyle('cardShowSubtitle', value)} />
-                                    <FlatSwitchRow label="Body" checked={selectedStyle.cardShowBody} onCheckedChange={(value) => updateSelectedStyle('cardShowBody', value)} />
-                                    <FlatSwitchRow label="Price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
-                                    <FlatSwitchRow label="Toggle" checked={selectedStyle.cardShowToggle} onCheckedChange={(value) => updateSelectedStyle('cardShowToggle', value)} />
-                                    <FlatSwitchRow label="Button" checked={selectedStyle.cardShowButton} onCheckedChange={(value) => updateSelectedStyle('cardShowButton', value)} />
-                                    {selectedStyle.cardShowButton && (
-                                        <div className="pl-3 border-l border-[var(--inspector-border)]">
-                                            <FlatField label="Button Text">
+                                <div className="space-y-3">
+                                    <CardConfigSubsection title="Structure" defaultOpen>
+                                        <FlatField label="Variant" stacked>
+                                            <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
+                                                <option value="default">Default</option>
+                                                <option value="bordered">Bordered</option>
+                                                <option value="elevated">Elevated</option>
+                                                <option value="glass">Glass</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                        <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Image" defaultOpen={selectedStyle.cardShowImage}>
+                                        <FlatSwitchRow label="Show image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
+                                        {selectedStyle.cardShowImage ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Content" defaultOpen>
+                                        <FlatSwitchRow label="Title" checked={selectedStyle.cardShowTitle} onCheckedChange={(value) => updateSelectedStyle('cardShowTitle', value)} />
+                                        <FlatSwitchRow label="Subtitle" checked={selectedStyle.cardShowSubtitle} onCheckedChange={(value) => updateSelectedStyle('cardShowSubtitle', value)} />
+                                        <FlatSwitchRow label="Body" checked={selectedStyle.cardShowBody} onCheckedChange={(value) => updateSelectedStyle('cardShowBody', value)} />
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Pricing" defaultOpen={selectedStyle.cardShowPrice}>
+                                        <FlatSwitchRow label="Show price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
+                                        {selectedStyle.cardShowPrice ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Actions" defaultOpen={selectedStyle.cardShowToggle || selectedStyle.cardShowButton}>
+                                        <FlatSwitchRow label="Toggle" checked={selectedStyle.cardShowToggle} onCheckedChange={(value) => updateSelectedStyle('cardShowToggle', value)} />
+                                        <FlatSwitchRow label="Button" checked={selectedStyle.cardShowButton} onCheckedChange={(value) => updateSelectedStyle('cardShowButton', value)} />
+                                        {(selectedStyle.cardShowToggle || selectedStyle.cardShowButton) ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Actions position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
+                                        {selectedStyle.cardShowButton ? (
+                                            <FlatField label="Button Text" stacked>
                                                 <input
                                                     type="text"
                                                     value={selectedStyle.cardButtonText}
                                                     onChange={(e) => updateSelectedStyle('cardButtonText', e.target.value)}
-                                                    className="w-full rounded-md border border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-2 py-1 text-xs text-[var(--inspector-text)]"
+                                                    className={studioInputClass}
                                                 />
                                             </FlatField>
-                                        </div>
-                                    )}
-                                    <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    {selectedStyle.cardShowTitle ? (
+                                        <CardTypographyControls
+                                            title="Title"
+                                            color={selectedStyle.cardTitleColor}
+                                            size={selectedStyle.cardTitleSize}
+                                            weight={selectedStyle.cardTitleWeight}
+                                            align={selectedStyle.cardTitleAlign}
+                                            sizeMin={10}
+                                            sizeMax={40}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
+                                        />
+                                    ) : null}
+                                    {selectedStyle.cardShowSubtitle ? (
+                                        <CardTypographyControls
+                                            title="Subtitle"
+                                            color={selectedStyle.cardSubtitleColor}
+                                            size={selectedStyle.cardSubtitleSize}
+                                            weight={selectedStyle.cardSubtitleWeight}
+                                            align={selectedStyle.cardSubtitleAlign}
+                                            sizeMin={10}
+                                            sizeMax={32}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
+                                        />
+                                    ) : null}
+                                    {selectedStyle.cardShowBody ? (
+                                        <CardTypographyControls
+                                            title="Body"
+                                            color={selectedStyle.cardBodyColor}
+                                            size={selectedStyle.cardBodySize}
+                                            weight={selectedStyle.cardBodyWeight}
+                                            align={selectedStyle.cardBodyAlign}
+                                            sizeMin={10}
+                                            sizeMax={32}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
+                                        />
+                                    ) : null}
+                                    {selectedStyle.cardShowPrice ? (
+                                        <CardTypographyControls
+                                            title="Price"
+                                            color={selectedStyle.cardPriceColor}
+                                            size={selectedStyle.cardPriceSize}
+                                            weight={selectedStyle.cardPriceWeight}
+                                            align={selectedStyle.cardPriceAlign}
+                                            sizeMin={10}
+                                            sizeMax={48}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
+                                        />
+                                    ) : null}
                                 </div>
-                                <FlatField label="Variant">
-                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
-                                        <option value="default">Default</option>
-                                        <option value="bordered">Bordered</option>
-                                        <option value="elevated">Elevated</option>
-                                        <option value="glass">Glass</option>
-                                    </FlatSelect>
-                                </FlatField>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                                    <FlatField label="Image Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="Price Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="Actions Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Actions position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                </div>
-                                {selectedStyle.cardShowTitle ? (
-                                    <FlatField label="Title Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardTitleColor} onChange={(value) => updateSelectedStyle('cardTitleColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardTitleSize} min={10} max={40} unit="px" onChange={(value) => updateSelectedStyle('cardTitleSize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardTitleWeight} onValueChange={(value) => updateSelectedStyle('cardTitleWeight', Number(value))} ariaLabel="Title weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardTitleAlign} onValueChange={(value) => updateSelectedStyle('cardTitleAlign', value as FontPosition)} ariaLabel="Title alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
-                                {selectedStyle.cardShowSubtitle ? (
-                                    <FlatField label="Subtitle Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardSubtitleColor} onChange={(value) => updateSelectedStyle('cardSubtitleColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardSubtitleSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardSubtitleSize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardSubtitleWeight} onValueChange={(value) => updateSelectedStyle('cardSubtitleWeight', Number(value))} ariaLabel="Subtitle weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardSubtitleAlign} onValueChange={(value) => updateSelectedStyle('cardSubtitleAlign', value as FontPosition)} ariaLabel="Subtitle alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
-                                {selectedStyle.cardShowBody ? (
-                                    <FlatField label="Body Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardBodyColor} onChange={(value) => updateSelectedStyle('cardBodyColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardBodySize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardBodySize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardBodyWeight} onValueChange={(value) => updateSelectedStyle('cardBodyWeight', Number(value))} ariaLabel="Body weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardBodyAlign} onValueChange={(value) => updateSelectedStyle('cardBodyAlign', value as FontPosition)} ariaLabel="Body alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
-                                {selectedStyle.cardShowPrice ? (
-                                    <FlatField label="Price Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardPriceColor} onChange={(value) => updateSelectedStyle('cardPriceColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardPriceSize} min={10} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardPriceSize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardPriceWeight} onValueChange={(value) => updateSelectedStyle('cardPriceWeight', Number(value))} ariaLabel="Price weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardPriceAlign} onValueChange={(value) => updateSelectedStyle('cardPriceAlign', value as FontPosition)} ariaLabel="Price alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -999,127 +1072,124 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'product-card' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Product Card Config" icon={Table} defaultOpen>
-                                <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
-                                    <FlatSwitchRow label="Header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
-                                    <FlatSwitchRow label="Price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
-                                    <FlatSwitchRow label="Footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
-                                    <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
-                                </div>
-                                <FlatField label="Variant">
-                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
-                                        <option value="default">Default</option>
-                                        <option value="bordered">Bordered</option>
-                                        <option value="elevated">Elevated</option>
-                                        <option value="glass">Glass</option>
-                                    </FlatSelect>
-                                </FlatField>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                                    <FlatField label="Image Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="Price Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="Footer Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Footer position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                </div>
-                                {selectedStyle.cardShowHeader ? (
-                                    <>
-                                        <FlatField label="Title Style" stacked>
-                                            <div className="space-y-2">
-                                                <FlatColorControl label="Color" value={selectedStyle.cardTitleColor} onChange={(value) => updateSelectedStyle('cardTitleColor', value)} tokens={activeTokenSet.tokens} />
-                                                <div className="flex flex-wrap items-start gap-3">
-                                                    <FlatUnitField label="Size" value={selectedStyle.cardTitleSize} min={10} max={40} unit="px" onChange={(value) => updateSelectedStyle('cardTitleSize', value)} />
-                                                    <FlatField label="Weight" stacked>
-                                                        <FlatSelect value={selectedStyle.cardTitleWeight} onValueChange={(value) => updateSelectedStyle('cardTitleWeight', Number(value))} ariaLabel="Title weight">
-                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                        </FlatSelect>
-                                                    </FlatField>
-                                                    <FlatField label="Align" stacked>
-                                                        <FlatSelect value={selectedStyle.cardTitleAlign} onValueChange={(value) => updateSelectedStyle('cardTitleAlign', value as FontPosition)} ariaLabel="Title alignment">
-                                                            <option value="left">Left</option>
-                                                            <option value="center">Center</option>
-                                                            <option value="right">Right</option>
-                                                        </FlatSelect>
-                                                    </FlatField>
-                                                </div>
-                                            </div>
+                                <div className="space-y-3">
+                                    <CardConfigSubsection title="Structure" defaultOpen>
+                                        <FlatField label="Variant" stacked>
+                                            <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
+                                                <option value="default">Default</option>
+                                                <option value="bordered">Bordered</option>
+                                                <option value="elevated">Elevated</option>
+                                                <option value="glass">Glass</option>
+                                            </FlatSelect>
                                         </FlatField>
-                                        <FlatField label="Subtitle Style" stacked>
-                                            <div className="space-y-2">
-                                                <FlatColorControl label="Color" value={selectedStyle.cardSubtitleColor} onChange={(value) => updateSelectedStyle('cardSubtitleColor', value)} tokens={activeTokenSet.tokens} />
-                                                <div className="flex flex-wrap items-start gap-3">
-                                                    <FlatUnitField label="Size" value={selectedStyle.cardSubtitleSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardSubtitleSize', value)} />
-                                                    <FlatField label="Weight" stacked>
-                                                        <FlatSelect value={selectedStyle.cardSubtitleWeight} onValueChange={(value) => updateSelectedStyle('cardSubtitleWeight', Number(value))} ariaLabel="Subtitle weight">
-                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                        </FlatSelect>
-                                                    </FlatField>
-                                                    <FlatField label="Align" stacked>
-                                                        <FlatSelect value={selectedStyle.cardSubtitleAlign} onValueChange={(value) => updateSelectedStyle('cardSubtitleAlign', value as FontPosition)} ariaLabel="Subtitle alignment">
-                                                            <option value="left">Left</option>
-                                                            <option value="center">Center</option>
-                                                            <option value="right">Right</option>
-                                                        </FlatSelect>
-                                                    </FlatField>
-                                                </div>
-                                            </div>
-                                        </FlatField>
-                                    </>
-                                ) : null}
-                                <FlatField label="Body Style" stacked>
-                                    <div className="space-y-2">
-                                        <FlatColorControl label="Color" value={selectedStyle.cardBodyColor} onChange={(value) => updateSelectedStyle('cardBodyColor', value)} tokens={activeTokenSet.tokens} />
-                                        <div className="flex flex-wrap items-start gap-3">
-                                            <FlatUnitField label="Size" value={selectedStyle.cardBodySize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardBodySize', value)} />
-                                            <FlatField label="Weight" stacked>
-                                                <FlatSelect value={selectedStyle.cardBodyWeight} onValueChange={(value) => updateSelectedStyle('cardBodyWeight', Number(value))} ariaLabel="Body weight">
-                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                        <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Image" defaultOpen={selectedStyle.cardShowImage}>
+                                        <FlatSwitchRow label="Show image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
+                                        {selectedStyle.cardShowImage ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
                                                 </FlatSelect>
                                             </FlatField>
-                                            <FlatField label="Align" stacked>
-                                                <FlatSelect value={selectedStyle.cardBodyAlign} onValueChange={(value) => updateSelectedStyle('cardBodyAlign', value as FontPosition)} ariaLabel="Body alignment">
-                                                    <option value="left">Left</option>
-                                                    <option value="center">Center</option>
-                                                    <option value="right">Right</option>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Header" defaultOpen={selectedStyle.cardShowHeader}>
+                                        <FlatSwitchRow label="Show header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Pricing" defaultOpen={selectedStyle.cardShowPrice}>
+                                        <FlatSwitchRow label="Show price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
+                                        {selectedStyle.cardShowPrice ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
                                                 </FlatSelect>
                                             </FlatField>
-                                        </div>
-                                    </div>
-                                </FlatField>
-                                {selectedStyle.cardShowPrice ? (
-                                    <FlatField label="Price Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardPriceColor} onChange={(value) => updateSelectedStyle('cardPriceColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardPriceSize} min={10} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardPriceSize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardPriceWeight} onValueChange={(value) => updateSelectedStyle('cardPriceWeight', Number(value))} ariaLabel="Price weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardPriceAlign} onValueChange={(value) => updateSelectedStyle('cardPriceAlign', value as FontPosition)} ariaLabel="Price alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Footer" defaultOpen={selectedStyle.cardShowFooter}>
+                                        <FlatSwitchRow label="Show footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
+                                        {selectedStyle.cardShowFooter ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Footer position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    {selectedStyle.cardShowHeader ? (
+                                        <>
+                                            <CardTypographyControls
+                                                title="Title"
+                                                color={selectedStyle.cardTitleColor}
+                                                size={selectedStyle.cardTitleSize}
+                                                weight={selectedStyle.cardTitleWeight}
+                                                align={selectedStyle.cardTitleAlign}
+                                                sizeMin={10}
+                                                sizeMax={40}
+                                                tokens={activeTokenSet.tokens}
+                                                onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
+                                                onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
+                                                onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
+                                                onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
+                                            />
+                                            <CardTypographyControls
+                                                title="Subtitle"
+                                                color={selectedStyle.cardSubtitleColor}
+                                                size={selectedStyle.cardSubtitleSize}
+                                                weight={selectedStyle.cardSubtitleWeight}
+                                                align={selectedStyle.cardSubtitleAlign}
+                                                sizeMin={10}
+                                                sizeMax={32}
+                                                tokens={activeTokenSet.tokens}
+                                                onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
+                                                onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
+                                                onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
+                                                onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
+                                            />
+                                        </>
+                                    ) : null}
+
+                                    <CardTypographyControls
+                                        title="Body"
+                                        color={selectedStyle.cardBodyColor}
+                                        size={selectedStyle.cardBodySize}
+                                        weight={selectedStyle.cardBodyWeight}
+                                        align={selectedStyle.cardBodyAlign}
+                                        sizeMin={10}
+                                        sizeMax={32}
+                                        tokens={activeTokenSet.tokens}
+                                        onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
+                                    />
+
+                                    {selectedStyle.cardShowPrice ? (
+                                        <CardTypographyControls
+                                            title="Price"
+                                            color={selectedStyle.cardPriceColor}
+                                            size={selectedStyle.cardPriceSize}
+                                            weight={selectedStyle.cardPriceWeight}
+                                            align={selectedStyle.cardPriceAlign}
+                                            sizeMin={10}
+                                            sizeMax={48}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
+                                        />
+                                    ) : null}
+                                </div>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -1128,150 +1198,144 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'listing-card' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Listing Card Config" icon={Table} defaultOpen>
-                                <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
-                                    <FlatSwitchRow label="Badge" checked={selectedStyle.cardShowBadge} onCheckedChange={(value) => updateSelectedStyle('cardShowBadge', value)} />
-                                    {selectedStyle.cardShowBadge && (
-                                        <div className="pl-3 border-l border-[var(--inspector-border)]">
-                                            <FlatField label="Badge Text">
+                                <div className="space-y-3">
+                                    <CardConfigSubsection title="Structure" defaultOpen>
+                                        <FlatField label="Variant" stacked>
+                                            <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
+                                                <option value="default">Default</option>
+                                                <option value="bordered">Bordered</option>
+                                                <option value="elevated">Elevated</option>
+                                                <option value="glass">Glass</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                        <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Image" defaultOpen={selectedStyle.cardShowImage}>
+                                        <FlatSwitchRow label="Show image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
+                                        {selectedStyle.cardShowImage ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Badge" defaultOpen={selectedStyle.cardShowBadge}>
+                                        <FlatSwitchRow label="Show badge" checked={selectedStyle.cardShowBadge} onCheckedChange={(value) => updateSelectedStyle('cardShowBadge', value)} />
+                                        {selectedStyle.cardShowBadge ? (
+                                            <FlatField label="Badge Text" stacked>
                                                 <input
                                                     type="text"
                                                     value={selectedStyle.cardBadgeText}
                                                     onChange={(e) => updateSelectedStyle('cardBadgeText', e.target.value)}
-                                                    className="w-full rounded-md border border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-2 py-1 text-xs text-[var(--inspector-text)]"
+                                                    className={studioInputClass}
                                                 />
                                             </FlatField>
-                                        </div>
-                                    )}
-                                    <FlatSwitchRow label="Specs" checked={selectedStyle.cardShowSpecs} onCheckedChange={(value) => updateSelectedStyle('cardShowSpecs', value)} />
-                                    <FlatSwitchRow label="Pricing" checked={selectedStyle.cardShowPricing} onCheckedChange={(value) => updateSelectedStyle('cardShowPricing', value)} />
-                                    <FlatSwitchRow label="CTA" checked={selectedStyle.cardShowCta} onCheckedChange={(value) => updateSelectedStyle('cardShowCta', value)} />
-                                    {selectedStyle.cardShowCta && (
-                                        <div className="pl-3 border-l border-[var(--inspector-border)]">
-                                            <FlatField label="CTA Text">
-                                                <input
-                                                    type="text"
-                                                    value={selectedStyle.cardCtaText}
-                                                    onChange={(e) => updateSelectedStyle('cardCtaText', e.target.value)}
-                                                    className="w-full rounded-md border border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-2 py-1 text-xs text-[var(--inspector-text)]"
-                                                />
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Details" defaultOpen={selectedStyle.cardShowPricing || selectedStyle.cardShowSpecs}>
+                                        <FlatSwitchRow label="Specs" checked={selectedStyle.cardShowSpecs} onCheckedChange={(value) => updateSelectedStyle('cardShowSpecs', value)} />
+                                        <FlatSwitchRow label="Pricing" checked={selectedStyle.cardShowPricing} onCheckedChange={(value) => updateSelectedStyle('cardShowPricing', value)} />
+                                        {selectedStyle.cardShowPricing ? (
+                                            <FlatField label="Pricing Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Pricing position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
                                             </FlatField>
-                                        </div>
-                                    )}
-                                    <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="CTA" defaultOpen={selectedStyle.cardShowCta}>
+                                        <FlatSwitchRow label="Show CTA" checked={selectedStyle.cardShowCta} onCheckedChange={(value) => updateSelectedStyle('cardShowCta', value)} />
+                                        {selectedStyle.cardShowCta ? (
+                                            <>
+                                                <FlatField label="CTA Text" stacked>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedStyle.cardCtaText}
+                                                        onChange={(e) => updateSelectedStyle('cardCtaText', e.target.value)}
+                                                        className={studioInputClass}
+                                                    />
+                                                </FlatField>
+                                                <FlatField label="Placement" stacked>
+                                                    <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="CTA position">
+                                                        <option value="top">Top</option>
+                                                        <option value="bottom">Bottom</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardTypographyControls
+                                        title="Title"
+                                        color={selectedStyle.cardTitleColor}
+                                        size={selectedStyle.cardTitleSize}
+                                        weight={selectedStyle.cardTitleWeight}
+                                        align={selectedStyle.cardTitleAlign}
+                                        sizeMin={10}
+                                        sizeMax={40}
+                                        tokens={activeTokenSet.tokens}
+                                        onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
+                                    />
+
+                                    <CardTypographyControls
+                                        title="Subtitle"
+                                        color={selectedStyle.cardSubtitleColor}
+                                        size={selectedStyle.cardSubtitleSize}
+                                        weight={selectedStyle.cardSubtitleWeight}
+                                        align={selectedStyle.cardSubtitleAlign}
+                                        sizeMin={10}
+                                        sizeMax={32}
+                                        tokens={activeTokenSet.tokens}
+                                        onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
+                                    />
+
+                                    {(selectedStyle.cardShowPricing || selectedStyle.cardShowSpecs) ? (
+                                        <CardTypographyControls
+                                            title="Body"
+                                            color={selectedStyle.cardBodyColor}
+                                            size={selectedStyle.cardBodySize}
+                                            weight={selectedStyle.cardBodyWeight}
+                                            align={selectedStyle.cardBodyAlign}
+                                            sizeMin={10}
+                                            sizeMax={32}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
+                                        />
+                                    ) : null}
+
+                                    {selectedStyle.cardShowPricing ? (
+                                        <CardTypographyControls
+                                            title="Price"
+                                            color={selectedStyle.cardPriceColor}
+                                            size={selectedStyle.cardPriceSize}
+                                            weight={selectedStyle.cardPriceWeight}
+                                            align={selectedStyle.cardPriceAlign}
+                                            sizeMin={10}
+                                            sizeMax={48}
+                                            tokens={activeTokenSet.tokens}
+                                            onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
+                                            onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
+                                            onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
+                                            onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
+                                        />
+                                    ) : null}
                                 </div>
-                                <FlatField label="Variant">
-                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
-                                        <option value="default">Default</option>
-                                        <option value="bordered">Bordered</option>
-                                        <option value="elevated">Elevated</option>
-                                        <option value="glass">Glass</option>
-                                    </FlatSelect>
-                                </FlatField>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                                    <FlatField label="Image Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="Pricing Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Pricing position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="CTA Position" stacked>
-                                        <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="CTA position">
-                                            <option value="top">Top</option>
-                                            <option value="bottom">Bottom</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                </div>
-                                <FlatField label="Title Style" stacked>
-                                    <div className="space-y-2">
-                                        <FlatColorControl label="Color" value={selectedStyle.cardTitleColor} onChange={(value) => updateSelectedStyle('cardTitleColor', value)} tokens={activeTokenSet.tokens} />
-                                        <div className="flex flex-wrap items-start gap-3">
-                                            <FlatUnitField label="Size" value={selectedStyle.cardTitleSize} min={10} max={40} unit="px" onChange={(value) => updateSelectedStyle('cardTitleSize', value)} />
-                                            <FlatField label="Weight" stacked>
-                                                <FlatSelect value={selectedStyle.cardTitleWeight} onValueChange={(value) => updateSelectedStyle('cardTitleWeight', Number(value))} ariaLabel="Title weight">
-                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                </FlatSelect>
-                                            </FlatField>
-                                            <FlatField label="Align" stacked>
-                                                <FlatSelect value={selectedStyle.cardTitleAlign} onValueChange={(value) => updateSelectedStyle('cardTitleAlign', value as FontPosition)} ariaLabel="Title alignment">
-                                                    <option value="left">Left</option>
-                                                    <option value="center">Center</option>
-                                                    <option value="right">Right</option>
-                                                </FlatSelect>
-                                            </FlatField>
-                                        </div>
-                                    </div>
-                                </FlatField>
-                                <FlatField label="Subtitle Style" stacked>
-                                    <div className="space-y-2">
-                                        <FlatColorControl label="Color" value={selectedStyle.cardSubtitleColor} onChange={(value) => updateSelectedStyle('cardSubtitleColor', value)} tokens={activeTokenSet.tokens} />
-                                        <div className="flex flex-wrap items-start gap-3">
-                                            <FlatUnitField label="Size" value={selectedStyle.cardSubtitleSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardSubtitleSize', value)} />
-                                            <FlatField label="Weight" stacked>
-                                                <FlatSelect value={selectedStyle.cardSubtitleWeight} onValueChange={(value) => updateSelectedStyle('cardSubtitleWeight', Number(value))} ariaLabel="Subtitle weight">
-                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                </FlatSelect>
-                                            </FlatField>
-                                            <FlatField label="Align" stacked>
-                                                <FlatSelect value={selectedStyle.cardSubtitleAlign} onValueChange={(value) => updateSelectedStyle('cardSubtitleAlign', value as FontPosition)} ariaLabel="Subtitle alignment">
-                                                    <option value="left">Left</option>
-                                                    <option value="center">Center</option>
-                                                    <option value="right">Right</option>
-                                                </FlatSelect>
-                                            </FlatField>
-                                        </div>
-                                    </div>
-                                </FlatField>
-                                {(selectedStyle.cardShowPricing || selectedStyle.cardShowSpecs) ? (
-                                    <FlatField label="Body Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardBodyColor} onChange={(value) => updateSelectedStyle('cardBodyColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardBodySize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('cardBodySize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardBodyWeight} onValueChange={(value) => updateSelectedStyle('cardBodyWeight', Number(value))} ariaLabel="Body weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardBodyAlign} onValueChange={(value) => updateSelectedStyle('cardBodyAlign', value as FontPosition)} ariaLabel="Body alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
-                                {selectedStyle.cardShowPricing ? (
-                                    <FlatField label="Price Style" stacked>
-                                        <div className="space-y-2">
-                                            <FlatColorControl label="Color" value={selectedStyle.cardPriceColor} onChange={(value) => updateSelectedStyle('cardPriceColor', value)} tokens={activeTokenSet.tokens} />
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Size" value={selectedStyle.cardPriceSize} min={10} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardPriceSize', value)} />
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.cardPriceWeight} onValueChange={(value) => updateSelectedStyle('cardPriceWeight', Number(value))} ariaLabel="Price weight">
-                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Align" stacked>
-                                                    <FlatSelect value={selectedStyle.cardPriceAlign} onValueChange={(value) => updateSelectedStyle('cardPriceAlign', value as FontPosition)} ariaLabel="Price alignment">
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
-                                    </FlatField>
-                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
