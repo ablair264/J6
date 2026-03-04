@@ -105,7 +105,10 @@ export function InspectorPanel() {
         selectedInstance?.kind === 'slider' ||
         selectedInstance?.kind === 'checkbox' ||
         selectedInstance?.kind === 'input' ||
-        selectedInstance?.kind === 'tabs';
+        selectedInstance?.kind === 'tabs' ||
+        selectedInstance?.kind === 'card' ||
+        selectedInstance?.kind === 'product-card' ||
+        selectedInstance?.kind === 'listing-card';
 
     const appearanceSectionTitle = selectedInstance
         ? `${buildKindTitle(selectedInstance.kind)} Appearance`

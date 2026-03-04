@@ -66,6 +66,7 @@ import {
     buildSnippetClassNameAttr,
     buildSnippetClassNameVarAttr,
     buildExportClassBinding,
+    buildCardDirectStyle,
 } from '../utilities';
 import {
     AdvancedHoverWrapper,
@@ -999,12 +1000,16 @@ export function renderPreview(
         case 'card': {
             const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
             const hasAnyContent = instance.style.cardShowTitle || instance.style.cardShowSubtitle || instance.style.cardShowBody || instance.style.cardShowPrice || instance.style.cardShowToggle || instance.style.cardShowButton;
+            const cardWrapperStyle = buildComponentWrapperStyle(style, 'card');
+            const cardMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
+            const cardDirectStyle = buildCardDirectStyle(style, instance.style);
             return (
-                <div className="w-full max-w-sm" style={buildComponentWrapperStyle(style, 'card')}>
+                <div className="w-full" style={{ ...cardWrapperStyle, maxWidth: cardMaxWidth || '24rem' }}>
                     <Card
                         variant={instance.style.cardVariant}
                         showDividers={instance.style.cardShowDividers}
                         className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                        style={cardDirectStyle}
                     >
                         {instance.style.cardShowImage && (
                             <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-muted/60 to-muted flex items-center justify-center overflow-hidden">
@@ -1042,12 +1047,16 @@ export function renderPreview(
 
         case 'product-card': {
             const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            const pcWrapperStyle = buildComponentWrapperStyle(style, 'product-card');
+            const pcMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
+            const pcDirectStyle = buildCardDirectStyle(style, instance.style);
             return (
-                <div className="w-full max-w-sm" style={buildComponentWrapperStyle(style, 'product-card')}>
+                <div className="w-full" style={{ ...pcWrapperStyle, maxWidth: pcMaxWidth || '24rem' }}>
                     <Card
                         variant={instance.style.cardVariant}
                         showDividers={instance.style.cardShowDividers}
                         className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                        style={pcDirectStyle}
                     >
                         {instance.style.cardShowImage && (
                             <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-muted/60 to-muted flex items-center justify-center overflow-hidden">
@@ -1084,12 +1093,16 @@ export function renderPreview(
 
         case 'listing-card': {
             const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            const lcWrapperStyle = buildComponentWrapperStyle(style, 'listing-card');
+            const lcMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
+            const lcDirectStyle = buildCardDirectStyle(style, instance.style);
             return (
-                <div className="w-full max-w-[400px]" style={buildComponentWrapperStyle(style, 'listing-card')}>
+                <div className="w-full" style={{ ...lcWrapperStyle, maxWidth: lcMaxWidth || '25rem' }}>
                     <Card
                         variant={instance.style.cardVariant}
                         showDividers={instance.style.cardShowDividers}
                         className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                        style={lcDirectStyle}
                     >
                         {instance.style.cardShowImage && (
                             <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">

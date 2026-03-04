@@ -772,6 +772,9 @@ export function buildComponentWrapperStyle(
             return rest;
         }
 
+        // Note: buildCardDirectStyle() extracts what strip-structural removes
+        // so it can be applied directly to the Card component.
+
         case 'strip-all': {
             const {
                 background: _bg,
@@ -806,6 +809,25 @@ export function buildComponentWrapperStyle(
         default:
             return fullStyle;
     }
+}
+
+/**
+ * Extract the properties that strip-structural removes from the wrapper,
+ * so they can be applied directly to the Card component.
+ */
+export function buildCardDirectStyle(fullStyle: CSSProperties, config: ComponentStyleConfig): CSSProperties {
+    const result: CSSProperties = {};
+    if (fullStyle.background) result.background = fullStyle.background;
+    if (fullStyle.borderColor) result.borderColor = fullStyle.borderColor;
+    if (fullStyle.borderWidth) result.borderWidth = fullStyle.borderWidth;
+    if (fullStyle.borderStyle) result.borderStyle = fullStyle.borderStyle;
+    if (fullStyle.border) result.border = fullStyle.border;
+    if (config.cornerRadius > 0) result.borderRadius = `${config.cornerRadius}px`;
+    if (fullStyle.backdropFilter) {
+        result.backdropFilter = fullStyle.backdropFilter;
+        result.WebkitBackdropFilter = fullStyle.WebkitBackdropFilter;
+    }
+    return result;
 }
 
 /**
