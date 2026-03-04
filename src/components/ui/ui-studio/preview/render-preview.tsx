@@ -282,15 +282,63 @@ export function componentSnippet(
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
             const imageSnippet = instance.style.cardShowImage
+                ? `\n  <img src="/placeholder.jpg" alt="Card" className="aspect-[16/10] w-full object-cover" />`
+                : '';
+            const contentParts: string[] = [];
+            if (instance.style.cardShowTitle) contentParts.push('    <h3 className="text-lg font-semibold">Card Title</h3>');
+            if (instance.style.cardShowSubtitle) contentParts.push('    <p className="text-sm text-muted-foreground">Optional subtitle text</p>');
+            if (instance.style.cardShowBody) contentParts.push('    <p className="text-sm text-muted-foreground">Card body content goes here.</p>');
+            if (instance.style.cardShowPrice) contentParts.push('    <div className="flex items-baseline gap-2">\n      <span className="text-2xl font-bold">$49</span>\n      <span className="text-sm text-muted-foreground line-through">$79</span>\n    </div>');
+            if (instance.style.cardShowToggle) contentParts.push('    <div className="flex items-center justify-between">\n      <span className="text-sm">Enable feature</span>\n      <Switch />\n    </div>');
+            if (instance.style.cardShowButton) contentParts.push(`    <Button size="sm" className="w-full">${instance.style.cardButtonText || 'Click me'}</Button>`);
+            const contentSnippet = contentParts.length > 0
+                ? `\n  <CardContent className="space-y-3">\n${contentParts.join('\n')}\n  </CardContent>`
+                : '';
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${contentSnippet}\n</Card>`;
+        }
+        case 'product-card': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const cardProps = [
+                instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
+                instance.style.cardShowDividers ? `showDividers` : '',
+                `className="overflow-hidden"`,
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            const imageSnippet = instance.style.cardShowImage
                 ? `\n  <img src="/placeholder.jpg" alt="Product" className="aspect-[16/10] w-full object-cover" />`
                 : '';
             const headerSnippet = instance.style.cardShowHeader
                 ? `\n  <CardHeader>\n    <CardTitle>Product Name</CardTitle>\n    <CardDescription>Brief description of the item or feature.</CardDescription>\n  </CardHeader>`
                 : '';
+            const priceSnippet = instance.style.cardShowPrice
+                ? `\n    <div className="flex items-baseline gap-2">\n      <span className="text-2xl font-bold">$49</span>\n      <span className="text-sm text-muted-foreground line-through">$79</span>\n    </div>`
+                : '';
             const footerSnippet = instance.style.cardShowFooter
                 ? `\n  <CardFooter className="justify-between gap-2">\n    <span className="text-xs text-muted-foreground">In stock</span>\n    <Button size="sm">Add to Cart</Button>\n  </CardFooter>`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>\n    <p>Card content goes here.</p>\n  </CardContent>${footerSnippet}\n</Card>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>${priceSnippet}\n    <p className="mt-2 text-sm text-muted-foreground">Product description goes here.</p>\n  </CardContent>${footerSnippet}\n</Card>`;
+        }
+        case 'listing-card': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const cardProps = [
+                instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
+                instance.style.cardShowDividers ? `showDividers` : '',
+                `className="overflow-hidden"`,
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            const imageSnippet = instance.style.cardShowImage
+                ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Listing" className="w-full h-full object-cover" />${instance.style.cardShowBadge ? `\n    <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white">${instance.style.cardBadgeText || 'FEATURED'}</span>` : ''}\n  </div>`
+                : '';
+            const specsSnippet = instance.style.cardShowSpecs
+                ? `\n    <div className="flex flex-wrap gap-1.5">\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>\n    </div>`
+                : '';
+            const pricingSnippet = instance.style.cardShowPricing
+                ? `\n    <div className="border-t border-border pt-3">\n      <div className="flex items-baseline gap-1">\n        <span className="text-3xl font-bold">$299</span>\n        <span className="text-sm text-muted-foreground">/mo</span>\n      </div>\n      <p className="mt-0.5 text-xs text-muted-foreground">36 months · $2,999 due at signing</p>\n    </div>`
+                : '';
+            const ctaSnippet = instance.style.cardShowCta
+                ? `\n    <Button className="w-full" size="sm">${instance.style.cardCtaText || 'View Details'}</Button>`
+                : '';
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}\n  <CardContent className="space-y-3 pt-4">\n    <div>\n      <h3 className="text-xl font-bold">Listing Title</h3>\n      <p className="text-sm text-muted-foreground">Subtitle or description</p>\n    </div>${specsSnippet}${pricingSnippet}${ctaSnippet}\n  </CardContent>\n</Card>`;
         }
         case 'switch': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -950,8 +998,52 @@ export function renderPreview(
 
         case 'card': {
             const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            const hasAnyContent = instance.style.cardShowTitle || instance.style.cardShowSubtitle || instance.style.cardShowBody || instance.style.cardShowPrice || instance.style.cardShowToggle || instance.style.cardShowButton;
             return (
                 <div className="w-full max-w-sm" style={buildComponentWrapperStyle(style, 'card')}>
+                    <Card
+                        variant={instance.style.cardVariant}
+                        showDividers={instance.style.cardShowDividers}
+                        className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                    >
+                        {instance.style.cardShowImage && (
+                            <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-muted/60 to-muted flex items-center justify-center overflow-hidden">
+                                <svg className="h-10 w-10 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                                </svg>
+                            </div>
+                        )}
+                        {hasAnyContent && (
+                            <CardContent className="space-y-3">
+                                {instance.style.cardShowTitle && <h3 className="text-lg font-semibold">Card Title</h3>}
+                                {instance.style.cardShowSubtitle && <p className="text-sm text-muted-foreground">Optional subtitle text</p>}
+                                {instance.style.cardShowBody && <p className="text-sm text-muted-foreground">This is the card body content. It can contain any descriptive text or information.</p>}
+                                {instance.style.cardShowPrice && (
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-2xl font-bold">$49</span>
+                                        <span className="text-sm text-muted-foreground line-through">$79</span>
+                                    </div>
+                                )}
+                                {instance.style.cardShowToggle && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm">Enable feature</span>
+                                        <Switch checked onCheckedChange={() => {}} />
+                                    </div>
+                                )}
+                                {instance.style.cardShowButton && (
+                                    <Button size="sm" className="w-full">{instance.style.cardButtonText || 'Click me'}</Button>
+                                )}
+                            </CardContent>
+                        )}
+                    </Card>
+                </div>
+            );
+        }
+
+        case 'product-card': {
+            const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            return (
+                <div className="w-full max-w-sm" style={buildComponentWrapperStyle(style, 'product-card')}>
                     <Card
                         variant={instance.style.cardVariant}
                         showDividers={instance.style.cardShowDividers}
@@ -971,10 +1063,12 @@ export function renderPreview(
                             </CardHeader>
                         )}
                         <CardContent>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-2xl font-bold">$49</span>
-                                <span className="text-sm text-muted-foreground line-through">$79</span>
-                            </div>
+                            {instance.style.cardShowPrice && (
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-2xl font-bold">$49</span>
+                                    <span className="text-sm text-muted-foreground line-through">$79</span>
+                                </div>
+                            )}
                             <p className="mt-2 text-sm text-muted-foreground">Includes all premium features with lifetime updates and priority support.</p>
                         </CardContent>
                         {instance.style.cardShowFooter && (
@@ -983,6 +1077,61 @@ export function renderPreview(
                                 <Button size="sm">Add to Cart</Button>
                             </CardFooter>
                         )}
+                    </Card>
+                </div>
+            );
+        }
+
+        case 'listing-card': {
+            const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            return (
+                <div className="w-full max-w-[400px]" style={buildComponentWrapperStyle(style, 'listing-card')}>
+                    <Card
+                        variant={instance.style.cardVariant}
+                        showDividers={instance.style.cardShowDividers}
+                        className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                    >
+                        {instance.style.cardShowImage && (
+                            <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
+                                <svg className="h-12 w-12 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                                </svg>
+                                {instance.style.cardShowBadge && (
+                                    <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white shadow-sm">
+                                        {instance.style.cardBadgeText || 'FEATURED'}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                        <CardContent className="space-y-3 pt-4">
+                            <div>
+                                <h3 className="text-xl font-bold">Listing Title</h3>
+                                <p className="text-sm text-muted-foreground">Subtitle or description line</p>
+                            </div>
+                            {instance.style.cardShowSpecs && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>
+                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>
+                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>
+                                </div>
+                            )}
+                            {instance.style.cardShowPricing && (
+                                <>
+                                    <div className="border-t border-border pt-3">
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-3xl font-bold">$299</span>
+                                            <span className="text-sm text-muted-foreground">/mo</span>
+                                        </div>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">36 months &middot; $2,999 due at signing</p>
+                                    </div>
+                                </>
+                            )}
+                            {instance.style.cardShowCta && (
+                                <Button className="w-full" size="sm">
+                                    {instance.style.cardCtaText || 'View Details'}
+                                </Button>
+                            )}
+                        </CardContent>
                     </Card>
                 </div>
             );

@@ -155,6 +155,28 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         wrapperStyle: 'strip-structural',
         iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
+    'product-card': {
+        sections: { presets: true, dimensions: true, componentConfig: 'Product Card Config', appearance: true, typography: true, effects: true, advancedHover: true, motion: true },
+        effects: {
+            dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
+            gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
+            sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
+        },
+        motion: FULL_MOTION,
+        wrapperStyle: 'strip-structural',
+        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+    },
+    'listing-card': {
+        sections: { presets: true, dimensions: true, componentConfig: 'Listing Card Config', appearance: true, typography: true, effects: true, advancedHover: true, motion: true },
+        effects: {
+            dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
+            gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
+            sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
+        },
+        motion: FULL_MOTION,
+        wrapperStyle: 'strip-structural',
+        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+    },
     dialog: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },

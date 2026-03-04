@@ -19,6 +19,8 @@ export type UIComponentKind =
   | 'tabs'
   | 'animated-text'
   | 'card'
+  | 'product-card'
+  | 'listing-card'
   | 'switch'
   | 'tooltip';
 
@@ -363,12 +365,27 @@ export interface ComponentStyleConfig {
   alertVariant: AlertVariant;
   alertDismissible: boolean;
   alertShowIcon: boolean;
-  // Card
+  // Card (shared)
   cardVariant: CardVariant;
   cardShowImage: boolean;
   cardShowHeader: boolean;
   cardShowFooter: boolean;
   cardShowDividers: boolean;
+  // Card (generic toggles)
+  cardShowTitle: boolean;
+  cardShowSubtitle: boolean;
+  cardShowBody: boolean;
+  cardShowButton: boolean;
+  cardShowPrice: boolean;
+  cardShowToggle: boolean;
+  cardButtonText: string;
+  // Listing card toggles
+  cardShowBadge: boolean;
+  cardShowSpecs: boolean;
+  cardShowPricing: boolean;
+  cardShowCta: boolean;
+  cardBadgeText: string;
+  cardCtaText: string;
   // Switch
   switchChecked: boolean;
   switchDisabled: boolean;

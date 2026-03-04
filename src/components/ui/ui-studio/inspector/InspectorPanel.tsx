@@ -775,16 +775,111 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
-                    {/* Card Config */}
+                    {/* Card Config (generic) */}
                     {selectedInstance?.kind === 'card' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-1.5">
                                     <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
+                                    <FlatSwitchRow label="Title" checked={selectedStyle.cardShowTitle} onCheckedChange={(value) => updateSelectedStyle('cardShowTitle', value)} />
+                                    <FlatSwitchRow label="Subtitle" checked={selectedStyle.cardShowSubtitle} onCheckedChange={(value) => updateSelectedStyle('cardShowSubtitle', value)} />
+                                    <FlatSwitchRow label="Body" checked={selectedStyle.cardShowBody} onCheckedChange={(value) => updateSelectedStyle('cardShowBody', value)} />
+                                    <FlatSwitchRow label="Price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
+                                    <FlatSwitchRow label="Toggle" checked={selectedStyle.cardShowToggle} onCheckedChange={(value) => updateSelectedStyle('cardShowToggle', value)} />
+                                    <FlatSwitchRow label="Button" checked={selectedStyle.cardShowButton} onCheckedChange={(value) => updateSelectedStyle('cardShowButton', value)} />
+                                    {selectedStyle.cardShowButton && (
+                                        <div className="pl-3 border-l border-[var(--inspector-border)]">
+                                            <FlatField label="Button Text">
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.cardButtonText}
+                                                    onChange={(e) => updateSelectedStyle('cardButtonText', e.target.value)}
+                                                    className="w-full rounded-md border border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-2 py-1 text-xs text-[var(--inspector-text)]"
+                                                />
+                                            </FlatField>
+                                        </div>
+                                    )}
+                                    <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                </div>
+                                <FlatField label="Variant">
+                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
+                                        <option value="default">Default</option>
+                                        <option value="bordered">Bordered</option>
+                                        <option value="elevated">Elevated</option>
+                                        <option value="glass">Glass</option>
+                                    </FlatSelect>
+                                </FlatField>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Product Card Config */}
+                    {selectedInstance?.kind === 'product-card' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Product Card Config" icon={Table} defaultOpen>
+                                <div className="space-y-1.5">
+                                    <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
                                     <FlatSwitchRow label="Header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
+                                    <FlatSwitchRow label="Price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
                                     <FlatSwitchRow label="Footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
                                     <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
                                 </div>
+                                <FlatField label="Variant">
+                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
+                                        <option value="default">Default</option>
+                                        <option value="bordered">Bordered</option>
+                                        <option value="elevated">Elevated</option>
+                                        <option value="glass">Glass</option>
+                                    </FlatSelect>
+                                </FlatField>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Listing Card Config */}
+                    {selectedInstance?.kind === 'listing-card' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Listing Card Config" icon={Table} defaultOpen>
+                                <div className="space-y-1.5">
+                                    <FlatSwitchRow label="Image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
+                                    <FlatSwitchRow label="Badge" checked={selectedStyle.cardShowBadge} onCheckedChange={(value) => updateSelectedStyle('cardShowBadge', value)} />
+                                    {selectedStyle.cardShowBadge && (
+                                        <div className="pl-3 border-l border-[var(--inspector-border)]">
+                                            <FlatField label="Badge Text">
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.cardBadgeText}
+                                                    onChange={(e) => updateSelectedStyle('cardBadgeText', e.target.value)}
+                                                    className="w-full rounded-md border border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-2 py-1 text-xs text-[var(--inspector-text)]"
+                                                />
+                                            </FlatField>
+                                        </div>
+                                    )}
+                                    <FlatSwitchRow label="Specs" checked={selectedStyle.cardShowSpecs} onCheckedChange={(value) => updateSelectedStyle('cardShowSpecs', value)} />
+                                    <FlatSwitchRow label="Pricing" checked={selectedStyle.cardShowPricing} onCheckedChange={(value) => updateSelectedStyle('cardShowPricing', value)} />
+                                    <FlatSwitchRow label="CTA" checked={selectedStyle.cardShowCta} onCheckedChange={(value) => updateSelectedStyle('cardShowCta', value)} />
+                                    {selectedStyle.cardShowCta && (
+                                        <div className="pl-3 border-l border-[var(--inspector-border)]">
+                                            <FlatField label="CTA Text">
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.cardCtaText}
+                                                    onChange={(e) => updateSelectedStyle('cardCtaText', e.target.value)}
+                                                    className="w-full rounded-md border border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-2 py-1 text-xs text-[var(--inspector-text)]"
+                                                />
+                                            </FlatField>
+                                        </div>
+                                    )}
+                                    <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                </div>
+                                <FlatField label="Variant">
+                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
+                                        <option value="default">Default</option>
+                                        <option value="bordered">Bordered</option>
+                                        <option value="elevated">Elevated</option>
+                                        <option value="glass">Glass</option>
+                                    </FlatSelect>
+                                </FlatField>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
