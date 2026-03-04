@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, type ChangeEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, ChevronDown, Minus, SlidersHorizontal } from 'lucide-react';
 import {
@@ -15,11 +15,6 @@ import {
     TextAlignLeft,
     TextAlignRight,
 } from '@mynaui/icons-react';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
     Popover,
     PopoverContent,
@@ -64,6 +59,7 @@ import {
 } from '../store';
 import {
     FlatColorControl,
+    FlatElementSubsection,
     FlatField,
     FlatInspectorSection,
     FlatSelect,
@@ -79,6 +75,7 @@ const inspectorChoiceButtonActive = 'bg-white/[0.10] text-[#eef5ff] shadow-[inse
 const inspectorChoiceButtonIdle = 'text-[#7f8ca3] hover:bg-white/[0.03] hover:text-[#dfe7f5]';
 const inspectorIconChoiceButtonBase = 'inline-flex h-7 flex-1 items-center justify-center rounded-lg transition-colors';
 const cardWeightOptions = [300, 400, 500, 600, 700] as const;
+const cardKinds = ['card', 'product-card', 'listing-card'] as const;
 
 function CardConfigSubsection({
     title,
@@ -90,22 +87,71 @@ function CardConfigSubsection({
     defaultOpen?: boolean;
 }) {
     return (
-        <Collapsible defaultOpen={defaultOpen}>
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
-                <CollapsibleTrigger className="group/card-subsection flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-white/[0.03]">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7f95b4]">{title}</p>
-                    <ChevronDown className="size-3.5 shrink-0 text-[#607595] transition-transform duration-200 group-data-[state=open]/card-subsection:rotate-180" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                    <div className="space-y-2.5 border-t border-white/[0.06] px-3 pb-3 pt-2.5">{children}</div>
-                </CollapsibleContent>
-            </div>
-        </Collapsible>
+        <FlatElementSubsection title={title} defaultOpen={defaultOpen}>
+            {children}
+        </FlatElementSubsection>
+    );
+}
+
+function CardImageDropzone({
+    inputId,
+    value,
+    onChange,
+    onClear,
+}: {
+    inputId: string;
+    value: string;
+    onChange: (value: string) => void;
+    onClear: () => void;
+}) {
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                onChange(reader.result);
+            }
+        };
+        reader.readAsDataURL(file);
+        event.currentTarget.value = '';
+    };
+
+    return (
+        <div className="space-y-2">
+            <label
+                htmlFor={inputId}
+                className={cn(
+                    'flex min-h-[120px] w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[var(--inspector-border)] bg-[var(--inspector-input-bg)] px-3 py-4 text-center transition hover:border-[var(--inspector-border-strong)]',
+                    value && 'overflow-hidden p-1',
+                )}
+            >
+                <input id={inputId} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                {value ? (
+                    <img src={value} alt="Card preview" className="h-full max-h-[168px] w-full rounded-sm object-cover" />
+                ) : (
+                    <div className="space-y-1">
+                        <p className="text-[12px] font-medium text-[var(--inspector-text)]">Upload Image</p>
+                        <p className="text-[11px] text-[var(--inspector-muted-text)]">Click to add artwork</p>
+                    </div>
+                )}
+            </label>
+            {value ? (
+                <button
+                    type="button"
+                    onClick={onClear}
+                    className="inline-flex h-7 items-center rounded-sm border border-white/10 px-2 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                >
+                    Remove image
+                </button>
+            ) : null}
+        </div>
     );
 }
 
 function CardTypographyControls({
     title,
+    textValue,
     color,
     size,
     weight,
@@ -113,12 +159,17 @@ function CardTypographyControls({
     sizeMin,
     sizeMax,
     tokens,
+    defaultOpen = false,
+    textPlaceholder,
+    children,
+    onTextChange,
     onColorChange,
     onSizeChange,
     onWeightChange,
     onAlignChange,
 }: {
     title: string;
+    textValue: string;
     color: string;
     size: number;
     weight: number;
@@ -126,13 +177,26 @@ function CardTypographyControls({
     sizeMin: number;
     sizeMax: number;
     tokens: StudioColorToken[];
+    defaultOpen?: boolean;
+    textPlaceholder: string;
+    children?: ReactNode;
+    onTextChange: (value: string) => void;
     onColorChange: (value: string) => void;
     onSizeChange: (value: number) => void;
     onWeightChange: (value: number) => void;
     onAlignChange: (value: FontPosition) => void;
 }) {
     return (
-        <CardConfigSubsection title={title}>
+        <CardConfigSubsection title={`${title} Typography`} defaultOpen={defaultOpen}>
+            <FlatField label="Text" stacked>
+                <input
+                    type="text"
+                    value={textValue}
+                    onChange={(event) => onTextChange(event.target.value)}
+                    className={studioInputClass}
+                    placeholder={textPlaceholder}
+                />
+            </FlatField>
             <FlatColorControl label="Color" value={color} onChange={onColorChange} tokens={tokens} />
             <FlatUnitField label="Size" value={size} min={sizeMin} max={sizeMax} unit="px" onChange={onSizeChange} />
             <FlatField label="Weight" stacked>
@@ -149,6 +213,7 @@ function CardTypographyControls({
                     <option value="right">Right</option>
                 </FlatSelect>
             </FlatField>
+            {children}
         </CardConfigSubsection>
     );
 }
@@ -177,6 +242,8 @@ export function InspectorPanel() {
     const layout = selectedInstance ? getInspectorLayout(selectedInstance.kind) : null;
     const hasPanelElementControls = layout?.panelStyle ?? false;
     const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
+    const isCardKind = Boolean(selectedInstance && cardKinds.includes(selectedInstance.kind as typeof cardKinds[number]));
+    const usesCustomCardTypographyInspector = isCardKind;
 
     const supportsTextIconMode =
         selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
@@ -307,7 +374,7 @@ export function InspectorPanel() {
         (
             hasPanelElementControls ||
             layout?.sections.appearance ||
-            supportsTypographyStyle(selectedInstance.kind) ||
+            (supportsTypographyStyle(selectedInstance.kind) && !usesCustomCardTypographyInspector) ||
             supportsTextIconMode ||
             supportsIconSelection(selectedInstance.kind)
         ),
@@ -336,6 +403,24 @@ export function InspectorPanel() {
         }
         updateSelectedStyle('badgeShowText', mode !== 'icon');
         updateSelectedStyle('icon', mode === 'text' ? 'none' : defaultIcon);
+    };
+
+    const updateCardTextField = (
+        textKey: 'cardTitleText' | 'cardSubtitleText' | 'cardBodyText' | 'cardPriceText',
+        visibilityKey: 'cardShowTitle' | 'cardShowSubtitle' | 'cardShowBody' | 'cardShowPrice',
+        value: string,
+    ) => {
+        updateSelectedStyles({
+            [textKey]: value,
+            [visibilityKey]: value.trim().length > 0,
+        } as Partial<ComponentStyleConfig>);
+    };
+
+    const updateCardImage = (value: string) => {
+        updateSelectedStyles({
+            cardImageSrc: value,
+            cardShowImage: value.trim().length > 0,
+        });
     };
 
     // ─── Effect helpers ───────────────────────────────────────────────────
@@ -728,7 +813,7 @@ export function InspectorPanel() {
                                         </div>
                                     ) : null}
 
-                                    {supportsTypographyStyle(selectedInstance.kind) && currentAppearanceValues ? (
+                                    {supportsTypographyStyle(selectedInstance.kind) && !usesCustomCardTypographyInspector && currentAppearanceValues ? (
                                         <>
                                             <FlatField label="Typography" stacked>
                                                 <div className="flex flex-wrap items-end gap-3">
@@ -934,21 +1019,14 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
-                                    <CardConfigSubsection title="Structure" defaultOpen>
-                                        <FlatField label="Variant" stacked>
-                                            <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
-                                                <option value="default">Default</option>
-                                                <option value="bordered">Bordered</option>
-                                                <option value="elevated">Elevated</option>
-                                                <option value="glass">Glass</option>
-                                            </FlatSelect>
-                                        </FlatField>
-                                        <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
-                                    </CardConfigSubsection>
-
-                                    <CardConfigSubsection title="Image" defaultOpen={selectedStyle.cardShowImage}>
-                                        <FlatSwitchRow label="Show image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
-                                        {selectedStyle.cardShowImage ? (
+                                    <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
+                                        <CardImageDropzone
+                                            inputId={`${selectedInstance.id}-card-image`}
+                                            value={selectedStyle.cardImageSrc}
+                                            onChange={updateCardImage}
+                                            onClear={() => updateCardImage('')}
+                                        />
+                                        {selectedStyle.cardImageSrc ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
                                                     <option value="top">Top</option>
@@ -958,21 +1036,13 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Content" defaultOpen>
-                                        <FlatSwitchRow label="Title" checked={selectedStyle.cardShowTitle} onCheckedChange={(value) => updateSelectedStyle('cardShowTitle', value)} />
-                                        <FlatSwitchRow label="Subtitle" checked={selectedStyle.cardShowSubtitle} onCheckedChange={(value) => updateSelectedStyle('cardShowSubtitle', value)} />
-                                        <FlatSwitchRow label="Body" checked={selectedStyle.cardShowBody} onCheckedChange={(value) => updateSelectedStyle('cardShowBody', value)} />
-                                    </CardConfigSubsection>
-
-                                    <CardConfigSubsection title="Pricing" defaultOpen={selectedStyle.cardShowPrice}>
-                                        <FlatSwitchRow label="Show price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
-                                        {selectedStyle.cardShowPrice ? (
-                                            <FlatField label="Placement" stacked>
-                                                <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
-                                                    <option value="top">Top</option>
-                                                    <option value="bottom">Bottom</option>
-                                                </FlatSelect>
-                                            </FlatField>
+                                    <CardConfigSubsection title="Dividers" defaultOpen={selectedStyle.cardShowDividers}>
+                                        <FlatSwitchRow label="Show dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                        {selectedStyle.cardShowDividers ? (
+                                            <>
+                                                <FlatColorControl label="Color" value={selectedStyle.cardDividerColor} onChange={(value) => updateSelectedStyle('cardDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="Width" value={selectedStyle.cardDividerWidth} min={1} max={8} unit="px" onChange={(value) => updateSelectedStyle('cardDividerWidth', value)} />
+                                            </>
                                         ) : null}
                                     </CardConfigSubsection>
 
@@ -999,70 +1069,85 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    {selectedStyle.cardShowTitle ? (
-                                        <CardTypographyControls
-                                            title="Title"
-                                            color={selectedStyle.cardTitleColor}
-                                            size={selectedStyle.cardTitleSize}
-                                            weight={selectedStyle.cardTitleWeight}
-                                            align={selectedStyle.cardTitleAlign}
-                                            sizeMin={10}
-                                            sizeMax={40}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
-                                        />
-                                    ) : null}
-                                    {selectedStyle.cardShowSubtitle ? (
-                                        <CardTypographyControls
-                                            title="Subtitle"
-                                            color={selectedStyle.cardSubtitleColor}
-                                            size={selectedStyle.cardSubtitleSize}
-                                            weight={selectedStyle.cardSubtitleWeight}
-                                            align={selectedStyle.cardSubtitleAlign}
-                                            sizeMin={10}
-                                            sizeMax={32}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
-                                        />
-                                    ) : null}
-                                    {selectedStyle.cardShowBody ? (
-                                        <CardTypographyControls
-                                            title="Body"
-                                            color={selectedStyle.cardBodyColor}
-                                            size={selectedStyle.cardBodySize}
-                                            weight={selectedStyle.cardBodyWeight}
-                                            align={selectedStyle.cardBodyAlign}
-                                            sizeMin={10}
-                                            sizeMax={32}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
-                                        />
-                                    ) : null}
-                                    {selectedStyle.cardShowPrice ? (
-                                        <CardTypographyControls
-                                            title="Price"
-                                            color={selectedStyle.cardPriceColor}
-                                            size={selectedStyle.cardPriceSize}
-                                            weight={selectedStyle.cardPriceWeight}
-                                            align={selectedStyle.cardPriceAlign}
-                                            sizeMin={10}
-                                            sizeMax={48}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
-                                        />
-                                    ) : null}
+                                    <CardTypographyControls
+                                        title="Title"
+                                        textValue={selectedStyle.cardTitleText}
+                                        color={selectedStyle.cardTitleColor}
+                                        size={selectedStyle.cardTitleSize}
+                                        weight={selectedStyle.cardTitleWeight}
+                                        align={selectedStyle.cardTitleAlign}
+                                        sizeMin={10}
+                                        sizeMax={40}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
+                                        textPlaceholder="Leave empty to hide the title"
+                                        onTextChange={(value) => updateCardTextField('cardTitleText', 'cardShowTitle', value)}
+                                        onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
+                                    />
+                                    <CardTypographyControls
+                                        title="Subtitle"
+                                        textValue={selectedStyle.cardSubtitleText}
+                                        color={selectedStyle.cardSubtitleColor}
+                                        size={selectedStyle.cardSubtitleSize}
+                                        weight={selectedStyle.cardSubtitleWeight}
+                                        align={selectedStyle.cardSubtitleAlign}
+                                        sizeMin={10}
+                                        sizeMax={32}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
+                                        textPlaceholder="Leave empty to hide the subtitle"
+                                        onTextChange={(value) => updateCardTextField('cardSubtitleText', 'cardShowSubtitle', value)}
+                                        onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
+                                    />
+                                    <CardTypographyControls
+                                        title="Body"
+                                        textValue={selectedStyle.cardBodyText}
+                                        color={selectedStyle.cardBodyColor}
+                                        size={selectedStyle.cardBodySize}
+                                        weight={selectedStyle.cardBodyWeight}
+                                        align={selectedStyle.cardBodyAlign}
+                                        sizeMin={10}
+                                        sizeMax={32}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
+                                        textPlaceholder="Leave empty to hide the body copy"
+                                        onTextChange={(value) => updateCardTextField('cardBodyText', 'cardShowBody', value)}
+                                        onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
+                                    />
+                                    <CardTypographyControls
+                                        title="Price"
+                                        textValue={selectedStyle.cardPriceText}
+                                        color={selectedStyle.cardPriceColor}
+                                        size={selectedStyle.cardPriceSize}
+                                        weight={selectedStyle.cardPriceWeight}
+                                        align={selectedStyle.cardPriceAlign}
+                                        sizeMin={10}
+                                        sizeMax={48}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
+                                        textPlaceholder="Leave empty to hide the price"
+                                        onTextChange={(value) => updateCardTextField('cardPriceText', 'cardShowPrice', value)}
+                                        onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
+                                    >
+                                        <FlatField label="Placement" stacked>
+                                            <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
+                                                <option value="top">Top</option>
+                                                <option value="bottom">Bottom</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </CardTypographyControls>
                                 </div>
                             </FlatInspectorSection>
                         </div>
@@ -1073,21 +1158,14 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Product Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
-                                    <CardConfigSubsection title="Structure" defaultOpen>
-                                        <FlatField label="Variant" stacked>
-                                            <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
-                                                <option value="default">Default</option>
-                                                <option value="bordered">Bordered</option>
-                                                <option value="elevated">Elevated</option>
-                                                <option value="glass">Glass</option>
-                                            </FlatSelect>
-                                        </FlatField>
-                                        <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
-                                    </CardConfigSubsection>
-
-                                    <CardConfigSubsection title="Image" defaultOpen={selectedStyle.cardShowImage}>
-                                        <FlatSwitchRow label="Show image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
-                                        {selectedStyle.cardShowImage ? (
+                                    <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
+                                        <CardImageDropzone
+                                            inputId={`${selectedInstance.id}-product-card-image`}
+                                            value={selectedStyle.cardImageSrc}
+                                            onChange={updateCardImage}
+                                            onClear={() => updateCardImage('')}
+                                        />
+                                        {selectedStyle.cardImageSrc ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
                                                     <option value="top">Top</option>
@@ -1097,25 +1175,30 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Header" defaultOpen={selectedStyle.cardShowHeader}>
-                                        <FlatSwitchRow label="Show header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
-                                    </CardConfigSubsection>
-
-                                    <CardConfigSubsection title="Pricing" defaultOpen={selectedStyle.cardShowPrice}>
-                                        <FlatSwitchRow label="Show price" checked={selectedStyle.cardShowPrice} onCheckedChange={(value) => updateSelectedStyle('cardShowPrice', value)} />
-                                        {selectedStyle.cardShowPrice ? (
-                                            <FlatField label="Placement" stacked>
-                                                <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
-                                                    <option value="top">Top</option>
-                                                    <option value="bottom">Bottom</option>
-                                                </FlatSelect>
-                                            </FlatField>
+                                    <CardConfigSubsection title="Dividers" defaultOpen={selectedStyle.cardShowDividers}>
+                                        <FlatSwitchRow label="Show dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                        {selectedStyle.cardShowDividers ? (
+                                            <>
+                                                <FlatColorControl label="Color" value={selectedStyle.cardDividerColor} onChange={(value) => updateSelectedStyle('cardDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="Width" value={selectedStyle.cardDividerWidth} min={1} max={8} unit="px" onChange={(value) => updateSelectedStyle('cardDividerWidth', value)} />
+                                            </>
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Footer" defaultOpen={selectedStyle.cardShowFooter}>
-                                        <FlatSwitchRow label="Show footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
-                                        {selectedStyle.cardShowFooter ? (
+                                    <CardConfigSubsection title="Footer" defaultOpen={Boolean(selectedStyle.cardButtonText.trim())}>
+                                        <FlatField label="Button Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardButtonText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardButtonText: event.target.value,
+                                                    cardShowFooter: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide the footer action"
+                                            />
+                                        </FlatField>
+                                        {selectedStyle.cardButtonText.trim() ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Footer position">
                                                     <option value="top">Top</option>
@@ -1125,41 +1208,52 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    {selectedStyle.cardShowHeader ? (
-                                        <>
-                                            <CardTypographyControls
-                                                title="Title"
-                                                color={selectedStyle.cardTitleColor}
-                                                size={selectedStyle.cardTitleSize}
-                                                weight={selectedStyle.cardTitleWeight}
-                                                align={selectedStyle.cardTitleAlign}
-                                                sizeMin={10}
-                                                sizeMax={40}
-                                                tokens={activeTokenSet.tokens}
-                                                onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
-                                                onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
-                                                onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
-                                                onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
-                                            />
-                                            <CardTypographyControls
-                                                title="Subtitle"
-                                                color={selectedStyle.cardSubtitleColor}
-                                                size={selectedStyle.cardSubtitleSize}
-                                                weight={selectedStyle.cardSubtitleWeight}
-                                                align={selectedStyle.cardSubtitleAlign}
-                                                sizeMin={10}
-                                                sizeMax={32}
-                                                tokens={activeTokenSet.tokens}
-                                                onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
-                                                onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
-                                                onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
-                                                onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
-                                            />
-                                        </>
-                                    ) : null}
+                                    <CardTypographyControls
+                                        title="Title"
+                                        textValue={selectedStyle.cardTitleText}
+                                        color={selectedStyle.cardTitleColor}
+                                        size={selectedStyle.cardTitleSize}
+                                        weight={selectedStyle.cardTitleWeight}
+                                        align={selectedStyle.cardTitleAlign}
+                                        sizeMin={10}
+                                        sizeMax={40}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
+                                        textPlaceholder="Leave empty to hide the title"
+                                        onTextChange={(value) => {
+                                            updateCardTextField('cardTitleText', 'cardShowTitle', value);
+                                            updateSelectedStyle('cardShowHeader', value.trim().length > 0 || selectedStyle.cardSubtitleText.trim().length > 0);
+                                        }}
+                                        onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardTitleAlign', value)}
+                                    />
+                                    <CardTypographyControls
+                                        title="Subtitle"
+                                        textValue={selectedStyle.cardSubtitleText}
+                                        color={selectedStyle.cardSubtitleColor}
+                                        size={selectedStyle.cardSubtitleSize}
+                                        weight={selectedStyle.cardSubtitleWeight}
+                                        align={selectedStyle.cardSubtitleAlign}
+                                        sizeMin={10}
+                                        sizeMax={32}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
+                                        textPlaceholder="Leave empty to hide the subtitle"
+                                        onTextChange={(value) => {
+                                            updateCardTextField('cardSubtitleText', 'cardShowSubtitle', value);
+                                            updateSelectedStyle('cardShowHeader', value.trim().length > 0 || selectedStyle.cardTitleText.trim().length > 0);
+                                        }}
+                                        onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
+                                    />
 
                                     <CardTypographyControls
                                         title="Body"
+                                        textValue={selectedStyle.cardBodyText}
                                         color={selectedStyle.cardBodyColor}
                                         size={selectedStyle.cardBodySize}
                                         weight={selectedStyle.cardBodyWeight}
@@ -1167,28 +1261,40 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
+                                        textPlaceholder="Leave empty to hide the body copy"
+                                        onTextChange={(value) => updateCardTextField('cardBodyText', 'cardShowBody', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
                                         onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
                                         onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
                                     />
 
-                                    {selectedStyle.cardShowPrice ? (
-                                        <CardTypographyControls
-                                            title="Price"
-                                            color={selectedStyle.cardPriceColor}
-                                            size={selectedStyle.cardPriceSize}
-                                            weight={selectedStyle.cardPriceWeight}
-                                            align={selectedStyle.cardPriceAlign}
-                                            sizeMin={10}
-                                            sizeMax={48}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
-                                        />
-                                    ) : null}
+                                    <CardTypographyControls
+                                        title="Price"
+                                        textValue={selectedStyle.cardPriceText}
+                                        color={selectedStyle.cardPriceColor}
+                                        size={selectedStyle.cardPriceSize}
+                                        weight={selectedStyle.cardPriceWeight}
+                                        align={selectedStyle.cardPriceAlign}
+                                        sizeMin={10}
+                                        sizeMax={48}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
+                                        textPlaceholder="Leave empty to hide the price"
+                                        onTextChange={(value) => updateCardTextField('cardPriceText', 'cardShowPrice', value)}
+                                        onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
+                                    >
+                                        <FlatField label="Placement" stacked>
+                                            <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Price position">
+                                                <option value="top">Top</option>
+                                                <option value="bottom">Bottom</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </CardTypographyControls>
                                 </div>
                             </FlatInspectorSection>
                         </div>
@@ -1199,21 +1305,14 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Listing Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
-                                    <CardConfigSubsection title="Structure" defaultOpen>
-                                        <FlatField label="Variant" stacked>
-                                            <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as ComponentStyleConfig['cardVariant'])}>
-                                                <option value="default">Default</option>
-                                                <option value="bordered">Bordered</option>
-                                                <option value="elevated">Elevated</option>
-                                                <option value="glass">Glass</option>
-                                            </FlatSelect>
-                                        </FlatField>
-                                        <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
-                                    </CardConfigSubsection>
-
-                                    <CardConfigSubsection title="Image" defaultOpen={selectedStyle.cardShowImage}>
-                                        <FlatSwitchRow label="Show image" checked={selectedStyle.cardShowImage} onCheckedChange={(value) => updateSelectedStyle('cardShowImage', value)} />
-                                        {selectedStyle.cardShowImage ? (
+                                    <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
+                                        <CardImageDropzone
+                                            inputId={`${selectedInstance.id}-listing-card-image`}
+                                            value={selectedStyle.cardImageSrc}
+                                            onChange={updateCardImage}
+                                            onClear={() => updateCardImage('')}
+                                        />
+                                        {selectedStyle.cardImageSrc ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardImagePosition} onValueChange={(value) => updateSelectedStyle('cardImagePosition', value as ComponentStyleConfig['cardImagePosition'])} ariaLabel="Image position">
                                                     <option value="top">Top</option>
@@ -1223,24 +1322,34 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Badge" defaultOpen={selectedStyle.cardShowBadge}>
-                                        <FlatSwitchRow label="Show badge" checked={selectedStyle.cardShowBadge} onCheckedChange={(value) => updateSelectedStyle('cardShowBadge', value)} />
-                                        {selectedStyle.cardShowBadge ? (
-                                            <FlatField label="Badge Text" stacked>
-                                                <input
-                                                    type="text"
-                                                    value={selectedStyle.cardBadgeText}
-                                                    onChange={(e) => updateSelectedStyle('cardBadgeText', e.target.value)}
-                                                    className={studioInputClass}
-                                                />
-                                            </FlatField>
+                                    <CardConfigSubsection title="Dividers" defaultOpen={selectedStyle.cardShowDividers}>
+                                        <FlatSwitchRow label="Show dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                        {selectedStyle.cardShowDividers ? (
+                                            <>
+                                                <FlatColorControl label="Color" value={selectedStyle.cardDividerColor} onChange={(value) => updateSelectedStyle('cardDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="Width" value={selectedStyle.cardDividerWidth} min={1} max={8} unit="px" onChange={(value) => updateSelectedStyle('cardDividerWidth', value)} />
+                                            </>
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Details" defaultOpen={selectedStyle.cardShowPricing || selectedStyle.cardShowSpecs}>
+                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText.trim())}>
+                                        <FlatField label="Badge Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardBadgeText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardBadgeText: event.target.value,
+                                                    cardShowBadge: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide the badge"
+                                            />
+                                        </FlatField>
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Details" defaultOpen={selectedStyle.cardShowSpecs || Boolean(selectedStyle.cardPriceText.trim()) || Boolean(selectedStyle.cardBodyText.trim())}>
                                         <FlatSwitchRow label="Specs" checked={selectedStyle.cardShowSpecs} onCheckedChange={(value) => updateSelectedStyle('cardShowSpecs', value)} />
-                                        <FlatSwitchRow label="Pricing" checked={selectedStyle.cardShowPricing} onCheckedChange={(value) => updateSelectedStyle('cardShowPricing', value)} />
-                                        {selectedStyle.cardShowPricing ? (
+                                        {selectedStyle.cardPriceText.trim() || selectedStyle.cardBodyText.trim() ? (
                                             <FlatField label="Pricing Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardPricePosition} onValueChange={(value) => updateSelectedStyle('cardPricePosition', value as ComponentStyleConfig['cardPricePosition'])} ariaLabel="Pricing position">
                                                     <option value="top">Top</option>
@@ -1250,30 +1359,32 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="CTA" defaultOpen={selectedStyle.cardShowCta}>
-                                        <FlatSwitchRow label="Show CTA" checked={selectedStyle.cardShowCta} onCheckedChange={(value) => updateSelectedStyle('cardShowCta', value)} />
-                                        {selectedStyle.cardShowCta ? (
-                                            <>
-                                                <FlatField label="CTA Text" stacked>
-                                                    <input
-                                                        type="text"
-                                                        value={selectedStyle.cardCtaText}
-                                                        onChange={(e) => updateSelectedStyle('cardCtaText', e.target.value)}
-                                                        className={studioInputClass}
-                                                    />
-                                                </FlatField>
-                                                <FlatField label="Placement" stacked>
-                                                    <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="CTA position">
-                                                        <option value="top">Top</option>
-                                                        <option value="bottom">Bottom</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </>
+                                    <CardConfigSubsection title="CTA" defaultOpen={Boolean(selectedStyle.cardCtaText.trim())}>
+                                        <FlatField label="CTA Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardCtaText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardCtaText: event.target.value,
+                                                    cardShowCta: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide the CTA"
+                                            />
+                                        </FlatField>
+                                        {selectedStyle.cardCtaText.trim() ? (
+                                            <FlatField label="Placement" stacked>
+                                                <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="CTA position">
+                                                    <option value="top">Top</option>
+                                                    <option value="bottom">Bottom</option>
+                                                </FlatSelect>
+                                            </FlatField>
                                         ) : null}
                                     </CardConfigSubsection>
 
                                     <CardTypographyControls
                                         title="Title"
+                                        textValue={selectedStyle.cardTitleText}
                                         color={selectedStyle.cardTitleColor}
                                         size={selectedStyle.cardTitleSize}
                                         weight={selectedStyle.cardTitleWeight}
@@ -1281,6 +1392,9 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={40}
                                         tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
+                                        textPlaceholder="Leave empty to hide the title"
+                                        onTextChange={(value) => updateCardTextField('cardTitleText', 'cardShowTitle', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
                                         onWeightChange={(value) => updateSelectedStyle('cardTitleWeight', value)}
@@ -1289,6 +1403,7 @@ export function InspectorPanel() {
 
                                     <CardTypographyControls
                                         title="Subtitle"
+                                        textValue={selectedStyle.cardSubtitleText}
                                         color={selectedStyle.cardSubtitleColor}
                                         size={selectedStyle.cardSubtitleSize}
                                         weight={selectedStyle.cardSubtitleWeight}
@@ -1296,45 +1411,60 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
+                                        textPlaceholder="Leave empty to hide the subtitle"
+                                        onTextChange={(value) => updateCardTextField('cardSubtitleText', 'cardShowSubtitle', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
                                         onWeightChange={(value) => updateSelectedStyle('cardSubtitleWeight', value)}
                                         onAlignChange={(value) => updateSelectedStyle('cardSubtitleAlign', value)}
                                     />
 
-                                    {(selectedStyle.cardShowPricing || selectedStyle.cardShowSpecs) ? (
-                                        <CardTypographyControls
-                                            title="Body"
-                                            color={selectedStyle.cardBodyColor}
-                                            size={selectedStyle.cardBodySize}
-                                            weight={selectedStyle.cardBodyWeight}
-                                            align={selectedStyle.cardBodyAlign}
-                                            sizeMin={10}
-                                            sizeMax={32}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
-                                        />
-                                    ) : null}
+                                    <CardTypographyControls
+                                        title="Body"
+                                        textValue={selectedStyle.cardBodyText}
+                                        color={selectedStyle.cardBodyColor}
+                                        size={selectedStyle.cardBodySize}
+                                        weight={selectedStyle.cardBodyWeight}
+                                        align={selectedStyle.cardBodyAlign}
+                                        sizeMin={10}
+                                        sizeMax={32}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
+                                        textPlaceholder="Leave empty to hide the body copy"
+                                        onTextChange={(value) => updateSelectedStyles({
+                                            cardBodyText: value,
+                                            cardShowBody: value.trim().length > 0,
+                                            cardShowPricing: value.trim().length > 0 || selectedStyle.cardPriceText.trim().length > 0,
+                                        })}
+                                        onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardBodyWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardBodyAlign', value)}
+                                    />
 
-                                    {selectedStyle.cardShowPricing ? (
-                                        <CardTypographyControls
-                                            title="Price"
-                                            color={selectedStyle.cardPriceColor}
-                                            size={selectedStyle.cardPriceSize}
-                                            weight={selectedStyle.cardPriceWeight}
-                                            align={selectedStyle.cardPriceAlign}
-                                            sizeMin={10}
-                                            sizeMax={48}
-                                            tokens={activeTokenSet.tokens}
-                                            onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
-                                            onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
-                                            onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
-                                            onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
-                                        />
-                                    ) : null}
+                                    <CardTypographyControls
+                                        title="Price"
+                                        textValue={selectedStyle.cardPriceText}
+                                        color={selectedStyle.cardPriceColor}
+                                        size={selectedStyle.cardPriceSize}
+                                        weight={selectedStyle.cardPriceWeight}
+                                        align={selectedStyle.cardPriceAlign}
+                                        sizeMin={10}
+                                        sizeMax={48}
+                                        tokens={activeTokenSet.tokens}
+                                        defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
+                                        textPlaceholder="Leave empty to hide the price"
+                                        onTextChange={(value) => updateSelectedStyles({
+                                            cardPriceText: value,
+                                            cardShowPrice: value.trim().length > 0,
+                                            cardShowPricing: value.trim().length > 0 || selectedStyle.cardBodyText.trim().length > 0,
+                                        })}
+                                        onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
+                                        onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
+                                        onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
+                                        onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
+                                    />
                                 </div>
                             </FlatInspectorSection>
                         </div>
@@ -1615,34 +1745,6 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
-                    {/* Advanced Hover (Premium) */}
-                    {layout?.sections.advancedHover && selectedStyle ? (
-                        <div className="p-1">
-                            <FlatInspectorSection title="Advanced Hover" icon={Sparkles} defaultOpen={selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled}>
-                                <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Tilt 3D" checked={selectedStyle.motionHoverTiltEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverTiltEnabled', value)} />
-                                    <FlatSwitchRow label="Glare" checked={selectedStyle.motionHoverGlareEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverGlareEnabled', value)} />
-                                    <FlatSwitchRow label="Spotlight" checked={selectedStyle.motionHoverSpotlightEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverSpotlightEnabled', value)} />
-                                </div>
-                                {selectedStyle.motionHoverTiltEnabled && (
-                                    <FlatUnitField label="Tilt Strength" value={selectedStyle.motionHoverTiltStrength} min={1} max={45} unit="deg" onChange={(value) => updateSelectedStyle('motionHoverTiltStrength', value)} />
-                                )}
-                                {selectedStyle.motionHoverGlareEnabled && (
-                                    <>
-                                        <FlatColorControl label="Glare Color" value={selectedStyle.motionHoverGlareColor} onChange={(value) => updateSelectedStyle('motionHoverGlareColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatUnitField label="Glare Opacity" value={selectedStyle.motionHoverGlareOpacity} min={0.05} max={1} unit="" onChange={(value) => updateSelectedStyle('motionHoverGlareOpacity', value)} />
-                                    </>
-                                )}
-                                {selectedStyle.motionHoverSpotlightEnabled && (
-                                    <>
-                                        <FlatColorControl label="Spotlight Color" value={selectedStyle.motionHoverSpotlightColor} onChange={(value) => updateSelectedStyle('motionHoverSpotlightColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatUnitField label="Spotlight Size" value={selectedStyle.motionHoverSpotlightSize} min={50} max={600} unit="px" onChange={(value) => updateSelectedStyle('motionHoverSpotlightSize', value)} />
-                                    </>
-                                )}
-                            </FlatInspectorSection>
-                        </div>
-                    ) : null}
-
                     {/* Effects */}
                     {layout?.sections.effects && <div className="p-1">
                         <section className="py-0.5">
@@ -1696,6 +1798,35 @@ export function InspectorPanel() {
                                     </PopoverContent>
                                 </Popover>
                             </div>
+                            {layout.sections.advancedHover && selectedStyle ? (
+                                <div className="px-2 pb-2 pt-1">
+                                    <FlatElementSubsection
+                                        title="Advanced Hover"
+                                        defaultOpen={selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled}
+                                    >
+                                        <div className="space-y-1.5">
+                                            <FlatSwitchRow label="Tilt 3D" checked={selectedStyle.motionHoverTiltEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverTiltEnabled', value)} />
+                                            <FlatSwitchRow label="Glare" checked={selectedStyle.motionHoverGlareEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverGlareEnabled', value)} />
+                                            <FlatSwitchRow label="Spotlight" checked={selectedStyle.motionHoverSpotlightEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverSpotlightEnabled', value)} />
+                                        </div>
+                                        {selectedStyle.motionHoverTiltEnabled ? (
+                                            <FlatUnitField label="Tilt Strength" value={selectedStyle.motionHoverTiltStrength} min={1} max={45} unit="deg" onChange={(value) => updateSelectedStyle('motionHoverTiltStrength', value)} />
+                                        ) : null}
+                                        {selectedStyle.motionHoverGlareEnabled ? (
+                                            <>
+                                                <FlatColorControl label="Glare Color" value={selectedStyle.motionHoverGlareColor} onChange={(value) => updateSelectedStyle('motionHoverGlareColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="Glare Opacity" value={selectedStyle.motionHoverGlareOpacity} min={0.05} max={1} unit="" onChange={(value) => updateSelectedStyle('motionHoverGlareOpacity', value)} />
+                                            </>
+                                        ) : null}
+                                        {selectedStyle.motionHoverSpotlightEnabled ? (
+                                            <>
+                                                <FlatColorControl label="Spotlight Color" value={selectedStyle.motionHoverSpotlightColor} onChange={(value) => updateSelectedStyle('motionHoverSpotlightColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="Spotlight Size" value={selectedStyle.motionHoverSpotlightSize} min={50} max={600} unit="px" onChange={(value) => updateSelectedStyle('motionHoverSpotlightSize', value)} />
+                                            </>
+                                        ) : null}
+                                    </FlatElementSubsection>
+                                </div>
+                            ) : null}
                             {effectOptions.filter((option) => option.enabled).length > 0 ? (
                                 <div className="space-y-2 px-2 pb-3 pt-1">
                                     {effectOptions

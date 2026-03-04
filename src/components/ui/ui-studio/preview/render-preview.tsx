@@ -1,4 +1,4 @@
-import React, { type CSSProperties } from 'react';
+import React, { type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
@@ -84,6 +84,42 @@ import { NavigationMenuPreview } from './navigation-menu-preview';
 import type { ExportStyleMode } from '../utilities';
 
 const MotionTooltipTrigger = motion.create(TooltipTrigger);
+
+type CardSection = { key: string; node: ReactNode };
+
+function hasCardContent(value: string | undefined): boolean {
+    return Boolean(value?.trim());
+}
+
+function buildCardSectionStack(
+    sections: CardSection[],
+    showDividers: boolean,
+    dividerColor: string,
+    dividerWidth: number,
+): ReactNode[] {
+    const visibleSections = sections.filter((section) => section.node !== null);
+    return visibleSections.flatMap((section, index) => {
+        const nodes: ReactNode[] = [];
+        if (index > 0 && showDividers) {
+            nodes.push(
+                <div
+                    key={`divider-${section.key}`}
+                    className="w-full rounded-full"
+                    style={{
+                        height: `${Math.max(1, dividerWidth)}px`,
+                        backgroundColor: dividerColor,
+                    }}
+                />,
+            );
+        }
+        nodes.push(
+            <React.Fragment key={section.key}>
+                {section.node}
+            </React.Fragment>,
+        );
+        return nodes;
+    });
+}
 
 export function componentSnippet(
     instance: ComponentInstance,
@@ -286,18 +322,17 @@ export function componentSnippet(
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const cardProps = [
                 instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
-                instance.style.cardShowDividers ? `showDividers` : '',
                 `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const imageSnippet = instance.style.cardShowImage
+            const imageSnippet = hasCardContent(instance.style.cardImageSrc)
                 ? `\n  <img src="/placeholder.jpg" alt="Card" className="aspect-[16/10] w-full object-cover" />`
                 : '';
             const contentParts: string[] = [];
-            if (instance.style.cardShowTitle) contentParts.push('    <h3 className="text-lg font-semibold">Card Title</h3>');
-            if (instance.style.cardShowSubtitle) contentParts.push('    <p className="text-sm text-muted-foreground">Optional subtitle text</p>');
-            if (instance.style.cardShowBody) contentParts.push('    <p className="text-sm text-muted-foreground">Card body content goes here.</p>');
-            if (instance.style.cardShowPrice) contentParts.push('    <div className="flex items-baseline gap-2">\n      <span className="text-2xl font-bold">$49</span>\n      <span className="text-sm text-muted-foreground line-through">$79</span>\n    </div>');
+            if (hasCardContent(instance.style.cardTitleText)) contentParts.push(`    <h3 className="text-lg font-semibold">${instance.style.cardTitleText}</h3>`);
+            if (hasCardContent(instance.style.cardSubtitleText)) contentParts.push(`    <p className="text-sm text-muted-foreground">${instance.style.cardSubtitleText}</p>`);
+            if (hasCardContent(instance.style.cardBodyText)) contentParts.push(`    <p className="text-sm text-muted-foreground">${instance.style.cardBodyText}</p>`);
+            if (hasCardContent(instance.style.cardPriceText)) contentParts.push(`    <div className="text-2xl font-bold">${instance.style.cardPriceText}</div>`);
             if (instance.style.cardShowToggle) contentParts.push('    <div className="flex items-center justify-between">\n      <span className="text-sm">Enable feature</span>\n      <Switch />\n    </div>');
             if (instance.style.cardShowButton) contentParts.push(`    <Button size="sm" className="w-full">${instance.style.cardButtonText || 'Click me'}</Button>`);
             const contentSnippet = contentParts.length > 0
@@ -309,45 +344,43 @@ export function componentSnippet(
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const cardProps = [
                 instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
-                instance.style.cardShowDividers ? `showDividers` : '',
                 `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const imageSnippet = instance.style.cardShowImage
+            const imageSnippet = hasCardContent(instance.style.cardImageSrc)
                 ? `\n  <img src="/placeholder.jpg" alt="Product" className="aspect-[16/10] w-full object-cover" />`
                 : '';
-            const headerSnippet = instance.style.cardShowHeader
-                ? `\n  <CardHeader>\n    <CardTitle>Product Name</CardTitle>\n    <CardDescription>Brief description of the item or feature.</CardDescription>\n  </CardHeader>`
+            const headerSnippet = (hasCardContent(instance.style.cardTitleText) || hasCardContent(instance.style.cardSubtitleText))
+                ? `\n  <CardHeader>${hasCardContent(instance.style.cardTitleText) ? `\n    <CardTitle>${instance.style.cardTitleText}</CardTitle>` : ''}${hasCardContent(instance.style.cardSubtitleText) ? `\n    <CardDescription>${instance.style.cardSubtitleText}</CardDescription>` : ''}\n  </CardHeader>`
                 : '';
-            const priceSnippet = instance.style.cardShowPrice
-                ? `\n    <div className="flex items-baseline gap-2">\n      <span className="text-2xl font-bold">$49</span>\n      <span className="text-sm text-muted-foreground line-through">$79</span>\n    </div>`
+            const priceSnippet = hasCardContent(instance.style.cardPriceText)
+                ? `\n    <div className="text-2xl font-bold">${instance.style.cardPriceText}</div>`
                 : '';
-            const footerSnippet = instance.style.cardShowFooter
-                ? `\n  <CardFooter className="justify-between gap-2">\n    <span className="text-xs text-muted-foreground">In stock</span>\n    <Button size="sm">Add to Cart</Button>\n  </CardFooter>`
+            const footerSnippet = hasCardContent(instance.style.cardButtonText)
+                ? `\n  <CardFooter className="justify-between gap-2">\n    <span className="text-xs text-muted-foreground">In stock</span>\n    <Button size="sm">${instance.style.cardButtonText}</Button>\n  </CardFooter>`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>${priceSnippet}\n    <p className="mt-2 text-sm text-muted-foreground">Product description goes here.</p>\n  </CardContent>${footerSnippet}\n</Card>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>${priceSnippet}${hasCardContent(instance.style.cardBodyText) ? `\n    <p className="mt-2 text-sm text-muted-foreground">${instance.style.cardBodyText}</p>` : ''}\n  </CardContent>${footerSnippet}\n</Card>`;
         }
         case 'listing-card': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const cardProps = [
                 instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
-                instance.style.cardShowDividers ? `showDividers` : '',
                 `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const imageSnippet = instance.style.cardShowImage
-                ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Listing" className="w-full h-full object-cover" />${instance.style.cardShowBadge ? `\n    <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white">${instance.style.cardBadgeText || 'FEATURED'}</span>` : ''}\n  </div>`
+            const imageSnippet = hasCardContent(instance.style.cardImageSrc)
+                ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Listing" className="w-full h-full object-cover" />${hasCardContent(instance.style.cardBadgeText) ? `\n    <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white">${instance.style.cardBadgeText}</span>` : ''}\n  </div>`
                 : '';
             const specsSnippet = instance.style.cardShowSpecs
                 ? `\n    <div className="flex flex-wrap gap-1.5">\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>\n    </div>`
                 : '';
-            const pricingSnippet = instance.style.cardShowPricing
-                ? `\n    <div className="border-t border-border pt-3">\n      <div className="flex items-baseline gap-1">\n        <span className="text-3xl font-bold">$299</span>\n        <span className="text-sm text-muted-foreground">/mo</span>\n      </div>\n      <p className="mt-0.5 text-xs text-muted-foreground">36 months · $2,999 due at signing</p>\n    </div>`
+            const pricingSnippet = (hasCardContent(instance.style.cardPriceText) || hasCardContent(instance.style.cardBodyText))
+                ? `\n    <div>${hasCardContent(instance.style.cardPriceText) ? `\n      <div className="text-3xl font-bold">${instance.style.cardPriceText}</div>` : ''}${hasCardContent(instance.style.cardBodyText) ? `\n      <p className="mt-0.5 text-xs text-muted-foreground">${instance.style.cardBodyText}</p>` : ''}\n    </div>`
                 : '';
-            const ctaSnippet = instance.style.cardShowCta
-                ? `\n    <Button className="w-full" size="sm">${instance.style.cardCtaText || 'View Details'}</Button>`
+            const ctaSnippet = hasCardContent(instance.style.cardCtaText)
+                ? `\n    <Button className="w-full" size="sm">${instance.style.cardCtaText}</Button>`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}\n  <CardContent className="space-y-3 pt-4">\n    <div>\n      <h3 className="text-xl font-bold">Listing Title</h3>\n      <p className="text-sm text-muted-foreground">Subtitle or description</p>\n    </div>${specsSnippet}${pricingSnippet}${ctaSnippet}\n  </CardContent>\n</Card>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}\n  <CardContent className="space-y-3 pt-4">\n    <div>${hasCardContent(instance.style.cardTitleText) ? `\n      <h3 className="text-xl font-bold">${instance.style.cardTitleText}</h3>` : ''}${hasCardContent(instance.style.cardSubtitleText) ? `\n      <p className="text-sm text-muted-foreground">${instance.style.cardSubtitleText}</p>` : ''}\n    </div>${specsSnippet}${pricingSnippet}${ctaSnippet}\n  </CardContent>\n</Card>`;
         }
         case 'switch': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1032,8 +1065,12 @@ export function renderPreview(
         }
 
         case 'card': {
-            const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
-            const hasAnyContent = instance.style.cardShowTitle || instance.style.cardShowSubtitle || instance.style.cardShowBody || instance.style.cardShowPrice || instance.style.cardShowToggle || instance.style.cardShowButton;
+            const showImage = hasCardContent(instance.style.cardImageSrc);
+            const showTitle = hasCardContent(instance.style.cardTitleText);
+            const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
+            const showBody = hasCardContent(instance.style.cardBodyText);
+            const showPrice = hasCardContent(instance.style.cardPriceText);
+            const hasAnyContent = showTitle || showSubtitle || showBody || showPrice || instance.style.cardShowToggle || instance.style.cardShowButton;
             const cardWrapperStyle = buildComponentWrapperStyle(style, 'card');
             const cardMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
             const cardDirectStyle = buildCardDirectStyle(style, instance.style);
@@ -1078,17 +1115,14 @@ export function renderPreview(
                 : instance.style.cardBodyAlign === 'right'
                     ? 'items-end'
                     : 'items-start';
-            const imageBlock = instance.style.cardShowImage ? (
-                <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-muted/60 to-muted flex items-center justify-center overflow-hidden">
-                    <svg className="h-10 w-10 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                    </svg>
+            const imageBlock = showImage ? (
+                <div className="relative aspect-[16/10] w-full overflow-hidden">
+                    <img src={instance.style.cardImageSrc} alt="Card" className="h-full w-full object-cover" />
                 </div>
             ) : null;
-            const priceBlock = instance.style.cardShowPrice ? (
+            const priceBlock = showPrice ? (
                 <div className={cn('flex w-full flex-col gap-1', actionAlignment)}>
-                    <span style={priceStyle}>$49</span>
-                    <span className="text-sm text-muted-foreground line-through">$79</span>
+                    <span style={priceStyle}>{instance.style.cardPriceText}</span>
                 </div>
             ) : null;
             const actionBlock = (instance.style.cardShowToggle || instance.style.cardShowButton) ? (
@@ -1104,34 +1138,57 @@ export function renderPreview(
                     ) : null}
                 </div>
             ) : null;
+            const contentSections: CardSection[] = [
+                { key: 'price-top', node: instance.style.cardPricePosition === 'top' ? priceBlock : null },
+                { key: 'actions-top', node: instance.style.cardActionsPosition === 'top' ? actionBlock : null },
+                { key: 'title', node: showTitle ? <h3 style={titleStyle}>{instance.style.cardTitleText}</h3> : null },
+                { key: 'subtitle', node: showSubtitle ? <p style={subtitleStyle}>{instance.style.cardSubtitleText}</p> : null },
+                { key: 'body', node: showBody ? <p style={bodyStyle}>{instance.style.cardBodyText}</p> : null },
+                { key: 'price-bottom', node: instance.style.cardPricePosition === 'bottom' ? priceBlock : null },
+                { key: 'actions-bottom', node: instance.style.cardActionsPosition === 'bottom' ? actionBlock : null },
+            ];
+            const cardSections: CardSection[] = [
+                { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
+                {
+                    key: 'content',
+                    node: hasAnyContent ? (
+                        <CardContent className="space-y-3">
+                            {buildCardSectionStack(
+                                contentSections,
+                                instance.style.cardShowDividers,
+                                instance.style.cardDividerColor,
+                                instance.style.cardDividerWidth,
+                            )}
+                        </CardContent>
+                    ) : null,
+                },
+                { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
+            ];
             return (
                 <div className="w-full" style={{ ...cardWrapperStyle, maxWidth: cardMaxWidth || '24rem' }}>
                     <Card
                         variant={instance.style.cardVariant}
-                        showDividers={instance.style.cardShowDividers}
-                        className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                        className={cn(motionClassName, 'overflow-hidden')}
                         style={cardDirectStyle}
                     >
-                        {instance.style.cardImagePosition === 'top' ? imageBlock : null}
-                        {hasAnyContent && (
-                            <CardContent className={cn('space-y-3', instance.style.cardShowDividers && '[&>*+*]:border-t [&>*+*]:border-border/60 [&>*+*]:pt-3')}>
-                                {instance.style.cardPricePosition === 'top' ? priceBlock : null}
-                                {instance.style.cardActionsPosition === 'top' ? actionBlock : null}
-                                {instance.style.cardShowTitle ? <h3 style={titleStyle}>Card Title</h3> : null}
-                                {instance.style.cardShowSubtitle ? <p style={subtitleStyle}>Optional subtitle text</p> : null}
-                                {instance.style.cardShowBody ? <p style={bodyStyle}>This is the card body content. It can contain any descriptive text or information.</p> : null}
-                                {instance.style.cardPricePosition === 'bottom' ? priceBlock : null}
-                                {instance.style.cardActionsPosition === 'bottom' ? actionBlock : null}
-                            </CardContent>
+                        {buildCardSectionStack(
+                            cardSections,
+                            instance.style.cardShowDividers,
+                            instance.style.cardDividerColor,
+                            instance.style.cardDividerWidth,
                         )}
-                        {instance.style.cardImagePosition === 'bottom' ? imageBlock : null}
                     </Card>
                 </div>
             );
         }
 
         case 'product-card': {
-            const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            const showImage = hasCardContent(instance.style.cardImageSrc);
+            const showTitle = hasCardContent(instance.style.cardTitleText);
+            const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
+            const showBody = hasCardContent(instance.style.cardBodyText);
+            const showPrice = hasCardContent(instance.style.cardPriceText);
+            const showFooter = hasCardContent(instance.style.cardButtonText);
             const pcWrapperStyle = buildComponentWrapperStyle(style, 'product-card');
             const pcMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
             const pcDirectStyle = buildCardDirectStyle(style, instance.style);
@@ -1172,55 +1229,104 @@ export function renderPreview(
                 instance.style.cardPriceAlign,
             );
             const footerAlignment = instance.style.cardActionsPosition === 'top' ? 'order-first' : 'order-last';
-            const imageBlock = instance.style.cardShowImage ? (
-                <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-muted/60 to-muted flex items-center justify-center overflow-hidden">
-                    <svg className="h-10 w-10 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                    </svg>
+            const imageBlock = showImage ? (
+                <div className="relative aspect-[16/10] w-full overflow-hidden">
+                    <img src={instance.style.cardImageSrc} alt="Product" className="h-full w-full object-cover" />
                 </div>
             ) : null;
-            const priceBlock = instance.style.cardShowPrice ? (
+            const priceBlock = showPrice ? (
                 <div className="flex w-full flex-col gap-1">
-                    <span style={priceStyle}>$49</span>
-                    <span className="text-sm text-muted-foreground line-through">$79</span>
+                    <span style={priceStyle}>{instance.style.cardPriceText}</span>
                 </div>
             ) : null;
+            const innerSections: CardSection[] = [
+                {
+                    key: 'footer-top',
+                    node: instance.style.cardActionsPosition === 'top' && showFooter ? (
+                        <CardFooter className={cn('justify-between gap-2', footerAlignment)}>
+                            <span className="text-xs text-muted-foreground">In stock</span>
+                            <Button size="sm">{instance.style.cardButtonText}</Button>
+                        </CardFooter>
+                    ) : null,
+                },
+                {
+                    key: 'header',
+                    node: showTitle || showSubtitle ? (
+                        <CardHeader>
+                            {showTitle ? <CardTitle style={titleStyle}>{instance.style.cardTitleText}</CardTitle> : null}
+                            {showSubtitle ? <CardDescription style={subtitleStyle}>{instance.style.cardSubtitleText}</CardDescription> : null}
+                        </CardHeader>
+                    ) : null,
+                },
+                {
+                    key: 'content',
+                    node: showPrice || showBody ? (
+                        <CardContent className="space-y-3">
+                            {buildCardSectionStack(
+                                [
+                                    { key: 'price-top', node: instance.style.cardPricePosition === 'top' ? priceBlock : null },
+                                    { key: 'body', node: showBody ? <p style={bodyStyle}>{instance.style.cardBodyText}</p> : null },
+                                    { key: 'price-bottom', node: instance.style.cardPricePosition === 'bottom' ? priceBlock : null },
+                                ],
+                                instance.style.cardShowDividers,
+                                instance.style.cardDividerColor,
+                                instance.style.cardDividerWidth,
+                            )}
+                        </CardContent>
+                    ) : null,
+                },
+                {
+                    key: 'footer-bottom',
+                    node: instance.style.cardActionsPosition === 'bottom' && showFooter ? (
+                        <CardFooter className={cn('justify-between gap-2', footerAlignment)}>
+                            <span className="text-xs text-muted-foreground">In stock</span>
+                            <Button size="sm">{instance.style.cardButtonText}</Button>
+                        </CardFooter>
+                    ) : null,
+                },
+            ];
             return (
                 <div className="w-full" style={{ ...pcWrapperStyle, maxWidth: pcMaxWidth || '24rem' }}>
                     <Card
                         variant={instance.style.cardVariant}
-                        showDividers={instance.style.cardShowDividers}
-                        className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                        className={cn(motionClassName, 'overflow-hidden')}
                         style={pcDirectStyle}
                     >
-                        {instance.style.cardImagePosition === 'top' ? imageBlock : null}
-                        <div className="flex flex-col">
-                            {instance.style.cardShowFooter ? (
-                                <CardFooter className={cn('justify-between gap-2', footerAlignment)}>
-                                    <span className="text-xs text-muted-foreground">In stock</span>
-                                    <Button size="sm">Add to Cart</Button>
-                                </CardFooter>
-                            ) : null}
-                        {instance.style.cardShowHeader && (
-                            <CardHeader>
-                                <CardTitle style={titleStyle}>Product Name</CardTitle>
-                                <CardDescription style={subtitleStyle}>Brief description of the item or feature.</CardDescription>
-                            </CardHeader>
+                        {buildCardSectionStack(
+                            [
+                                { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
+                                {
+                                    key: 'body-stack',
+                                    node: (
+                                        <div className="flex flex-col">
+                                            {buildCardSectionStack(
+                                                innerSections,
+                                                instance.style.cardShowDividers,
+                                                instance.style.cardDividerColor,
+                                                instance.style.cardDividerWidth,
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                                { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
+                            ],
+                            instance.style.cardShowDividers,
+                            instance.style.cardDividerColor,
+                            instance.style.cardDividerWidth,
                         )}
-                            <CardContent className={cn('space-y-3', instance.style.cardShowDividers && '[&>*+*]:border-t [&>*+*]:border-border/60 [&>*+*]:pt-3')}>
-                                {instance.style.cardPricePosition === 'top' ? priceBlock : null}
-                                <p style={bodyStyle}>Includes all premium features with lifetime updates and priority support.</p>
-                                {instance.style.cardPricePosition === 'bottom' ? priceBlock : null}
-                            </CardContent>
-                        </div>
-                        {instance.style.cardImagePosition === 'bottom' ? imageBlock : null}
                     </Card>
                 </div>
             );
         }
 
         case 'listing-card': {
-            const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            const showImage = hasCardContent(instance.style.cardImageSrc);
+            const showBadge = hasCardContent(instance.style.cardBadgeText);
+            const showTitle = hasCardContent(instance.style.cardTitleText);
+            const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
+            const showBody = hasCardContent(instance.style.cardBodyText);
+            const showPrice = hasCardContent(instance.style.cardPriceText);
+            const showCta = hasCardContent(instance.style.cardCtaText);
             const lcWrapperStyle = buildComponentWrapperStyle(style, 'listing-card');
             const lcMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
             const lcDirectStyle = buildCardDirectStyle(style, instance.style);
@@ -1263,57 +1369,91 @@ export function renderPreview(
             const ctaAlignment = instance.style.cardActionsPosition === 'top'
                 ? 'order-first'
                 : 'order-last';
-            const imageBlock = instance.style.cardShowImage ? (
-                <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
-                    <svg className="h-12 w-12 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                    </svg>
-                    {instance.style.cardShowBadge && (
+            const imageBlock = showImage ? (
+                <div className="relative aspect-[16/10] w-full overflow-hidden">
+                    <img src={instance.style.cardImageSrc} alt="Listing" className="h-full w-full object-cover" />
+                    {showBadge && (
                         <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white shadow-sm">
-                            {instance.style.cardBadgeText || 'FEATURED'}
+                            {instance.style.cardBadgeText}
                         </span>
                     )}
                 </div>
             ) : null;
+            const contentSections: CardSection[] = [
+                {
+                    key: 'cta-top',
+                    node: instance.style.cardActionsPosition === 'top' && showCta ? (
+                        <Button className={cn('w-full', ctaAlignment)} size="sm">
+                            {instance.style.cardCtaText}
+                        </Button>
+                    ) : null,
+                },
+                {
+                    key: 'heading',
+                    node: showTitle || showSubtitle ? (
+                        <div>
+                            {showTitle ? <h3 style={titleStyle}>{instance.style.cardTitleText}</h3> : null}
+                            {showSubtitle ? <p style={subtitleStyle}>{instance.style.cardSubtitleText}</p> : null}
+                        </div>
+                    ) : null,
+                },
+                {
+                    key: 'specs',
+                    node: instance.style.cardShowSpecs ? (
+                        <div className="flex flex-wrap gap-1.5">
+                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>
+                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>
+                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>
+                        </div>
+                    ) : null,
+                },
+                {
+                    key: 'pricing',
+                    node: showPrice || showBody ? (
+                        <div>
+                            {showPrice ? <div style={priceStyle}>{instance.style.cardPriceText}</div> : null}
+                            {showBody ? <p style={bodyStyle}>{instance.style.cardBodyText}</p> : null}
+                        </div>
+                    ) : null,
+                },
+                {
+                    key: 'cta-bottom',
+                    node: instance.style.cardActionsPosition === 'bottom' && showCta ? (
+                        <Button className={cn('w-full', ctaAlignment)} size="sm">
+                            {instance.style.cardCtaText}
+                        </Button>
+                    ) : null,
+                },
+            ];
             return (
                 <div className="w-full" style={{ ...lcWrapperStyle, maxWidth: lcMaxWidth || '25rem' }}>
                     <Card
                         variant={instance.style.cardVariant}
-                        showDividers={instance.style.cardShowDividers}
-                        className={cn(motionClassName, dividerClass, 'overflow-hidden')}
+                        className={cn(motionClassName, 'overflow-hidden')}
                         style={lcDirectStyle}
                     >
-                        {instance.style.cardImagePosition === 'top' ? imageBlock : null}
-                        <CardContent className={cn('space-y-3 pt-4', instance.style.cardShowDividers && '[&>*+*]:border-t [&>*+*]:border-border/60 [&>*+*]:pt-3')}>
-                            {instance.style.cardShowCta ? (
-                                <Button className={cn('w-full', ctaAlignment)} size="sm">
-                                    {instance.style.cardCtaText || 'View Details'}
-                                </Button>
-                            ) : null}
-                            <div>
-                                <h3 style={titleStyle}>Listing Title</h3>
-                                <p style={subtitleStyle}>Subtitle or description line</p>
-                            </div>
-                            {instance.style.cardShowSpecs && (
-                                <div className="flex flex-wrap gap-1.5">
-                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>
-                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>
-                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>
-                                </div>
-                            )}
-                            {instance.style.cardShowPricing && (
-                                <>
-                                    <div>
-                                        <div className="flex items-baseline gap-1">
-                                            <span style={priceStyle}>$299</span>
-                                            <span className="text-sm text-muted-foreground">/mo</span>
-                                        </div>
-                                        <p style={bodyStyle}>36 months &middot; $2,999 due at signing</p>
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                        {instance.style.cardImagePosition === 'bottom' ? imageBlock : null}
+                        {buildCardSectionStack(
+                            [
+                                { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
+                                {
+                                    key: 'content',
+                                    node: (
+                                        <CardContent className="space-y-3 pt-4">
+                                            {buildCardSectionStack(
+                                                contentSections,
+                                                instance.style.cardShowDividers,
+                                                instance.style.cardDividerColor,
+                                                instance.style.cardDividerWidth,
+                                            )}
+                                        </CardContent>
+                                    ),
+                                },
+                                { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
+                            ],
+                            instance.style.cardShowDividers,
+                            instance.style.cardDividerColor,
+                            instance.style.cardDividerWidth,
+                        )}
                     </Card>
                 </div>
             );
