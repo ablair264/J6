@@ -602,6 +602,7 @@ export function MotionInspectorSection({
     selectedStyle,
     componentKind,
     isOverlayComponent,
+    supportsEntryMotion,
     visualMotionPresets,
     interactionMotionPresets,
     surfaceMotionPresets,
@@ -613,6 +614,7 @@ export function MotionInspectorSection({
     selectedStyle: ComponentStyleConfig;
     componentKind: UIComponentKind;
     isOverlayComponent: boolean;
+    supportsEntryMotion: boolean;
     visualMotionPresets: MotionPresetOption[];
     interactionMotionPresets: MotionPresetOption[];
     surfaceMotionPresets: MotionPresetOption[];
@@ -621,7 +623,7 @@ export function MotionInspectorSection({
     applyVisualMotionPreset: (id: string) => void;
     clearVisualMotionPreset: () => void;
 }) {
-    const [activeTab, setActiveTab] = useState<MotionTriggerTab>(isOverlayComponent ? 'overlay' : 'hover');
+    const [activeTab, setActiveTab] = useState<MotionTriggerTab>(supportsEntryMotion ? 'overlay' : 'hover');
     const tuning = getMotionControlTuning(componentKind);
     const hasSplitOverlayMotion =
         componentKind === 'tooltip' ||
@@ -629,9 +631,12 @@ export function MotionInspectorSection({
         componentKind === 'popover' ||
         componentKind === 'dropdown';
     const showTriggerTabs = componentKind !== 'checkbox' && componentKind !== 'slider';
-    const tabs: Array<{ id: MotionTriggerTab; icon: string; label: string }> = showTriggerTabs && isOverlayComponent && !hasSplitOverlayMotion
+    const entryTabLabel = isOverlayComponent ? 'Overlay' : 'Entry';
+    const entryHelperText = isOverlayComponent ? 'Runs when the overlay opens.' : 'Runs when the component appears.';
+    const entryEnableLabel = isOverlayComponent ? 'Enable overlay motion' : 'Enable entry motion';
+    const tabs: Array<{ id: MotionTriggerTab; icon: string; label: string }> = showTriggerTabs && supportsEntryMotion && !hasSplitOverlayMotion
         ? [
-            { id: 'overlay', icon: '▣', label: 'Overlay' },
+            { id: 'overlay', icon: '▣', label: entryTabLabel },
             { id: 'hover', icon: '✦', label: 'Hover' },
             { id: 'tap', icon: '◉', label: 'Tap' },
         ]
@@ -768,10 +773,10 @@ export function MotionInspectorSection({
         </div>
     );
     useEffect(() => {
-        if ((!isOverlayComponent || hasSplitOverlayMotion || !showTriggerTabs) && activeTab === 'overlay') {
+        if ((!supportsEntryMotion || hasSplitOverlayMotion || !showTriggerTabs) && activeTab === 'overlay') {
             setActiveTab('hover');
         }
-    }, [activeTab, isOverlayComponent, hasSplitOverlayMotion, showTriggerTabs]);
+    }, [activeTab, supportsEntryMotion, hasSplitOverlayMotion, showTriggerTabs]);
 
     return (
         <div className="min-w-0 space-y-2.5">
@@ -802,7 +807,7 @@ export function MotionInspectorSection({
 
             {showTriggerTabs ? (
                 <AnimatePresence mode="wait" initial={false}>
-                {activeTab === 'overlay' && isOverlayComponent ? (
+                {activeTab === 'overlay' && supportsEntryMotion ? (
                     <motion.div
                         key="overlay"
                         initial={{ opacity: 0, y: 4 }}
@@ -811,18 +816,18 @@ export function MotionInspectorSection({
                         transition={{ duration: 0.14, ease: 'easeOut' }}
                         className="space-y-2.5"
                     >
-                        <p className="text-[11px] text-[#8fa6c7]">Runs when the overlay opens.</p>
+                        <p className="text-[11px] text-[#8fa6c7]">{entryHelperText}</p>
 
                         <MotionPresetStrip presets={surfaceMotionPresets} onSelect={applyMotionComponentPreset} />
 
                         <div className="flex items-center justify-between">
-                            <span className="text-[12px] text-[#e2e8f0]">Enable overlay motion</span>
+                            <span className="text-[12px] text-[#e2e8f0]">{entryEnableLabel}</span>
                             <Switch.Root
                                 checked={selectedStyle.motionEntryEnabled}
                                 onCheckedChange={(checked) => {
                                     updateSelectedStyle('motionEntryEnabled', checked);
                                 }}
-                                aria-label="Enable overlay motion"
+                                aria-label={entryEnableLabel}
                                 className={cn(
                                     'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
                                     'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',

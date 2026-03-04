@@ -18,6 +18,7 @@ import {
     isUIComponentKind,
     supportsButtonStateStyle,
     supportsEntryMotion,
+    supportsPanelStyle,
 } from './ui-studio/utilities';
 import { AdvancedHoverWrapper, getMotionComponentPresets, hasAdvancedHoverEnabled, renderWithMotionControls } from './ui-studio/motion';
 import { renderPreview } from './ui-studio/preview';
@@ -195,9 +196,17 @@ export function UIStudioComponentPage() {
         }
     }, [instances, selectedInstanceId, setSelectedInstanceId]);
 
-    const isOverlayComponent = selectedInstance ? supportsEntryMotion(selectedInstance.kind) : false;
+    const isOverlayComponent = selectedInstance ? supportsPanelStyle(selectedInstance.kind) : false;
     const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
-    const canReplayOverlayMotion = Boolean(isOverlayComponent && selectedInstance?.style.motionEntryEnabled);
+    const canReplayEntryMotion = Boolean(
+        selectedInstance &&
+        supportsEntryMotion(selectedInstance.kind) &&
+        selectedInstance.style.motionEntryEnabled,
+    );
+    const stageHandlesOwnEntryMotion = (kind: UIComponentKind) =>
+        supportsPanelStyle(kind) || kind === 'accordion' || kind === 'alert';
+    const stageHandlesOwnInteractionMotion = (kind: UIComponentKind) =>
+        stageHandlesOwnEntryMotion(kind) || kind === 'switch';
 
     useEffect(() => {
         if (!isOverlayComponent && pinOverlayPreviews) setPinOverlayPreviews(false);
@@ -292,11 +301,11 @@ export function UIStudioComponentPage() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        {canReplayOverlayMotion ? (
+                                        {canReplayEntryMotion ? (
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (!pinOverlayPreviews) setPinOverlayPreviews(true);
+                                                    if (isOverlayComponent && !pinOverlayPreviews) setPinOverlayPreviews(true);
                                                     replayMotion();
                                                 }}
                                                 className={studioActionButtonClass}
@@ -363,8 +372,8 @@ export function UIStudioComponentPage() {
                                                                 pinOverlayOpen: pinOverlayPreviews,
                                                             }),
                                                             stagePreviewInstance.style,
-                                                            !supportsEntryMotion(stagePreviewInstance.kind),
-                                                            stagePreviewInstance.kind !== 'switch' && !supportsEntryMotion(stagePreviewInstance.kind),
+                                                            !stageHandlesOwnEntryMotion(stagePreviewInstance.kind),
+                                                            !stageHandlesOwnInteractionMotion(stagePreviewInstance.kind),
                                                         )}
                                                     </AdvancedHoverWrapper>
                                                 ) : (
@@ -373,8 +382,8 @@ export function UIStudioComponentPage() {
                                                             pinOverlayOpen: pinOverlayPreviews,
                                                         }),
                                                         stagePreviewInstance.style,
-                                                        !supportsEntryMotion(stagePreviewInstance.kind),
-                                                        stagePreviewInstance.kind !== 'switch' && !supportsEntryMotion(stagePreviewInstance.kind),
+                                                        !stageHandlesOwnEntryMotion(stagePreviewInstance.kind),
+                                                        !stageHandlesOwnInteractionMotion(stagePreviewInstance.kind),
                                                     )
                                                 )}
                                             </div>
@@ -470,6 +479,7 @@ export function UIStudioComponentPage() {
                                             selectedStyle={selectedStyle}
                                             componentKind={selectedInstance.kind}
                                             isOverlayComponent={isOverlayComponent}
+                                            supportsEntryMotion={supportsEntryMotion(selectedInstance.kind)}
                                             visualMotionPresets={visualMotionPresets}
                                             interactionMotionPresets={interactionMotionPresets}
                                             surfaceMotionPresets={surfaceMotionPresets}
