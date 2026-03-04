@@ -261,16 +261,34 @@ export function UIStudioComponentPage() {
             })
             : [];
 
-    const componentVisualPresets = selectedInstance ? getComponentVisualPresets(selectedInstance.kind) : [];
-    const visualMotionPresets = componentVisualPresets
-        .filter((preset) => preset.id.startsWith('motion-'))
-        .map((preset) => ({ id: preset.id, label: preset.label, description: preset.description }));
-    const motionComponentPresets = selectedInstance ? getMotionComponentPresets(selectedInstance.kind) : [];
-    const interactionMotionPresets = motionComponentPresets.filter((preset) =>
-        ['tap-scale', 'hover-lift', 'button-press', 'card-hover'].includes(preset.id),
+    const componentVisualPresets = useMemo(
+        () => (selectedInstance ? getComponentVisualPresets(selectedInstance.kind) : []),
+        [selectedInstance?.kind],
     );
-    const surfaceMotionPresets = motionComponentPresets.filter((preset) =>
-        ['fade-in', 'fade-scale', 'scale-in', 'slide-up', 'slide-down', 'slide-in-left', 'slide-in-right', 'modal-content', 'sheet-content', 'dropdown-down', 'dropdown-up'].includes(preset.id),
+    const visualMotionPresets = useMemo(
+        () =>
+            componentVisualPresets
+                .filter((preset) => preset.id.startsWith('motion-'))
+                .map((preset) => ({ id: preset.id, label: preset.label, description: preset.description })),
+        [componentVisualPresets],
+    );
+    const motionComponentPresets = useMemo(
+        () => (selectedInstance ? getMotionComponentPresets(selectedInstance.kind) : []),
+        [selectedInstance?.kind],
+    );
+    const interactionMotionPresets = useMemo(
+        () =>
+            motionComponentPresets.filter((preset) =>
+                ['tap-scale', 'hover-lift', 'button-press', 'card-hover'].includes(preset.id),
+            ),
+        [motionComponentPresets],
+    );
+    const surfaceMotionPresets = useMemo(
+        () =>
+            motionComponentPresets.filter((preset) =>
+                ['fade-in', 'fade-scale', 'scale-in', 'slide-up', 'slide-down', 'slide-in-left', 'slide-in-right', 'modal-content', 'sheet-content', 'dropdown-down', 'dropdown-up'].includes(preset.id),
+            ),
+        [motionComponentPresets],
     );
 
     const canvasBackground = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';

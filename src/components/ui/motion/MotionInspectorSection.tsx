@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import { Switch } from 'radix-ui';
@@ -666,23 +666,31 @@ export function MotionInspectorSection({
                 : componentKind === 'popover'
                     ? 'popoverTextMotionPresetId'
                     : null;
-    const hoverMotionPresets = interactionMotionPresets.filter(
-        (preset) =>
-            preset.values?.motionHoverScale !== undefined ||
-            preset.values?.motionHoverX !== undefined ||
-            preset.values?.motionHoverY !== undefined ||
-            preset.values?.motionHoverRotate !== undefined ||
-            preset.values?.motionHoverOpacity !== undefined ||
-            preset.values?.motionHoverTransitionType !== undefined,
+    const hoverMotionPresets = useMemo(
+        () =>
+            interactionMotionPresets.filter(
+                (preset) =>
+                    preset.values?.motionHoverScale !== undefined ||
+                    preset.values?.motionHoverX !== undefined ||
+                    preset.values?.motionHoverY !== undefined ||
+                    preset.values?.motionHoverRotate !== undefined ||
+                    preset.values?.motionHoverOpacity !== undefined ||
+                    preset.values?.motionHoverTransitionType !== undefined,
+            ),
+        [interactionMotionPresets],
     );
-    const tapMotionPresets = interactionMotionPresets.filter(
-        (preset) =>
-            preset.values?.motionTapScale !== undefined ||
-            preset.values?.motionTapX !== undefined ||
-            preset.values?.motionTapY !== undefined ||
-            preset.values?.motionTapRotate !== undefined ||
-            preset.values?.motionTapOpacity !== undefined ||
-            preset.values?.motionTapTransitionType !== undefined,
+    const tapMotionPresets = useMemo(
+        () =>
+            interactionMotionPresets.filter(
+                (preset) =>
+                    preset.values?.motionTapScale !== undefined ||
+                    preset.values?.motionTapX !== undefined ||
+                    preset.values?.motionTapY !== undefined ||
+                    preset.values?.motionTapRotate !== undefined ||
+                    preset.values?.motionTapOpacity !== undefined ||
+                    preset.values?.motionTapTransitionType !== undefined,
+            ),
+        [interactionMotionPresets],
     );
     const applyScopedInteractionPreset = (presetId: string, scope: 'hover' | 'tap') => {
         const preset = interactionMotionPresets.find((item) => item.id === presetId);
@@ -1226,7 +1234,12 @@ export function MotionInspectorSection({
                                         damping={selectedStyle.motionTapDamping}
                                         mass={selectedStyle.motionTapMass}
                                         onTransitionTypeChange={(v) => updateSelectedStyle('motionTapTransitionType', v)}
-                                        onEaseChange={(v) => updateSelectedStyle('motionTapEase', v)}
+                                        onEaseChange={(v) => {
+                                            updateSelectedStyle('motionTapEase', v);
+                                            if (selectedStyle.motionTapTransitionType === 'spring') {
+                                                updateSelectedStyle('motionTapTransitionType', 'tween');
+                                            }
+                                        }}
                                         onDurationChange={(v) => updateSelectedStyle('motionTapDuration', v)}
                                         onDelayChange={(v) => updateSelectedStyle('motionTapDelay', v)}
                                         onStiffnessChange={(v) => updateSelectedStyle('motionTapStiffness', v)}
@@ -1403,6 +1416,85 @@ export function MotionInspectorSection({
                                     ) : null}
                                 </div>
                             ) : null}
+                        </CollapsibleContent>
+                    </div>
+                </Collapsible>
+            ) : null}
+
+            {componentKind === 'alert' && selectedStyle.alertDismissible ? (
+                <Collapsible defaultOpen>
+                    <div className="space-y-1.5 border-t border-white/[0.08] pt-2">
+                        <CollapsibleTrigger className="group/close-motion flex w-full items-center justify-between text-left">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Close Button Motion</p>
+                            <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/close-motion:rotate-180" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                            <div className="space-y-3 pt-1">
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-[11px] text-[#8fa6c7]">Hover</span>
+                                        <Switch.Root
+                                            checked={selectedStyle.alertCloseHoverEnabled}
+                                            onCheckedChange={(checked) => updateSelectedStyle('alertCloseHoverEnabled', checked)}
+                                            aria-label="Enable hover motion for close button"
+                                            className={cn(
+                                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                                'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                                selectedStyle.alertCloseHoverEnabled ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
+                                            )}
+                                        >
+                                            <Switch.Thumb
+                                                className={cn(
+                                                    'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                    selectedStyle.alertCloseHoverEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
+                                                )}
+                                            />
+                                        </Switch.Root>
+                                    </div>
+                                    {selectedStyle.alertCloseHoverEnabled ? (
+                                        <MotionParamRow
+                                            label="Hover Scale"
+                                            value={selectedStyle.alertCloseHoverScale}
+                                            min={90}
+                                            max={118}
+                                            unit="%"
+                                            onChange={(value) => updateSelectedStyle('alertCloseHoverScale', value)}
+                                        />
+                                    ) : null}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-[11px] text-[#8fa6c7]">Tap</span>
+                                        <Switch.Root
+                                            checked={selectedStyle.alertCloseTapEnabled}
+                                            onCheckedChange={(checked) => updateSelectedStyle('alertCloseTapEnabled', checked)}
+                                            aria-label="Enable tap motion for close button"
+                                            className={cn(
+                                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                                'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                                selectedStyle.alertCloseTapEnabled ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
+                                            )}
+                                        >
+                                            <Switch.Thumb
+                                                className={cn(
+                                                    'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                    selectedStyle.alertCloseTapEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
+                                                )}
+                                            />
+                                        </Switch.Root>
+                                    </div>
+                                    {selectedStyle.alertCloseTapEnabled ? (
+                                        <MotionParamRow
+                                            label="Tap Scale"
+                                            value={selectedStyle.alertCloseTapScale}
+                                            min={80}
+                                            max={110}
+                                            unit="%"
+                                            onChange={(value) => updateSelectedStyle('alertCloseTapScale', value)}
+                                        />
+                                    ) : null}
+                                </div>
+                            </div>
                         </CollapsibleContent>
                     </div>
                 </Collapsible>
