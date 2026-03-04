@@ -1074,6 +1074,21 @@
   animation: ui-studio-loading-warning-pulse var(--ui-slider-bar-bounce, 0.18s) ease-in-out 1;
 }
 
+.ui-studio-input-autocomplete {
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+  border-radius: 1rem;
+}
+
+.ui-studio-input-autocomplete-option {
+  color: inherit;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.ui-studio-input-autocomplete-option:hover {
+  background: var(--ui-input-autocomplete-option-hover-bg, rgba(255, 255, 255, 0.1));
+  color: var(--ui-input-autocomplete-option-hover-text, #ffffff);
+}
+
 @utility animate-gradient-shift {
   animation: gradient-shift 15s ease infinite;
 }

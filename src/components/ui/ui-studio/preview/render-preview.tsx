@@ -788,15 +788,26 @@ export function renderPreview(
                                 </span>
                             ) : null}
                         </div>
-                        {instance.style.inputAutocompleteEnabled ? (
-                            renderEntryMotion(
-                                <div className="rounded-lg border border-white/10 bg-[#0f172a]/90 px-2 py-1.5 text-[11px] text-[#dbe7f8] shadow-lg">
-                                    <div className="rounded px-1.5 py-1 hover:bg-white/8">Autocomplete option</div>
-                                    <div className="rounded px-1.5 py-1 hover:bg-white/8">Another result</div>
-                                </div>,
-                                autocompleteMotion,
-                            )
-                        ) : null}
+            {instance.style.inputAutocompleteEnabled ? (
+                renderEntryMotion(
+                    <div
+                        className="rounded-lg px-2 py-1.5 text-[11px] shadow-lg ui-studio-input-autocomplete"
+                        style={{
+                            backgroundColor: instance.style.inputAutocompleteBgColor,
+                            borderColor: instance.style.inputAutocompleteBorderColor,
+                            color: instance.style.inputAutocompleteTextColor,
+                            borderWidth: 1,
+                            borderStyle: 'solid',
+                            ['--ui-input-autocomplete-option-hover-bg' as string]: instance.style.inputAutocompleteOptionHoverBgColor,
+                            ['--ui-input-autocomplete-option-hover-text' as string]: instance.style.inputAutocompleteOptionHoverTextColor,
+                        }}
+                    >
+                        <div className="rounded px-1.5 py-1 ui-studio-input-autocomplete-option">Autocomplete option</div>
+                        <div className="rounded px-1.5 py-1 ui-studio-input-autocomplete-option">Another result</div>
+                    </div>,
+                    autocompleteMotion,
+                )
+            ) : null}
                     </div>
                 );
             }
