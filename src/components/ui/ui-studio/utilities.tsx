@@ -156,12 +156,13 @@ export function supportsEntryMotion(kind: UIComponentKind): boolean {
 
 export function supportsGradientSlideEffect(kind: UIComponentKind): boolean {
     return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
-        || kind === 'accordion' || kind === 'alert';
+        || kind === 'accordion' || kind === 'alert' || kind === 'card';
 }
 
 export function supportsAnimatedBorderEffect(kind: UIComponentKind): boolean {
     return kind === 'button' || kind === 'badge' || kind === 'input' || supportsPanelStyle(kind)
-        || kind === 'tabs' || kind === 'accordion' || kind === 'alert' || kind === 'navigation-menu';
+        || kind === 'tabs' || kind === 'accordion' || kind === 'alert' || kind === 'navigation-menu'
+        || kind === 'card';
 }
 
 export function supportsRippleFillEffect(kind: UIComponentKind): boolean {
@@ -174,11 +175,29 @@ export function supportsLoadingEffect(kind: UIComponentKind): boolean {
 
 export function supportsSweepEffect(kind: UIComponentKind): boolean {
     return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
-        || kind === 'accordion' || kind === 'alert';
+        || kind === 'accordion' || kind === 'alert' || kind === 'card';
 }
 
 export function supportsStaggerMotion(kind: UIComponentKind): boolean {
     return kind === 'dropdown' || kind === 'accordion' || kind === 'navigation-menu' || kind === 'data-table';
+}
+
+export function supportsBorderBeamEffect(kind: UIComponentKind): boolean {
+    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
+        || kind === 'accordion' || kind === 'alert' || supportsPanelStyle(kind);
+}
+
+export function supportsShineBorderEffect(kind: UIComponentKind): boolean {
+    return kind === 'button' || kind === 'badge' || kind === 'input' || kind === 'tabs'
+        || kind === 'accordion' || kind === 'alert' || supportsPanelStyle(kind);
+}
+
+export function supportsNeonGlowEffect(kind: UIComponentKind): boolean {
+    return supportsPanelStyle(kind) || kind === 'accordion' || kind === 'alert' || kind === 'card';
+}
+
+export function supportsPulseRingEffect(kind: UIComponentKind): boolean {
+    return kind === 'button' || kind === 'badge';
 }
 
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
@@ -224,6 +243,18 @@ export function buildExtractedEffectsClassName(kind: UIComponentKind, style: Com
         if (style.effectSweepStateDisabled) {
             classes.push('ui-studio-effect-sweep-state-disabled');
         }
+    }
+    if (supportsBorderBeamEffect(kind) && style.effectBorderBeamEnabled) {
+        classes.push('ui-studio-effect-border-beam');
+    }
+    if (supportsShineBorderEffect(kind) && style.effectShineBorderEnabled) {
+        classes.push('ui-studio-effect-shine-border');
+    }
+    if (supportsNeonGlowEffect(kind) && style.effectNeonGlowEnabled) {
+        classes.push('ui-studio-effect-neon-glow');
+    }
+    if (supportsPulseRingEffect(kind) && style.effectPulseRingEnabled) {
+        classes.push('ui-studio-effect-pulse-ring');
     }
     return classes.length > 0 ? classes.join(' ') : undefined;
 }
@@ -712,6 +743,40 @@ export function buildComponentWrapperStyle(
         return rest;
     }
 
+    // Animated Text: strip everything, text manages itself
+    if (kind === 'animated-text') {
+        const kept: CSSProperties = {};
+        if (fullStyle.color) kept.color = fullStyle.color;
+        if (fullStyle.fontSize) kept.fontSize = fullStyle.fontSize;
+        if (fullStyle.fontWeight) kept.fontWeight = fullStyle.fontWeight;
+        if (fullStyle.letterSpacing) kept.letterSpacing = fullStyle.letterSpacing;
+        if (fullStyle.lineHeight) kept.lineHeight = fullStyle.lineHeight;
+        if (fullStyle.textTransform) kept.textTransform = fullStyle.textTransform;
+        if (fullStyle.textShadow) kept.textShadow = fullStyle.textShadow;
+        return kept;
+    }
+
+    // Card: keep shadow, strip border/bg (variant handles these)
+    if (kind === 'card') {
+        const {
+            background: _bg,
+            borderColor: _bc,
+            borderWidth: _bw,
+            borderStyle: _bs,
+            border: _b,
+            paddingInline: _pi,
+            ...rest
+        } = fullStyle;
+        return rest;
+    }
+
+    // Switch: strip everything except shadow
+    if (kind === 'switch') {
+        const kept: CSSProperties = {};
+        if (fullStyle.boxShadow) kept.boxShadow = fullStyle.boxShadow;
+        return kept;
+    }
+
     // Components with variant-based visuals (own bg/border/sizing)
     const stripVisuals: UIComponentKind[] = [
         'alert', 'progress', 'skeleton', 'data-table',
@@ -795,6 +860,23 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         ['--ui-effect-sweep-opacity' as string]: `${Math.max(0, Math.min(100, config.effectSweepOpacity)) / 100}`,
         ['--ui-effect-sweep-width' as string]: `${Math.max(4, config.effectSweepWidth)}%`,
         ['--ui-effect-sweep-speed' as string]: `${config.effectSweepSpeed}s`,
+        // Border Beam
+        ['--ui-effect-beam-speed' as string]: `${config.effectBorderBeamSpeed}s`,
+        ['--ui-effect-beam-size' as string]: `${config.effectBorderBeamSize}px`,
+        ['--ui-effect-beam-from' as string]: config.effectBorderBeamColorFrom,
+        ['--ui-effect-beam-to' as string]: config.effectBorderBeamColorTo,
+        // Shine Border
+        ['--ui-effect-shine-speed' as string]: `${config.effectShineBorderSpeed}s`,
+        ['--ui-effect-shine-color' as string]: config.effectShineBorderColor,
+        ['--ui-effect-shine-width' as string]: `${config.effectShineBorderWidth}px`,
+        // Neon Glow
+        ['--ui-effect-neon-speed' as string]: `${config.effectNeonGlowSpeed}s`,
+        ['--ui-effect-neon-color1' as string]: config.effectNeonGlowColor1,
+        ['--ui-effect-neon-color2' as string]: config.effectNeonGlowColor2,
+        ['--ui-effect-neon-size' as string]: `${config.effectNeonGlowSize}px`,
+        // Pulse Ring
+        ['--ui-effect-pulse-speed' as string]: `${config.effectPulseRingSpeed}s`,
+        ['--ui-effect-pulse-color' as string]: config.effectPulseRingColor,
         ['--ui-checkbox-selection-speed' as string]: `${config.checkboxSelectionAnimationSpeed}s`,
         ['--ui-slider-thumb-hover-scale' as string]: String(config.sliderThumbHoverScale),
         ['--ui-slider-thumb-tap-bounce' as string]: `${config.sliderThumbTapBounce}s`,

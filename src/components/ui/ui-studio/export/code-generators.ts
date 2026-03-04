@@ -6,9 +6,13 @@ import {
     buildPreviewPresentation,
     resolveTokenToHex,
     supportsAnimatedBorderEffect,
+    supportsBorderBeamEffect,
     supportsEntryMotion,
     supportsGradientSlideEffect,
+    supportsNeonGlowEffect,
+    supportsPulseRingEffect,
     supportsRippleFillEffect,
+    supportsShineBorderEffect,
     supportsSweepEffect,
     wrapSnippetInNamedComponent,
 } from '../utilities';
@@ -209,6 +213,21 @@ export function buildTailwindThemeStyles(
     const usesSweepEffect = instances.some(
         (instance) => supportsSweepEffect(instance.kind) && instance.style.effectSweepEnabled,
     );
+    const usesBorderBeamEffect = instances.some(
+        (instance) => supportsBorderBeamEffect(instance.kind) && instance.style.effectBorderBeamEnabled,
+    );
+    const usesShineBorderEffect = instances.some(
+        (instance) => supportsShineBorderEffect(instance.kind) && instance.style.effectShineBorderEnabled,
+    );
+    const usesNeonGlowEffect = instances.some(
+        (instance) => supportsNeonGlowEffect(instance.kind) && instance.style.effectNeonGlowEnabled,
+    );
+    const usesPulseRingEffect = instances.some(
+        (instance) => supportsPulseRingEffect(instance.kind) && instance.style.effectPulseRingEnabled,
+    );
+    const usesAnimatedText = instances.some(
+        (instance) => instance.kind === 'animated-text',
+    );
 
     const motionUtilityBlocks: string[] = [];
     if (usesRainbowMotion) {
@@ -405,6 +424,85 @@ export function buildTailwindThemeStyles(
   }`);
     }
 
+    if (usesBorderBeamEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-border-beam {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+
+  .ui-studio-effect-border-beam::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from calc(var(--ui-effect-beam-angle, 0deg)),
+      transparent 0%,
+      var(--ui-effect-beam-from, #22d3ee) 10%,
+      var(--ui-effect-beam-to, #a78bfa) 20%,
+      transparent 30%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: ui-studio-effect-beam-rotate var(--ui-effect-beam-speed, 6s) linear infinite;
+  }`);
+    }
+
+    if (usesShineBorderEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-shine-border {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+
+  .ui-studio-effect-shine-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--ui-effect-shine-width, 2px);
+    background: conic-gradient(
+      from calc(var(--ui-effect-shine-angle, 0deg) - 60deg),
+      transparent 0%,
+      var(--ui-effect-shine-color, #ffffff) 20%,
+      transparent 40%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: ui-studio-effect-shine-rotate var(--ui-effect-shine-speed, 4s) linear infinite;
+  }`);
+    }
+
+    if (usesNeonGlowEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-neon-glow {
+    animation: ui-studio-effect-neon-pulse var(--ui-effect-neon-speed, 3s) ease-in-out infinite alternate;
+  }`);
+    }
+
+    if (usesPulseRingEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-pulse-ring {
+    position: relative;
+  }
+
+  .ui-studio-effect-pulse-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid var(--ui-effect-pulse-color, #22d3ee);
+    pointer-events: none;
+    animation: ui-studio-effect-pulse-expand var(--ui-effect-pulse-speed, 1.5s) ease-out infinite;
+  }`);
+    }
+
     const motionKeyframes: string[] = [];
     if (usesRainbowMotion) {
         motionKeyframes.push(`@keyframes ui-studio-rainbow-shift {
@@ -429,6 +527,53 @@ export function buildTailwindThemeStyles(
   0% { transform: translateX(-160%); opacity: 0; }
   20% { opacity: var(--ui-effect-sweep-opacity, 0.4); }
   100% { transform: translateX(160%); opacity: 0; }
+}`);
+    }
+    if (usesBorderBeamEffect) {
+        motionKeyframes.push(`@keyframes ui-studio-effect-beam-rotate {
+  0% { --ui-effect-beam-angle: 0deg; }
+  100% { --ui-effect-beam-angle: 360deg; }
+}
+
+@property --ui-effect-beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}`);
+    }
+    if (usesShineBorderEffect) {
+        motionKeyframes.push(`@keyframes ui-studio-effect-shine-rotate {
+  0% { --ui-effect-shine-angle: 0deg; }
+  100% { --ui-effect-shine-angle: 360deg; }
+}
+
+@property --ui-effect-shine-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}`);
+    }
+    if (usesNeonGlowEffect) {
+        motionKeyframes.push(`@keyframes ui-studio-effect-neon-pulse {
+  0% { box-shadow: 0 0 var(--ui-effect-neon-size, 16px) color-mix(in srgb, var(--ui-effect-neon-color1, #22d3ee) 60%, transparent); }
+  100% { box-shadow: 0 0 var(--ui-effect-neon-size, 16px) color-mix(in srgb, var(--ui-effect-neon-color2, #a78bfa) 60%, transparent); }
+}`);
+    }
+    if (usesPulseRingEffect) {
+        motionKeyframes.push(`@keyframes ui-studio-effect-pulse-expand {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}`);
+    }
+    if (usesAnimatedText) {
+        motionKeyframes.push(`@keyframes ui-studio-gradient-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes ui-studio-shiny-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }`);
     }
 

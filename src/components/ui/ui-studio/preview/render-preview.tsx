@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import React, { type CSSProperties } from 'react';
 import { motion } from 'motion/react';
 import { Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
@@ -8,6 +8,9 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { AnimatedText } from '@/components/ui/animated-text';
 import {
     Checkbox as AnimatedCheckbox,
     CheckboxIndicator as AnimatedCheckboxIndicator,
@@ -65,8 +68,10 @@ import {
     buildExportClassBinding,
 } from '../utilities';
 import {
+    AdvancedHoverWrapper,
     buildEntryPresetMotionConfig,
     buildMotionTransition,
+    hasAdvancedHoverEnabled,
     renderEntryMotion,
     renderStaggeredChildren,
     renderWithMotionControls,
@@ -267,6 +272,49 @@ export function componentSnippet(
         case 'slider': {
             const declarations = [previewBindings.declarations, sliderClassBinding.declarations].filter(Boolean).join('\n');
             return `${declarations ? `${declarations}\n\n` : ''}<div${buildSnippetClassNameAttr(undefined, previewClassNameVar)}${previewStyleSnippet}>\n  <Slider${sliderClassNameSnippet} defaultValue={[55]} max={100} step={1} />\n</div>`;
+        }
+        case 'card': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const cardProps = [
+                instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
+                instance.style.cardShowDividers ? `showDividers` : '',
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            const headerSnippet = instance.style.cardShowHeader
+                ? `\n  <CardHeader>\n    <CardTitle>Card Title</CardTitle>\n    <CardDescription>Card description goes here.</CardDescription>\n  </CardHeader>`
+                : '';
+            const footerSnippet = instance.style.cardShowFooter
+                ? `\n  <CardFooter>\n    <Button variant="outline">Cancel</Button>\n    <Button>Save</Button>\n  </CardFooter>`
+                : '';
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${headerSnippet}\n  <CardContent>\n    <p>Card content goes here.</p>\n  </CardContent>${footerSnippet}\n</Card>`;
+        }
+        case 'switch': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const switchProps = [
+                instance.style.switchChecked ? 'defaultChecked' : '',
+                instance.style.switchDisabled ? 'disabled' : '',
+                instance.style.switchTrackColor ? `trackColor="${instance.style.switchTrackColor}"` : '',
+                instance.style.switchTrackActiveColor ? `trackActiveColor="${instance.style.switchTrackActiveColor}"` : '',
+                instance.style.switchThumbColor ? `thumbColor="${instance.style.switchThumbColor}"` : '',
+                instance.style.switchThumbActiveColor ? `thumbActiveColor="${instance.style.switchThumbActiveColor}"` : '',
+            ].filter(Boolean).join('\n  ');
+            return `${declarations ? `${declarations}\n\n` : ''}<div className="flex items-center gap-2">\n  <Switch\n    id="switch-demo"\n    ${switchProps ? `${switchProps}\n    ` : ''}${classNameSnippet.trim()}${previewStyleSnippet}\n  />\n  <Label htmlFor="switch-demo">${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
+        }
+        case 'animated-text': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const s = instance.style;
+            const textProps = [
+                `text="${s.animatedTextContent || 'Hello World'}"`,
+                s.animatedTextVariant !== 'blur-in' ? `variant="${s.animatedTextVariant}"` : '',
+                s.animatedTextSpeed !== 0.3 ? `speed={${s.animatedTextSpeed}}` : '',
+                (s.animatedTextVariant === 'blur-in' || s.animatedTextVariant === 'split-entrance') && s.animatedTextStaggerDelay !== 0.04 ? `stagger={${s.animatedTextStaggerDelay}}` : '',
+                (s.animatedTextVariant === 'blur-in' || s.animatedTextVariant === 'split-entrance') && s.animatedTextSplitBy !== 'word' ? `splitBy="${s.animatedTextSplitBy}"` : '',
+                (s.animatedTextVariant === 'gradient-sweep' || s.animatedTextVariant === 'shiny-text') && s.animatedTextGradientColor1 ? `gradientColor1="${s.animatedTextGradientColor1}"` : '',
+                (s.animatedTextVariant === 'gradient-sweep' || s.animatedTextVariant === 'shiny-text') && s.animatedTextGradientColor2 ? `gradientColor2="${s.animatedTextGradientColor2}"` : '',
+                s.animatedTextTrigger !== 'mount' ? `trigger="${s.animatedTextTrigger}"` : '',
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            return `${declarations ? `${declarations}\n\n` : ''}<AnimatedText\n  ${textProps}${previewStyleSnippet}\n/>`;
         }
         default:
             return '';
@@ -892,6 +940,83 @@ export function renderPreview(
                     />
                     {instance.style.skeletonLines > 1 && <Skeleton variant="text" animationSpeed={animSpeed} style={skeletonPassthrough} />}
                     {instance.style.skeletonLines > 2 && <Skeleton variant="text" animationSpeed={animSpeed} className="w-3/4" style={skeletonPassthrough} />}
+                </div>
+            );
+        }
+
+        case 'card': {
+            const dividerClass = instance.style.cardShowDividers ? '[&>[data-slot=card-header]]:border-b [&>[data-slot=card-footer]]:border-t' : '';
+            return (
+                <div className="w-full max-w-sm" style={buildComponentWrapperStyle(style, 'card')}>
+                    <Card
+                        variant={instance.style.cardVariant}
+                        showDividers={instance.style.cardShowDividers}
+                        className={cn(motionClassName, dividerClass)}
+                    >
+                        {instance.style.cardShowHeader && (
+                            <CardHeader>
+                                <CardTitle>Card Title</CardTitle>
+                                <CardDescription>Card description goes here.</CardDescription>
+                            </CardHeader>
+                        )}
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">This is the card content area. You can put any content here.</p>
+                        </CardContent>
+                        {instance.style.cardShowFooter && (
+                            <CardFooter className="justify-end gap-2">
+                                <Button variant="outline" size="sm">Cancel</Button>
+                                <Button size="sm">Save</Button>
+                            </CardFooter>
+                        )}
+                    </Card>
+                </div>
+            );
+        }
+
+        case 'switch': {
+            const trackStyle: React.CSSProperties = {};
+            if (instance.style.switchTrackColor) {
+                trackStyle.backgroundColor = instance.style.switchChecked
+                    ? (instance.style.switchTrackActiveColor || instance.style.switchTrackColor)
+                    : instance.style.switchTrackColor;
+            } else if (instance.style.switchTrackActiveColor && instance.style.switchChecked) {
+                trackStyle.backgroundColor = instance.style.switchTrackActiveColor;
+            }
+
+            return (
+                <div className="flex items-center gap-3" style={buildComponentWrapperStyle(style, 'switch')}>
+                    <Switch
+                        checked={instance.style.switchChecked}
+                        disabled={instance.style.switchDisabled}
+                        size={instance.style.size === 'sm' ? 'sm' : 'default'}
+                        trackColor={instance.style.switchTrackColor || undefined}
+                        trackActiveColor={instance.style.switchTrackActiveColor || undefined}
+                        thumbColor={instance.style.switchThumbColor || undefined}
+                        thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
+                        className={cn(motionClassName)}
+                        onCheckedChange={() => {}}
+                    />
+                    {instance.style.switchLabel && (
+                        <Label className="text-sm">{instance.style.switchLabel}</Label>
+                    )}
+                </div>
+            );
+        }
+
+        case 'animated-text': {
+            return (
+                <div style={buildComponentWrapperStyle(style, 'animated-text')}>
+                    <AnimatedText
+                        text={instance.style.animatedTextContent || 'Hello World'}
+                        variant={instance.style.animatedTextVariant}
+                        speed={instance.style.animatedTextSpeed}
+                        stagger={instance.style.animatedTextStaggerDelay}
+                        splitBy={instance.style.animatedTextSplitBy}
+                        gradientColor1={instance.style.animatedTextGradientColor1 || undefined}
+                        gradientColor2={instance.style.animatedTextGradientColor2 || undefined}
+                        trigger={instance.style.animatedTextTrigger}
+                        className={cn(motionClassName)}
+                    />
                 </div>
             );
         }

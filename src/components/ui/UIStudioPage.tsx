@@ -19,7 +19,7 @@ import {
     supportsButtonStateStyle,
     supportsEntryMotion,
 } from './ui-studio/utilities';
-import { getMotionComponentPresets, renderWithMotionControls } from './ui-studio/motion';
+import { AdvancedHoverWrapper, getMotionComponentPresets, hasAdvancedHoverEnabled, renderWithMotionControls } from './ui-studio/motion';
 import { renderPreview } from './ui-studio/preview';
 import { getComponentVisualPresets } from './ui-studio/utilities';
 import {
@@ -340,13 +340,26 @@ export function UIStudioComponentPage() {
                                     <div className="relative grid min-h-0 flex-[3_1_0%] place-items-center p-8">
                                         {selectedInstance && stagePreview && stagePreviewInstance ? (
                                             <div className="pointer-events-auto">
-                                                {renderWithMotionControls(
-                                                    renderPreview(stagePreviewInstance, stagePreview.style, stagePreview.motionClassName, {
-                                                        pinOverlayOpen: pinOverlayPreviews,
-                                                    }),
-                                                    stagePreviewInstance.style,
-                                                    !supportsEntryMotion(stagePreviewInstance.kind),
-                                                    !supportsEntryMotion(stagePreviewInstance.kind),
+                                                {hasAdvancedHoverEnabled(stagePreviewInstance.style) ? (
+                                                    <AdvancedHoverWrapper config={stagePreviewInstance.style}>
+                                                        {renderWithMotionControls(
+                                                            renderPreview(stagePreviewInstance, stagePreview.style, stagePreview.motionClassName, {
+                                                                pinOverlayOpen: pinOverlayPreviews,
+                                                            }),
+                                                            stagePreviewInstance.style,
+                                                            !supportsEntryMotion(stagePreviewInstance.kind),
+                                                            !supportsEntryMotion(stagePreviewInstance.kind),
+                                                        )}
+                                                    </AdvancedHoverWrapper>
+                                                ) : (
+                                                    renderWithMotionControls(
+                                                        renderPreview(stagePreviewInstance, stagePreview.style, stagePreview.motionClassName, {
+                                                            pinOverlayOpen: pinOverlayPreviews,
+                                                        }),
+                                                        stagePreviewInstance.style,
+                                                        !supportsEntryMotion(stagePreviewInstance.kind),
+                                                        !supportsEntryMotion(stagePreviewInstance.kind),
+                                                    )
                                                 )}
                                             </div>
                                         ) : (

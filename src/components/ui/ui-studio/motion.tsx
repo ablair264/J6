@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { motion } from 'motion/react';
+import { useRef, useCallback, type ReactNode } from 'react';
+import { motion, useMotionValue, useMotionTemplate, useSpring } from 'motion/react';
 import { normalizeStyleConfig, MOTION_COMPONENT_PRESETS, SURFACE_MOTION_PRESET_IDS } from './constants';
 import type { ComponentStyleConfig, MotionEaseOption, UIComponentKind } from '@/components/ui/ui-studio.types';
 
@@ -151,6 +151,7 @@ function buildMotionExitValues(config: ComponentStyleConfig) {
         y: config.motionInitialY,
         scale: config.motionInitialScale / 100,
         rotate: config.motionAnimateRotate === 0 ? 0 : config.motionAnimateRotate,
+        ...(config.motionInitialFilter && { filter: config.motionInitialFilter }),
     };
 }
 
@@ -166,6 +167,8 @@ export function renderEntryMotion(content: ReactNode, config: ComponentStyleConf
     const animateScale = config.motionAnimateScale !== 100
         ? [config.motionAnimateScale / 100, 1]
         : initialScale !== undefined ? 1 : undefined;
+    const hasFilter = !!(config.motionInitialFilter || config.motionAnimateFilter);
+    const hasTransformOrigin = !!config.motionTransformOrigin;
 
     return (
         <motion.div
@@ -174,6 +177,7 @@ export function renderEntryMotion(content: ReactNode, config: ComponentStyleConf
                 x: config.motionInitialX,
                 y: config.motionInitialY,
                 ...(initialScale !== undefined && { scale: initialScale }),
+                ...(hasFilter && config.motionInitialFilter && { filter: config.motionInitialFilter }),
             }}
             animate={{
                 opacity: config.motionAnimateOpacity / 100,
@@ -181,9 +185,11 @@ export function renderEntryMotion(content: ReactNode, config: ComponentStyleConf
                 y: animateY,
                 rotate: animateRotate,
                 ...(animateScale !== undefined && { scale: animateScale }),
+                ...(hasFilter && { filter: config.motionAnimateFilter || 'blur(0px)' }),
             }}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
             transition={buildMotionTransition(config, 'entry')}
+            {...(hasTransformOrigin && { style: { transformOrigin: config.motionTransformOrigin } })}
         >
             {content}
         </motion.div>
@@ -210,6 +216,8 @@ export function renderWithMotionControls(
     const animateScale = config.motionAnimateScale !== 100
         ? [config.motionAnimateScale / 100, 1]
         : initialScale !== undefined ? 1 : undefined;
+    const hasFilter = !!(config.motionInitialFilter || config.motionAnimateFilter);
+    const hasTransformOrigin = !!config.motionTransformOrigin;
 
     const whileHover = allowInteraction && config.motionHoverEnabled
         ? {
@@ -243,6 +251,7 @@ export function renderWithMotionControls(
                         x: config.motionInitialX,
                         y: config.motionInitialY,
                         ...(initialScale !== undefined && { scale: initialScale }),
+                        ...(hasFilter && config.motionInitialFilter && { filter: config.motionInitialFilter }),
                     }
                     : undefined
             }
@@ -254,6 +263,7 @@ export function renderWithMotionControls(
                         y: animateY,
                         rotate: animateRotate,
                         ...(animateScale !== undefined && { scale: animateScale }),
+                        ...(hasFilter && { filter: config.motionAnimateFilter || 'blur(0px)' }),
                     }
                     : undefined
             }
@@ -261,6 +271,7 @@ export function renderWithMotionControls(
             whileTap={whileTap}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
             transition={allowEntry ? buildMotionTransition(config, 'entry') : undefined}
+            {...(hasTransformOrigin && { style: { transformOrigin: config.motionTransformOrigin } })}
         >
             {content}
         </motion.div>
@@ -299,6 +310,107 @@ export function renderStaggeredChildren(
     });
 }
 
+// ─── Advanced Hover Effects (Tilt 3D / Glare / Spotlight) ────────────────
+
+export function hasAdvancedHoverEnabled(config: ComponentStyleConfig): boolean {
+    return config.motionHoverTiltEnabled || config.motionHoverGlareEnabled || config.motionHoverSpotlightEnabled;
+}
+
+/**
+ * React component wrapper that adds mouse-tracking hover effects.
+ * Uses useMotionValue for smooth, spring-animated transforms.
+ *
+ * Tilt 3D: rotateX/rotateY from mouse position (React Bits TiltedCard pattern)
+ * Glare: radial-gradient overlay positioned at mouse (React Bits GlareHover pattern)
+ * Spotlight: radial-gradient background at mouse (Magic UI MagicCard pattern)
+ */
+export function AdvancedHoverWrapper({
+    children,
+    config,
+    className,
+}: {
+    children: ReactNode;
+    config: ComponentStyleConfig;
+    className?: string;
+}) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Raw mouse position (0–1 range)
+    const mouseX = useMotionValue(0.5);
+    const mouseY = useMotionValue(0.5);
+
+    // Spring-animated tilt rotation for smooth return-to-zero
+    const tiltStrength = config.motionHoverTiltStrength;
+    const rotateX = useSpring(0, { stiffness: 300, damping: 30 });
+    const rotateY = useSpring(0, { stiffness: 300, damping: 30 });
+
+    // Glare overlay gradient (radial-gradient positioned at mouse)
+    const glareOpacityHex = Math.round((config.motionHoverGlareOpacity ?? 0.2) * 255)
+        .toString(16)
+        .padStart(2, '0');
+    const glareBackground = useMotionTemplate`radial-gradient(circle at ${mouseX}% ${mouseY}%, ${config.motionHoverGlareColor}${glareOpacityHex}, transparent 60%)`;
+
+    // Spotlight background gradient
+    const spotlightSize = config.motionHoverSpotlightSize ?? 200;
+    const spotlightBackground = useMotionTemplate`radial-gradient(${spotlightSize}px circle at ${mouseX}% ${mouseY}%, ${config.motionHoverSpotlightColor}22, transparent 80%)`;
+
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent<HTMLDivElement>) => {
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            mouseX.set(x);
+            mouseY.set(y);
+
+            if (config.motionHoverTiltEnabled) {
+                rotateX.set(((y / 100) - 0.5) * -tiltStrength);
+                rotateY.set(((x / 100) - 0.5) * tiltStrength);
+            }
+        },
+        [config.motionHoverTiltEnabled, tiltStrength, mouseX, mouseY, rotateX, rotateY],
+    );
+
+    const handleMouseLeave = useCallback(() => {
+        mouseX.set(50);
+        mouseY.set(50);
+        rotateX.set(0);
+        rotateY.set(0);
+    }, [mouseX, mouseY, rotateX, rotateY]);
+
+    return (
+        <motion.div
+            ref={containerRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            className={className}
+            style={{
+                position: 'relative',
+                transformStyle: config.motionHoverTiltEnabled ? 'preserve-3d' : undefined,
+                perspective: config.motionHoverTiltEnabled ? 800 : undefined,
+                rotateX: config.motionHoverTiltEnabled ? rotateX : undefined,
+                rotateY: config.motionHoverTiltEnabled ? rotateY : undefined,
+            }}
+        >
+            {children}
+            {config.motionHoverGlareEnabled && (
+                <motion.div
+                    className="pointer-events-none absolute inset-0 rounded-[inherit]"
+                    style={{ background: glareBackground }}
+                    aria-hidden="true"
+                />
+            )}
+            {config.motionHoverSpotlightEnabled && (
+                <motion.div
+                    className="pointer-events-none absolute inset-0 rounded-[inherit]"
+                    style={{ background: spotlightBackground }}
+                    aria-hidden="true"
+                />
+            )}
+        </motion.div>
+    );
+}
+
 // ─── Snippet Generation ───────────────────────────────────────────────────
 
 export function buildMotionComponentSnippet(config: ComponentStyleConfig): string {
@@ -319,11 +431,17 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
         ? `, scale: [${(config.motionAnimateScale / 100).toFixed(2)}, 1]`
         : config.motionInitialScale !== 100 ? ', scale: 1' : '';
 
+    const filterInitial = config.motionInitialFilter ? `, filter: '${config.motionInitialFilter}'` : '';
+    const filterAnimate = (config.motionInitialFilter || config.motionAnimateFilter)
+        ? `, filter: '${config.motionAnimateFilter || 'blur(0px)'}'`
+        : '';
+    const filterExit = config.motionInitialFilter ? `, filter: '${config.motionInitialFilter}'` : '';
+
     const entrySnippet = config.motionEntryEnabled
-        ? `\n  initial: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial} },\n  animate: { opacity: ${(config.motionAnimateOpacity / 100).toFixed(2)}, x: ${animateX}, y: ${animateY}, rotate: ${animateRotate}${scaleAnimate} },`
+        ? `\n  initial: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial}${filterInitial} },\n  animate: { opacity: ${(config.motionAnimateOpacity / 100).toFixed(2)}, x: ${animateX}, y: ${animateY}, rotate: ${animateRotate}${scaleAnimate}${filterAnimate} },`
         : '';
     const exitSnippet = config.motionExitEnabled
-        ? `\n  exit: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial}, rotate: ${config.motionAnimateRotate === 0 ? '0' : config.motionAnimateRotate} },`
+        ? `\n  exit: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial}${filterExit}, rotate: ${config.motionAnimateRotate === 0 ? '0' : config.motionAnimateRotate} },`
         : '';
 
     const hoverSnippet = config.motionHoverEnabled
@@ -333,11 +451,90 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
         ? `\n  whileTap: { scale: ${(config.motionTapScale / 100).toFixed(2)}, x: ${config.motionTapX}, y: ${config.motionTapY}, rotate: ${config.motionTapRotate}, opacity: ${(config.motionTapOpacity / 100).toFixed(2)}, transition: ${tapTransitionSnippet} },`
         : '';
 
-    let snippet = `const motionProps = {${entrySnippet}${exitSnippet}${hoverSnippet}${tapSnippet}\n  transition: ${entryTransitionSnippet},\n};\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
+    const transformOriginStyle = config.motionTransformOrigin
+        ? `\n  style: { transformOrigin: '${config.motionTransformOrigin}' },`
+        : '';
+
+    let snippet = `const motionProps = {${entrySnippet}${exitSnippet}${hoverSnippet}${tapSnippet}\n  transition: ${entryTransitionSnippet},${transformOriginStyle}\n};\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
 
     if (config.motionStaggerEnabled) {
         snippet += `\n\n// Stagger children\nconst staggerDelay = ${config.motionStaggerDelay};\n{items.map((item, i) => (\n  <motion.div\n    key={item.id}\n    initial={{ opacity: 0, y: 8 }}\n    animate={{ opacity: 1, y: 0 }}\n    transition={{ delay: i * staggerDelay, duration: 0.25, ease: 'easeOut' }}\n  >\n    {item.content}\n  </motion.div>\n))}`;
     }
 
+    if (hasAdvancedHoverEnabled(config)) {
+        snippet += buildAdvancedHoverSnippet(config);
+    }
+
     return snippet;
+}
+
+export function buildAdvancedHoverSnippet(config: ComponentStyleConfig): string {
+    if (!hasAdvancedHoverEnabled(config)) return '';
+
+    const parts: string[] = [];
+
+    if (config.motionHoverTiltEnabled) {
+        parts.push(
+`// ─── Tilt 3D (mouse-tracking perspective rotation) ───
+const containerRef = useRef<HTMLDivElement>(null);
+const rotateX = useSpring(0, { stiffness: 300, damping: 30 });
+const rotateY = useSpring(0, { stiffness: 300, damping: 30 });
+
+function handleMouseMove(e: React.MouseEvent) {
+  const rect = containerRef.current?.getBoundingClientRect();
+  if (!rect) return;
+  const x = (e.clientX - rect.left) / rect.width - 0.5;
+  const y = (e.clientY - rect.top) / rect.height - 0.5;
+  rotateX.set(y * -${config.motionHoverTiltStrength});
+  rotateY.set(x * ${config.motionHoverTiltStrength});
+}
+function handleMouseLeave() { rotateX.set(0); rotateY.set(0); }
+
+<motion.div
+  ref={containerRef}
+  onMouseMove={handleMouseMove}
+  onMouseLeave={handleMouseLeave}
+  style={{ perspective: 800, rotateX, rotateY }}
+>
+  {/* content */}
+</motion.div>`
+        );
+    }
+
+    if (config.motionHoverGlareEnabled) {
+        const opHex = Math.round((config.motionHoverGlareOpacity ?? 0.2) * 255).toString(16).padStart(2, '0');
+        parts.push(
+`// ─── Glare (radial-gradient overlay follows mouse) ───
+const mouseX = useMotionValue(50);
+const mouseY = useMotionValue(50);
+const glare = useMotionTemplate\`radial-gradient(circle at \${mouseX}% \${mouseY}%, ${config.motionHoverGlareColor}${opHex}, transparent 60%)\`;
+
+<motion.div className="relative" onMouseMove={/* update mouseX/mouseY */}>
+  {/* content */}
+  <motion.div
+    className="pointer-events-none absolute inset-0 rounded-[inherit]"
+    style={{ background: glare }}
+  />
+</motion.div>`
+        );
+    }
+
+    if (config.motionHoverSpotlightEnabled) {
+        parts.push(
+`// ─── Spotlight (radial-gradient background follows mouse) ───
+const mouseX = useMotionValue(50);
+const mouseY = useMotionValue(50);
+const spotlight = useMotionTemplate\`radial-gradient(${config.motionHoverSpotlightSize}px circle at \${mouseX}% \${mouseY}%, ${config.motionHoverSpotlightColor}22, transparent 80%)\`;
+
+<motion.div className="relative" onMouseMove={/* update mouseX/mouseY */}>
+  {/* content */}
+  <motion.div
+    className="pointer-events-none absolute inset-0 rounded-[inherit]"
+    style={{ background: spotlight }}
+  />
+</motion.div>`
+        );
+    }
+
+    return '\n\n' + parts.join('\n\n');
 }

@@ -25,7 +25,11 @@ import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type {
+    AnimatedTextSplitBy,
+    AnimatedTextTrigger,
+    AnimatedTextVariant,
     ButtonPreviewState,
+    CardVariant,
     ComponentInstance,
     ComponentStyleConfig,
     FillMode,
@@ -42,13 +46,17 @@ import {
     getComponentVisualPreset,
     getComponentVisualPresets,
     supportsAnimatedBorderEffect,
+    supportsBorderBeamEffect,
     supportsButtonStateStyle,
     supportsDropdownHoverStyle,
     supportsGradientSlideEffect,
     supportsIconSelection,
     supportsLoadingEffect,
+    supportsNeonGlowEffect,
     supportsPanelStyle,
+    supportsPulseRingEffect,
     supportsRippleFillEffect,
+    supportsShineBorderEffect,
     supportsSweepEffect,
     supportsTypographyStyle,
 } from '../utilities';
@@ -103,6 +111,10 @@ export function InspectorPanel() {
     const supportsRippleFill = selectedInstance ? supportsRippleFillEffect(selectedInstance.kind) : false;
     const supportsLoadingState = selectedInstance ? supportsLoadingEffect(selectedInstance.kind) : false;
     const supportsSweep = selectedInstance ? supportsSweepEffect(selectedInstance.kind) : false;
+    const supportsBorderBeam = selectedInstance ? supportsBorderBeamEffect(selectedInstance.kind) : false;
+    const supportsShineBorder = selectedInstance ? supportsShineBorderEffect(selectedInstance.kind) : false;
+    const supportsNeonGlow = selectedInstance ? supportsNeonGlowEffect(selectedInstance.kind) : false;
+    const supportsPulseRing = selectedInstance ? supportsPulseRingEffect(selectedInstance.kind) : false;
 
     const supportsTextIconMode =
         selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
@@ -110,6 +122,9 @@ export function InspectorPanel() {
     const isDataTable = selectedInstance?.kind === 'data-table';
     const isAccordion = selectedInstance?.kind === 'accordion';
     const isTabs = selectedInstance?.kind === 'tabs';
+    const isCard = selectedInstance?.kind === 'card';
+    const isSwitch = selectedInstance?.kind === 'switch';
+    const isAnimatedText = selectedInstance?.kind === 'animated-text';
 
     const showWidthControl =
         selectedInstance?.kind === 'slider' ||
@@ -160,6 +175,10 @@ export function InspectorPanel() {
             { id: 'ripple-fill', label: 'Ripple Fill (Hover)', enabled: selectedStyle.effectRippleFillEnabled, supported: supportsRippleFill },
             { id: 'loading-state', label: 'Loading State Icon', enabled: selectedStyle.effectLoadingActiveEnabled, supported: supportsLoadingState },
             { id: 'sweep', label: 'Sweep Animation', enabled: selectedStyle.effectSweepEnabled, supported: supportsSweep },
+            { id: 'border-beam', label: 'Border Beam', enabled: selectedStyle.effectBorderBeamEnabled, supported: supportsBorderBeam },
+            { id: 'shine-border', label: 'Shine Border', enabled: selectedStyle.effectShineBorderEnabled, supported: supportsShineBorder },
+            { id: 'neon-glow', label: 'Neon Glow', enabled: selectedStyle.effectNeonGlowEnabled, supported: supportsNeonGlow },
+            { id: 'pulse-ring', label: 'Pulse Ring', enabled: selectedStyle.effectPulseRingEnabled, supported: supportsPulseRing },
         ].filter((item) => item.supported)
         : [];
     const inactiveEffectOptions = effectOptions.filter((item) => !item.enabled);
@@ -251,7 +270,7 @@ export function InspectorPanel() {
 
     // ─── Effect helpers ───────────────────────────────────────────────────
 
-    type EffectId = 'drop-shadow' | 'inner-shadow' | 'background-blur' | 'glass-tint' | 'gradient-slide' | 'animated-border' | 'ripple-fill' | 'loading-state' | 'sweep';
+    type EffectId = 'drop-shadow' | 'inner-shadow' | 'background-blur' | 'glass-tint' | 'gradient-slide' | 'animated-border' | 'ripple-fill' | 'loading-state' | 'sweep' | 'border-beam' | 'shine-border' | 'neon-glow' | 'pulse-ring';
 
     const setEffectEnabled = (effectId: EffectId, enabled: boolean) => {
         switch (effectId) {
@@ -264,6 +283,10 @@ export function InspectorPanel() {
             case 'ripple-fill': updateSelectedStyle('effectRippleFillEnabled', enabled); break;
             case 'loading-state': updateSelectedStyle('effectLoadingActiveEnabled', enabled); break;
             case 'sweep': updateSelectedStyle('effectSweepEnabled', enabled); break;
+            case 'border-beam': updateSelectedStyle('effectBorderBeamEnabled', enabled); break;
+            case 'shine-border': updateSelectedStyle('effectShineBorderEnabled', enabled); break;
+            case 'neon-glow': updateSelectedStyle('effectNeonGlowEnabled', enabled); break;
+            case 'pulse-ring': updateSelectedStyle('effectPulseRingEnabled', enabled); break;
         }
     };
 
@@ -446,6 +469,39 @@ export function InspectorPanel() {
                         <FlatUnitField label="Sweep Width" value={selectedStyle.effectSweepWidth} min={8} max={60} unit="%" onChange={(value) => updateSelectedStyle('effectSweepWidth', value)} />
                         <FlatUnitField label="Sweep Speed" value={selectedStyle.effectSweepSpeed} min={0.4} max={4} step={0.1} unit="s" onChange={(value) => updateSelectedStyle('effectSweepSpeed', value)} />
                         {renderEffectStateSelect('sweep')}
+                    </div>
+                );
+            case 'border-beam':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Color From" value={selectedStyle.effectBorderBeamColorFrom} onChange={(value) => updateSelectedStyle('effectBorderBeamColorFrom', value)} tokens={activeTokenSet.tokens} />
+                        <FlatColorControl label="Color To" value={selectedStyle.effectBorderBeamColorTo} onChange={(value) => updateSelectedStyle('effectBorderBeamColorTo', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Beam Size" value={selectedStyle.effectBorderBeamSize} min={20} max={200} step={5} unit="px" onChange={(value) => updateSelectedStyle('effectBorderBeamSize', value)} />
+                        <FlatUnitField label="Speed" value={selectedStyle.effectBorderBeamSpeed} min={1} max={12} step={0.5} unit="s" onChange={(value) => updateSelectedStyle('effectBorderBeamSpeed', value)} />
+                    </div>
+                );
+            case 'shine-border':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Shine Color" value={selectedStyle.effectShineBorderColor} onChange={(value) => updateSelectedStyle('effectShineBorderColor', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Border Width" value={selectedStyle.effectShineBorderWidth} min={1} max={4} step={0.5} unit="px" onChange={(value) => updateSelectedStyle('effectShineBorderWidth', value)} />
+                        <FlatUnitField label="Speed" value={selectedStyle.effectShineBorderSpeed} min={1} max={10} step={0.5} unit="s" onChange={(value) => updateSelectedStyle('effectShineBorderSpeed', value)} />
+                    </div>
+                );
+            case 'neon-glow':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Color 1" value={selectedStyle.effectNeonGlowColor1} onChange={(value) => updateSelectedStyle('effectNeonGlowColor1', value)} tokens={activeTokenSet.tokens} />
+                        <FlatColorControl label="Color 2" value={selectedStyle.effectNeonGlowColor2} onChange={(value) => updateSelectedStyle('effectNeonGlowColor2', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Glow Size" value={selectedStyle.effectNeonGlowSize} min={4} max={40} step={2} unit="px" onChange={(value) => updateSelectedStyle('effectNeonGlowSize', value)} />
+                        <FlatUnitField label="Speed" value={selectedStyle.effectNeonGlowSpeed} min={1} max={8} step={0.5} unit="s" onChange={(value) => updateSelectedStyle('effectNeonGlowSpeed', value)} />
+                    </div>
+                );
+            case 'pulse-ring':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Ring Color" value={selectedStyle.effectPulseRingColor} onChange={(value) => updateSelectedStyle('effectPulseRingColor', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Speed" value={selectedStyle.effectPulseRingSpeed} min={0.5} max={4} step={0.25} unit="s" onChange={(value) => updateSelectedStyle('effectPulseRingSpeed', value)} />
                     </div>
                 );
         }
@@ -744,6 +800,98 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Card Config */}
+                    {isCard && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
+                                <FlatField label="Variant" stacked>
+                                    <FlatSelect value={selectedStyle.cardVariant} onValueChange={(value) => updateSelectedStyle('cardVariant', value as CardVariant)} ariaLabel="Card variant">
+                                        <option value="default">Default</option>
+                                        <option value="bordered">Bordered</option>
+                                        <option value="elevated">Elevated</option>
+                                        <option value="glass">Glass</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatSwitchRow label="Show Header" checked={selectedStyle.cardShowHeader} onCheckedChange={(value) => updateSelectedStyle('cardShowHeader', value)} />
+                                    <FlatSwitchRow label="Show Footer" checked={selectedStyle.cardShowFooter} onCheckedChange={(value) => updateSelectedStyle('cardShowFooter', value)} />
+                                    <FlatSwitchRow label="Dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
+                                </div>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Switch Config */}
+                    {isSwitch && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Switch Config" icon={Table} defaultOpen>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatSwitchRow label="Checked" checked={selectedStyle.switchChecked} onCheckedChange={(value) => updateSelectedStyle('switchChecked', value)} />
+                                    <FlatSwitchRow label="Disabled" checked={selectedStyle.switchDisabled} onCheckedChange={(value) => updateSelectedStyle('switchDisabled', value)} />
+                                </div>
+                                <FlatColorControl label="Track (Off)" value={selectedStyle.switchTrackColor} onChange={(value) => updateSelectedStyle('switchTrackColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Track (On)" value={selectedStyle.switchTrackActiveColor} onChange={(value) => updateSelectedStyle('switchTrackActiveColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Thumb (Off)" value={selectedStyle.switchThumbColor} onChange={(value) => updateSelectedStyle('switchThumbColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Thumb (On)" value={selectedStyle.switchThumbActiveColor} onChange={(value) => updateSelectedStyle('switchThumbActiveColor', value)} tokens={activeTokenSet.tokens} />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
+                    {/* Animated Text Config */}
+                    {isAnimatedText && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Text Animation" icon={Sparkles} defaultOpen>
+                                <FlatField label="Variant" stacked>
+                                    <FlatSelect value={selectedStyle.animatedTextVariant} onValueChange={(value) => updateSelectedStyle('animatedTextVariant', value as AnimatedTextVariant)} ariaLabel="Animation variant">
+                                        <option value="typewriter">Typewriter</option>
+                                        <option value="blur-in">Blur In</option>
+                                        <option value="split-entrance">Split Entrance</option>
+                                        <option value="counting-number">Counting Number</option>
+                                        <option value="decrypt">Decrypt</option>
+                                        <option value="gradient-sweep">Gradient Sweep</option>
+                                        <option value="shiny-text">Shiny Text</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                <FlatField label="Text Content" stacked>
+                                    <input
+                                        type="text"
+                                        className={studioInputClass}
+                                        value={selectedStyle.animatedTextContent}
+                                        onChange={(e) => updateSelectedStyle('animatedTextContent', e.target.value)}
+                                        placeholder="Enter text..."
+                                    />
+                                </FlatField>
+                                <FlatField label="Trigger" stacked>
+                                    <FlatSelect value={selectedStyle.animatedTextTrigger} onValueChange={(value) => updateSelectedStyle('animatedTextTrigger', value as AnimatedTextTrigger)} ariaLabel="Animation trigger">
+                                        <option value="mount">On Mount</option>
+                                        <option value="hover">On Hover</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance') && (
+                                    <FlatField label="Split By" stacked>
+                                        <FlatSelect value={selectedStyle.animatedTextSplitBy} onValueChange={(value) => updateSelectedStyle('animatedTextSplitBy', value as AnimatedTextSplitBy)} ariaLabel="Split mode">
+                                            <option value="char">Character</option>
+                                            <option value="word">Word</option>
+                                            <option value="line">Line</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                )}
+                                <div className="flex flex-wrap items-start gap-4">
+                                    <FlatUnitField label="Speed" value={selectedStyle.animatedTextSpeed} min={0.01} max={5} unit="s" onChange={(value) => updateSelectedStyle('animatedTextSpeed', value)} />
+                                    {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance') && (
+                                        <FlatUnitField label="Stagger" value={selectedStyle.animatedTextStaggerDelay} min={0.01} max={0.5} unit="s" onChange={(value) => updateSelectedStyle('animatedTextStaggerDelay', value)} />
+                                    )}
+                                </div>
+                                {(selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text') && (
+                                    <>
+                                        <FlatColorControl label="Gradient Color 1" value={selectedStyle.animatedTextGradientColor1} onChange={(value) => updateSelectedStyle('animatedTextGradientColor1', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Gradient Color 2" value={selectedStyle.animatedTextGradientColor2} onChange={(value) => updateSelectedStyle('animatedTextGradientColor2', value)} tokens={activeTokenSet.tokens} />
+                                    </>
+                                )}
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Appearance / Panel Design */}
                     <div className="p-1">
                         <FlatInspectorSection
@@ -936,6 +1084,34 @@ export function InspectorPanel() {
                             )}
                         </FlatInspectorSection>
                     </div>
+
+                    {/* Advanced Hover (Premium) */}
+                    {selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Advanced Hover" icon={Sparkles} defaultOpen={selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled}>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatSwitchRow label="Tilt 3D" checked={selectedStyle.motionHoverTiltEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverTiltEnabled', value)} />
+                                    <FlatSwitchRow label="Glare" checked={selectedStyle.motionHoverGlareEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverGlareEnabled', value)} />
+                                    <FlatSwitchRow label="Spotlight" checked={selectedStyle.motionHoverSpotlightEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverSpotlightEnabled', value)} />
+                                </div>
+                                {selectedStyle.motionHoverTiltEnabled && (
+                                    <FlatUnitField label="Tilt Strength" value={selectedStyle.motionHoverTiltStrength} min={1} max={45} unit="deg" onChange={(value) => updateSelectedStyle('motionHoverTiltStrength', value)} />
+                                )}
+                                {selectedStyle.motionHoverGlareEnabled && (
+                                    <>
+                                        <FlatColorControl label="Glare Color" value={selectedStyle.motionHoverGlareColor} onChange={(value) => updateSelectedStyle('motionHoverGlareColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatUnitField label="Glare Opacity" value={selectedStyle.motionHoverGlareOpacity} min={0.05} max={1} unit="" onChange={(value) => updateSelectedStyle('motionHoverGlareOpacity', value)} />
+                                    </>
+                                )}
+                                {selectedStyle.motionHoverSpotlightEnabled && (
+                                    <>
+                                        <FlatColorControl label="Spotlight Color" value={selectedStyle.motionHoverSpotlightColor} onChange={(value) => updateSelectedStyle('motionHoverSpotlightColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatUnitField label="Spotlight Size" value={selectedStyle.motionHoverSpotlightSize} min={50} max={600} unit="px" onChange={(value) => updateSelectedStyle('motionHoverSpotlightSize', value)} />
+                                    </>
+                                )}
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
 
                     {/* Effects */}
                     <div className="p-1">

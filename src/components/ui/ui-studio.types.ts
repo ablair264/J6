@@ -17,9 +17,16 @@ export type UIComponentKind =
   | 'skeleton'
   | 'slider'
   | 'tabs'
+  | 'animated-text'
+  | 'card'
+  | 'switch'
   | 'tooltip';
 
 export type SizeOption = 'sm' | 'md' | 'lg';
+export type CardVariant = 'default' | 'bordered' | 'elevated' | 'glass';
+export type AnimatedTextVariant = 'typewriter' | 'blur-in' | 'split-entrance' | 'counting-number' | 'decrypt' | 'gradient-sweep' | 'shiny-text';
+export type AnimatedTextSplitBy = 'char' | 'word' | 'line';
+export type AnimatedTextTrigger = 'mount' | 'hover';
 export type FillMode = 'solid' | 'gradient';
 export type FontPosition = 'left' | 'center' | 'right';
 export type MotionPresetId = 'none' | 'rainbow' | 'shimmer';
@@ -258,6 +265,27 @@ export interface ComponentStyleConfig {
   effectSweepStateHover: boolean;
   effectSweepStateActive: boolean;
   effectSweepStateDisabled: boolean;
+  // Border Beam (Magic UI BorderBeam — conic-gradient beam rotating around border)
+  effectBorderBeamEnabled: boolean;
+  effectBorderBeamSpeed: number;
+  effectBorderBeamSize: number;
+  effectBorderBeamColorFrom: string;
+  effectBorderBeamColorTo: string;
+  // Shine Border (Magic UI ShineBorder — conic-gradient sweep along border)
+  effectShineBorderEnabled: boolean;
+  effectShineBorderSpeed: number;
+  effectShineBorderColor: string;
+  effectShineBorderWidth: number;
+  // Neon Glow (Magic UI NeonGradientCard — animated box-shadow color cycling)
+  effectNeonGlowEnabled: boolean;
+  effectNeonGlowSpeed: number;
+  effectNeonGlowColor1: string;
+  effectNeonGlowColor2: string;
+  effectNeonGlowSize: number;
+  // Pulse Ring (Animate UI — ::after ring scales out + fades)
+  effectPulseRingEnabled: boolean;
+  effectPulseRingSpeed: number;
+  effectPulseRingColor: string;
   tooltipBodyMotionPresetId: string;
   tooltipTextMotionPresetId: string;
   dialogBodyMotionPresetId: string;
@@ -335,6 +363,37 @@ export interface ComponentStyleConfig {
   alertVariant: AlertVariant;
   alertDismissible: boolean;
   alertShowIcon: boolean;
+  // Card
+  cardVariant: CardVariant;
+  cardShowHeader: boolean;
+  cardShowFooter: boolean;
+  cardShowDividers: boolean;
+  // Switch
+  switchChecked: boolean;
+  switchDisabled: boolean;
+  switchLabel: string;
+  switchTrackColor: string;
+  switchTrackActiveColor: string;
+  switchThumbColor: string;
+  switchThumbActiveColor: string;
+  // Advanced Hover Effects (Premium — mouse-tracking interactions)
+  motionHoverTiltEnabled: boolean;
+  motionHoverTiltStrength: number;
+  motionHoverGlareEnabled: boolean;
+  motionHoverGlareColor: string;
+  motionHoverGlareOpacity: number;
+  motionHoverSpotlightEnabled: boolean;
+  motionHoverSpotlightColor: string;
+  motionHoverSpotlightSize: number;
+  // Animated Text
+  animatedTextVariant: AnimatedTextVariant;
+  animatedTextContent: string;
+  animatedTextSpeed: number;
+  animatedTextStaggerDelay: number;
+  animatedTextSplitBy: AnimatedTextSplitBy;
+  animatedTextGradientColor1: string;
+  animatedTextGradientColor2: string;
+  animatedTextTrigger: AnimatedTextTrigger;
 
   // ─── Phase 3: Refined Design Options ────────────────────────────
   // Typography
@@ -365,6 +424,11 @@ export interface ComponentStyleConfig {
   motionAnimateScale: number;
   // Custom bezier
   motionCustomBezier: [number, number, number, number];
+  // Filter (for blur-fade preset)
+  motionInitialFilter: string;
+  motionAnimateFilter: string;
+  // Transform origin (for expand presets)
+  motionTransformOrigin: string;
   // Stagger
   motionStaggerEnabled: boolean;
   motionStaggerDelay: number;
