@@ -153,6 +153,10 @@ export function supportsEntryMotion(kind: UIComponentKind): boolean {
     return INSPECTOR_REGISTRY[kind].motion.entryPresets;
 }
 
+export function supportsAdvancedHover(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].sections.advancedHover;
+}
+
 export function supportsGradientSlideEffect(kind: UIComponentKind): boolean {
     return INSPECTOR_REGISTRY[kind].effects.gradientSlide;
 }

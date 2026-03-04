@@ -603,6 +603,7 @@ export function MotionInspectorSection({
     componentKind,
     isOverlayComponent,
     supportsEntryMotion,
+    supportsAdvancedHover,
     visualMotionPresets,
     interactionMotionPresets,
     surfaceMotionPresets,
@@ -615,6 +616,7 @@ export function MotionInspectorSection({
     componentKind: UIComponentKind;
     isOverlayComponent: boolean;
     supportsEntryMotion: boolean;
+    supportsAdvancedHover: boolean;
     visualMotionPresets: MotionPresetOption[];
     interactionMotionPresets: MotionPresetOption[];
     surfaceMotionPresets: MotionPresetOption[];
@@ -772,6 +774,10 @@ export function MotionInspectorSection({
             />
         </div>
     );
+    const advancedHoverEnabled =
+        selectedStyle.motionHoverTiltEnabled ||
+        selectedStyle.motionHoverGlareEnabled ||
+        selectedStyle.motionHoverSpotlightEnabled;
     useEffect(() => {
         if ((!supportsEntryMotion || hasSplitOverlayMotion || !showTriggerTabs) && activeTab === 'overlay') {
             setActiveTab('hover');
@@ -1012,6 +1018,139 @@ export function MotionInspectorSection({
                                 </motion.div>
                             ) : null}
                         </AnimatePresence>
+
+                        {supportsAdvancedHover ? (
+                            <Collapsible defaultOpen={advancedHoverEnabled}>
+                                <div className="space-y-1.5 border-t border-white/[0.08] pt-2">
+                                    <CollapsibleTrigger className="group/advanced-hover flex w-full items-center justify-between text-left">
+                                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Advanced Hover</p>
+                                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/advanced-hover:rotate-180" />
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                                        <div className="space-y-2.5 pt-1">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <span className="text-[11px] text-[#8fa6c7]">Tilt 3D</span>
+                                                    <Switch.Root
+                                                        checked={selectedStyle.motionHoverTiltEnabled}
+                                                        onCheckedChange={(checked) => updateSelectedStyle('motionHoverTiltEnabled', checked)}
+                                                        aria-label="Enable 3D tilt"
+                                                        className={cn(
+                                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                                            selectedStyle.motionHoverTiltEnabled
+                                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                                : 'border-white/[0.12] bg-[#13161b]',
+                                                        )}
+                                                    >
+                                                        <Switch.Thumb
+                                                            className={cn(
+                                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                                selectedStyle.motionHoverTiltEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
+                                                            )}
+                                                        />
+                                                    </Switch.Root>
+                                                </div>
+                                                {selectedStyle.motionHoverTiltEnabled ? (
+                                                    <MotionParamRow
+                                                        label="Tilt Strength"
+                                                        value={selectedStyle.motionHoverTiltStrength}
+                                                        min={1}
+                                                        max={45}
+                                                        unit="°"
+                                                        onChange={(v) => updateSelectedStyle('motionHoverTiltStrength', v)}
+                                                    />
+                                                ) : null}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <span className="text-[11px] text-[#8fa6c7]">Glare</span>
+                                                    <Switch.Root
+                                                        checked={selectedStyle.motionHoverGlareEnabled}
+                                                        onCheckedChange={(checked) => updateSelectedStyle('motionHoverGlareEnabled', checked)}
+                                                        aria-label="Enable glare"
+                                                        className={cn(
+                                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                                            selectedStyle.motionHoverGlareEnabled
+                                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                                : 'border-white/[0.12] bg-[#13161b]',
+                                                        )}
+                                                    >
+                                                        <Switch.Thumb
+                                                            className={cn(
+                                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                                selectedStyle.motionHoverGlareEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
+                                                            )}
+                                                        />
+                                                    </Switch.Root>
+                                                </div>
+                                                {selectedStyle.motionHoverGlareEnabled ? (
+                                                    <div className="space-y-2.5">
+                                                        <MotionColorField
+                                                            label="Glare Color"
+                                                            value={selectedStyle.motionHoverGlareColor}
+                                                            onChange={(value) => updateSelectedStyle('motionHoverGlareColor', value)}
+                                                        />
+                                                        <MotionParamRow
+                                                            label="Glare Opacity"
+                                                            value={selectedStyle.motionHoverGlareOpacity}
+                                                            min={0.05}
+                                                            max={1}
+                                                            step={0.05}
+                                                            onChange={(v) => updateSelectedStyle('motionHoverGlareOpacity', v)}
+                                                        />
+                                                    </div>
+                                                ) : null}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <span className="text-[11px] text-[#8fa6c7]">Spotlight</span>
+                                                    <Switch.Root
+                                                        checked={selectedStyle.motionHoverSpotlightEnabled}
+                                                        onCheckedChange={(checked) => updateSelectedStyle('motionHoverSpotlightEnabled', checked)}
+                                                        aria-label="Enable spotlight"
+                                                        className={cn(
+                                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                                            selectedStyle.motionHoverSpotlightEnabled
+                                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                                : 'border-white/[0.12] bg-[#13161b]',
+                                                        )}
+                                                    >
+                                                        <Switch.Thumb
+                                                            className={cn(
+                                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                                selectedStyle.motionHoverSpotlightEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
+                                                            )}
+                                                        />
+                                                    </Switch.Root>
+                                                </div>
+                                                {selectedStyle.motionHoverSpotlightEnabled ? (
+                                                    <div className="space-y-2.5">
+                                                        <MotionColorField
+                                                            label="Spotlight Color"
+                                                            value={selectedStyle.motionHoverSpotlightColor}
+                                                            onChange={(value) => updateSelectedStyle('motionHoverSpotlightColor', value)}
+                                                        />
+                                                        <MotionParamRow
+                                                            label="Spotlight Size"
+                                                            value={selectedStyle.motionHoverSpotlightSize}
+                                                            min={50}
+                                                            max={600}
+                                                            unit="px"
+                                                            onChange={(v) => updateSelectedStyle('motionHoverSpotlightSize', v)}
+                                                        />
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    </CollapsibleContent>
+                                </div>
+                            </Collapsible>
+                        ) : null}
                     </motion.div>
                 ) : null}
 

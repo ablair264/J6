@@ -333,8 +333,8 @@ export function componentSnippet(
             if (hasCardContent(instance.style.cardSubtitleText)) contentParts.push(`    <p className="text-sm text-muted-foreground">${instance.style.cardSubtitleText}</p>`);
             if (hasCardContent(instance.style.cardBodyText)) contentParts.push(`    <p className="text-sm text-muted-foreground">${instance.style.cardBodyText}</p>`);
             if (hasCardContent(instance.style.cardPriceText)) contentParts.push(`    <div className="text-2xl font-bold">${instance.style.cardPriceText}</div>`);
-            if (instance.style.cardShowToggle) contentParts.push('    <div className="flex items-center justify-between">\n      <span className="text-sm">Enable feature</span>\n      <Switch />\n    </div>');
-            if (instance.style.cardShowButton) contentParts.push(`    <Button size="sm" className="w-full">${instance.style.cardButtonText || 'Click me'}</Button>`);
+            if (hasCardContent(instance.style.cardToggleText)) contentParts.push(`    <div className="flex items-center justify-between">\n      <span className="text-sm">${instance.style.cardToggleText}</span>\n      <Switch />\n    </div>`);
+            if (hasCardContent(instance.style.cardButtonText)) contentParts.push(`    <Button size="sm" className="w-full">${instance.style.cardButtonText}</Button>`);
             const contentSnippet = contentParts.length > 0
                 ? `\n  <CardContent className="space-y-3">\n${contentParts.join('\n')}\n  </CardContent>`
                 : '';
@@ -1070,7 +1070,9 @@ export function renderPreview(
             const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
             const showBody = hasCardContent(instance.style.cardBodyText);
             const showPrice = hasCardContent(instance.style.cardPriceText);
-            const hasAnyContent = showTitle || showSubtitle || showBody || showPrice || instance.style.cardShowToggle || instance.style.cardShowButton;
+            const showToggle = hasCardContent(instance.style.cardToggleText);
+            const showButton = hasCardContent(instance.style.cardButtonText);
+            const hasAnyContent = showTitle || showSubtitle || showBody || showPrice || showToggle || showButton;
             const cardWrapperStyle = buildComponentWrapperStyle(style, 'card');
             const cardMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
             const cardDirectStyle = buildCardDirectStyle(style, instance.style);
@@ -1125,16 +1127,16 @@ export function renderPreview(
                     <span style={priceStyle}>{instance.style.cardPriceText}</span>
                 </div>
             ) : null;
-            const actionBlock = (instance.style.cardShowToggle || instance.style.cardShowButton) ? (
+            const actionBlock = (showToggle || showButton) ? (
                 <div className={cn('flex w-full flex-col gap-3', actionAlignment)}>
-                    {instance.style.cardShowToggle ? (
+                    {showToggle ? (
                         <div className="flex w-full items-center justify-between gap-3">
-                            <span style={bodyStyle}>Enable feature</span>
+                            <span style={bodyStyle}>{instance.style.cardToggleText}</span>
                             <Switch defaultChecked />
                         </div>
                     ) : null}
-                    {instance.style.cardShowButton ? (
-                        <Button size="sm" className="w-full">{instance.style.cardButtonText || 'Click me'}</Button>
+                    {showButton ? (
+                        <Button size="sm" className="w-full">{instance.style.cardButtonText}</Button>
                     ) : null}
                 </div>
             ) : null;
@@ -1285,6 +1287,7 @@ export function renderPreview(
                     ) : null,
                 },
             ];
+            const hasInnerSections = innerSections.some((section) => section.node !== null);
             return (
                 <div className="w-full" style={{ ...pcWrapperStyle, maxWidth: pcMaxWidth || '24rem' }}>
                     <Card
@@ -1297,7 +1300,7 @@ export function renderPreview(
                                 { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
                                 {
                                     key: 'body-stack',
-                                    node: (
+                                    node: hasInnerSections ? (
                                         <div className="flex flex-col">
                                             {buildCardSectionStack(
                                                 innerSections,
@@ -1306,7 +1309,7 @@ export function renderPreview(
                                                 instance.style.cardDividerWidth,
                                             )}
                                         </div>
-                                    ),
+                                    ) : null,
                                 },
                                 { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
                             ],
@@ -1425,6 +1428,7 @@ export function renderPreview(
                     ) : null,
                 },
             ];
+            const hasListingContent = contentSections.some((section) => section.node !== null);
             return (
                 <div className="w-full" style={{ ...lcWrapperStyle, maxWidth: lcMaxWidth || '25rem' }}>
                     <Card
@@ -1437,7 +1441,7 @@ export function renderPreview(
                                 { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
                                 {
                                     key: 'content',
-                                    node: (
+                                    node: hasListingContent ? (
                                         <CardContent className="space-y-3 pt-4">
                                             {buildCardSectionStack(
                                                 contentSections,
@@ -1446,7 +1450,7 @@ export function renderPreview(
                                                 instance.style.cardDividerWidth,
                                             )}
                                         </CardContent>
-                                    ),
+                                    ) : null,
                                 },
                                 { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
                             ],

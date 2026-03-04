@@ -1046,25 +1046,37 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Actions" defaultOpen={selectedStyle.cardShowToggle || selectedStyle.cardShowButton}>
-                                        <FlatSwitchRow label="Toggle" checked={selectedStyle.cardShowToggle} onCheckedChange={(value) => updateSelectedStyle('cardShowToggle', value)} />
-                                        <FlatSwitchRow label="Button" checked={selectedStyle.cardShowButton} onCheckedChange={(value) => updateSelectedStyle('cardShowButton', value)} />
-                                        {(selectedStyle.cardShowToggle || selectedStyle.cardShowButton) ? (
+                                    <CardConfigSubsection title="Actions" defaultOpen={Boolean(selectedStyle.cardToggleText.trim()) || Boolean(selectedStyle.cardButtonText.trim())}>
+                                        <FlatField label="Toggle Label" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardToggleText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardToggleText: event.target.value,
+                                                    cardShowToggle: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide the toggle"
+                                            />
+                                        </FlatField>
+                                        <FlatField label="Button Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardButtonText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardButtonText: event.target.value,
+                                                    cardShowButton: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide the button"
+                                            />
+                                        </FlatField>
+                                        {(selectedStyle.cardToggleText.trim() || selectedStyle.cardButtonText.trim()) ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Actions position">
                                                     <option value="top">Top</option>
                                                     <option value="bottom">Bottom</option>
                                                 </FlatSelect>
-                                            </FlatField>
-                                        ) : null}
-                                        {selectedStyle.cardShowButton ? (
-                                            <FlatField label="Button Text" stacked>
-                                                <input
-                                                    type="text"
-                                                    value={selectedStyle.cardButtonText}
-                                                    onChange={(e) => updateSelectedStyle('cardButtonText', e.target.value)}
-                                                    className={studioInputClass}
-                                                />
                                             </FlatField>
                                         ) : null}
                                     </CardConfigSubsection>
@@ -1798,35 +1810,6 @@ export function InspectorPanel() {
                                     </PopoverContent>
                                 </Popover>
                             </div>
-                            {layout.sections.advancedHover && selectedStyle ? (
-                                <div className="px-2 pb-2 pt-1">
-                                    <FlatElementSubsection
-                                        title="Advanced Hover"
-                                        defaultOpen={selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled}
-                                    >
-                                        <div className="space-y-1.5">
-                                            <FlatSwitchRow label="Tilt 3D" checked={selectedStyle.motionHoverTiltEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverTiltEnabled', value)} />
-                                            <FlatSwitchRow label="Glare" checked={selectedStyle.motionHoverGlareEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverGlareEnabled', value)} />
-                                            <FlatSwitchRow label="Spotlight" checked={selectedStyle.motionHoverSpotlightEnabled} onCheckedChange={(value) => updateSelectedStyle('motionHoverSpotlightEnabled', value)} />
-                                        </div>
-                                        {selectedStyle.motionHoverTiltEnabled ? (
-                                            <FlatUnitField label="Tilt Strength" value={selectedStyle.motionHoverTiltStrength} min={1} max={45} unit="deg" onChange={(value) => updateSelectedStyle('motionHoverTiltStrength', value)} />
-                                        ) : null}
-                                        {selectedStyle.motionHoverGlareEnabled ? (
-                                            <>
-                                                <FlatColorControl label="Glare Color" value={selectedStyle.motionHoverGlareColor} onChange={(value) => updateSelectedStyle('motionHoverGlareColor', value)} tokens={activeTokenSet.tokens} />
-                                                <FlatUnitField label="Glare Opacity" value={selectedStyle.motionHoverGlareOpacity} min={0.05} max={1} unit="" onChange={(value) => updateSelectedStyle('motionHoverGlareOpacity', value)} />
-                                            </>
-                                        ) : null}
-                                        {selectedStyle.motionHoverSpotlightEnabled ? (
-                                            <>
-                                                <FlatColorControl label="Spotlight Color" value={selectedStyle.motionHoverSpotlightColor} onChange={(value) => updateSelectedStyle('motionHoverSpotlightColor', value)} tokens={activeTokenSet.tokens} />
-                                                <FlatUnitField label="Spotlight Size" value={selectedStyle.motionHoverSpotlightSize} min={50} max={600} unit="px" onChange={(value) => updateSelectedStyle('motionHoverSpotlightSize', value)} />
-                                            </>
-                                        ) : null}
-                                    </FlatElementSubsection>
-                                </div>
-                            ) : null}
                             {effectOptions.filter((option) => option.enabled).length > 0 ? (
                                 <div className="space-y-2 px-2 pb-3 pt-1">
                                     {effectOptions

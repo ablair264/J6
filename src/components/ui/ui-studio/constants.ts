@@ -506,6 +506,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     cardShowButton: true,
     cardShowPrice: false,
     cardShowToggle: false,
+    cardToggleText: '',
     cardButtonText: 'Click me',
     cardImageSrc: '',
     cardImagePosition: 'top',
@@ -603,6 +604,9 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
         ...(style ?? {}),
     };
     if (style) {
+        if (style.cardToggleText === undefined && style.cardShowToggle) {
+            merged.cardToggleText = 'Enable feature';
+        }
         if (style.motionHoverTransitionType === undefined) {
             merged.motionHoverTransitionType = merged.motionTransitionType;
         }

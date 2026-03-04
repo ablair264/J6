@@ -16,6 +16,7 @@ import {
     buildKindTitle,
     buildPreviewPresentation,
     isUIComponentKind,
+    supportsAdvancedHover,
     supportsButtonStateStyle,
     supportsEntryMotion,
     supportsPanelStyle,
@@ -480,6 +481,7 @@ export function UIStudioComponentPage() {
                                             componentKind={selectedInstance.kind}
                                             isOverlayComponent={isOverlayComponent}
                                             supportsEntryMotion={supportsEntryMotion(selectedInstance.kind)}
+                                            supportsAdvancedHover={supportsAdvancedHover(selectedInstance.kind)}
                                             visualMotionPresets={visualMotionPresets}
                                             interactionMotionPresets={interactionMotionPresets}
                                             surfaceMotionPresets={surfaceMotionPresets}

@@ -382,6 +382,7 @@ export interface ComponentStyleConfig {
   cardShowButton: boolean;
   cardShowPrice: boolean;
   cardShowToggle: boolean;
+  cardToggleText: string;
   cardButtonText: string;
   cardImageSrc: string;
   cardImagePosition: 'top' | 'bottom';
