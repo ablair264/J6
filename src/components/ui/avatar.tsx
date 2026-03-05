@@ -72,16 +72,18 @@ function Avatar({
       data-slot="avatar"
       data-shape={shape}
       data-size={size}
-      className={cn("relative inline-flex shrink-0 items-center justify-center overflow-hidden", className)}
+      className={cn("relative inline-flex shrink-0 items-center justify-center", className)}
       style={mergedStyle}
       {...props}
     >
-      {children}
+      <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ borderRadius: "inherit" }}>
+        {children}
+      </div>
       {badge && (
         <span
           data-slot="avatar-badge"
           className={cn(
-            "absolute bottom-0 right-0 block rounded-full ring-2 ring-background",
+            "absolute bottom-0 right-0 z-10 block rounded-full ring-2 ring-background",
             typeof badgeColor === "string" && badgeColor.startsWith("#") ? "" : badgeColor,
           )}
           style={{
@@ -177,13 +179,17 @@ function AvatarFallback({
 function AvatarGroup({
   className,
   spacing = -8,
+  style,
   ...props
 }: React.ComponentProps<"div"> & { spacing?: number }) {
   return (
     <div
       data-slot="avatar-group"
-      className={cn("flex items-center", className)}
-      style={{ gap: spacing }}
+      className={cn("flex items-center [&>*+*]:ml-[var(--avatar-group-spacing)]", className)}
+      style={{
+        "--avatar-group-spacing": `${spacing}px`,
+        ...style,
+      } as React.CSSProperties}
       {...props}
     />
   )

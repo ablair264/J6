@@ -108,6 +108,185 @@ const AVATAR_DEMO_USERS: AvatarPopoverUser[] = [
     { name: 'Max Wu', initials: 'MW', role: 'DevOps' },
 ];
 
+function buildAvatarPopoverStyle(s: ComponentStyleConfig): CSSProperties {
+    const popoverBgAlpha = s.avatarPopoverBgOpacity / 100;
+    const popoverBg = s.avatarPopoverBgMode === 'gradient'
+        ? `linear-gradient(135deg, ${hexToRgba(s.avatarPopoverBgColor, popoverBgAlpha)} 0%, ${hexToRgba(s.avatarPopoverBgColorTo, popoverBgAlpha)} 100%)`
+        : hexToRgba(s.avatarPopoverBgColor, popoverBgAlpha);
+    const popoverBorder = s.avatarPopoverStrokeWeight > 0
+        ? `${s.avatarPopoverStrokeWeight}px solid ${hexToRgba(s.avatarPopoverStrokeColor, s.avatarPopoverStrokeOpacity / 100)}`
+        : 'none';
+    return {
+        width: s.avatarPopoverWidth,
+        padding: s.avatarPopoverPadding,
+        borderRadius: s.avatarPopoverRadius,
+        background: popoverBg,
+        border: popoverBorder,
+        backdropFilter: 'blur(8px)',
+        ...(s.avatarPopoverFontFamily ? { fontFamily: s.avatarPopoverFontFamily } : {}),
+        fontSize: s.avatarPopoverFontSize,
+        fontWeight: s.avatarPopoverFontBold ? 700 : s.avatarPopoverFontWeight,
+        color: s.avatarPopoverFontColor,
+        ...(s.avatarPopoverFontItalic ? { fontStyle: 'italic' as const } : {}),
+        ...(s.avatarPopoverFontUnderline ? { textDecoration: 'underline' } : {}),
+    };
+}
+
+function buildAvatarProps(s: ComponentStyleConfig) {
+    const hasImage = !!s.avatarSrc;
+    return {
+        customSize: s.avatarCustomSize,
+        radius: s.avatarRadius,
+        bgColor: hasImage ? undefined : s.avatarBgColor,
+        bgGradientTo: hasImage ? undefined : s.avatarBgColorTo,
+        bgMode: s.avatarBgMode as 'solid' | 'gradient',
+        bgOpacity: hasImage ? undefined : s.avatarBgOpacity,
+        strokeWeight: s.avatarStrokeWeight,
+        strokeColor: s.avatarStrokeColor,
+        strokeOpacity: s.avatarStrokeOpacity,
+        badge: s.avatarShowBadge,
+        badgeColor: s.avatarBadgeColor,
+    };
+}
+
+function buildAvatarHoverMotion(s: ComponentStyleConfig) {
+    if (s.motionHoverEnabled) {
+        return {
+            scale: s.motionHoverScale / 100,
+            x: s.motionHoverX,
+            y: s.motionHoverY,
+            rotate: s.motionHoverRotate,
+            opacity: s.motionHoverOpacity / 100,
+            transition: buildMotionTransition(s, 'hover'),
+        };
+    }
+    if (s.avatarPopoverEnabled) {
+        return { y: -2, scale: 1.06 };
+    }
+    return undefined;
+}
+
+function buildAvatarTapMotion(s: ComponentStyleConfig) {
+    if (s.motionTapEnabled) {
+        return {
+            scale: s.motionTapScale / 100,
+            x: s.motionTapX,
+            y: s.motionTapY,
+            rotate: s.motionTapRotate,
+            opacity: s.motionTapOpacity / 100,
+            transition: buildMotionTransition(s, 'tap'),
+        };
+    }
+    return undefined;
+}
+
+// ─── Single Avatar Preview (with popover support) ───────────────────────────
+
+function AvatarSinglePreview({ instance, motionClassName }: { instance: ComponentInstance; motionClassName?: string }) {
+    const s = instance.style;
+    const [hovered, setHovered] = useState(false);
+    const closeTimer = useRef<number | null>(null);
+
+    const clearCloseTimer = useCallback(() => {
+        if (closeTimer.current !== null) {
+            window.clearTimeout(closeTimer.current);
+            closeTimer.current = null;
+        }
+    }, []);
+
+    const openCard = useCallback(() => {
+        clearCloseTimer();
+        setHovered(true);
+    }, [clearCloseTimer]);
+
+    const closeCardWithDelay = useCallback((delayMs?: number) => {
+        clearCloseTimer();
+        closeTimer.current = window.setTimeout(() => {
+            setHovered(false);
+        }, delayMs ?? s.avatarPopoverDelay);
+    }, [clearCloseTimer, s.avatarPopoverDelay]);
+
+    useEffect(() => clearCloseTimer, [clearCloseTimer]);
+
+    if (s.avatarFontFamily) loadGoogleFont(s.avatarFontFamily);
+    if (s.avatarPopoverFontFamily) loadGoogleFont(s.avatarPopoverFontFamily);
+
+    const hasImage = !!s.avatarSrc;
+    const avatarProps = buildAvatarProps(s);
+    const popoverStyle = buildAvatarPopoverStyle(s);
+
+    return (
+        <motion.div
+            className="relative"
+            whileHover={buildAvatarHoverMotion(s)}
+            whileTap={buildAvatarTapMotion(s)}
+            transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+            onMouseEnter={() => s.avatarPopoverEnabled && openCard()}
+            onMouseLeave={() => s.avatarPopoverEnabled && closeCardWithDelay()}
+        >
+            <Avatar {...avatarProps} className={cn(motionClassName)}>
+                {hasImage ? (
+                    <AvatarImage
+                        src={s.avatarSrc}
+                        alt="User"
+                        imageOpacity={s.avatarImageOpacity}
+                        overlayColor={s.avatarOverlayColor}
+                        overlayOpacity={s.avatarOverlayOpacity}
+                    />
+                ) : null}
+                <AvatarFallback
+                    fontFamily={s.avatarFontFamily}
+                    fontSize={s.avatarFontSize}
+                    fontColor={s.avatarFontColor}
+                    fontBold={s.avatarFontBold}
+                    fontItalic={s.avatarFontItalic}
+                    fontUnderline={s.avatarFontUnderline}
+                >
+                    {s.avatarFallbackText}
+                </AvatarFallback>
+            </Avatar>
+
+            <AnimatePresence>
+                {s.avatarPopoverEnabled && hovered && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 14, scale: 0.92 }}
+                        animate={{ opacity: 1, y: -10, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 24 } }}
+                        exit={{ opacity: 0, y: 6, scale: 0.96, transition: { duration: 0.16 } }}
+                        className="pointer-events-auto absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 shadow-xl"
+                        style={popoverStyle}
+                        onMouseEnter={() => openCard()}
+                        onMouseLeave={() => closeCardWithDelay(s.avatarPopoverDelay + 40)}
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <Avatar customSize={36} radius={s.avatarRadius} bgColor={hasImage ? undefined : s.avatarBgColor}>
+                                {hasImage ? <AvatarImage src={s.avatarSrc} alt="User" /> : null}
+                                <AvatarFallback fontSize={12} fontColor={s.avatarFontColor} fontBold>{s.avatarFallbackText}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate font-semibold leading-none" style={{ fontSize: s.avatarPopoverFontSize }}>{s.avatarFallbackText}</p>
+                                <p className="mt-1 truncate opacity-60" style={{ fontSize: Math.max(10, s.avatarPopoverFontSize - 2) }}>Team Member</p>
+                                <div className="mt-1.5 inline-flex items-center gap-2 opacity-70">
+                                    <button type="button" className="inline-flex items-center justify-center rounded-md p-1 transition-colors hover:opacity-100">
+                                        <MessageCircle style={{ width: s.avatarPopoverIconSize, height: s.avatarPopoverIconSize, color: s.avatarPopoverIconColor }} />
+                                    </button>
+                                    <button type="button" className="inline-flex items-center justify-center rounded-md p-1 transition-colors hover:opacity-100">
+                                        <Mail style={{ width: s.avatarPopoverIconSize, height: s.avatarPopoverIconSize, color: s.avatarPopoverIconColor }} />
+                                    </button>
+                                    <button type="button" className="inline-flex items-center justify-center rounded-md p-1 transition-colors hover:opacity-100">
+                                        <PhoneCall style={{ width: s.avatarPopoverIconSize, height: s.avatarPopoverIconSize, color: s.avatarPopoverIconColor }} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
+// ─── Avatar Group Preview ───────────────────────────────────────────────────
+
 function AvatarGroupPreview({ instance, motionClassName }: { instance: ComponentInstance; motionClassName?: string }) {
     const s = instance.style;
     const [activeUser, setActiveUser] = useState<string | null>(null);
@@ -134,67 +313,29 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
 
     useEffect(() => clearCloseTimer, [clearCloseTimer]);
 
-    // Load fonts
     if (s.avatarFontFamily) loadGoogleFont(s.avatarFontFamily);
     if (s.avatarPopoverFontFamily) loadGoogleFont(s.avatarPopoverFontFamily);
 
     const visibleUsers = AVATAR_DEMO_USERS.slice(0, s.avatarGroupCount);
     const hasImage = !!s.avatarSrc;
+    const avatarProps = buildAvatarProps(s);
+    const popoverStyle = buildAvatarPopoverStyle(s);
 
-    const avatarProps = {
-        customSize: s.avatarCustomSize,
-        radius: s.avatarRadius,
-        bgColor: hasImage ? undefined : s.avatarBgColor,
-        bgGradientTo: hasImage ? undefined : s.avatarBgColorTo,
-        bgMode: s.avatarBgMode as 'solid' | 'gradient',
-        bgOpacity: hasImage ? undefined : s.avatarBgOpacity,
-        strokeWeight: s.avatarStrokeWeight,
-        strokeColor: s.avatarStrokeColor,
-        strokeOpacity: s.avatarStrokeOpacity,
-        badge: s.avatarShowBadge,
-        badgeColor: s.avatarBadgeColor,
-    };
-
-    const popoverBgAlpha = s.avatarPopoverBgOpacity / 100;
-    const popoverBg = s.avatarPopoverBgMode === 'gradient'
-        ? `linear-gradient(135deg, ${hexToRgba(s.avatarPopoverBgColor, popoverBgAlpha)} 0%, ${hexToRgba(s.avatarPopoverBgColorTo, popoverBgAlpha)} 100%)`
-        : hexToRgba(s.avatarPopoverBgColor, popoverBgAlpha);
-    const popoverBorder = s.avatarPopoverStrokeWeight > 0
-        ? `${s.avatarPopoverStrokeWeight}px solid ${hexToRgba(s.avatarPopoverStrokeColor, s.avatarPopoverStrokeOpacity / 100)}`
-        : 'none';
-    const popoverStyle: CSSProperties = {
-        width: s.avatarPopoverWidth,
-        padding: s.avatarPopoverPadding,
-        borderRadius: s.avatarPopoverRadius,
-        background: popoverBg,
-        border: popoverBorder,
-        backdropFilter: 'blur(8px)',
-        ...(s.avatarPopoverFontFamily ? { fontFamily: s.avatarPopoverFontFamily } : {}),
-        fontSize: s.avatarPopoverFontSize,
-        fontWeight: s.avatarPopoverFontBold ? 700 : s.avatarPopoverFontWeight,
-        color: s.avatarPopoverFontColor,
-        ...(s.avatarPopoverFontItalic ? { fontStyle: 'italic' as const } : {}),
-        ...(s.avatarPopoverFontUnderline ? { textDecoration: 'underline' } : {}),
-    };
-
-    const renderSingleAvatar = (user: AvatarPopoverUser, index: number) => {
+    const renderGroupAvatar = (user: AvatarPopoverUser, index: number) => {
         const userImage = index === 0 && s.avatarSrc ? s.avatarSrc : user.image;
         const showImage = !!userImage;
-
-        // Cycle through some subtle color variations for group fallbacks
-        const groupColors = ['#6b7280', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'];
-        const userBgColor = hasImage ? undefined : (index === 0 ? s.avatarBgColor : groupColors[index % groupColors.length]);
 
         return (
             <motion.div
                 key={user.name}
                 className="relative"
-                whileHover={s.avatarPopoverEnabled ? { y: -2, scale: 1.06 } : undefined}
+                whileHover={buildAvatarHoverMotion(s)}
+                whileTap={buildAvatarTapMotion(s)}
                 transition={{ type: 'spring', stiffness: 360, damping: 18 }}
                 onMouseEnter={() => s.avatarPopoverEnabled && openCard(user.name)}
                 onMouseLeave={() => s.avatarPopoverEnabled && closeCardWithDelay(user.name)}
             >
-                <Avatar {...avatarProps} bgColor={userBgColor} className={cn(motionClassName)}>
+                <Avatar {...avatarProps} className={cn(motionClassName)}>
                     {showImage ? (
                         <AvatarImage
                             src={userImage}
@@ -228,7 +369,7 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
                             onMouseLeave={() => closeCardWithDelay(user.name, s.avatarPopoverDelay + 40)}
                         >
                             <div className="flex items-center gap-2.5">
-                                <Avatar customSize={36} radius={s.avatarRadius} bgColor={userBgColor}>
+                                <Avatar customSize={36} radius={s.avatarRadius} bgColor={hasImage ? undefined : s.avatarBgColor}>
                                     {showImage ? <AvatarImage src={userImage} alt={user.name} /> : null}
                                     <AvatarFallback fontSize={12} fontColor={s.avatarFontColor} fontBold>{user.initials}</AvatarFallback>
                                 </Avatar>
@@ -257,7 +398,7 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
 
     return (
         <AvatarGroup spacing={s.avatarGroupSpacing}>
-            {visibleUsers.map((user, i) => renderSingleAvatar(user, i))}
+            {visibleUsers.map((user, i) => renderGroupAvatar(user, i))}
             {visibleUsers.length < AVATAR_DEMO_USERS.length && (
                 <AvatarGroupCount
                     size={s.avatarCustomSize}
@@ -424,6 +565,19 @@ export function componentSnippet(
                 : '';
             const fallbackSnippet = `\n  <AvatarFallback>${instance.style.avatarFallbackText}</AvatarFallback>`;
             return `${declarations ? `${declarations}\n\n` : ''}<Avatar ${avatarPropsSnippet}${classNameSnippet}${previewStyleSnippet}>${imageSnippet}${fallbackSnippet}\n</Avatar>`;
+        }
+        case 'avatar-group': {
+            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const avatarPropsSnippet = [
+                `customSize={${instance.style.avatarCustomSize}}`,
+                `radius={${instance.style.avatarRadius}}`,
+                instance.style.avatarShowBadge ? `badge badgeColor="${instance.style.avatarBadgeColor}"` : '',
+                instance.style.avatarStrokeWeight > 0 ? `strokeWeight={${instance.style.avatarStrokeWeight}} strokeColor="${instance.style.avatarStrokeColor}"` : '',
+            ].filter(Boolean).join(' ');
+            const fallbackSnippet = `\n    <AvatarFallback>JD</AvatarFallback>`;
+            const singleAvatar = `  <Avatar ${avatarPropsSnippet}>${fallbackSnippet}\n  </Avatar>`;
+            const avatars = Array.from({ length: instance.style.avatarGroupCount }, () => singleAvatar).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<AvatarGroup spacing={${instance.style.avatarGroupSpacing}}>\n${avatars}\n</AvatarGroup>`;
         }
         case 'badge': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1310,56 +1464,11 @@ export function renderPreview(
                 true,
             );
 
-        case 'avatar': {
-            // Load fonts
-            if (instance.style.avatarFontFamily) loadGoogleFont(instance.style.avatarFontFamily);
-            if (instance.style.avatarPopoverFontFamily) loadGoogleFont(instance.style.avatarPopoverFontFamily);
+        case 'avatar':
+            return <AvatarSinglePreview instance={instance} motionClassName={motionClassName} />;
 
-            const hasImage = !!instance.style.avatarSrc;
-
-            // Group mode — delegate to stateful component
-            if (instance.style.avatarGroupEnabled) {
-                return <AvatarGroupPreview instance={instance} motionClassName={motionClassName} />;
-            }
-
-            // Single avatar
-            return (
-                <Avatar
-                    customSize={instance.style.avatarCustomSize}
-                    radius={instance.style.avatarRadius}
-                    bgColor={hasImage ? undefined : instance.style.avatarBgColor}
-                    bgGradientTo={hasImage ? undefined : instance.style.avatarBgColorTo}
-                    bgMode={instance.style.avatarBgMode}
-                    bgOpacity={hasImage ? undefined : instance.style.avatarBgOpacity}
-                    strokeWeight={instance.style.avatarStrokeWeight}
-                    strokeColor={instance.style.avatarStrokeColor}
-                    strokeOpacity={instance.style.avatarStrokeOpacity}
-                    badge={instance.style.avatarShowBadge}
-                    badgeColor={instance.style.avatarBadgeColor}
-                    className={cn(motionClassName)}
-                >
-                    {hasImage ? (
-                        <AvatarImage
-                            src={instance.style.avatarSrc}
-                            alt="User"
-                            imageOpacity={instance.style.avatarImageOpacity}
-                            overlayColor={instance.style.avatarOverlayColor}
-                            overlayOpacity={instance.style.avatarOverlayOpacity}
-                        />
-                    ) : null}
-                    <AvatarFallback
-                        fontFamily={instance.style.avatarFontFamily}
-                        fontSize={instance.style.avatarFontSize}
-                        fontColor={instance.style.avatarFontColor}
-                        fontBold={instance.style.avatarFontBold}
-                        fontItalic={instance.style.avatarFontItalic}
-                        fontUnderline={instance.style.avatarFontUnderline}
-                    >
-                        {instance.style.avatarFallbackText}
-                    </AvatarFallback>
-                </Avatar>
-            );
-        }
+        case 'avatar-group':
+            return <AvatarGroupPreview instance={instance} motionClassName={motionClassName} />;
 
         case 'data-table': {
             const columns = Array.from({ length: instance.style.dataTableColumns }, (_, i) => ({

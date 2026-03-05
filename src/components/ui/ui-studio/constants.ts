@@ -55,6 +55,12 @@ export const COMPONENTS: ComponentInfo[] = [
         summary: 'User profile images with fallback initials.',
     },
     {
+        kind: 'avatar-group',
+        label: 'Avatar Group',
+        file: 'src/components/ui/avatar.tsx',
+        summary: 'Stacked avatar group with overlap and hover popovers.',
+    },
+    {
         kind: 'badge',
         label: 'Badge',
         file: 'src/components/ui/badge.tsx',
@@ -2349,6 +2355,29 @@ export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPr
                 avatarRadius: 999,
                 avatarSrc: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face',
             },
+        },
+    ],
+    'avatar-group': [
+        {
+            id: 'overlap',
+            label: 'Overlap',
+            description: 'Overlapping circular avatars.',
+            kind: 'avatar-group',
+            values: { componentPreset: 'overlap', motionPreset: 'none', avatarRadius: 999, avatarGroupSpacing: -8 },
+        },
+        {
+            id: 'spaced',
+            label: 'Spaced',
+            description: 'Evenly spaced avatar group.',
+            kind: 'avatar-group',
+            values: { componentPreset: 'spaced', motionPreset: 'none', avatarRadius: 999, avatarGroupSpacing: 4 },
+        },
+        {
+            id: 'square-group',
+            label: 'Square Group',
+            description: 'Rounded square avatars in a group.',
+            kind: 'avatar-group',
+            values: { componentPreset: 'square-group', motionPreset: 'none', avatarRadius: 8, avatarGroupSpacing: -8 },
         },
     ],
     badge: BADGE_VISUAL_PRESETS,

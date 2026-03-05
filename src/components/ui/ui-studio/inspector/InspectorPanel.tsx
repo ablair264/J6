@@ -1034,10 +1034,10 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
-                    {/* Avatar Config */}
-                    {selectedInstance?.kind === 'avatar' && selectedStyle ? (
+                    {/* Avatar / Avatar Group Config */}
+                    {(selectedInstance?.kind === 'avatar' || selectedInstance?.kind === 'avatar-group') && selectedStyle ? (
                         <div className="p-1">
-                            <FlatInspectorSection title="Avatar Config" icon={Table} defaultOpen>
+                            <FlatInspectorSection title={selectedInstance.kind === 'avatar-group' ? 'Avatar Group Config' : 'Avatar Config'} icon={Table} defaultOpen>
                                 <FlatField label="Fallback Text" stacked>
                                     <input type="text" value={selectedStyle.avatarFallbackText} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarFallbackText', e.target.value)} className="h-7 w-full rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" />
                                 </FlatField>
@@ -1051,6 +1051,12 @@ export function InspectorPanel() {
                                 <FlatSwitchRow label="Show Badge" checked={selectedStyle.avatarShowBadge} onCheckedChange={(value) => updateSelectedStyle('avatarShowBadge', value)} />
                                 {selectedStyle.avatarShowBadge && (
                                     <FlatColorControl label="Badge Color" value={selectedStyle.avatarBadgeColor} onChange={(value) => updateSelectedStyle('avatarBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                )}
+                                {selectedInstance.kind === 'avatar-group' && (
+                                    <>
+                                        <FlatUnitField label="Count" value={selectedStyle.avatarGroupCount} min={2} max={8} unit="" onChange={(value) => updateSelectedStyle('avatarGroupCount', value)} />
+                                        <FlatUnitField label="Spacing" value={selectedStyle.avatarGroupSpacing} min={-20} max={20} unit="px" onChange={(value) => updateSelectedStyle('avatarGroupSpacing', value)} />
+                                    </>
                                 )}
                             </FlatInspectorSection>
 
@@ -1118,16 +1124,6 @@ export function InspectorPanel() {
                                     </FlatField>
                                 </FlatInspectorSection>
                             )}
-
-                            <FlatInspectorSection title="Group" icon={Config} defaultOpen={false}>
-                                <FlatSwitchRow label="Enable Group" checked={selectedStyle.avatarGroupEnabled} onCheckedChange={(value) => updateSelectedStyle('avatarGroupEnabled', value)} />
-                                {selectedStyle.avatarGroupEnabled && (
-                                    <>
-                                        <FlatUnitField label="Count" value={selectedStyle.avatarGroupCount} min={2} max={8} unit="" onChange={(value) => updateSelectedStyle('avatarGroupCount', value)} />
-                                        <FlatUnitField label="Spacing" value={selectedStyle.avatarGroupSpacing} min={-20} max={20} unit="px" onChange={(value) => updateSelectedStyle('avatarGroupSpacing', value)} />
-                                    </>
-                                )}
-                            </FlatInspectorSection>
 
                             <FlatInspectorSection title="Hover Popover" icon={Sparkles} defaultOpen={false}>
                                 <FlatSwitchRow label="Enable Popover" checked={selectedStyle.avatarPopoverEnabled} onCheckedChange={(value) => updateSelectedStyle('avatarPopoverEnabled', value)} />

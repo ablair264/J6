@@ -274,6 +274,13 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         wrapperStyle: 'minimal',
         iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
+    'avatar-group': {
+        sections: { presets: true, dimensions: false, componentConfig: 'Avatar Group Config', appearance: false, typography: false, effects: false, advancedHover: false, motion: true },
+        effects: NO_EFFECTS,
+        motion: FULL_MOTION,
+        wrapperStyle: 'minimal',
+        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+    },
     progress: {
         sections: { presets: true, dimensions: false, componentConfig: 'Progress Config', appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },

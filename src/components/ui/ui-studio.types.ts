@@ -2,6 +2,7 @@ export type UIComponentKind =
   | 'accordion'
   | 'alert'
   | 'avatar'
+  | 'avatar-group'
   | 'badge'
   | 'button'
   | 'checkbox'
