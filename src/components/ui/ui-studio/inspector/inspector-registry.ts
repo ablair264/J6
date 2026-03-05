@@ -194,7 +194,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
     dropdown: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
-        motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: true },
+        motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
         iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: true, motionPreset: false,
     },
@@ -215,7 +215,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
 
     // ── Structured / data components ────────────────────────────────────────
     accordion: {
-        sections: { presets: true, dimensions: false, componentConfig: 'Accordion Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Accordion Config', appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
         effects: {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
@@ -223,7 +223,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: true },
         wrapperStyle: 'strip-border',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: true, motionPreset: false,
+        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     tabs: {
         sections: { presets: true, dimensions: false, componentConfig: 'Tabs Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
@@ -239,7 +239,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
     'data-table': {
         sections: { presets: true, dimensions: false, componentConfig: 'Table Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
-        motion: { entryPresets: false, hoverEffects: false, tapEffects: false, stagger: true },
+        motion: { entryPresets: false, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'strip-all',
         iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },

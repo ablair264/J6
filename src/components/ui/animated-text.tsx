@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, useSpring, useTransform, type Transition } from 'motion/react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { motion, useSpring, useTransform, AnimatePresence, type Transition } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 export type AnimatedTextVariant =
@@ -9,7 +9,12 @@ export type AnimatedTextVariant =
     | 'counting-number'
     | 'decrypt'
     | 'gradient-sweep'
-    | 'shiny-text';
+    | 'shiny-text'
+    | 'word-rotate'
+    | 'gradual-spacing'
+    | 'letters-pull-up'
+    | 'fade-up'
+    | 'fade-down';
 
 export type AnimatedTextSplitBy = 'char' | 'word' | 'line';
 export type AnimatedTextTrigger = 'mount' | 'hover';
@@ -140,10 +145,8 @@ function SplitEntranceText({
 function CountingNumberText({
     text, speed = 1.5, className, style,
 }: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
-    const numericValue = parseFloat(text.replace(/[^0-9.-]/g, '')) || 0;
-    const prefix = text.match(/^[^0-9.-]*/)?.[0] ?? '';
-    const suffix = text.match(/[^0-9.-]*$/)?.[0] ?? '';
-    const decimals = (text.split('.')[1]?.replace(/[^0-9]/g, '').length) ?? 0;
+    const numericValue = parseFloat(text) || 0;
+    const decimals = (text.split('.')[1]?.length) ?? 0;
 
     const springValue = useSpring(0, {
         stiffness: 100,
@@ -152,7 +155,7 @@ function CountingNumberText({
     });
 
     const display = useTransform(springValue, (latest) =>
-        `${prefix}${latest.toFixed(decimals)}${suffix}`
+        latest.toFixed(decimals)
     );
 
     useEffect(() => {
@@ -244,7 +247,7 @@ function GradientSweepText({
 // ─── Shiny Text (Magic UI AnimatedShinyText: light sweep via bg-position) ───
 
 function ShinyText({
-    text, speed = 2, gradientColor1 = 'rgba(255,255,255,0.1)', gradientColor2 = 'rgba(255,255,255,0.8)',
+    text, speed = 2, gradientColor1 = '#94a3b8', gradientColor2 = 'rgba(255,255,255,0.8)',
     className, style,
 }: Pick<AnimatedTextProps, 'text' | 'speed' | 'gradientColor1' | 'gradientColor2' | 'className' | 'style'>) {
     return (
@@ -252,18 +255,151 @@ function ShinyText({
             className={cn('ui-studio-animated-text-shiny', className)}
             style={{
                 ...style,
-                backgroundImage: `linear-gradient(120deg, transparent 40%, ${gradientColor2} 50%, transparent 60%)`,
+                backgroundImage: `linear-gradient(120deg, ${gradientColor1} 30%, ${gradientColor2} 50%, ${gradientColor1} 70%)`,
                 backgroundSize: '200% 100%',
                 WebkitBackgroundClip: 'text',
                 backgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 animation: `ui-studio-shiny-sweep ${speed ?? 2}s ease-in-out infinite`,
-                color: gradientColor1,
             }}
             data-slot="animated-text"
         >
             {text}
         </span>
+    );
+}
+
+// ─── Word Rotate (Magic UI WordRotate: cycling words with AnimatePresence) ──
+
+function WordRotateText({
+    text, speed = 2, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
+    const words = useMemo(() => text.split(',').map(w => w.trim()).filter(Boolean), [text]);
+    const [index, setIndex] = useState(0);
+
+    const rotate = useCallback(() => {
+        setIndex((prev) => (prev + 1) % words.length);
+    }, [words.length]);
+
+    useEffect(() => {
+        if (words.length <= 1) return;
+        const timer = setInterval(rotate, (speed ?? 2) * 1000);
+        return () => clearInterval(timer);
+    }, [rotate, speed, words.length]);
+
+    if (words.length === 0) return null;
+
+    return (
+        <span className={cn('inline-flex overflow-hidden', className)} style={{ ...style, verticalAlign: 'top' }} data-slot="animated-text">
+            <AnimatePresence mode="wait">
+                <motion.span
+                    key={words[index]}
+                    initial={{ y: '100%', opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: '-100%', opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                    className="inline-block"
+                >
+                    {words[index]}
+                </motion.span>
+            </AnimatePresence>
+        </span>
+    );
+}
+
+// ─── Gradual Spacing (Indie UI: letter-spacing animation) ───────────────────
+
+function GradualSpacingText({
+    text, speed = 0.3, stagger = 0.04, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'stagger' | 'className' | 'style'>) {
+    const chars = useMemo(() => text.split(''), [text]);
+
+    return (
+        <span className={cn('inline-flex', className)} style={style} data-slot="animated-text">
+            {chars.map((char, i) => (
+                <motion.span
+                    key={`${char}-${i}`}
+                    initial={{ opacity: 0, letterSpacing: '-0.3em' }}
+                    animate={{ opacity: 1, letterSpacing: '0em' }}
+                    transition={{
+                        delay: i * (stagger ?? 0.04),
+                        duration: speed ?? 0.3,
+                        ease: [0.2, 0.65, 0.3, 0.9],
+                    }}
+                    className="inline-block"
+                    style={char === ' ' ? { whiteSpace: 'pre' } : undefined}
+                >
+                    {char}
+                </motion.span>
+            ))}
+        </span>
+    );
+}
+
+// ─── Letters Pull Up (Indie UI: individual letters animate upward) ──────────
+
+function LettersPullUpText({
+    text, speed = 0.3, stagger = 0.03, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'stagger' | 'className' | 'style'>) {
+    const chars = useMemo(() => text.split(''), [text]);
+
+    return (
+        <span className={cn('inline-flex', className)} style={style} data-slot="animated-text">
+            {chars.map((char, i) => (
+                <motion.span
+                    key={`${char}-${i}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                        delay: i * (stagger ?? 0.03),
+                        duration: speed ?? 0.3,
+                        ease: [0.2, 0.65, 0.3, 0.9],
+                    }}
+                    className="inline-block"
+                    style={char === ' ' ? { whiteSpace: 'pre' } : undefined}
+                >
+                    {char}
+                </motion.span>
+            ))}
+        </span>
+    );
+}
+
+// ─── Fade Up (Indie UI: fade in + slide upward) ────────────────────────────
+
+function FadeUpText({
+    text, speed = 0.5, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
+    return (
+        <motion.span
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: speed ?? 0.5, ease: 'easeOut' }}
+            className={className}
+            style={style}
+            data-slot="animated-text"
+        >
+            {text}
+        </motion.span>
+    );
+}
+
+// ─── Fade Down (Indie UI: fade in + slide downward) ─────────────────────────
+
+function FadeDownText({
+    text, speed = 0.5, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
+    return (
+        <motion.span
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: speed ?? 0.5, ease: 'easeOut' }}
+            className={className}
+            style={style}
+            data-slot="animated-text"
+        >
+            {text}
+        </motion.span>
     );
 }
 
@@ -326,6 +462,16 @@ export function AnimatedText({
                 return <GradientSweepText key={animKey} {...commonProps} gradientColor1={gradientColor1} gradientColor2={gradientColor2} />;
             case 'shiny-text':
                 return <ShinyText key={animKey} {...commonProps} gradientColor1={gradientColor1} gradientColor2={gradientColor2} />;
+            case 'word-rotate':
+                return <WordRotateText key={animKey} {...commonProps} />;
+            case 'gradual-spacing':
+                return <GradualSpacingText key={animKey} {...commonProps} stagger={stagger} />;
+            case 'letters-pull-up':
+                return <LettersPullUpText key={animKey} {...commonProps} stagger={stagger} />;
+            case 'fade-up':
+                return <FadeUpText key={animKey} {...commonProps} />;
+            case 'fade-down':
+                return <FadeDownText key={animKey} {...commonProps} />;
             default:
                 return <span className={className} style={style} data-slot="animated-text">{text}</span>;
         }

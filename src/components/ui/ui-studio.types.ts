@@ -26,7 +26,7 @@ export type UIComponentKind =
 
 export type SizeOption = 'sm' | 'md' | 'lg';
 export type CardVariant = 'default' | 'bordered' | 'elevated' | 'glass';
-export type AnimatedTextVariant = 'typewriter' | 'blur-in' | 'split-entrance' | 'counting-number' | 'decrypt' | 'gradient-sweep' | 'shiny-text';
+export type AnimatedTextVariant = 'typewriter' | 'blur-in' | 'split-entrance' | 'counting-number' | 'decrypt' | 'gradient-sweep' | 'shiny-text' | 'word-rotate' | 'gradual-spacing' | 'letters-pull-up' | 'fade-up' | 'fade-down';
 export type AnimatedTextSplitBy = 'char' | 'word' | 'line';
 export type AnimatedTextTrigger = 'mount' | 'hover';
 export type FillMode = 'solid' | 'gradient';
@@ -41,8 +41,6 @@ export type ButtonPreviewState = 'default' | 'hover' | 'active' | 'disabled';
 export type GradientSlideDirection = 'left' | 'right' | 'top' | 'bottom';
 export type LoaderOutcome = 'success' | 'failure' | 'warning';
 export type CheckboxSelectionIcon = 'tick' | 'cross' | 'solid';
-export type AccordionType = 'single' | 'multiple';
-export type AccordionVariant = 'default' | 'bordered' | 'ghost';
 export type TabsVariant = 'default' | 'line';
 export type SkeletonVariant = 'text' | 'avatar' | 'card' | 'custom';
 export type AvatarShape = 'circle' | 'rounded';
@@ -342,11 +340,31 @@ export interface ComponentStyleConfig {
 
   // ─── Phase 2: New Component Properties ──────────────────────────
   // Accordion
-  accordionType: AccordionType;
   accordionCollapsible: boolean;
+  accordionAllowMultiple: boolean;
   accordionItemCount: number;
-  accordionVariant: AccordionVariant;
+  accordionPaddingH: number;
+  accordionPaddingW: number;
+  accordionSpacing: number;
+  accordionDividerEnabled: boolean;
   accordionDividerColor: string;
+  accordionDividerWeight: number;
+  // Accordion trigger typography
+  accordionTriggerFontFamily: string;
+  accordionTriggerFontSize: number;
+  accordionTriggerFontWeight: number;
+  accordionTriggerFontColor: string;
+  accordionTriggerFontItalic: boolean;
+  accordionTriggerFontBold: boolean;
+  accordionTriggerFontUnderline: boolean;
+  // Accordion content typography
+  accordionContentFontFamily: string;
+  accordionContentFontSize: number;
+  accordionContentFontWeight: number;
+  accordionContentFontColor: string;
+  accordionContentFontItalic: boolean;
+  accordionContentFontBold: boolean;
+  accordionContentFontUnderline: boolean;
   // Avatar
   avatarSrc: string;
   avatarFallbackText: string;
@@ -461,9 +479,14 @@ export interface ComponentStyleConfig {
   animatedTextGradientColor1: string;
   animatedTextGradientColor2: string;
   animatedTextTrigger: AnimatedTextTrigger;
+  animatedTextNumberValue: number;
 
   // ─── Phase 3: Refined Design Options ────────────────────────────
   // Typography
+  fontFamily: string;
+  fontItalic: boolean;
+  fontUnderline: boolean;
+  fontBold: boolean;
   letterSpacing: number;
   lineHeight: number;
   textTransform: TextTransformOption;

@@ -67,6 +67,7 @@ import {
     buildSnippetClassNameVarAttr,
     buildExportClassBinding,
     buildCardDirectStyle,
+    loadGoogleFont,
 } from '../utilities';
 import {
     AdvancedHoverWrapper,
@@ -201,10 +202,14 @@ export function componentSnippet(
         case 'accordion': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const accProps = [
-                `type="${instance.style.accordionType}"`,
-                instance.style.accordionType === 'single' ? `collapsible={${String(instance.style.accordionCollapsible)}}` : '',
-                instance.style.accordionVariant !== 'default' ? `variant="${instance.style.accordionVariant}"` : '',
+                instance.style.accordionAllowMultiple ? 'type="multiple"' : 'type="single"',
+                !instance.style.accordionAllowMultiple ? `collapsible={${String(instance.style.accordionCollapsible)}}` : '',
                 instance.style.accordionDividerColor ? `dividerColor="${instance.style.accordionDividerColor}"` : '',
+                !instance.style.accordionDividerEnabled ? 'dividerEnabled={false}' : '',
+                instance.style.accordionDividerWeight !== 1 ? `dividerWeight={${instance.style.accordionDividerWeight}}` : '',
+                instance.style.accordionPaddingH !== 16 ? `paddingH={${instance.style.accordionPaddingH}}` : '',
+                instance.style.accordionPaddingW !== 16 ? `paddingW={${instance.style.accordionPaddingW}}` : '',
+                instance.style.accordionSpacing ? `spacing={${instance.style.accordionSpacing}}` : '',
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
             return `${declarations ? `${declarations}\n\n` : ''}<Accordion\n  ${accProps}${previewStyleSnippet}\n>\n  <AccordionItem value="item-1">\n    <AccordionTrigger>Section 1</AccordionTrigger>\n    <AccordionContent>Content for section 1.</AccordionContent>\n  </AccordionItem>\n</Accordion>`;
@@ -397,11 +402,15 @@ export function componentSnippet(
         case 'animated-text': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const s = instance.style;
+            const animTextContent = s.animatedTextVariant === 'counting-number'
+                ? String(s.animatedTextNumberValue ?? 0)
+                : (s.animatedTextContent || 'Hello World');
+            const hasStagger = ['blur-in', 'split-entrance', 'gradual-spacing', 'letters-pull-up'].includes(s.animatedTextVariant);
             const textProps = [
-                `text="${s.animatedTextContent || 'Hello World'}"`,
+                `text="${animTextContent}"`,
                 s.animatedTextVariant !== 'blur-in' ? `variant="${s.animatedTextVariant}"` : '',
                 s.animatedTextSpeed !== 0.3 ? `speed={${s.animatedTextSpeed}}` : '',
-                (s.animatedTextVariant === 'blur-in' || s.animatedTextVariant === 'split-entrance') && s.animatedTextStaggerDelay !== 0.04 ? `stagger={${s.animatedTextStaggerDelay}}` : '',
+                hasStagger && s.animatedTextStaggerDelay !== 0.04 ? `stagger={${s.animatedTextStaggerDelay}}` : '',
                 (s.animatedTextVariant === 'blur-in' || s.animatedTextVariant === 'split-entrance') && s.animatedTextSplitBy !== 'word' ? `splitBy="${s.animatedTextSplitBy}"` : '',
                 (s.animatedTextVariant === 'gradient-sweep' || s.animatedTextVariant === 'shiny-text') && s.animatedTextGradientColor1 ? `gradientColor1="${s.animatedTextGradientColor1}"` : '',
                 (s.animatedTextVariant === 'gradient-sweep' || s.animatedTextVariant === 'shiny-text') && s.animatedTextGradientColor2 ? `gradientColor2="${s.animatedTextGradientColor2}"` : '',
@@ -422,6 +431,10 @@ export function renderPreview(
     options?: { pinOverlayOpen?: boolean },
 ) {
     const pinOverlayOpen = options?.pinOverlayOpen === true;
+    // Load Google Fonts if selected
+    if (instance.style.fontFamily) loadGoogleFont(instance.style.fontFamily);
+    if (instance.style.accordionTriggerFontFamily) loadGoogleFont(instance.style.accordionTriggerFontFamily);
+    if (instance.style.accordionContentFontFamily) loadGoogleFont(instance.style.accordionContentFontFamily);
     const panelStyle = buildPanelStyle(instance.style);
     const dropdownMenuPositionStyle = buildDropdownMenuPositionStyle(instance.style);
     const tooltipPlacement = buildPrimitivePlacement(instance.style.tooltipSide, instance.style.tooltipAlign);
@@ -934,9 +947,15 @@ export function renderPreview(
                 );
             }
 
-        case 'slider':
+        case 'slider': {
+            const sliderWrapperStyle = {
+                ...buildComponentWrapperStyle(style, 'slider'),
+            };
+            if (!sliderWrapperStyle.width) {
+                sliderWrapperStyle.width = '320px';
+            }
             return (
-                <div className={cn('w-full rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={buildComponentWrapperStyle(style, 'slider')}>
+                <div className={cn('rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={sliderWrapperStyle}>
                     <div className="flex items-center gap-2">
                         {instance.style.componentPreset === 'slider-elastic' ? <span className="text-sm text-muted-foreground">-</span> : null}
                         <Slider className={cn('ui-studio-slider-motion', motionClassName)} defaultValue={[55]} max={100} step={1} />
@@ -944,23 +963,36 @@ export function renderPreview(
                     </div>
                 </div>
             );
+        }
 
         case 'accordion': {
             const items = Array.from({ length: instance.style.accordionItemCount }, (_, i) => i + 1);
-            const accordionProps = instance.style.accordionType === 'single'
-                ? { type: 'single' as const, collapsible: instance.style.accordionCollapsible, defaultValue: 'item-1' }
-                : { type: 'multiple' as const, defaultValue: ['item-1'] };
+            const accordionProps = instance.style.accordionAllowMultiple
+                ? { type: 'multiple' as const, defaultValue: ['item-1'] }
+                : { type: 'single' as const, collapsible: instance.style.accordionCollapsible, defaultValue: 'item-1' };
+
+            const triggerTypoStyle: React.CSSProperties = {
+                ...(instance.style.accordionTriggerFontFamily ? { fontFamily: instance.style.accordionTriggerFontFamily } : {}),
+                fontSize: instance.style.accordionTriggerFontSize,
+                fontWeight: instance.style.accordionTriggerFontBold ? 700 : instance.style.accordionTriggerFontWeight,
+                ...(instance.style.accordionTriggerFontColor ? { color: instance.style.accordionTriggerFontColor } : {}),
+                ...(instance.style.accordionTriggerFontItalic ? { fontStyle: 'italic' } : {}),
+                ...(instance.style.accordionTriggerFontUnderline ? { textDecoration: 'underline' } : {}),
+            };
+
+            const contentTypoStyle: React.CSSProperties = {
+                ...(instance.style.accordionContentFontFamily ? { fontFamily: instance.style.accordionContentFontFamily } : {}),
+                fontSize: instance.style.accordionContentFontSize,
+                fontWeight: instance.style.accordionContentFontBold ? 700 : instance.style.accordionContentFontWeight,
+                ...(instance.style.accordionContentFontColor ? { color: instance.style.accordionContentFontColor } : {}),
+                ...(instance.style.accordionContentFontItalic ? { fontStyle: 'italic' } : {}),
+                ...(instance.style.accordionContentFontUnderline ? { textDecoration: 'underline' } : {}),
+            };
+
             const accordionItems = items.map((n) => (
-                <AccordionItem
-                    key={n}
-                    value={`item-${n}`}
-                    className={cn(
-                        instance.style.accordionVariant === 'bordered' && 'px-4',
-                        instance.style.accordionVariant === 'ghost' && 'rounded-md border px-4',
-                    )}
-                >
-                    <AccordionTrigger>Section {n}</AccordionTrigger>
-                    <AccordionContent>Content for section {n}.</AccordionContent>
+                <AccordionItem key={n} value={`item-${n}`}>
+                    <AccordionTrigger triggerStyle={triggerTypoStyle}>Section {n}</AccordionTrigger>
+                    <AccordionContent contentStyle={contentTypoStyle}>Content for section {n}.</AccordionContent>
                 </AccordionItem>
             ));
             const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
@@ -968,9 +1000,13 @@ export function renderPreview(
                 <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
                     <Accordion
                         {...accordionProps}
-                        variant={instance.style.accordionVariant}
                         dividerColor={instance.style.accordionDividerColor || undefined}
-                        style={instance.style.accordionVariant !== 'ghost' ? { color: style.color } : undefined}
+                        dividerEnabled={instance.style.accordionDividerEnabled}
+                        dividerWeight={instance.style.accordionDividerWeight}
+                        paddingH={instance.style.accordionPaddingH}
+                        paddingW={instance.style.accordionPaddingW}
+                        spacing={instance.style.accordionSpacing}
+                        style={{ color: style.color }}
                         className={cn(motionClassName)}
                     >
                         {staggeredItems}
@@ -1566,14 +1602,22 @@ export function renderPreview(
         }
 
         case 'animated-text': {
-            // Key forces remount (and animation replay) when variant/content/speed/split change
-            const animKey = `${instance.style.animatedTextVariant}-${instance.style.animatedTextContent}-${instance.style.animatedTextSpeed}-${instance.style.animatedTextStaggerDelay}-${instance.style.animatedTextSplitBy}-${instance.style.animatedTextTrigger}`;
-            const animWrapperStyle = buildComponentWrapperStyle(style, 'animated-text');
+            const animTextContent = instance.style.animatedTextVariant === 'counting-number'
+                ? String(instance.style.animatedTextNumberValue ?? 0)
+                : (instance.style.animatedTextContent || 'Hello World');
+            const animKey = `${instance.style.animatedTextVariant}-${animTextContent}-${instance.style.animatedTextSpeed}-${instance.style.animatedTextStaggerDelay}-${instance.style.animatedTextSplitBy}-${instance.style.animatedTextTrigger}`;
+            const animWrapperStyle: React.CSSProperties = {
+                ...buildComponentWrapperStyle(style, 'animated-text'),
+                ...(instance.style.fontFamily ? { fontFamily: instance.style.fontFamily } : {}),
+                ...(instance.style.fontItalic ? { fontStyle: 'italic' } : {}),
+                ...(instance.style.fontUnderline ? { textDecoration: 'underline' } : {}),
+                ...(instance.style.fontBold ? { fontWeight: 700 } : {}),
+            };
             return (
                 <div style={animWrapperStyle}>
                     <AnimatedText
                         key={animKey}
-                        text={instance.style.animatedTextContent || 'Hello World'}
+                        text={animTextContent}
                         variant={instance.style.animatedTextVariant}
                         speed={instance.style.animatedTextSpeed}
                         stagger={instance.style.animatedTextStaggerDelay}

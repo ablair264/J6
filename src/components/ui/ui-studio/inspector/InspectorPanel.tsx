@@ -14,6 +14,9 @@ import {
     TextAlignCenter,
     TextAlignLeft,
     TextAlignRight,
+    TypeBold,
+    TypeItalic,
+    TypeUnderline,
 } from '@mynaui/icons-react';
 import {
     Popover,
@@ -38,6 +41,7 @@ import type {
 } from '@/components/ui/ui-studio.types';
 import {
     BUTTON_STATE_FIELD_KEYS,
+    GOOGLE_FONTS,
     ICON_OPTIONS,
 } from '../constants';
 import type { ButtonStateField } from '../constants';
@@ -815,9 +819,14 @@ export function InspectorPanel() {
 
                                     {supportsTypographyStyle(selectedInstance.kind) && !usesCustomCardTypographyInspector && currentAppearanceValues ? (
                                         <>
+                                            <FlatField label="Font" stacked>
+                                                <FlatSelect value={selectedStyle.fontFamily} onValueChange={(value) => updateSelectedStyle('fontFamily', value)} ariaLabel="Font family">
+                                                    {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
                                             <FlatField label="Typography" stacked>
                                                 <div className="flex flex-wrap items-end gap-3">
-                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={36} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
+                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={72} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
                                                     <div className="w-[92px] shrink-0">
                                                         <FlatField label="Weight" stacked>
                                                             <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
@@ -827,25 +836,42 @@ export function InspectorPanel() {
                                                     </div>
                                                 </div>
                                             </FlatField>
-                                            <FlatField label="Align">
+                                            <FlatField label="Style">
                                                 <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                    {[
-                                                        { value: 'left' as const, icon: TextAlignLeft },
-                                                        { value: 'center' as const, icon: TextAlignCenter },
-                                                        { value: 'right' as const, icon: TextAlignRight },
-                                                    ].map((item) => {
-                                                        const Icon = item.icon;
-                                                        return (
-                                                            <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                                <Icon className="size-4" />
-                                                            </button>
-                                                        );
-                                                    })}
+                                                    <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeBold className="size-4" />
+                                                    </button>
+                                                    <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeItalic className="size-4" />
+                                                    </button>
+                                                    <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeUnderline className="size-4" />
+                                                    </button>
                                                 </div>
                                             </FlatField>
-                                            <FlatField label="Text" stacked>
-                                                <FlatColorControl label="Color" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} compact />
-                                            </FlatField>
+                                            {selectedInstance.kind !== 'animated-text' && (
+                                                <FlatField label="Align">
+                                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                        {[
+                                                            { value: 'left' as const, icon: TextAlignLeft },
+                                                            { value: 'center' as const, icon: TextAlignCenter },
+                                                            { value: 'right' as const, icon: TextAlignRight },
+                                                        ].map((item) => {
+                                                            const Icon = item.icon;
+                                                            return (
+                                                                <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                    <Icon className="size-4" />
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </FlatField>
+                                            )}
+                                            {!(selectedInstance.kind === 'animated-text' && (selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text')) && (
+                                                <FlatField label="Text" stacked>
+                                                    <FlatColorControl label="Color" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} compact />
+                                                </FlatField>
+                                            )}
                                         </>
                                     ) : null}
 
@@ -909,30 +935,87 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Accordion Config" icon={Table} defaultOpen>
+                                <div className="space-y-2">
+                                    <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
+                                    <FlatSwitchRow label="Allow Multiple" checked={selectedStyle.accordionAllowMultiple} onCheckedChange={(value) => updateSelectedStyle('accordionAllowMultiple', value)} />
+                                </div>
+                                <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
                                 <div className="flex flex-wrap items-start gap-3">
-                                    <FlatField label="Type" stacked>
-                                        <FlatSelect value={selectedStyle.accordionType} onValueChange={(value) => updateSelectedStyle('accordionType', value as 'single' | 'multiple')} ariaLabel="Accordion type">
-                                            <option value="single">Single</option>
-                                            <option value="multiple">Multiple</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatField label="Variant" stacked>
-                                        <FlatSelect value={selectedStyle.accordionVariant} onValueChange={(value) => updateSelectedStyle('accordionVariant', value as 'default' | 'bordered' | 'ghost')} ariaLabel="Accordion variant">
-                                            <option value="default">Default</option>
-                                            <option value="bordered">Bordered</option>
-                                            <option value="ghost">Ghost</option>
-                                        </FlatSelect>
-                                    </FlatField>
+                                    <FlatUnitField label="Padding (H)" value={selectedStyle.accordionPaddingH} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingH', value)} />
+                                    <FlatUnitField label="Padding (W)" value={selectedStyle.accordionPaddingW} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingW', value)} />
+                                    <FlatUnitField label="Spacing" value={selectedStyle.accordionSpacing} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('accordionSpacing', value)} />
                                 </div>
                                 <div className="space-y-2">
-                                    {selectedStyle.accordionType === 'single' ? (
-                                        <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
-                                    ) : null}
-                                    <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
+                                    <FlatSwitchRow label="Divider" checked={selectedStyle.accordionDividerEnabled} onCheckedChange={(value) => updateSelectedStyle('accordionDividerEnabled', value)} />
+                                    {selectedStyle.accordionDividerEnabled && (
+                                        <>
+                                            <FlatUnitField label="Divider Weight" value={selectedStyle.accordionDividerWeight} min={0.5} max={4} step={0.5} unit="px" onChange={(value) => updateSelectedStyle('accordionDividerWeight', value)} />
+                                            <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                        </>
+                                    )}
                                 </div>
-                                {selectedStyle.accordionVariant !== 'ghost' ? (
-                                    <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
-                                ) : null}
+                            </FlatInspectorSection>
+                            <FlatInspectorSection title="Trigger Typography" icon={Sparkles} defaultOpen={false}>
+                                <FlatField label="Font" stacked>
+                                    <FlatSelect value={selectedStyle.accordionTriggerFontFamily} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontFamily', value)} ariaLabel="Trigger font family">
+                                        {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                    </FlatSelect>
+                                </FlatField>
+                                <div className="flex flex-wrap items-end gap-3">
+                                    <FlatUnitField label="Size" value={selectedStyle.accordionTriggerFontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('accordionTriggerFontSize', value)} />
+                                    <div className="w-[92px] shrink-0">
+                                        <FlatField label="Weight" stacked>
+                                            <FlatSelect value={selectedStyle.accordionTriggerFontWeight} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontWeight', Number(value))} ariaLabel="Trigger font weight">
+                                                {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                </div>
+                                <FlatField label="Style">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontBold', !selectedStyle.accordionTriggerFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                            <TypeBold className="size-4" />
+                                        </button>
+                                        <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontItalic', !selectedStyle.accordionTriggerFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                            <TypeItalic className="size-4" />
+                                        </button>
+                                        <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontUnderline', !selectedStyle.accordionTriggerFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                            <TypeUnderline className="size-4" />
+                                        </button>
+                                    </div>
+                                </FlatField>
+                                <FlatColorControl label="Color" value={selectedStyle.accordionTriggerFontColor} onChange={(value) => updateSelectedStyle('accordionTriggerFontColor', value)} tokens={activeTokenSet.tokens} />
+                            </FlatInspectorSection>
+                            <FlatInspectorSection title="Content Typography" icon={Sparkles} defaultOpen={false}>
+                                <FlatField label="Font" stacked>
+                                    <FlatSelect value={selectedStyle.accordionContentFontFamily} onValueChange={(value) => updateSelectedStyle('accordionContentFontFamily', value)} ariaLabel="Content font family">
+                                        {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                    </FlatSelect>
+                                </FlatField>
+                                <div className="flex flex-wrap items-end gap-3">
+                                    <FlatUnitField label="Size" value={selectedStyle.accordionContentFontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('accordionContentFontSize', value)} />
+                                    <div className="w-[92px] shrink-0">
+                                        <FlatField label="Weight" stacked>
+                                            <FlatSelect value={selectedStyle.accordionContentFontWeight} onValueChange={(value) => updateSelectedStyle('accordionContentFontWeight', Number(value))} ariaLabel="Content font weight">
+                                                {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                </div>
+                                <FlatField label="Style">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        <button type="button" onClick={() => updateSelectedStyle('accordionContentFontBold', !selectedStyle.accordionContentFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                            <TypeBold className="size-4" />
+                                        </button>
+                                        <button type="button" onClick={() => updateSelectedStyle('accordionContentFontItalic', !selectedStyle.accordionContentFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                            <TypeItalic className="size-4" />
+                                        </button>
+                                        <button type="button" onClick={() => updateSelectedStyle('accordionContentFontUnderline', !selectedStyle.accordionContentFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                            <TypeUnderline className="size-4" />
+                                        </button>
+                                    </div>
+                                </FlatField>
+                                <FlatColorControl label="Color" value={selectedStyle.accordionContentFontColor} onChange={(value) => updateSelectedStyle('accordionContentFontColor', value)} tokens={activeTokenSet.tokens} />
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -1617,17 +1700,49 @@ export function InspectorPanel() {
                                         <option value="decrypt">Decrypt</option>
                                         <option value="gradient-sweep">Gradient Sweep</option>
                                         <option value="shiny-text">Shiny Text</option>
+                                        <option value="word-rotate">Word Rotate</option>
+                                        <option value="gradual-spacing">Gradual Spacing</option>
+                                        <option value="letters-pull-up">Letters Pull Up</option>
+                                        <option value="fade-up">Fade Up</option>
+                                        <option value="fade-down">Fade Down</option>
                                     </FlatSelect>
                                 </FlatField>
-                                <FlatField label="Text Content" stacked>
-                                    <input
-                                        type="text"
-                                        className={studioInputClass}
-                                        value={selectedStyle.animatedTextContent}
-                                        onChange={(e) => updateSelectedStyle('animatedTextContent', e.target.value)}
-                                        placeholder="Enter text..."
-                                    />
-                                </FlatField>
+                                {selectedStyle.animatedTextVariant === 'counting-number' ? (
+                                    <FlatField label="Number Value" stacked>
+                                        <input
+                                            type="number"
+                                            className={studioInputClass}
+                                            value={selectedStyle.animatedTextNumberValue}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                                                    updateSelectedStyle('animatedTextNumberValue', Number(val) || 0);
+                                                }
+                                            }}
+                                            placeholder="Enter number..."
+                                        />
+                                    </FlatField>
+                                ) : selectedStyle.animatedTextVariant === 'word-rotate' ? (
+                                    <FlatField label="Words (comma-separated)" stacked>
+                                        <input
+                                            type="text"
+                                            className={studioInputClass}
+                                            value={selectedStyle.animatedTextContent}
+                                            onChange={(e) => updateSelectedStyle('animatedTextContent', e.target.value)}
+                                            placeholder="Word1, Word2, Word3..."
+                                        />
+                                    </FlatField>
+                                ) : (
+                                    <FlatField label="Text Content" stacked>
+                                        <input
+                                            type="text"
+                                            className={studioInputClass}
+                                            value={selectedStyle.animatedTextContent}
+                                            onChange={(e) => updateSelectedStyle('animatedTextContent', e.target.value)}
+                                            placeholder="Enter text..."
+                                        />
+                                    </FlatField>
+                                )}
                                 <FlatField label="Trigger" stacked>
                                     <FlatSelect value={selectedStyle.animatedTextTrigger} onValueChange={(value) => updateSelectedStyle('animatedTextTrigger', value as AnimatedTextTrigger)} ariaLabel="Animation trigger">
                                         <option value="mount">On Mount</option>
@@ -1645,7 +1760,7 @@ export function InspectorPanel() {
                                 )}
                                 <div className="flex flex-wrap items-start gap-4">
                                     <FlatUnitField label="Speed" value={selectedStyle.animatedTextSpeed} min={0.01} max={5} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('animatedTextSpeed', value)} />
-                                    {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance') && (
+                                    {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance' || selectedStyle.animatedTextVariant === 'gradual-spacing' || selectedStyle.animatedTextVariant === 'letters-pull-up') && (
                                         <FlatUnitField label="Stagger" value={selectedStyle.animatedTextStaggerDelay} min={0.01} max={0.5} step={0.01} unit="s" onChange={(value) => updateSelectedStyle('animatedTextStaggerDelay', value)} />
                                     )}
                                 </div>
@@ -1790,7 +1905,7 @@ export function InspectorPanel() {
                                         <>
                                             <FlatField label="Typography" stacked>
                                                 <div className="flex gap-2 [&>*]:min-w-0 [&>*]:flex-1">
-                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={36} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
+                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={72} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
                                                     <FlatField label="Weight">
                                                         <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
                                                             {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
@@ -1798,23 +1913,27 @@ export function InspectorPanel() {
                                                     </FlatField>
                                                 </div>
                                             </FlatField>
-                                            <FlatField label="Align">
-                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                    {[
-                                                        { value: 'left' as const, icon: TextAlignLeft },
-                                                        { value: 'center' as const, icon: TextAlignCenter },
-                                                        { value: 'right' as const, icon: TextAlignRight },
-                                                    ].map((item) => {
-                                                        const Icon = item.icon;
-                                                        return (
-                                                            <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                                <Icon className="size-4" />
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </FlatField>
-                                            <FlatColorControl label="Text" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} />
+                                            {selectedInstance.kind !== 'animated-text' && (
+                                                <FlatField label="Align">
+                                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                        {[
+                                                            { value: 'left' as const, icon: TextAlignLeft },
+                                                            { value: 'center' as const, icon: TextAlignCenter },
+                                                            { value: 'right' as const, icon: TextAlignRight },
+                                                        ].map((item) => {
+                                                            const Icon = item.icon;
+                                                            return (
+                                                                <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                    <Icon className="size-4" />
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </FlatField>
+                                            )}
+                                            {!(selectedInstance.kind === 'animated-text' && selectedStyle && (selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text')) && (
+                                                <FlatColorControl label="Text" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} />
+                                            )}
                                         </>
                                     ) : null}
 

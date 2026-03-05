@@ -508,6 +508,16 @@
   100% { transform: scale(2); opacity: 0; }
 }
 
+@keyframes ui-studio-gradient-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes ui-studio-shiny-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @keyframes ui-studio-loading-success-pop {
   0% {
     transform: scale(0.72);

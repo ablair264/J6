@@ -207,7 +207,7 @@ export function UIStudioComponentPage() {
     const stageHandlesOwnEntryMotion = (kind: UIComponentKind) =>
         supportsPanelStyle(kind) || kind === 'accordion' || kind === 'alert';
     const stageHandlesOwnInteractionMotion = (kind: UIComponentKind) =>
-        stageHandlesOwnEntryMotion(kind) || kind === 'switch';
+        stageHandlesOwnEntryMotion(kind) || kind === 'switch' || kind === 'tabs' || kind === 'checkbox';
 
     useEffect(() => {
         if (!isOverlayComponent && pinOverlayPreviews) setPinOverlayPreviews(false);
