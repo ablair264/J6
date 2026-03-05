@@ -268,7 +268,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     avatar: {
-        sections: { presets: true, dimensions: false, componentConfig: false, appearance: false, typography: false, effects: false, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Avatar Config', appearance: false, typography: false, effects: false, advancedHover: false, motion: true },
         effects: NO_EFFECTS,
         motion: FULL_MOTION,
         wrapperStyle: 'minimal',

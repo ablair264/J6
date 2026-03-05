@@ -1,9 +1,9 @@
-import React, { type CSSProperties, type ReactNode } from 'react';
-import { motion } from 'motion/react';
-import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap, Mail, MessageCircle, PhoneCall } from 'lucide-react';
 import { Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { DataTable } from '@/components/ui/data-table';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -69,6 +69,7 @@ import {
     buildExportClassBinding,
     buildCardDirectStyle,
     loadGoogleFont,
+    hexToRgba,
 } from '../utilities';
 import {
     AdvancedHoverWrapper,
@@ -86,6 +87,189 @@ import { NavigationMenuPreview } from './navigation-menu-preview';
 import type { ExportStyleMode } from '../utilities';
 
 const MotionTooltipTrigger = motion.create(TooltipTrigger);
+
+// ─── Avatar Popover Preview ─────────────────────────────────────────────────
+
+interface AvatarPopoverUser {
+    name: string;
+    initials: string;
+    role: string;
+    image?: string;
+}
+
+const AVATAR_DEMO_USERS: AvatarPopoverUser[] = [
+    { name: 'Casey North', initials: 'CN', role: 'Designer', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face' },
+    { name: 'Lara Reed', initials: 'LR', role: 'Engineer', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face' },
+    { name: 'Evan Ross', initials: 'ER', role: 'Product', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face' },
+    { name: 'Nia Holt', initials: 'NH', role: 'Marketing' },
+    { name: 'Alex Kim', initials: 'AK', role: 'Sales' },
+    { name: 'Sam Chen', initials: 'SC', role: 'Support' },
+    { name: 'Jo Park', initials: 'JP', role: 'Analytics' },
+    { name: 'Max Wu', initials: 'MW', role: 'DevOps' },
+];
+
+function AvatarGroupPreview({ instance, motionClassName }: { instance: ComponentInstance; motionClassName?: string }) {
+    const s = instance.style;
+    const [activeUser, setActiveUser] = useState<string | null>(null);
+    const closeTimer = useRef<number | null>(null);
+
+    const clearCloseTimer = useCallback(() => {
+        if (closeTimer.current !== null) {
+            window.clearTimeout(closeTimer.current);
+            closeTimer.current = null;
+        }
+    }, []);
+
+    const openCard = useCallback((name: string) => {
+        clearCloseTimer();
+        setActiveUser(name);
+    }, [clearCloseTimer]);
+
+    const closeCardWithDelay = useCallback((name: string, delayMs?: number) => {
+        clearCloseTimer();
+        closeTimer.current = window.setTimeout(() => {
+            setActiveUser((current) => (current === name ? null : current));
+        }, delayMs ?? s.avatarPopoverDelay);
+    }, [clearCloseTimer, s.avatarPopoverDelay]);
+
+    useEffect(() => clearCloseTimer, [clearCloseTimer]);
+
+    // Load fonts
+    if (s.avatarFontFamily) loadGoogleFont(s.avatarFontFamily);
+    if (s.avatarPopoverFontFamily) loadGoogleFont(s.avatarPopoverFontFamily);
+
+    const visibleUsers = AVATAR_DEMO_USERS.slice(0, s.avatarGroupCount);
+    const hasImage = !!s.avatarSrc;
+
+    const avatarProps = {
+        customSize: s.avatarCustomSize,
+        radius: s.avatarRadius,
+        bgColor: hasImage ? undefined : s.avatarBgColor,
+        bgGradientTo: hasImage ? undefined : s.avatarBgColorTo,
+        bgMode: s.avatarBgMode as 'solid' | 'gradient',
+        bgOpacity: hasImage ? undefined : s.avatarBgOpacity,
+        strokeWeight: s.avatarStrokeWeight,
+        strokeColor: s.avatarStrokeColor,
+        strokeOpacity: s.avatarStrokeOpacity,
+        badge: s.avatarShowBadge,
+        badgeColor: s.avatarBadgeColor,
+    };
+
+    const popoverBgAlpha = s.avatarPopoverBgOpacity / 100;
+    const popoverBg = s.avatarPopoverBgMode === 'gradient'
+        ? `linear-gradient(135deg, ${hexToRgba(s.avatarPopoverBgColor, popoverBgAlpha)} 0%, ${hexToRgba(s.avatarPopoverBgColorTo, popoverBgAlpha)} 100%)`
+        : hexToRgba(s.avatarPopoverBgColor, popoverBgAlpha);
+    const popoverBorder = s.avatarPopoverStrokeWeight > 0
+        ? `${s.avatarPopoverStrokeWeight}px solid ${hexToRgba(s.avatarPopoverStrokeColor, s.avatarPopoverStrokeOpacity / 100)}`
+        : 'none';
+    const popoverStyle: CSSProperties = {
+        width: s.avatarPopoverWidth,
+        padding: s.avatarPopoverPadding,
+        borderRadius: s.avatarPopoverRadius,
+        background: popoverBg,
+        border: popoverBorder,
+        backdropFilter: 'blur(8px)',
+        ...(s.avatarPopoverFontFamily ? { fontFamily: s.avatarPopoverFontFamily } : {}),
+        fontSize: s.avatarPopoverFontSize,
+        fontWeight: s.avatarPopoverFontBold ? 700 : s.avatarPopoverFontWeight,
+        color: s.avatarPopoverFontColor,
+        ...(s.avatarPopoverFontItalic ? { fontStyle: 'italic' as const } : {}),
+        ...(s.avatarPopoverFontUnderline ? { textDecoration: 'underline' } : {}),
+    };
+
+    const renderSingleAvatar = (user: AvatarPopoverUser, index: number) => {
+        const userImage = index === 0 && s.avatarSrc ? s.avatarSrc : user.image;
+        const showImage = !!userImage;
+
+        // Cycle through some subtle color variations for group fallbacks
+        const groupColors = ['#6b7280', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'];
+        const userBgColor = hasImage ? undefined : (index === 0 ? s.avatarBgColor : groupColors[index % groupColors.length]);
+
+        return (
+            <motion.div
+                key={user.name}
+                className="relative"
+                whileHover={s.avatarPopoverEnabled ? { y: -2, scale: 1.06 } : undefined}
+                transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                onMouseEnter={() => s.avatarPopoverEnabled && openCard(user.name)}
+                onMouseLeave={() => s.avatarPopoverEnabled && closeCardWithDelay(user.name)}
+            >
+                <Avatar {...avatarProps} bgColor={userBgColor} className={cn(motionClassName)}>
+                    {showImage ? (
+                        <AvatarImage
+                            src={userImage}
+                            alt={user.name}
+                            imageOpacity={s.avatarImageOpacity}
+                            overlayColor={s.avatarOverlayColor}
+                            overlayOpacity={s.avatarOverlayOpacity}
+                        />
+                    ) : null}
+                    <AvatarFallback
+                        fontFamily={s.avatarFontFamily}
+                        fontSize={s.avatarFontSize}
+                        fontColor={s.avatarFontColor}
+                        fontBold={s.avatarFontBold}
+                        fontItalic={s.avatarFontItalic}
+                        fontUnderline={s.avatarFontUnderline}
+                    >
+                        {user.initials}
+                    </AvatarFallback>
+                </Avatar>
+
+                <AnimatePresence>
+                    {s.avatarPopoverEnabled && activeUser === user.name && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 14, scale: 0.92 }}
+                            animate={{ opacity: 1, y: -10, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 24 } }}
+                            exit={{ opacity: 0, y: 6, scale: 0.96, transition: { duration: 0.16 } }}
+                            className="pointer-events-auto absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 shadow-xl"
+                            style={popoverStyle}
+                            onMouseEnter={() => openCard(user.name)}
+                            onMouseLeave={() => closeCardWithDelay(user.name, s.avatarPopoverDelay + 40)}
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <Avatar customSize={36} radius={s.avatarRadius} bgColor={userBgColor}>
+                                    {showImage ? <AvatarImage src={userImage} alt={user.name} /> : null}
+                                    <AvatarFallback fontSize={12} fontColor={s.avatarFontColor} fontBold>{user.initials}</AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate font-semibold leading-none" style={{ fontSize: s.avatarPopoverFontSize }}>{user.name}</p>
+                                    <p className="mt-1 truncate opacity-60" style={{ fontSize: Math.max(10, s.avatarPopoverFontSize - 2) }}>{user.role}</p>
+                                    <div className="mt-1.5 inline-flex items-center gap-2 opacity-70">
+                                        <button type="button" className="inline-flex items-center justify-center rounded-md p-1 transition-colors hover:opacity-100">
+                                            <MessageCircle style={{ width: s.avatarPopoverIconSize, height: s.avatarPopoverIconSize, color: s.avatarPopoverIconColor }} />
+                                        </button>
+                                        <button type="button" className="inline-flex items-center justify-center rounded-md p-1 transition-colors hover:opacity-100">
+                                            <Mail style={{ width: s.avatarPopoverIconSize, height: s.avatarPopoverIconSize, color: s.avatarPopoverIconColor }} />
+                                        </button>
+                                        <button type="button" className="inline-flex items-center justify-center rounded-md p-1 transition-colors hover:opacity-100">
+                                            <PhoneCall style={{ width: s.avatarPopoverIconSize, height: s.avatarPopoverIconSize, color: s.avatarPopoverIconColor }} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        );
+    };
+
+    return (
+        <AvatarGroup spacing={s.avatarGroupSpacing}>
+            {visibleUsers.map((user, i) => renderSingleAvatar(user, i))}
+            {visibleUsers.length < AVATAR_DEMO_USERS.length && (
+                <AvatarGroupCount
+                    size={s.avatarCustomSize}
+                    radius={s.avatarRadius}
+                    fontSize={s.avatarFontSize * 0.75}
+                >
+                    +{AVATAR_DEMO_USERS.length - visibleUsers.length}
+                </AvatarGroupCount>
+            )}
+        </AvatarGroup>
+    );
+}
 
 type CardSection = { key: string; node: ReactNode };
 
@@ -229,7 +413,17 @@ export function componentSnippet(
         }
         case 'avatar': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<Avatar shape="${instance.style.avatarShape}"${instance.style.avatarShowBadge ? ` badge badgeColor="${instance.style.avatarBadgeColor}"` : ''}${classNameSnippet}${previewStyleSnippet}>\n  ${instance.style.avatarSrc ? `<AvatarImage src="${instance.style.avatarSrc}" alt="User" />` : ''}\n  <AvatarFallback>${instance.style.avatarFallbackText}</AvatarFallback>\n</Avatar>`;
+            const avatarPropsSnippet = [
+                `customSize={${instance.style.avatarCustomSize}}`,
+                `radius={${instance.style.avatarRadius}}`,
+                instance.style.avatarShowBadge ? `badge badgeColor="${instance.style.avatarBadgeColor}"` : '',
+                instance.style.avatarStrokeWeight > 0 ? `strokeWeight={${instance.style.avatarStrokeWeight}} strokeColor="${instance.style.avatarStrokeColor}"` : '',
+            ].filter(Boolean).join(' ');
+            const imageSnippet = instance.style.avatarSrc
+                ? `\n  <AvatarImage src="${instance.style.avatarSrc}" alt="User"${instance.style.avatarImageOpacity < 100 ? ` imageOpacity={${instance.style.avatarImageOpacity}}` : ''} />`
+                : '';
+            const fallbackSnippet = `\n  <AvatarFallback>${instance.style.avatarFallbackText}</AvatarFallback>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<Avatar ${avatarPropsSnippet}${classNameSnippet}${previewStyleSnippet}>${imageSnippet}${fallbackSnippet}\n</Avatar>`;
         }
         case 'badge': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1116,31 +1310,56 @@ export function renderPreview(
                 true,
             );
 
-        case 'avatar':
+        case 'avatar': {
+            // Load fonts
+            if (instance.style.avatarFontFamily) loadGoogleFont(instance.style.avatarFontFamily);
+            if (instance.style.avatarPopoverFontFamily) loadGoogleFont(instance.style.avatarPopoverFontFamily);
+
+            const hasImage = !!instance.style.avatarSrc;
+
+            // Group mode — delegate to stateful component
+            if (instance.style.avatarGroupEnabled) {
+                return <AvatarGroupPreview instance={instance} motionClassName={motionClassName} />;
+            }
+
+            // Single avatar
             return (
-                <div className="relative inline-flex">
-                    <Avatar
-                        shape={instance.style.avatarShape}
-                        size={instance.style.size}
-                        style={buildComponentWrapperStyle(style, 'avatar')}
-                        className={cn(motionClassName)}
-                    >
-                        {instance.style.avatarSrc ? (
-                            <AvatarImage src={instance.style.avatarSrc} alt="User" />
-                        ) : null}
-                        <AvatarFallback>{instance.style.avatarFallbackText}</AvatarFallback>
-                    </Avatar>
-                    {instance.style.avatarShowBadge && (
-                        <span
-                            className={cn(
-                                'absolute bottom-0 right-0 block rounded-full ring-2 ring-background',
-                                instance.style.size === 'sm' ? 'size-2' : instance.style.size === 'lg' ? 'size-3.5' : 'size-2.5',
-                            )}
-                            style={{ backgroundColor: instance.style.avatarBadgeColor }}
+                <Avatar
+                    customSize={instance.style.avatarCustomSize}
+                    radius={instance.style.avatarRadius}
+                    bgColor={hasImage ? undefined : instance.style.avatarBgColor}
+                    bgGradientTo={hasImage ? undefined : instance.style.avatarBgColorTo}
+                    bgMode={instance.style.avatarBgMode}
+                    bgOpacity={hasImage ? undefined : instance.style.avatarBgOpacity}
+                    strokeWeight={instance.style.avatarStrokeWeight}
+                    strokeColor={instance.style.avatarStrokeColor}
+                    strokeOpacity={instance.style.avatarStrokeOpacity}
+                    badge={instance.style.avatarShowBadge}
+                    badgeColor={instance.style.avatarBadgeColor}
+                    className={cn(motionClassName)}
+                >
+                    {hasImage ? (
+                        <AvatarImage
+                            src={instance.style.avatarSrc}
+                            alt="User"
+                            imageOpacity={instance.style.avatarImageOpacity}
+                            overlayColor={instance.style.avatarOverlayColor}
+                            overlayOpacity={instance.style.avatarOverlayOpacity}
                         />
-                    )}
-                </div>
+                    ) : null}
+                    <AvatarFallback
+                        fontFamily={instance.style.avatarFontFamily}
+                        fontSize={instance.style.avatarFontSize}
+                        fontColor={instance.style.avatarFontColor}
+                        fontBold={instance.style.avatarFontBold}
+                        fontItalic={instance.style.avatarFontItalic}
+                        fontUnderline={instance.style.avatarFontUnderline}
+                    >
+                        {instance.style.avatarFallbackText}
+                    </AvatarFallback>
+                </Avatar>
             );
+        }
 
         case 'data-table': {
             const columns = Array.from({ length: instance.style.dataTableColumns }, (_, i) => ({

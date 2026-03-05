@@ -1034,6 +1034,171 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Avatar Config */}
+                    {selectedInstance?.kind === 'avatar' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Avatar Config" icon={Table} defaultOpen>
+                                <FlatField label="Fallback Text" stacked>
+                                    <input type="text" value={selectedStyle.avatarFallbackText} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarFallbackText', e.target.value)} className="h-7 w-full rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" />
+                                </FlatField>
+                                <FlatField label="Image URL" stacked>
+                                    <input type="text" value={selectedStyle.avatarSrc} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarSrc', e.target.value)} placeholder="https://..." className="h-7 w-full rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" />
+                                </FlatField>
+                                <div className="flex flex-wrap items-start gap-3">
+                                    <FlatUnitField label="Size" value={selectedStyle.avatarCustomSize} min={16} max={128} unit="px" onChange={(value) => updateSelectedStyle('avatarCustomSize', value)} />
+                                    <FlatUnitField label="Radius" value={selectedStyle.avatarRadius} min={0} max={999} unit="px" onChange={(value) => updateSelectedStyle('avatarRadius', value)} />
+                                </div>
+                                <FlatSwitchRow label="Show Badge" checked={selectedStyle.avatarShowBadge} onCheckedChange={(value) => updateSelectedStyle('avatarShowBadge', value)} />
+                                {selectedStyle.avatarShowBadge && (
+                                    <FlatColorControl label="Badge Color" value={selectedStyle.avatarBadgeColor} onChange={(value) => updateSelectedStyle('avatarBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                )}
+                            </FlatInspectorSection>
+
+                            {/* Background — hidden when image is used */}
+                            {!selectedStyle.avatarSrc && (
+                                <FlatInspectorSection title="Background" icon={Swatches} defaultOpen>
+                                    <FlatField label="Mode">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['solid', 'gradient'] as const).map((mode) => (
+                                                <button key={mode} type="button" onClick={() => updateSelectedStyle('avatarBgMode', mode)} className={cn(inspectorChoiceButtonBase, selectedStyle.avatarBgMode === mode ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {mode === 'solid' ? 'Solid' : 'Gradient'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <FlatColorControl label="Color" value={selectedStyle.avatarBgColor} onChange={(value) => updateSelectedStyle('avatarBgColor', value)} tokens={activeTokenSet.tokens} />
+                                    {selectedStyle.avatarBgMode === 'gradient' && (
+                                        <FlatColorControl label="Color To" value={selectedStyle.avatarBgColorTo} onChange={(value) => updateSelectedStyle('avatarBgColorTo', value)} tokens={activeTokenSet.tokens} />
+                                    )}
+                                    <FlatUnitField label="Opacity" value={selectedStyle.avatarBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarBgOpacity', value)} />
+                                </FlatInspectorSection>
+                            )}
+
+                            {/* Image settings — shown when image is used */}
+                            {selectedStyle.avatarSrc && (
+                                <FlatInspectorSection title="Image" icon={Swatches} defaultOpen>
+                                    <FlatUnitField label="Opacity" value={selectedStyle.avatarImageOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarImageOpacity', value)} />
+                                    <FlatColorControl label="Overlay Color" value={selectedStyle.avatarOverlayColor} onChange={(value) => updateSelectedStyle('avatarOverlayColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatUnitField label="Overlay Opacity" value={selectedStyle.avatarOverlayOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarOverlayOpacity', value)} />
+                                </FlatInspectorSection>
+                            )}
+
+                            <FlatInspectorSection title="Stroke" icon={Ruler} defaultOpen={false}>
+                                <FlatUnitField label="Weight" value={selectedStyle.avatarStrokeWeight} min={0} max={8} unit="px" onChange={(value) => updateSelectedStyle('avatarStrokeWeight', value)} />
+                                {selectedStyle.avatarStrokeWeight > 0 && (
+                                    <>
+                                        <FlatColorControl label="Color" value={selectedStyle.avatarStrokeColor} onChange={(value) => updateSelectedStyle('avatarStrokeColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatUnitField label="Opacity" value={selectedStyle.avatarStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarStrokeOpacity', value)} />
+                                    </>
+                                )}
+                            </FlatInspectorSection>
+
+                            {/* Typography — hidden when image is used */}
+                            {!selectedStyle.avatarSrc && (
+                                <FlatInspectorSection title="Typography" icon={Sparkles} defaultOpen={false}>
+                                    <FlatField label="Font" stacked>
+                                        <FlatSelect value={selectedStyle.avatarFontFamily} onValueChange={(value) => updateSelectedStyle('avatarFontFamily', value)} ariaLabel="Font family">
+                                            {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <FlatUnitField label="Size" value={selectedStyle.avatarFontSize} min={8} max={72} unit="px" onChange={(value) => updateSelectedStyle('avatarFontSize', value)} />
+                                    <FlatColorControl label="Color" value={selectedStyle.avatarFontColor} onChange={(value) => updateSelectedStyle('avatarFontColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatField label="Style">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            <button type="button" onClick={() => updateSelectedStyle('avatarFontBold', !selectedStyle.avatarFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeBold className="size-4" />
+                                            </button>
+                                            <button type="button" onClick={() => updateSelectedStyle('avatarFontItalic', !selectedStyle.avatarFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeItalic className="size-4" />
+                                            </button>
+                                            <button type="button" onClick={() => updateSelectedStyle('avatarFontUnderline', !selectedStyle.avatarFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeUnderline className="size-4" />
+                                            </button>
+                                        </div>
+                                    </FlatField>
+                                </FlatInspectorSection>
+                            )}
+
+                            <FlatInspectorSection title="Group" icon={Config} defaultOpen={false}>
+                                <FlatSwitchRow label="Enable Group" checked={selectedStyle.avatarGroupEnabled} onCheckedChange={(value) => updateSelectedStyle('avatarGroupEnabled', value)} />
+                                {selectedStyle.avatarGroupEnabled && (
+                                    <>
+                                        <FlatUnitField label="Count" value={selectedStyle.avatarGroupCount} min={2} max={8} unit="" onChange={(value) => updateSelectedStyle('avatarGroupCount', value)} />
+                                        <FlatUnitField label="Spacing" value={selectedStyle.avatarGroupSpacing} min={-20} max={20} unit="px" onChange={(value) => updateSelectedStyle('avatarGroupSpacing', value)} />
+                                    </>
+                                )}
+                            </FlatInspectorSection>
+
+                            <FlatInspectorSection title="Hover Popover" icon={Sparkles} defaultOpen={false}>
+                                <FlatSwitchRow label="Enable Popover" checked={selectedStyle.avatarPopoverEnabled} onCheckedChange={(value) => updateSelectedStyle('avatarPopoverEnabled', value)} />
+                                {selectedStyle.avatarPopoverEnabled && (
+                                    <>
+                                        <FlatUnitField label="Delay (ms)" value={selectedStyle.avatarPopoverDelay} min={0} max={2000} step={10} unit="ms" onChange={(value) => updateSelectedStyle('avatarPopoverDelay', value)} />
+                                        <div className="flex flex-wrap items-start gap-3">
+                                            <FlatUnitField label="Width" value={selectedStyle.avatarPopoverWidth} min={120} max={320} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverWidth', value)} />
+                                            <FlatUnitField label="Padding" value={selectedStyle.avatarPopoverPadding} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverPadding', value)} />
+                                            <FlatUnitField label="Radius" value={selectedStyle.avatarPopoverRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverRadius', value)} />
+                                        </div>
+                                        <FlatField label="BG Mode">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                {(['solid', 'gradient'] as const).map((mode) => (
+                                                    <button key={mode} type="button" onClick={() => updateSelectedStyle('avatarPopoverBgMode', mode)} className={cn(inspectorChoiceButtonBase, selectedStyle.avatarPopoverBgMode === mode ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        {mode === 'solid' ? 'Solid' : 'Gradient'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FlatField>
+                                        <FlatColorControl label="BG Color" value={selectedStyle.avatarPopoverBgColor} onChange={(value) => updateSelectedStyle('avatarPopoverBgColor', value)} tokens={activeTokenSet.tokens} />
+                                        {selectedStyle.avatarPopoverBgMode === 'gradient' && (
+                                            <FlatColorControl label="BG Color To" value={selectedStyle.avatarPopoverBgColorTo} onChange={(value) => updateSelectedStyle('avatarPopoverBgColorTo', value)} tokens={activeTokenSet.tokens} />
+                                        )}
+                                        <FlatUnitField label="BG Opacity" value={selectedStyle.avatarPopoverBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverBgOpacity', value)} />
+                                        <FlatUnitField label="Stroke Weight" value={selectedStyle.avatarPopoverStrokeWeight} min={0} max={4} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeWeight', value)} />
+                                        {selectedStyle.avatarPopoverStrokeWeight > 0 && (
+                                            <>
+                                                <FlatColorControl label="Stroke Color" value={selectedStyle.avatarPopoverStrokeColor} onChange={(value) => updateSelectedStyle('avatarPopoverStrokeColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="Stroke Opacity" value={selectedStyle.avatarPopoverStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeOpacity', value)} />
+                                            </>
+                                        )}
+                                        <FlatField label="Font" stacked>
+                                            <FlatSelect value={selectedStyle.avatarPopoverFontFamily} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontFamily', value)} ariaLabel="Popover font">
+                                                {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                        <div className="flex flex-wrap items-end gap-3">
+                                            <FlatUnitField label="Font Size" value={selectedStyle.avatarPopoverFontSize} min={8} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverFontSize', value)} />
+                                            <div className="w-[92px] shrink-0">
+                                                <FlatField label="Weight" stacked>
+                                                    <FlatSelect value={selectedStyle.avatarPopoverFontWeight} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontWeight', Number(value))} ariaLabel="Popover font weight">
+                                                        {[300, 400, 500, 600, 700].map((w) => (<option key={w} value={w}>{w}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </div>
+                                        </div>
+                                        <FlatField label="Style">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontBold', !selectedStyle.avatarPopoverFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <TypeBold className="size-4" />
+                                                </button>
+                                                <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontItalic', !selectedStyle.avatarPopoverFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <TypeItalic className="size-4" />
+                                                </button>
+                                                <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontUnderline', !selectedStyle.avatarPopoverFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <TypeUnderline className="size-4" />
+                                                </button>
+                                            </div>
+                                        </FlatField>
+                                        <FlatColorControl label="Font Color" value={selectedStyle.avatarPopoverFontColor} onChange={(value) => updateSelectedStyle('avatarPopoverFontColor', value)} tokens={activeTokenSet.tokens} />
+                                        <div className="flex flex-wrap items-start gap-3">
+                                            <FlatUnitField label="Icon Size" value={selectedStyle.avatarPopoverIconSize} min={8} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverIconSize', value)} />
+                                        </div>
+                                        <FlatColorControl label="Icon Color" value={selectedStyle.avatarPopoverIconColor} onChange={(value) => updateSelectedStyle('avatarPopoverIconColor', value)} tokens={activeTokenSet.tokens} />
+                                    </>
+                                )}
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Alert Config */}
                     {selectedInstance?.kind === 'alert' && selectedStyle ? (
                         <div className="p-1">
