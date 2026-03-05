@@ -76,7 +76,7 @@ function Avatar({
       style={mergedStyle}
       {...props}
     >
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ borderRadius: "inherit" }}>
+      <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "inherit" }}>
         {children}
       </div>
       {badge && (

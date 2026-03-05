@@ -1038,19 +1038,50 @@ export function InspectorPanel() {
                     {(selectedInstance?.kind === 'avatar' || selectedInstance?.kind === 'avatar-group') && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title={selectedInstance.kind === 'avatar-group' ? 'Avatar Group Config' : 'Avatar Config'} icon={Table} defaultOpen>
-                                <FlatField label="Fallback Text" stacked>
-                                    <input type="text" value={selectedStyle.avatarFallbackText} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarFallbackText', e.target.value)} className="h-7 w-full rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" />
-                                </FlatField>
-                                <FlatField label="Image URL" stacked>
-                                    <input type="text" value={selectedStyle.avatarSrc} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarSrc', e.target.value)} placeholder="https://..." className="h-7 w-full rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" />
-                                </FlatField>
+                                {selectedInstance.kind === 'avatar' && (
+                                    <>
+                                        <FlatField label="Fallback Text" stacked>
+                                            <input type="text" value={selectedStyle.avatarFallbackText} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarFallbackText', e.target.value)} className="h-7 w-full rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" />
+                                        </FlatField>
+                                        <FlatField label="Image" stacked>
+                                            <div className="flex w-full items-center gap-1.5">
+                                                <input type="text" value={selectedStyle.avatarSrc?.startsWith('data:') ? '(uploaded file)' : selectedStyle.avatarSrc} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSelectedStyle('avatarSrc', e.target.value)} placeholder="https://..." className="h-7 min-w-0 flex-1 rounded-md bg-[var(--inspector-input)] px-2 text-xs text-[var(--inspector-fg)]" readOnly={selectedStyle.avatarSrc?.startsWith('data:')} />
+                                                <label className="flex h-7 shrink-0 cursor-pointer items-center rounded-md bg-[var(--inspector-input)] px-2 text-[10px] text-[var(--inspector-fg)] transition-colors hover:bg-[var(--inspector-input-hover,var(--inspector-input))]">
+                                                    Upload
+                                                    <input type="file" accept="image/*" className="hidden" onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        const reader = new FileReader();
+                                                        reader.onload = () => {
+                                                            if (typeof reader.result === 'string') updateSelectedStyle('avatarSrc', reader.result);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                        e.target.value = '';
+                                                    }} />
+                                                </label>
+                                                {selectedStyle.avatarSrc && (
+                                                    <button type="button" onClick={() => updateSelectedStyle('avatarSrc', '')} className="flex h-7 shrink-0 items-center rounded-md bg-[var(--inspector-input)] px-1.5 text-[var(--inspector-fg)] opacity-60 transition-opacity hover:opacity-100">
+                                                        <Delete className="size-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {selectedStyle.avatarSrc?.startsWith('data:') && (
+                                                <p className="mt-1 text-[10px] leading-tight text-[var(--inspector-fg)] opacity-40">Uploaded images are stored locally and will use a placeholder URL in exported code.</p>
+                                            )}
+                                        </FlatField>
+                                    </>
+                                )}
                                 <div className="flex flex-wrap items-start gap-3">
                                     <FlatUnitField label="Size" value={selectedStyle.avatarCustomSize} min={16} max={128} unit="px" onChange={(value) => updateSelectedStyle('avatarCustomSize', value)} />
                                     <FlatUnitField label="Radius" value={selectedStyle.avatarRadius} min={0} max={999} unit="px" onChange={(value) => updateSelectedStyle('avatarRadius', value)} />
                                 </div>
-                                <FlatSwitchRow label="Show Badge" checked={selectedStyle.avatarShowBadge} onCheckedChange={(value) => updateSelectedStyle('avatarShowBadge', value)} />
-                                {selectedStyle.avatarShowBadge && (
-                                    <FlatColorControl label="Badge Color" value={selectedStyle.avatarBadgeColor} onChange={(value) => updateSelectedStyle('avatarBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                {selectedInstance.kind === 'avatar' && (
+                                    <>
+                                        <FlatSwitchRow label="Show Badge" checked={selectedStyle.avatarShowBadge} onCheckedChange={(value) => updateSelectedStyle('avatarShowBadge', value)} />
+                                        {selectedStyle.avatarShowBadge && (
+                                            <FlatColorControl label="Badge Color" value={selectedStyle.avatarBadgeColor} onChange={(value) => updateSelectedStyle('avatarBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                        )}
+                                    </>
                                 )}
                                 {selectedInstance.kind === 'avatar-group' && (
                                     <>

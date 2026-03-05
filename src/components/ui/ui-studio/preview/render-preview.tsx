@@ -98,9 +98,9 @@ interface AvatarPopoverUser {
 }
 
 const AVATAR_DEMO_USERS: AvatarPopoverUser[] = [
-    { name: 'Casey North', initials: 'CN', role: 'Designer', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face' },
-    { name: 'Lara Reed', initials: 'LR', role: 'Engineer', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face' },
-    { name: 'Evan Ross', initials: 'ER', role: 'Product', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face' },
+    { name: 'Casey North', initials: 'CN', role: 'Designer' },
+    { name: 'Lara Reed', initials: 'LR', role: 'Engineer' },
+    { name: 'Evan Ross', initials: 'ER', role: 'Product' },
     { name: 'Nia Holt', initials: 'NH', role: 'Marketing' },
     { name: 'Alex Kim', initials: 'AK', role: 'Sales' },
     { name: 'Sam Chen', initials: 'SC', role: 'Support' },
@@ -560,8 +560,9 @@ export function componentSnippet(
                 instance.style.avatarShowBadge ? `badge badgeColor="${instance.style.avatarBadgeColor}"` : '',
                 instance.style.avatarStrokeWeight > 0 ? `strokeWeight={${instance.style.avatarStrokeWeight}} strokeColor="${instance.style.avatarStrokeColor}"` : '',
             ].filter(Boolean).join(' ');
+            const exportSrc = instance.style.avatarSrc?.startsWith('data:') ? '/images/avatar.jpg' : instance.style.avatarSrc;
             const imageSnippet = instance.style.avatarSrc
-                ? `\n  <AvatarImage src="${instance.style.avatarSrc}" alt="User"${instance.style.avatarImageOpacity < 100 ? ` imageOpacity={${instance.style.avatarImageOpacity}}` : ''} />`
+                ? `\n  <AvatarImage src="${exportSrc}" alt="User"${instance.style.avatarImageOpacity < 100 ? ` imageOpacity={${instance.style.avatarImageOpacity}}` : ''} />`
                 : '';
             const fallbackSnippet = `\n  <AvatarFallback>${instance.style.avatarFallbackText}</AvatarFallback>`;
             return `${declarations ? `${declarations}\n\n` : ''}<Avatar ${avatarPropsSnippet}${classNameSnippet}${previewStyleSnippet}>${imageSnippet}${fallbackSnippet}\n</Avatar>`;
