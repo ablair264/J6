@@ -955,6 +955,20 @@ export function InspectorPanel() {
                                     )}
                                 </div>
                             </FlatInspectorSection>
+                            <FlatInspectorSection title="Icons" icon={Sparkles} defaultOpen={false}>
+                                <FlatSwitchRow label="Show Icons" checked={selectedStyle.accordionShowIcons} onCheckedChange={(value) => updateSelectedStyle('accordionShowIcons', value)} />
+                                {selectedStyle.accordionShowIcons && (
+                                    <FlatField label="Icon Position">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['left', 'right'] as const).map((position) => (
+                                                <button key={position} type="button" onClick={() => updateSelectedStyle('accordionIconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.accordionIconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {position === 'left' ? 'Left' : 'Right'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                )}
+                            </FlatInspectorSection>
                             <FlatInspectorSection title="Trigger Typography" icon={Sparkles} defaultOpen={false}>
                                 <FlatField label="Font" stacked>
                                     <FlatSelect value={selectedStyle.accordionTriggerFontFamily} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontFamily', value)} ariaLabel="Trigger font family">
@@ -1903,6 +1917,11 @@ export function InspectorPanel() {
 
                                     {supportsTypographyStyle(selectedInstance.kind) && currentAppearanceValues ? (
                                         <>
+                                            <FlatField label="Font" stacked>
+                                                <FlatSelect value={selectedStyle.fontFamily} onValueChange={(value) => updateSelectedStyle('fontFamily', value)} ariaLabel="Font family">
+                                                    {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
                                             <FlatField label="Typography" stacked>
                                                 <div className="flex gap-2 [&>*]:min-w-0 [&>*]:flex-1">
                                                     <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={72} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
@@ -1911,6 +1930,19 @@ export function InspectorPanel() {
                                                             {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
                                                         </FlatSelect>
                                                     </FlatField>
+                                                </div>
+                                            </FlatField>
+                                            <FlatField label="Style">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeBold className="size-4" />
+                                                    </button>
+                                                    <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeItalic className="size-4" />
+                                                    </button>
+                                                    <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeUnderline className="size-4" />
+                                                    </button>
                                                 </div>
                                             </FlatField>
                                             {selectedInstance.kind !== 'animated-text' && (

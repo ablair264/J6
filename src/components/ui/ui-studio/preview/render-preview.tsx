@@ -1,5 +1,6 @@
 import React, { type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'motion/react';
+import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap } from 'lucide-react';
 import { Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -989,13 +990,92 @@ export function renderPreview(
                 ...(instance.style.accordionContentFontUnderline ? { textDecoration: 'underline' } : {}),
             };
 
-            const accordionItems = items.map((n) => (
-                <AccordionItem key={n} value={`item-${n}`}>
-                    <AccordionTrigger triggerStyle={triggerTypoStyle}>Section {n}</AccordionTrigger>
-                    <AccordionContent contentStyle={contentTypoStyle}>Content for section {n}.</AccordionContent>
-                </AccordionItem>
-            ));
+            const accordionIconData = [
+                { icon: FileText, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', label: 'Documents', subtitle: 'Manage your files', content: 'View, upload, and organize all your documents in one place.' },
+                { icon: FolderOpen, color: '#fb923c', bg: 'rgba(251,146,60,0.1)', label: 'Projects', subtitle: 'Organize your work', content: 'Group related files and tasks into projects.' },
+                { icon: Settings, color: '#2dd4bf', bg: 'rgba(45,212,191,0.1)', label: 'Settings', subtitle: 'Customize your experience', content: 'Adjust preferences, update account details, and configure behavior.' },
+                { icon: Users, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Team Members', subtitle: 'Manage users and roles', content: 'Invite new members, assign roles, and control access permissions.' },
+                { icon: Bookmark, color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', label: 'Bookmarks', subtitle: 'Save for later', content: 'Organize and manage your saved items.' },
+                { icon: Globe, color: '#22d3ee', bg: 'rgba(34,211,238,0.1)', label: 'Integrations', subtitle: 'Connect services', content: 'Link external tools and automate workflows.' },
+                { icon: Shield, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Security', subtitle: 'Protect your data', content: 'Configure security settings and manage access controls.' },
+                { icon: Zap, color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Automation', subtitle: 'Speed up tasks', content: 'Set up automated workflows and triggers.' },
+            ];
+
+            const showIcons = instance.style.accordionShowIcons;
+            const iconPos = instance.style.accordionIconPosition;
+
+            // Build per-item hover/tap motion props
+            const itemWhileHover = instance.style.motionHoverEnabled
+                ? {
+                    scale: instance.style.motionHoverScale / 100,
+                    x: instance.style.motionHoverX,
+                    y: instance.style.motionHoverY,
+                    rotate: instance.style.motionHoverRotate,
+                    opacity: instance.style.motionHoverOpacity / 100,
+                    transition: buildMotionTransition(instance.style, 'hover'),
+                }
+                : undefined;
+            const itemWhileTap = instance.style.motionTapEnabled
+                ? {
+                    scale: instance.style.motionTapScale / 100,
+                    x: instance.style.motionTapX,
+                    y: instance.style.motionTapY,
+                    rotate: instance.style.motionTapRotate,
+                    opacity: instance.style.motionTapOpacity / 100,
+                    transition: buildMotionTransition(instance.style, 'tap'),
+                }
+                : undefined;
+            const hasItemMotion = !!(itemWhileHover || itemWhileTap);
+
+            const accordionItems = items.map((n) => {
+                const iconInfo = accordionIconData[(n - 1) % accordionIconData.length];
+                const IconComp = iconInfo.icon;
+                const iconEl = showIcons ? (
+                    <div
+                        className="flex shrink-0 items-center justify-center rounded-xl p-2.5"
+                        style={{ backgroundColor: iconInfo.bg, color: iconInfo.color }}
+                    >
+                        <IconComp size={20} />
+                    </div>
+                ) : null;
+
+                const triggerContent = showIcons ? (
+                    <div className={cn('flex items-center gap-3', iconPos === 'right' && 'flex-row-reverse')}>
+                        {iconEl}
+                        <div className="flex flex-col items-start text-left">
+                            <span>{iconInfo.label}</span>
+                            <span className="text-sm opacity-60">{iconInfo.subtitle}</span>
+                        </div>
+                    </div>
+                ) : (
+                    <>Section {n}</>
+                );
+
+                const item = (
+                    <AccordionItem key={n} value={`item-${n}`}>
+                        <AccordionTrigger triggerStyle={triggerTypoStyle}>{triggerContent}</AccordionTrigger>
+                        <AccordionContent contentStyle={contentTypoStyle}>
+                            {showIcons ? (
+                                <p style={iconPos === 'left' ? { paddingLeft: 52 } : undefined}>{iconInfo.content}</p>
+                            ) : (
+                                <>Content for section {n}.</>
+                            )}
+                        </AccordionContent>
+                    </AccordionItem>
+                );
+
+                // Wrap each item with hover/tap motion individually
+                if (hasItemMotion) {
+                    return (
+                        <motion.div key={n} whileHover={itemWhileHover} whileTap={itemWhileTap}>
+                            {item}
+                        </motion.div>
+                    );
+                }
+                return item;
+            });
             const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
+            // Entry motion on whole accordion, hover/tap handled per-item above
             return renderWithMotionControls(
                 <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
                     <Accordion
@@ -1014,7 +1094,7 @@ export function renderPreview(
                 </div>,
                 instance.style,
                 true,
-                true,
+                false, // interaction handled per-item
             );
         }
 

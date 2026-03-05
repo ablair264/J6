@@ -75,7 +75,7 @@ function AccordionItem({
       data-slot="accordion-item"
       className={cn(
         "group/accordion-item",
-        "border-b border-[var(--accordion-divider-color,var(--border))] [border-width:var(--accordion-divider-weight,1px)] [[data-divider=false]_&]:border-0",
+        "border-b border-[var(--accordion-divider-color,var(--border))] [border-bottom-width:var(--accordion-divider-weight,1px)] [[data-divider=false]_&]:border-0",
         "last:border-b-0",
         className
       )}

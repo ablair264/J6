@@ -357,6 +357,9 @@ export interface ComponentStyleConfig {
   accordionTriggerFontItalic: boolean;
   accordionTriggerFontBold: boolean;
   accordionTriggerFontUnderline: boolean;
+  // Accordion icons
+  accordionShowIcons: boolean;
+  accordionIconPosition: 'left' | 'right';
   // Accordion content typography
   accordionContentFontFamily: string;
   accordionContentFontSize: number;
