@@ -667,6 +667,7 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
         borderColor: glassmorphismActive ? undefined : borderColor,
         borderRadius: `${config.cornerRadius}px`,
         color: fontColor,
+        fontFamily: config.fontFamily || undefined,
         fontSize: `${Math.round(config.fontSize * scale)}px`,
         fontWeight: config.fontWeight,
         textAlign,

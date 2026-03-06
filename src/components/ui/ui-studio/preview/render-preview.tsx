@@ -878,8 +878,8 @@ export function renderPreview(
                                 motionClassName,
                             )}
                         >
-                            <CheckboxPrimitive.Indicator className="grid place-content-center text-current">
-                                <div className={cn(PRESET_CHECKBOX_INDICATOR_SIZE[s.size], 'ui-studio-checkbox-indicator')}>
+                            <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current size-full">
+                                <div className={cn(PRESET_CHECKBOX_INDICATOR_SIZE[s.size], 'ui-studio-checkbox-indicator flex items-center justify-center')}>
                                     {renderCheckboxSelectionIndicator(s)}
                                 </div>
                             </CheckboxPrimitive.Indicator>
@@ -888,7 +888,7 @@ export function renderPreview(
                         false,
                         true,
                     )}
-                    <Label htmlFor={checkboxId} style={{ color: style.color, fontSize: style.fontSize, fontWeight: style.fontWeight }}>
+                    <Label htmlFor={checkboxId} className="whitespace-nowrap" style={{ color: style.color, fontSize: style.fontSize, fontWeight: style.fontWeight, fontFamily: style.fontFamily }}>
                         {s.checkboxLabel || 'Enable notifications'}
                     </Label>
                 </div>
