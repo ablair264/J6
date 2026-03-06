@@ -71,7 +71,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerVariants = cva(
-  "group/trigger inline-flex h-9 w-max items-center justify-center gap-1 rounded-md px-4 py-2 text-sm font-medium outline-none transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+  "group/trigger inline-flex h-9 w-max items-center justify-center gap-1 rounded-md px-4 py-2 outline-none transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-ring/50 focus-visible:ring-[3px]",
   {
     variants: {
       variant: {

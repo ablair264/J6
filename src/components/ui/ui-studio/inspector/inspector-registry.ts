@@ -102,7 +102,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
     },
     badge: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
-        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true },
+        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true, loading: false },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
         iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: true,
@@ -122,11 +122,11 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: true, motionPreset: false,
     },
     checkbox: {
-        sections: { presets: true, dimensions: true, componentConfig: false, appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
-        effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
+        sections: { presets: true, dimensions: true, componentConfig: 'Checkbox Config', appearance: false, typography: true, effects: false, advancedHover: false, motion: true },
+        effects: NO_EFFECTS,
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: true, motionPreset: false,
+        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     slider: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: false, effects: true, advancedHover: false, motion: true },

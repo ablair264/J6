@@ -175,6 +175,11 @@ export interface ComponentStyleConfig {
   checkboxRequired: boolean;
   checkboxName: string;
   checkboxValue: string;
+  checkboxLabel: string;
+  checkboxCheckedColor: string;
+  checkboxBorderColor: string;
+  checkboxIndicatorColor: string;
+  checkboxCornerRadius: number;
   dialogDefaultOpen: boolean;
   dialogModal: boolean;
   dialogTitleText: string;

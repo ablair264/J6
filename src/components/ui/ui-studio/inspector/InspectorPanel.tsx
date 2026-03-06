@@ -1893,6 +1893,42 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Checkbox Config */}
+                    {selectedInstance?.kind === 'checkbox' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Checkbox Config" icon={Table} defaultOpen>
+                                <FlatField label="Label" stacked>
+                                    <input
+                                        type="text"
+                                        value={selectedStyle.checkboxLabel}
+                                        onChange={(e) => updateSelectedStyle('checkboxLabel', e.target.value)}
+                                        className={studioInputClass}
+                                        placeholder="Enable notifications"
+                                    />
+                                </FlatField>
+                                <FlatField label="State" stacked>
+                                    <FlatSelect value={selectedStyle.checkboxState} onValueChange={(value) => updateSelectedStyle('checkboxState', value as ComponentStyleConfig['checkboxState'])}>
+                                        <option value="checked">Checked</option>
+                                        <option value="unchecked">Unchecked</option>
+                                        <option value="indeterminate">Indeterminate</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                <FlatField label="Selection Icon" stacked>
+                                    <FlatSelect value={selectedStyle.checkboxSelectionIcon} onValueChange={(value) => updateSelectedStyle('checkboxSelectionIcon', value as ComponentStyleConfig['checkboxSelectionIcon'])}>
+                                        <option value="tick">Tick</option>
+                                        <option value="cross">Cross</option>
+                                        <option value="solid">Solid</option>
+                                    </FlatSelect>
+                                </FlatField>
+                                <FlatSwitchRow label="Disabled" checked={selectedStyle.checkboxDisabled} onCheckedChange={(value) => updateSelectedStyle('checkboxDisabled', value)} />
+                                <FlatColorControl label="Checked Color" value={selectedStyle.checkboxCheckedColor} onChange={(value) => updateSelectedStyle('checkboxCheckedColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Border Color" value={selectedStyle.checkboxBorderColor} onChange={(value) => updateSelectedStyle('checkboxBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Indicator Color" value={selectedStyle.checkboxIndicatorColor} onChange={(value) => updateSelectedStyle('checkboxIndicatorColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatUnitField label="Corner Radius" value={selectedStyle.checkboxCornerRadius} min={0} max={999} unit="px" onChange={(value) => updateSelectedStyle('checkboxCornerRadius', value)} />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Animated Text Config */}
                     {selectedInstance?.kind === 'animated-text' && selectedStyle ? (
                         <div className="p-1">

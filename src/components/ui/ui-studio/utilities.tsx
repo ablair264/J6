@@ -1541,8 +1541,26 @@ export function buildPreviewPresentation(instance: ComponentInstance): { style: 
     const componentPreset = getComponentVisualPreset(instance.kind, instance.style.componentPreset);
     const extractedEffectsClassName = buildExtractedEffectsClassName(instance.kind, instance.style);
     const hasAnimatedBorderEffect = supportsAnimatedBorderEffect(instance.kind) && instance.style.effectAnimatedBorderEnabled;
+    const previewStyle = buildPreviewStyle(instance.style);
+
+    // Badges need smaller sizing than buttons
+    if (instance.kind === 'badge') {
+        const scale = SIZE_SCALE[instance.style.size];
+        if (instance.style.customHeight <= 0) {
+            previewStyle.minHeight = `${Math.round(24 * scale)}px`;
+        }
+        previewStyle.paddingInline = `${Math.round(8 * scale)}px`;
+    }
+
+    // Checkbox sizing is handled directly in the preview render
+    if (instance.kind === 'checkbox') {
+        const scale = SIZE_SCALE[instance.style.size];
+        previewStyle.minHeight = `${Math.round(22 * scale)}px`;
+        previewStyle.paddingInline = '0px';
+    }
+
     const baseStyle = {
-        ...buildPreviewStyle(instance.style),
+        ...previewStyle,
         ...buildMotionVariables(instance.style),
         ['--ui-dropdown-hover-bg' as string]: hexToRgba(
             instance.style.dropdownHoverFill,

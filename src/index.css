@@ -1061,6 +1061,21 @@
   background: currentColor;
 }
 
+.ui-studio-checkbox {
+  border-color: var(--ui-checkbox-border);
+  background-color: transparent;
+}
+.ui-studio-checkbox[data-state="checked"],
+.ui-studio-checkbox[data-state="indeterminate"] {
+  background-color: var(--ui-checkbox-checked-bg);
+  border-color: var(--ui-checkbox-checked-border);
+  color: var(--ui-checkbox-indicator);
+}
+.ui-studio-checkbox[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .ui-studio-slider-motion [data-slot='slider-thumb'] {
   transition: transform 160ms ease;
 }

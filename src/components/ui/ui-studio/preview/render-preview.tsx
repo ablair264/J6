@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap, Mail, MessageCircle, PhoneCall } from 'lucide-react';
-import { Dialog as RadixDialogPrimitive } from 'radix-ui';
+import { Checkbox as CheckboxPrimitive, Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { DataTable } from '@/components/ui/data-table';
@@ -12,10 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { AnimatedText } from '@/components/ui/animated-text';
-import {
-    Checkbox as AnimatedCheckbox,
-    CheckboxIndicator as AnimatedCheckboxIndicator,
-} from '@/components/animate-ui/primitives/radix/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -477,12 +473,6 @@ export function componentSnippet(
         extraClassNames: [BUTTON_STATE_CLASS_NAME],
         styleClassVarName: previewClassNameVar,
     });
-    const animatedCheckboxClassBinding = buildExportClassBinding('animatedCheckbox', {
-        componentClassName,
-        effectClassName,
-        extraClassNames: ['inline-flex items-center justify-center leading-none'],
-        styleClassVarName: previewClassNameVar,
-    });
     const checkboxClassBinding = buildExportClassBinding('checkbox', {
         componentClassName,
         effectClassName,
@@ -494,7 +484,6 @@ export function componentSnippet(
     });
     const classNameSnippet = buildSnippetClassNameVarAttr(rootClassBinding.classNameVar);
     const buttonClassNameSnippet = buildSnippetClassNameVarAttr(buttonClassBinding.classNameVar);
-    const animatedCheckboxClassNameSnippet = buildSnippetClassNameVarAttr(animatedCheckboxClassBinding.classNameVar);
     const checkboxClassNameSnippet = buildSnippetClassNameVarAttr(checkboxClassBinding.classNameVar);
     const sliderClassNameSnippet = buildSnippetClassNameVarAttr(sliderClassBinding.classNameVar);
 
@@ -511,12 +500,6 @@ export function componentSnippet(
             : instance.style.checkboxState === 'checked'
                 ? 'true'
                 : 'false';
-    const animatedCheckboxCheckedSnippet =
-        instance.style.checkboxState === 'indeterminate' ? `\n    checked="indeterminate"` : '';
-    const animatedCheckboxDefaultCheckedSnippet =
-        instance.style.checkboxState === 'indeterminate'
-            ? ''
-            : `\n    defaultChecked={${instance.style.checkboxState === 'checked' ? 'true' : 'false'}}`;
     const labelFor = instance.style.labelFor.trim() || 'field-id';
     const safeLabelText = instance.style.labelText.replace(/'/g, "\\'");
     const safeCheckboxName = instance.style.checkboxName.replace(/'/g, "\\'");
@@ -588,15 +571,11 @@ export function componentSnippet(
             const declarations = [previewBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
             return `${declarations ? `${declarations}\n\n` : ''}<Button intent="primary" size="md"${buttonClassNameSnippet}${previewStyleSnippet}>\n  ${instance.style.iconPosition === 'left' ? `${iconLeft}` : ''}${buttonText}${instance.style.iconPosition === 'right' ? `${iconRight}` : ''}\n</Button>`;
         }
-        case 'checkbox':
-            if (instance.style.componentPreset === 'checkbox-preset') {
-                const declarations = [previewBindings.declarations, animatedCheckboxClassBinding.declarations].filter(Boolean).join('\n');
-                return `${declarations ? `${declarations}\n\n` : ''}<div className="flex items-center gap-2">\n  <AnimatedCheckbox\n    id="checkbox-demo"${animatedCheckboxDefaultCheckedSnippet}${animatedCheckboxCheckedSnippet}\n    disabled={${String(instance.style.checkboxDisabled)}}\n    required={${String(instance.style.checkboxRequired)}}\n    name="${safeCheckboxName}"\n    value="${safeCheckboxValue}"\n    ${animatedCheckboxClassNameSnippet.trim()}${previewStyleSnippet}\n  >\n    <AnimatedCheckboxIndicator className="${PRESET_CHECKBOX_INDICATOR_SIZE[instance.style.size]} block shrink-0" />\n  </AnimatedCheckbox>\n  <Label htmlFor="checkbox-demo">Enable notifications</Label>\n</div>`;
-            }
-            {
-                const declarations = [previewBindings.declarations, checkboxClassBinding.declarations].filter(Boolean).join('\n');
-                return `${declarations ? `${declarations}\n\n` : ''}<div className="flex items-center gap-2">\n  <Checkbox\n    id="checkbox-demo"\n    defaultChecked={${checkboxDefaultChecked}}\n    disabled={${String(instance.style.checkboxDisabled)}}\n    required={${String(instance.style.checkboxRequired)}}\n    name="${safeCheckboxName}"\n    value="${safeCheckboxValue}"\n    ${checkboxClassNameSnippet.trim()}${previewStyleSnippet}\n  />\n  <Label htmlFor="checkbox-demo">Enable notifications</Label>\n</div>`;
-            }
+        case 'checkbox': {
+            const cbLabel = instance.style.checkboxLabel || 'Enable notifications';
+            const declarations = [previewBindings.declarations, checkboxClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<div className="flex items-center gap-2">\n  <Checkbox\n    id="checkbox-demo"\n    defaultChecked={${checkboxDefaultChecked}}\n    disabled={${String(instance.style.checkboxDisabled)}}\n    required={${String(instance.style.checkboxRequired)}}\n    name="${safeCheckboxName}"\n    value="${safeCheckboxValue}"\n    ${checkboxClassNameSnippet.trim()}${previewStyleSnippet}\n  />\n  <Label htmlFor="checkbox-demo">${cbLabel}</Label>\n</div>`;
+        }
         case 'dialog': {
             const dialogDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
             return `${dialogDeclarations ? `${dialogDeclarations}\n\n` : ''}<DialogTrigger defaultOpen={${String(instance.style.dialogDefaultOpen)}}>\n  <Button intent="primary"${buttonClassNameSnippet}${previewStyleSnippet}>Open dialog</Button>\n  <ModalOverlay isDismissable={${String(!instance.style.dialogModal)}}>\n    <Modal>\n      <Dialog${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</Dialog>\n    </Modal>\n  </ModalOverlay>\n</DialogTrigger>`;
@@ -857,14 +836,26 @@ export function renderPreview(
 
         case 'checkbox': {
             const checkboxId = `${instance.id}-checkbox`;
+            const s = instance.style;
             const checkboxMotionConfig = normalizeStyleConfig({
-                ...instance.style,
+                ...s,
                 motionEntryEnabled: false,
-                motionHoverEnabled: instance.style.checkboxHoverEnabled,
-                motionTapEnabled: instance.style.checkboxTapEnabled,
-                motionHoverScale: instance.style.checkboxHoverScale,
-                motionTapScale: instance.style.checkboxTapScale,
+                motionHoverEnabled: s.checkboxHoverEnabled,
+                motionTapEnabled: s.checkboxTapEnabled,
+                motionHoverScale: s.checkboxHoverScale,
+                motionTapScale: s.checkboxTapScale,
             });
+            const checkboxSize = `${Math.round(22 * SIZE_SCALE[s.size])}px`;
+            const checkboxStyle = {
+                width: checkboxSize,
+                height: checkboxSize,
+                borderRadius: `${s.checkboxCornerRadius}px`,
+                borderWidth: `${s.strokeWeight}px`,
+                '--ui-checkbox-border': s.checkboxBorderColor,
+                '--ui-checkbox-checked-bg': s.checkboxCheckedColor,
+                '--ui-checkbox-checked-border': s.checkboxCheckedColor,
+                '--ui-checkbox-indicator': s.checkboxIndicatorColor,
+            } as CSSProperties;
             return (
                 <div
                     className="flex items-center gap-3"
@@ -872,32 +863,33 @@ export function renderPreview(
                     onPointerDown={(event) => event.stopPropagation()}
                 >
                     {renderWithMotionControls(
-                        <AnimatedCheckbox
+                        <CheckboxPrimitive.Root
+                            data-slot="checkbox"
                             id={checkboxId}
                             defaultChecked={animatedCheckboxDefaultChecked}
                             checked={animatedCheckboxChecked}
-                            disabled={instance.style.checkboxDisabled}
-                            required={instance.style.checkboxRequired}
-                            name={instance.style.checkboxName}
-                            value={instance.style.checkboxValue}
-                            style={scaledControl}
-                            className={cn('inline-flex items-center justify-center leading-none', motionClassName)}
+                            disabled={s.checkboxDisabled}
+                            required={s.checkboxRequired}
+                            name={s.checkboxName}
+                            value={s.checkboxValue}
+                            style={checkboxStyle}
+                            className={cn(
+                                'ui-studio-checkbox inline-flex items-center justify-center shrink-0 border border-solid transition-colors outline-none',
+                                motionClassName,
+                            )}
                         >
-                            <AnimatedCheckboxIndicator
-                                className={cn(
-                                    PRESET_CHECKBOX_INDICATOR_SIZE[instance.style.size],
-                                    'ui-studio-checkbox-indicator block shrink-0',
-                                )}
-                            >
-                                {renderCheckboxSelectionIndicator(instance.style)}
-                            </AnimatedCheckboxIndicator>
-                        </AnimatedCheckbox>,
+                            <CheckboxPrimitive.Indicator className="grid place-content-center text-current">
+                                <div className={cn(PRESET_CHECKBOX_INDICATOR_SIZE[s.size], 'ui-studio-checkbox-indicator')}>
+                                    {renderCheckboxSelectionIndicator(s)}
+                                </div>
+                            </CheckboxPrimitive.Indicator>
+                        </CheckboxPrimitive.Root>,
                         checkboxMotionConfig,
                         false,
                         true,
                     )}
                     <Label htmlFor={checkboxId} style={{ color: style.color, fontSize: style.fontSize, fontWeight: style.fontWeight }}>
-                        Enable notifications
+                        {s.checkboxLabel || 'Enable notifications'}
                     </Label>
                 </div>
             );

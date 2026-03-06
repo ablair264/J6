@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative flex w-full gap-3 rounded-lg border p-4 text-sm [&>svg]:shrink-0 [&>svg]:size-5 [&>svg]:mt-0.5",
+  "relative flex w-full gap-3 rounded-lg border p-4 [&>svg]:shrink-0 [&>svg]:size-5 [&>svg]:mt-0.5",
   {
     variants: {
       variant: {
