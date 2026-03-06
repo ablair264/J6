@@ -2721,6 +2721,70 @@ const DEFAULT_KIND_VISUAL_PRESETS = (kind: UIComponentKind): ComponentVisualPres
     },
 ];
 
+// Switch-specific visual presets (inspired by shadcnspace switch patterns)
+export const SWITCH_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    {
+        id: 'default',
+        label: 'Default',
+        description: 'Standard dark theme switch with default colors',
+        kind: 'switch',
+        values: {
+            switchTrackColor: '',
+            switchTrackActiveColor: '',
+            switchThumbColor: '',
+            switchThumbActiveColor: '',
+        },
+    },
+    {
+        id: 'blue',
+        label: 'Blue',
+        description: 'Blue active track — primary action toggle',
+        kind: 'switch',
+        values: {
+            switchTrackColor: '#334155',
+            switchTrackActiveColor: '#3b82f6',
+            switchThumbColor: '#e2e8f0',
+            switchThumbActiveColor: '#ffffff',
+        },
+    },
+    {
+        id: 'teal',
+        label: 'Teal',
+        description: 'Teal active track — success/enabled toggle',
+        kind: 'switch',
+        values: {
+            switchTrackColor: '#334155',
+            switchTrackActiveColor: '#2dd4bf',
+            switchThumbColor: '#e2e8f0',
+            switchThumbActiveColor: '#ffffff',
+        },
+    },
+    {
+        id: 'orange',
+        label: 'Orange',
+        description: 'Orange active track — warning/attention toggle',
+        kind: 'switch',
+        values: {
+            switchTrackColor: '#334155',
+            switchTrackActiveColor: '#f97316',
+            switchThumbColor: '#e2e8f0',
+            switchThumbActiveColor: '#ffffff',
+        },
+    },
+    {
+        id: 'minimal',
+        label: 'Minimal',
+        description: 'Subtle muted switch — low-contrast, understated',
+        kind: 'switch',
+        values: {
+            switchTrackColor: '#1e293b',
+            switchTrackActiveColor: '#475569',
+            switchThumbColor: '#94a3b8',
+            switchThumbActiveColor: '#cbd5e1',
+        },
+    },
+];
+
 export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPreset[]> = {
     'animated-text': [
         {
@@ -2896,7 +2960,7 @@ export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPr
     progress: PROGRESS_VISUAL_PRESETS,
     skeleton: DEFAULT_KIND_VISUAL_PRESETS('skeleton'),
     slider: SLIDER_VISUAL_PRESETS,
-    switch: DEFAULT_KIND_VISUAL_PRESETS('switch'),
+    switch: SWITCH_VISUAL_PRESETS,
     tabs: TABS_VISUAL_PRESETS,
     tooltip: TOOLTIP_VISUAL_PRESETS,
 };
