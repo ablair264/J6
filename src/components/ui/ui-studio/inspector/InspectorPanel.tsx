@@ -914,9 +914,19 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'data-table' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Table Config" icon={Table} defaultOpen>
+                                <FlatField label="Variant">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['default', 'bordered'] as const).map((v) => (
+                                            <button key={v} type="button" onClick={() => updateSelectedStyle('dataTableVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.dataTableVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {v === 'default' ? 'Default' : 'Bordered'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
                                 <div className="space-y-1.5">
                                     <FlatSwitchRow label="Sortable" checked={selectedStyle.dataTableSortable} onCheckedChange={(value) => updateSelectedStyle('dataTableSortable', value)} />
                                     <FlatSwitchRow label="Striped" checked={selectedStyle.dataTableStriped} onCheckedChange={(value) => updateSelectedStyle('dataTableStriped', value)} />
+                                    <FlatSwitchRow label="Show Status Badges" checked={selectedStyle.dataTableShowStatusBadge} onCheckedChange={(value) => updateSelectedStyle('dataTableShowStatusBadge', value)} />
                                 </div>
                                 <div className="flex flex-wrap items-start gap-3">
                                     <FlatUnitField label="Columns" value={selectedStyle.dataTableColumns} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('dataTableColumns', value)} />
@@ -926,6 +936,16 @@ export function InspectorPanel() {
                                 <FlatColorControl label="Row Background" value={selectedStyle.dataTableRowBg} onChange={(value) => updateSelectedStyle('dataTableRowBg', value)} tokens={activeTokenSet.tokens} />
                                 {selectedStyle.dataTableStriped ? (
                                     <FlatColorControl label="Stripe Color" value={selectedStyle.dataTableStripedBg} onChange={(value) => updateSelectedStyle('dataTableStripedBg', value)} tokens={activeTokenSet.tokens} />
+                                ) : null}
+                                <FlatColorControl label="Header Text Color" value={selectedStyle.dataTableHeaderTextColor} onChange={(value) => updateSelectedStyle('dataTableHeaderTextColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Text Color" value={selectedStyle.dataTableTextColor} onChange={(value) => updateSelectedStyle('dataTableTextColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Border Color" value={selectedStyle.dataTableBorderColor} onChange={(value) => updateSelectedStyle('dataTableBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                {selectedStyle.dataTableShowStatusBadge ? (
+                                    <>
+                                        <FlatColorControl label="Success Badge" value={selectedStyle.dataTableBadgeSuccessColor} onChange={(value) => updateSelectedStyle('dataTableBadgeSuccessColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Warning Badge" value={selectedStyle.dataTableBadgeWarningColor} onChange={(value) => updateSelectedStyle('dataTableBadgeWarningColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Error Badge" value={selectedStyle.dataTableBadgeErrorColor} onChange={(value) => updateSelectedStyle('dataTableBadgeErrorColor', value)} tokens={activeTokenSet.tokens} />
+                                    </>
                                 ) : null}
                             </FlatInspectorSection>
                         </div>

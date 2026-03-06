@@ -432,6 +432,14 @@ export interface ComponentStyleConfig {
   dataTableHeaderBg: string;
   dataTableRowBg: string;
   dataTableStripedBg: string;
+  dataTableVariant: 'default' | 'bordered';
+  dataTableShowStatusBadge: boolean;
+  dataTableBadgeSuccessColor: string;
+  dataTableBadgeWarningColor: string;
+  dataTableBadgeErrorColor: string;
+  dataTableTextColor: string;
+  dataTableHeaderTextColor: string;
+  dataTableBorderColor: string;
   // Drawer
   drawerSide: DrawerSide;
   drawerWidth: number;

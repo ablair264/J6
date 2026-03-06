@@ -32,7 +32,7 @@ const dataTableVariants = cva(
 )
 
 const dataTableHeaderVariants = cva(
-  "text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+  "text-left align-middle [&:has([role=checkbox])]:pr-0",
   {
     variants: {
       sortable: {
@@ -100,6 +100,7 @@ interface DataTableColumn {
   label: string
   sortable?: boolean
   align?: "left" | "center" | "right"
+  variant?: "text" | "badge"
 }
 
 interface DataTableProps
@@ -113,6 +114,10 @@ interface DataTableProps
   headerBg?: string
   rowBg?: string
   stripedBg?: string
+  textColor?: string
+  headerTextColor?: string
+  borderColor?: string
+  badgeColors?: Record<string, { bg: string; text: string }>
   onSort?: (columnKey: string, direction: SortDirection) => void
 }
 
@@ -147,6 +152,10 @@ function DataTable({
   headerBg,
   rowBg,
   stripedBg,
+  textColor,
+  headerTextColor,
+  borderColor,
+  badgeColors,
   onSort,
   ...props
 }: DataTableProps) {
@@ -187,7 +196,7 @@ function DataTable({
   }, [data, sortState])
 
   return (
-    <div className="relative w-full overflow-auto">
+    <div className="relative w-full overflow-auto" style={borderColor ? { '--border': borderColor } as React.CSSProperties : undefined}>
       <table
         data-slot="data-table"
         data-variant={variant}
@@ -196,7 +205,10 @@ function DataTable({
       >
         <thead
           className={cn("border-b [&_tr]:border-b", !headerBg && "bg-muted/40")}
-          style={headerBg ? { backgroundColor: headerBg } : undefined}
+          style={{
+            ...(headerBg ? { backgroundColor: headerBg } : undefined),
+            ...(headerTextColor ? { color: headerTextColor } : undefined),
+          }}
         >
           <tr data-slot="data-table-header-row" className="border-b">
             {columns.map((column) => {
@@ -235,7 +247,7 @@ function DataTable({
             })}
           </tr>
         </thead>
-        <tbody className="[&_tr:last-child]:border-0">
+        <tbody className="[&_tr:last-child]:border-0" style={textColor ? { color: textColor } : undefined}>
           {sortedData.map((row, rowIndex) => (
             <DataTableRow
               key={rowIndex}
@@ -248,11 +260,24 @@ function DataTable({
                     : undefined
               }
             >
-              {columns.map((column) => (
-                <DataTableCell key={column.key} align={column.align} size={size}>
-                  {row[column.key] ?? ""}
-                </DataTableCell>
-              ))}
+              {columns.map((column) => {
+                const cellValue = row[column.key] ?? ""
+                const badge = column.variant === "badge" && badgeColors?.[cellValue]
+                return (
+                  <DataTableCell key={column.key} align={column.align} size={size}>
+                    {badge ? (
+                      <span
+                        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{ backgroundColor: badge.bg, color: badge.text }}
+                      >
+                        {cellValue}
+                      </span>
+                    ) : (
+                      cellValue
+                    )}
+                  </DataTableCell>
+                )
+              })}
             </DataTableRow>
           ))}
           {sortedData.length === 0 && (

@@ -239,7 +239,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
     'data-table': {
         sections: { presets: true, dimensions: false, componentConfig: 'Table Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
-        motion: { entryPresets: false, hoverEffects: false, tapEffects: false, stagger: false },
+        motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'strip-all',
         iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },

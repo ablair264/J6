@@ -619,15 +619,24 @@ export function componentSnippet(
         }
         case 'data-table': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const dtS = instance.style;
+            const columnsSnippet = dtS.dataTableShowStatusBadge
+                ? `columns={[{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status', variant: 'badge' }, { key: 'role', label: 'Role' }]}`
+                : `columns={[{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }, { key: 'role', label: 'Role' }]}`;
             const dtProps = [
-                `columns={[{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }, { key: 'role', label: 'Role' }]}`,
+                columnsSnippet,
                 `data={[{ name: 'Alice', status: 'Active', role: 'Admin' }]}`,
-                `sortable={${String(instance.style.dataTableSortable)}}`,
-                `striped={${String(instance.style.dataTableStriped)}}`,
-                `size="${instance.style.size}"`,
-                instance.style.dataTableHeaderBg ? `headerBg="${instance.style.dataTableHeaderBg}"` : '',
-                instance.style.dataTableRowBg ? `rowBg="${instance.style.dataTableRowBg}"` : '',
-                instance.style.dataTableStripedBg ? `stripedBg="${instance.style.dataTableStripedBg}"` : '',
+                `sortable={${String(dtS.dataTableSortable)}}`,
+                `striped={${String(dtS.dataTableStriped)}}`,
+                `size="${dtS.size}"`,
+                dtS.dataTableVariant !== 'default' ? `variant="${dtS.dataTableVariant}"` : '',
+                dtS.dataTableHeaderBg ? `headerBg="${dtS.dataTableHeaderBg}"` : '',
+                dtS.dataTableRowBg ? `rowBg="${dtS.dataTableRowBg}"` : '',
+                dtS.dataTableStripedBg && dtS.dataTableStriped ? `stripedBg="${dtS.dataTableStripedBg}"` : '',
+                dtS.dataTableTextColor ? `textColor="${dtS.dataTableTextColor}"` : '',
+                dtS.dataTableHeaderTextColor ? `headerTextColor="${dtS.dataTableHeaderTextColor}"` : '',
+                dtS.dataTableBorderColor ? `borderColor="${dtS.dataTableBorderColor}"` : '',
+                dtS.dataTableShowStatusBadge ? `badgeColors={{ Active: { bg: '${dtS.dataTableBadgeSuccessColor}20', text: '${dtS.dataTableBadgeSuccessColor}' }, Pending: { bg: '${dtS.dataTableBadgeWarningColor}20', text: '${dtS.dataTableBadgeWarningColor}' }, Inactive: { bg: '${dtS.dataTableBadgeErrorColor}20', text: '${dtS.dataTableBadgeErrorColor}' } }}` : '',
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
             return `${declarations ? `${declarations}\n\n` : ''}<DataTable\n  ${dtProps}${previewStyleSnippet}\n/>`;
@@ -1464,9 +1473,12 @@ export function renderPreview(
             return <AvatarGroupPreview instance={instance} motionClassName={motionClassName} />;
 
         case 'data-table': {
-            const columns = Array.from({ length: instance.style.dataTableColumns }, (_, i) => ({
+            const s = instance.style;
+            const columnLabels = ['Name', 'Status', 'Role', 'Email', 'Department'];
+            const columns = Array.from({ length: s.dataTableColumns }, (_, i) => ({
                 key: `col${i}`,
-                label: ['Name', 'Status', 'Role', 'Email', 'Department'][i] ?? `Column ${i + 1}`,
+                label: columnLabels[i] ?? `Column ${i + 1}`,
+                ...(s.dataTableShowStatusBadge && i === 1 ? { variant: 'badge' as const } : {}),
             }));
             const sampleRows = [
                 ['Alice', 'Active', 'Admin', 'alice@co.com', 'Engineering'],
@@ -1475,20 +1487,30 @@ export function renderPreview(
                 ['Dave', 'Pending', 'Viewer', 'dave@co.com', 'Sales'],
                 ['Eve', 'Active', 'Admin', 'eve@co.com', 'Product'],
             ];
-            const data = Array.from({ length: instance.style.dataTableRows }, (_, rowIdx) =>
+            const data = Array.from({ length: s.dataTableRows }, (_, rowIdx) =>
                 Object.fromEntries(columns.map((col, colIdx) => [col.key, sampleRows[rowIdx % 5]?.[colIdx] ?? `R${rowIdx + 1}`]))
             );
+            const badgeColors = s.dataTableShowStatusBadge ? {
+                'Active': { bg: `${s.dataTableBadgeSuccessColor}20`, text: s.dataTableBadgeSuccessColor },
+                'Inactive': { bg: `${s.dataTableBadgeErrorColor}20`, text: s.dataTableBadgeErrorColor },
+                'Pending': { bg: `${s.dataTableBadgeWarningColor}20`, text: s.dataTableBadgeWarningColor },
+            } : undefined;
             return (
                 <div className="w-full max-w-lg overflow-auto" style={buildComponentWrapperStyle(style, 'data-table')}>
                     <DataTable
                         columns={columns}
                         data={data}
-                        sortable={instance.style.dataTableSortable}
-                        striped={instance.style.dataTableStriped}
-                        size={instance.style.size}
-                        headerBg={instance.style.dataTableHeaderBg || undefined}
-                        rowBg={instance.style.dataTableRowBg || undefined}
-                        stripedBg={instance.style.dataTableStripedBg || undefined}
+                        sortable={s.dataTableSortable}
+                        striped={s.dataTableStriped}
+                        size={s.size}
+                        variant={s.dataTableVariant}
+                        headerBg={s.dataTableHeaderBg || undefined}
+                        rowBg={s.dataTableRowBg || undefined}
+                        stripedBg={s.dataTableStripedBg || undefined}
+                        textColor={s.dataTableTextColor || undefined}
+                        headerTextColor={s.dataTableHeaderTextColor || undefined}
+                        borderColor={s.dataTableBorderColor || undefined}
+                        badgeColors={badgeColors}
                         className={cn(motionClassName)}
                     />
                 </div>
