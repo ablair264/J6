@@ -454,6 +454,12 @@ export interface ComponentStyleConfig {
   progressVariant: ProgressVariant;
   progressShowLabel: boolean;
   progressAnimateValue: boolean;
+  progressTrackColor: string;
+  progressIndicatorColor: string;
+  progressLabelColor: string;
+  progressPlayAnimation: boolean;
+  progressCircularSize: number;
+  progressCircularStrokeWidth: number;
   // Skeleton
   skeletonVariant: SkeletonVariant;
   skeletonAnimationSpeed: number;

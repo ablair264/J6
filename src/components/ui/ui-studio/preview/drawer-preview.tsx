@@ -33,6 +33,17 @@ export function DrawerPreview({
     const drawerPanelW = Math.min(instanceStyle.drawerWidth, 240);
     const buttonPreviewStateClass = buildButtonPreviewStateClass(instanceStyle.buttonPreviewState);
 
+    // Typography from panel style for drawer content
+    const titleStyle: CSSProperties = {
+        fontSize: panelStyle.fontSize,
+        fontWeight: panelStyle.fontWeight,
+        fontFamily: panelStyle.fontFamily,
+        color: panelStyle.color,
+    };
+    const descriptionStyle: CSSProperties = {
+        fontFamily: panelStyle.fontFamily,
+    };
+
     // Pinned mode: show static miniature layout
     if (pinnedOpen) {
         const drawerPanel = (
@@ -51,8 +62,8 @@ export function DrawerPreview({
             >
                 {renderEntryMotion(
                     <div className="space-y-2 p-4">
-                        <div className="text-sm font-semibold">Drawer</div>
-                        <div className="text-xs text-muted-foreground">Panel content area.</div>
+                        <div style={titleStyle}>Drawer</div>
+                        <div className="text-muted-foreground" style={{ ...descriptionStyle, fontSize: '0.75rem' }}>Panel content area.</div>
                     </div>,
                     drawerBodyMotion,
                 )}
@@ -96,11 +107,11 @@ export function DrawerPreview({
                 </DrawerTrigger>
                 <DrawerContent side={drawerSide} style={panelStyle}>
                     <DrawerHeader>
-                        <DrawerTitle>Drawer</DrawerTitle>
-                        <DrawerDescription>Panel content area styled from studio controls.</DrawerDescription>
+                        <DrawerTitle style={titleStyle}>Drawer</DrawerTitle>
+                        <DrawerDescription style={descriptionStyle}>Panel content area styled from studio controls.</DrawerDescription>
                     </DrawerHeader>
                     <div className="px-6 pb-6">
-                        <p className="text-sm text-muted-foreground">Use the inspector to customise border, fill, and effect settings.</p>
+                        <p className="text-muted-foreground" style={descriptionStyle}>Use the inspector to customise border, fill, and effect settings.</p>
                     </div>
                     <DrawerClose />
                 </DrawerContent>

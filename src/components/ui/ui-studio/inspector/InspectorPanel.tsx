@@ -951,6 +951,25 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Drawer Config */}
+                    {selectedInstance?.kind === 'drawer' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Drawer Config" icon={Table} defaultOpen>
+                                <FlatField label="Side">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['left', 'right', 'top', 'bottom'] as const).map((side) => (
+                                            <button key={side} type="button" onClick={() => updateSelectedStyle('drawerSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.drawerSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {side.charAt(0).toUpperCase() + side.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                                <FlatUnitField label="Width" value={selectedStyle.drawerWidth} min={200} max={600} unit="px" onChange={(value) => updateSelectedStyle('drawerWidth', value)} />
+                                <FlatUnitField label="Overlay Blur" value={selectedStyle.drawerOverlayBlur} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('drawerOverlayBlur', value)} />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Accordion Config */}
                     {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
@@ -1387,16 +1406,29 @@ export function InspectorPanel() {
                                     <FlatUnitField label="Value" value={selectedStyle.progressValue} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('progressValue', value)} />
                                     <FlatUnitField label="Width" value={selectedStyle.customWidth} min={0} max={640} unit="px" onChange={(value) => updateSelectedStyle('customWidth', value)} zeroLabel="auto" />
                                 </div>
-                                <FlatField label="Variant" stacked>
-                                    <FlatSelect value={selectedStyle.progressVariant} onValueChange={(value) => updateSelectedStyle('progressVariant', value as ComponentStyleConfig['progressVariant'])} ariaLabel="Progress variant">
-                                        <option value="linear">Linear</option>
-                                        <option value="circular">Circular</option>
-                                    </FlatSelect>
+                                <FlatField label="Variant">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['linear', 'circular'] as const).map((v) => (
+                                            <button key={v} type="button" onClick={() => updateSelectedStyle('progressVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.progressVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {v === 'linear' ? 'Linear' : 'Circular'}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </FlatField>
+                                {selectedStyle.progressVariant === 'circular' ? (
+                                    <div className="flex flex-wrap items-start gap-3">
+                                        <FlatUnitField label="Size" value={selectedStyle.progressCircularSize} min={24} max={200} unit="px" onChange={(value) => updateSelectedStyle('progressCircularSize', value)} />
+                                        <FlatUnitField label="Stroke" value={selectedStyle.progressCircularStrokeWidth} min={1} max={20} unit="px" onChange={(value) => updateSelectedStyle('progressCircularStrokeWidth', value)} />
+                                    </div>
+                                ) : null}
                                 <div className="space-y-1.5">
                                     <FlatSwitchRow label="Show Label" checked={selectedStyle.progressShowLabel} onCheckedChange={(value) => updateSelectedStyle('progressShowLabel', value)} />
                                     <FlatSwitchRow label="Animate Value" checked={selectedStyle.progressAnimateValue} onCheckedChange={(value) => updateSelectedStyle('progressAnimateValue', value)} />
+                                    <FlatSwitchRow label="Play Animation" checked={selectedStyle.progressPlayAnimation} onCheckedChange={(value) => updateSelectedStyle('progressPlayAnimation', value)} />
                                 </div>
+                                <FlatColorControl label="Track Color" value={selectedStyle.progressTrackColor} onChange={(value) => updateSelectedStyle('progressTrackColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Indicator Color" value={selectedStyle.progressIndicatorColor} onChange={(value) => updateSelectedStyle('progressIndicatorColor', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Label Color" value={selectedStyle.progressLabelColor} onChange={(value) => updateSelectedStyle('progressLabelColor', value)} tokens={activeTokenSet.tokens} />
                             </FlatInspectorSection>
                         </div>
                     ) : null}

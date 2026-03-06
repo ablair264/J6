@@ -185,11 +185,11 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: false, panelStyle: true, buttonStateStyle: true, primitiveControls: true, motionPreset: false,
     },
     drawer: {
-        sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: true, componentConfig: 'Drawer Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: true, motionPreset: false,
+        iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: false, motionPreset: false,
     },
     dropdown: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
@@ -282,7 +282,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     progress: {
-        sections: { presets: true, dimensions: false, componentConfig: 'Progress Config', appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Progress Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'strip-all',

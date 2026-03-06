@@ -129,7 +129,7 @@ function DrawerTitle({
     <DialogPrimitive.Title
       data-slot="drawer-title"
       className={cn(
-        "text-lg font-semibold text-foreground",
+        "text-foreground",
         className
       )}
       {...props}
@@ -145,7 +145,7 @@ function DrawerDescription({
     <DialogPrimitive.Description
       data-slot="drawer-description"
       className={cn(
-        "text-sm text-muted-foreground",
+        "text-muted-foreground",
         className
       )}
       {...props}

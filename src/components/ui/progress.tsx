@@ -28,18 +28,17 @@ const linearTrackSizes = {
   lg: "h-4",
 } as const
 
-const circularDimensions = {
-  sm: { size: 32, strokeWidth: 3, radius: 12, circumference: 2 * Math.PI * 12 },
-  md: { size: 48, strokeWidth: 4, radius: 18, circumference: 2 * Math.PI * 18 },
-  lg: { size: 64, strokeWidth: 5, radius: 24, circumference: 2 * Math.PI * 24 },
-} as const
-
 interface ProgressProps
   extends Omit<React.ComponentProps<typeof ProgressPrimitive.Root>, "children">,
     VariantProps<typeof progressVariants> {
   showLabel?: boolean
   animateValue?: boolean
   indicatorClassName?: string
+  trackColor?: string
+  indicatorColor?: string
+  labelColor?: string
+  circularSize?: number
+  circularStrokeWidth?: number
 }
 
 function Progress({
@@ -51,14 +50,22 @@ function Progress({
   showLabel = false,
   animateValue = true,
   indicatorClassName,
+  trackColor,
+  indicatorColor,
+  labelColor,
+  circularSize,
+  circularStrokeWidth,
   style,
   ...props
 }: ProgressProps) {
   const percentage = Math.round(((value ?? 0) / max) * 100)
 
   if (variant === "circular") {
-    const dims = circularDimensions[size ?? "md"]
-    const offset = dims.circumference - (percentage / 100) * dims.circumference
+    const cSize = circularSize ?? 48
+    const cStroke = circularStrokeWidth ?? 4
+    const cRadius = (cSize - cStroke) / 2
+    const circumference = 2 * Math.PI * cRadius
+    const offset = circumference - (percentage / 100) * circumference
 
     return (
       <ProgressPrimitive.Root
@@ -72,30 +79,32 @@ function Progress({
         {...props}
       >
         <svg
-          width={dims.size}
-          height={dims.size}
-          viewBox={`0 0 ${dims.size} ${dims.size}`}
+          width={cSize}
+          height={cSize}
+          viewBox={`0 0 ${cSize} ${cSize}`}
           className="-rotate-90"
         >
           <circle
-            cx={dims.size / 2}
-            cy={dims.size / 2}
-            r={dims.radius}
+            cx={cSize / 2}
+            cy={cSize / 2}
+            r={cRadius}
             fill="none"
-            strokeWidth={dims.strokeWidth}
-            className="stroke-muted"
+            strokeWidth={cStroke}
+            stroke={trackColor}
+            className={cn(!trackColor && "stroke-muted")}
           />
           <circle
-            cx={dims.size / 2}
-            cy={dims.size / 2}
-            r={dims.radius}
+            cx={cSize / 2}
+            cy={cSize / 2}
+            r={cRadius}
             fill="none"
-            strokeWidth={dims.strokeWidth}
-            strokeDasharray={dims.circumference}
+            strokeWidth={cStroke}
+            strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
+            stroke={indicatorColor}
             className={cn(
-              "stroke-primary",
+              !indicatorColor && "stroke-primary",
               animateValue && "transition-[stroke-dashoffset] duration-500 ease-in-out",
               indicatorClassName
             )}
@@ -104,14 +113,8 @@ function Progress({
         {showLabel && (
           <span
             data-slot="progress-label"
-            className={cn(
-              "absolute font-medium text-foreground",
-              {
-                "text-[10px]": size === "sm",
-                "text-xs": size === "md",
-                "text-sm": size === "lg",
-              }
-            )}
+            className="absolute"
+            style={{ color: labelColor }}
           >
             {percentage}%
           </span>
@@ -133,32 +136,27 @@ function Progress({
     >
       <div
         className={cn(
-          "w-full overflow-hidden rounded-full bg-muted",
+          "w-full overflow-hidden rounded-full",
           linearTrackSizes[size ?? "md"]
         )}
-        style={{ borderRadius: style?.borderRadius }}
+        style={{ borderRadius: style?.borderRadius, backgroundColor: trackColor }}
       >
         <ProgressPrimitive.Indicator
           data-slot="progress-indicator"
           className={cn(
-            "h-full rounded-full bg-primary",
+            "h-full rounded-full",
+            !indicatorColor && "bg-primary",
             animateValue && "transition-[width] duration-500 ease-in-out",
             indicatorClassName
           )}
-          style={{ width: `${percentage}%`, borderRadius: style?.borderRadius }}
+          style={{ width: `${percentage}%`, borderRadius: style?.borderRadius, backgroundColor: indicatorColor }}
         />
       </div>
       {showLabel && (
         <span
           data-slot="progress-label"
-          className={cn(
-            "mt-1 block text-right font-medium text-muted-foreground",
-            {
-              "text-[10px]": size === "sm",
-              "text-xs": size === "md",
-              "text-sm": size === "lg",
-            }
-          )}
+          className="mt-1 block text-right"
+          style={{ color: labelColor }}
         >
           {percentage}%
         </span>

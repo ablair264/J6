@@ -588,6 +588,7 @@ export function buildPanelStyle(config: ComponentStyleConfig): CSSProperties {
         minHeight: panelHeight,
         fontSize: `${config.panelFontSize}px`,
         fontWeight: config.panelFontWeight,
+        fontFamily: config.fontFamily || undefined,
         boxShadow: shadow,
         backdropFilter: config.panelEffectBlur && config.panelBlurAmount > 0 ? `blur(${config.panelBlurAmount}px)` : undefined,
     };

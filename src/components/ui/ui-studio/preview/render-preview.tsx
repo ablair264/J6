@@ -78,6 +78,7 @@ import {
 } from '../motion';
 import { AlertPreview } from './alert-preview';
 import { DrawerPreview } from './drawer-preview';
+import { ProgressPreview } from './progress-preview';
 import { InteractiveDropdownPreview } from './dropdown-preview';
 import { NavigationMenuPreview } from './navigation-menu-preview';
 import type { ExportStyleMode } from '../utilities';
@@ -651,7 +652,20 @@ export function componentSnippet(
         }
         case 'progress': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<Progress\n  value={${instance.style.progressValue}}\n  variant="${instance.style.progressVariant}"\n  showLabel={${String(instance.style.progressShowLabel)}}\n  animateValue={${String(instance.style.progressAnimateValue)}}\n  ${classNameSnippet.trim()}${previewStyleSnippet}\n/>`;
+            const pS = instance.style;
+            const progressProps = [
+                `value={${pS.progressValue}}`,
+                `variant="${pS.progressVariant}"`,
+                `showLabel={${String(pS.progressShowLabel)}}`,
+                `animateValue={${String(pS.progressAnimateValue)}}`,
+                pS.progressTrackColor ? `trackColor="${pS.progressTrackColor}"` : '',
+                pS.progressIndicatorColor ? `indicatorColor="${pS.progressIndicatorColor}"` : '',
+                pS.progressLabelColor ? `labelColor="${pS.progressLabelColor}"` : '',
+                pS.progressVariant === 'circular' && pS.progressCircularSize !== 48 ? `circularSize={${pS.progressCircularSize}}` : '',
+                pS.progressVariant === 'circular' && pS.progressCircularStrokeWidth !== 4 ? `circularStrokeWidth={${pS.progressCircularStrokeWidth}}` : '',
+                classNameSnippet.trim(),
+            ].filter(Boolean).join('\n  ');
+            return `${declarations ? `${declarations}\n\n` : ''}<Progress\n  ${progressProps}${previewStyleSnippet}\n/>`;
         }
         case 'skeleton': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1537,26 +1551,14 @@ export function renderPreview(
                 />
             );
 
-        case 'progress': {
-            const progressWrapperStyle = {
-                ...buildComponentWrapperStyle(style, 'progress'),
-                width: style.width,
-                maxWidth: style.width ?? '24rem',
-            } satisfies CSSProperties;
+        case 'progress':
             return (
-                <div className="w-full" style={progressWrapperStyle}>
-                    <Progress
-                        value={instance.style.progressValue}
-                        variant={instance.style.progressVariant}
-                        size={instance.style.size}
-                        showLabel={instance.style.progressShowLabel}
-                        animateValue={instance.style.progressAnimateValue}
-                        className={cn(motionClassName)}
-                        style={{ borderRadius: style.borderRadius, boxShadow: style.boxShadow }}
-                    />
-                </div>
+                <ProgressPreview
+                    instanceStyle={instance.style}
+                    previewStyle={style}
+                    motionClassName={motionClassName}
+                />
             );
-        }
 
         case 'skeleton': {
             const animSpeed = instance.style.skeletonAnimationSpeed <= 0.75 ? 'fast' as const
