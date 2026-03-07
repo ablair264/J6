@@ -97,6 +97,9 @@ export interface ComponentStyleConfig {
   dropdownHoverFill: string;
   dropdownHoverFillOpacity: number;
   dropdownHoverText: string;
+  dropdownTriggerVariant: 'button' | 'icon';
+  dropdownShowItemIcons: boolean;
+  dropdownShowSubmenu: boolean;
   panelFillColor: string;
   panelFillOpacity: number;
   panelStrokeColor: string;

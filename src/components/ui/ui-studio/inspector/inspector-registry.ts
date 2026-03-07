@@ -192,7 +192,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: false, motionPreset: false,
     },
     dropdown: {
-        sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: true, componentConfig: 'Dropdown Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',

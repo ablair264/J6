@@ -589,7 +589,18 @@ export function componentSnippet(
                 'grid min-w-[220px] grid-cols-[auto_1fr] gap-y-1 rounded-xl p-1',
                 contentClassNameVar,
             );
-            return `${dropdownDeclarations}\n\n<div className="flex w-full justify-center py-14">\n  <div className="relative inline-flex">\n    <Button intent="secondary" size="sm"${buttonClassNameSnippet}${previewStyleSnippet}>Menu trigger</Button>\n    <div style={dropdownPositionStyle}>\n      <ListBox aria-label="Dropdown preview"${dropdownListClassNameSnippet}${contentStyleSnippet}>\n        <DropdownItem id="edit" className="${dropdownHoverClass}">\n          <DropdownLabel>${instance.style.iconPosition === 'left' ? iconLeft : ''}Edit component${instance.style.iconPosition === 'right' ? iconRight : ''}</DropdownLabel>\n          <DropdownKeyboard>⌘E</DropdownKeyboard>\n        </DropdownItem>\n      </ListBox>\n    </div>\n  </div>\n</div>`;
+            const isIconTrigger = instance.style.dropdownTriggerVariant === 'icon';
+            const showItemIcons = instance.style.dropdownShowItemIcons;
+            const triggerSnippet = isIconTrigger
+                ? `<Button variant="ghost" size="icon"${buttonClassNameSnippet}${previewStyleSnippet}><MoreVertical className="size-4" /></Button>`
+                : `<Button intent="secondary" size="sm"${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Menu trigger${instance.style.iconPosition === 'right' ? iconRight : ''}</Button>`;
+            const itemIconEdit = showItemIcons ? '<Pencil className="size-4" /> ' : '';
+            const itemIconDuplicate = showItemIcons ? '<Copy className="size-4" /> ' : '';
+            const itemIconDelete = showItemIcons ? '<Trash2 className="size-4" /> ' : '';
+            const submenuSnippet = instance.style.dropdownShowSubmenu
+                ? `\n        <DropdownItem id="share" className="${dropdownHoverClass}">\n          <DropdownLabel>${showItemIcons ? '<Share className="size-4" /> ' : ''}Share <ChevronRight className="size-3.5 ml-auto" /></DropdownLabel>\n          {/* Submenu content */}\n        </DropdownItem>`
+                : '';
+            return `${dropdownDeclarations}\n\n<div className="flex w-full justify-center py-14">\n  <div className="relative inline-flex">\n    ${triggerSnippet}\n    <div style={dropdownPositionStyle}>\n      <ListBox aria-label="Dropdown preview"${dropdownListClassNameSnippet}${contentStyleSnippet}>\n        <DropdownItem id="edit" className="${dropdownHoverClass}">\n          <DropdownLabel>${itemIconEdit}Edit component</DropdownLabel>\n          <DropdownKeyboard>⌘E</DropdownKeyboard>\n        </DropdownItem>\n        <DropdownItem id="duplicate" className="${dropdownHoverClass}">\n          <DropdownLabel>${itemIconDuplicate}Duplicate</DropdownLabel>\n        </DropdownItem>${submenuSnippet}\n        <DropdownSeparator />\n        <DropdownItem id="delete" intent="danger" className="${dropdownHoverClass}">\n          <DropdownLabel>${itemIconDelete}Delete</DropdownLabel>\n        </DropdownItem>\n      </ListBox>\n    </div>\n  </div>\n</div>`;
         }
         case 'popover': {
             const popoverDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');

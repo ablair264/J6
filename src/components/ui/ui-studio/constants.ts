@@ -235,6 +235,9 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     dropdownHoverFill: '#e2e8f0',
     dropdownHoverFillOpacity: 100,
     dropdownHoverText: '#0f172a',
+    dropdownTriggerVariant: 'button',
+    dropdownShowItemIcons: true,
+    dropdownShowSubmenu: false,
     panelFillColor: '#0f172a',
     panelFillOpacity: 96,
     panelStrokeColor: '#334155',
@@ -2051,7 +2054,66 @@ export const CHECKBOX_VISUAL_PRESETS: ComponentVisualPreset[] = [
     },
 ];
 export const DIALOG_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('dialog');
-export const DROPDOWN_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('dropdown');
+// Dropdown-specific visual presets (inspired by shadcn/ui dropdown patterns)
+export const DROPDOWN_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    {
+        id: 'default',
+        label: 'Default',
+        description: 'Standard dropdown with text trigger and item icons',
+        kind: 'dropdown',
+        values: {
+            dropdownTriggerVariant: 'button',
+            dropdownShowItemIcons: true,
+            dropdownShowSubmenu: false,
+        },
+    },
+    {
+        id: 'icon-trigger',
+        label: 'Icon Trigger',
+        description: 'Compact icon-only trigger button — three-dot menu',
+        kind: 'dropdown',
+        values: {
+            dropdownTriggerVariant: 'icon',
+            dropdownShowItemIcons: true,
+            dropdownShowSubmenu: false,
+        },
+    },
+    {
+        id: 'with-submenu',
+        label: 'With Submenu',
+        description: 'Dropdown with a nested popout submenu panel',
+        kind: 'dropdown',
+        values: {
+            dropdownTriggerVariant: 'button',
+            dropdownShowItemIcons: true,
+            dropdownShowSubmenu: true,
+        },
+    },
+    {
+        id: 'minimal',
+        label: 'Minimal',
+        description: 'Clean dropdown — no icons, text-only items',
+        kind: 'dropdown',
+        values: {
+            dropdownTriggerVariant: 'button',
+            dropdownShowItemIcons: false,
+            dropdownShowSubmenu: false,
+            dropdownHoverFill: '#1e293b',
+            dropdownHoverText: '#f8fafc',
+        },
+    },
+    {
+        id: 'icon-submenu',
+        label: 'Icon + Submenu',
+        description: 'Icon trigger with nested submenu — compact actions menu',
+        kind: 'dropdown',
+        values: {
+            dropdownTriggerVariant: 'icon',
+            dropdownShowItemIcons: true,
+            dropdownShowSubmenu: true,
+        },
+    },
+];
 export const POPOVER_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('popover');
 export const LABEL_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('label');
 export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('input');

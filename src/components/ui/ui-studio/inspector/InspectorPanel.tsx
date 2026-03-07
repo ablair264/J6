@@ -970,6 +970,27 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Dropdown Config */}
+                    {selectedInstance?.kind === 'dropdown' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Dropdown Config" icon={Table} defaultOpen>
+                                <FlatField label="Trigger">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['button', 'icon'] as const).map((v) => (
+                                            <button key={v} type="button" onClick={() => updateSelectedStyle('dropdownTriggerVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.dropdownTriggerVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {v === 'button' ? 'Text Button' : 'Icon Button'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                                <div className="space-y-1.5">
+                                    <FlatSwitchRow label="Show Item Icons" checked={selectedStyle.dropdownShowItemIcons} onCheckedChange={(value) => updateSelectedStyle('dropdownShowItemIcons', value)} />
+                                    <FlatSwitchRow label="Show Submenu" checked={selectedStyle.dropdownShowSubmenu} onCheckedChange={(value) => updateSelectedStyle('dropdownShowSubmenu', value)} />
+                                </div>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Accordion Config */}
                     {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
