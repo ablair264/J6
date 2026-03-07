@@ -190,7 +190,8 @@ const LEGACY_STATE_FIELD_MAP: Record<string, { state: 'hover' | 'active' | 'disa
 };
 
 function migrateLegacyStateFields(instance: ComponentInstance): ComponentInstance {
-    const styleAny = instance.style as Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const styleAny = instance.style as any;
     let hasLegacy = false;
     for (const legacyKey of Object.keys(LEGACY_STATE_FIELD_MAP)) {
         if (legacyKey in styleAny) {
@@ -201,15 +202,15 @@ function migrateLegacyStateFields(instance: ComponentInstance): ComponentInstanc
     if (!hasLegacy) return instance;
 
     const overrides: StateOverrides = { ...instance.stateOverrides };
-    const cleanedStyle = { ...instance.style } as Record<string, unknown>;
+    const cleanedStyle = { ...styleAny };
 
     for (const [legacyKey, { state, key }] of Object.entries(LEGACY_STATE_FIELD_MAP)) {
         if (!(legacyKey in styleAny)) continue;
         const value = styleAny[legacyKey];
         // Only store as override if it differs from the base style
-        if (value !== (instance.style as Record<string, unknown>)[key]) {
+        if (value !== styleAny[key]) {
             if (!overrides[state]) overrides[state] = {};
-            (overrides[state] as Record<string, unknown>)[key] = value;
+            (overrides[state] as any)[key] = value;
         }
         delete cleanedStyle[legacyKey];
     }
@@ -608,8 +609,8 @@ export const useStudioStore = create<StudioState>()(
                         const stateObj = { ...overrides[state], ...updates };
                         // Prune keys that match base style
                         for (const [k, v] of Object.entries(updates)) {
-                            if ((instance.style as Record<string, unknown>)[k] === v) {
-                                delete (stateObj as Record<string, unknown>)[k];
+                            if ((instance.style as any)[k] === v) {
+                                delete (stateObj as any)[k];
                             }
                         }
                         if (Object.keys(stateObj).length === 0) {
