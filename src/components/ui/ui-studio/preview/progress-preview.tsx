@@ -1,8 +1,10 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { ComponentStyleConfig } from '@/components/ui/ui-studio.types';
 import { buildComponentWrapperStyle } from '../utilities';
+
+const CYCLE_DURATION_MS = 3000; // 3s to go 0→100, 3s to go 100→0
 
 export function ProgressPreview({
     instanceStyle,
@@ -15,31 +17,39 @@ export function ProgressPreview({
 }) {
     const s = instanceStyle;
     const [animatedValue, setAnimatedValue] = useState(s.progressValue);
+    const rafRef = useRef<number>(0);
+    const startTimeRef = useRef<number>(0);
+    const isPlaying = s.progressPlayAnimation;
 
-    // Play animation: cycle 0 → 100 → 0
-    useEffect(() => {
-        if (!s.progressPlayAnimation) {
-            setAnimatedValue(s.progressValue);
-            return;
-        }
-        let value = 0;
-        let direction = 1;
-        setAnimatedValue(0);
-        const interval = setInterval(() => {
-            value += direction * 2;
-            if (value >= 100) { value = 100; direction = -1; }
-            if (value <= 0) { value = 0; direction = 1; }
-            setAnimatedValue(value);
-        }, 50);
-        return () => clearInterval(interval);
-    }, [s.progressPlayAnimation, s.progressValue]);
+    const animate = useCallback((timestamp: number) => {
+        if (!startTimeRef.current) startTimeRef.current = timestamp;
+        const elapsed = timestamp - startTimeRef.current;
+        // Full cycle: 0→100 over CYCLE_DURATION_MS, then 100→0 over CYCLE_DURATION_MS
+        const cycleDuration = CYCLE_DURATION_MS * 2;
+        const position = (elapsed % cycleDuration) / CYCLE_DURATION_MS;
+        // position 0→1 = ascending, 1→2 = descending
+        const value = position <= 1
+            ? Math.round(position * 100)
+            : Math.round((2 - position) * 100);
+        setAnimatedValue(value);
+        rafRef.current = requestAnimationFrame(animate);
+    }, []);
 
-    // Reset animated value when progressValue changes and not playing
     useEffect(() => {
-        if (!s.progressPlayAnimation) {
+        if (isPlaying) {
+            startTimeRef.current = 0;
+            rafRef.current = requestAnimationFrame(animate);
+            return () => cancelAnimationFrame(rafRef.current);
+        }
+        setAnimatedValue(s.progressValue);
+    }, [isPlaying, s.progressValue, animate]);
+
+    // Sync when progressValue changes while not playing
+    useEffect(() => {
+        if (!isPlaying) {
             setAnimatedValue(s.progressValue);
         }
-    }, [s.progressValue, s.progressPlayAnimation]);
+    }, [s.progressValue, isPlaying]);
 
     const progressWrapperStyle = {
         ...buildComponentWrapperStyle(previewStyle, 'progress'),
@@ -60,7 +70,7 @@ export function ProgressPreview({
                 variant={s.progressVariant}
                 size={s.size}
                 showLabel={s.progressShowLabel}
-                animateValue={s.progressAnimateValue}
+                animateValue={!isPlaying && s.progressAnimateValue}
                 trackColor={s.progressTrackColor || undefined}
                 indicatorColor={s.progressIndicatorColor || undefined}
                 labelColor={s.progressLabelColor || undefined}
