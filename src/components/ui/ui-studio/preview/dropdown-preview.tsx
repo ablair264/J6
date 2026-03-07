@@ -44,6 +44,7 @@ export function InteractiveDropdownPreview({
     const [isOpen, setIsOpen] = useState(false);
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const relativeRef = useRef<HTMLDivElement | null>(null);
     const submenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const shareItemRef = useRef<HTMLDivElement | null>(null);
     const menuOpen = pinnedOpen || isOpen;
@@ -119,14 +120,14 @@ export function InteractiveDropdownPreview({
     // Compute submenu position relative to the share item's ListBoxItem parent
     const [submenuPos, setSubmenuPos] = useState<{ top: number; left: number } | null>(null);
     useEffect(() => {
-        if (submenuOpen && shareItemRef.current && containerRef.current) {
+        if (submenuOpen && shareItemRef.current && relativeRef.current) {
             // Walk up to the ListBoxItem element (the closest rendered item ancestor)
             const itemEl = shareItemRef.current.closest('[role="option"]') ?? shareItemRef.current.parentElement?.parentElement;
             const rect = (itemEl ?? shareItemRef.current).getBoundingClientRect();
-            const containerRect = containerRef.current.getBoundingClientRect();
+            const parentRect = relativeRef.current.getBoundingClientRect();
             setSubmenuPos({
-                top: rect.top - containerRect.top,
-                left: rect.right - containerRect.left + 4,
+                top: rect.top - parentRect.top,
+                left: rect.right - parentRect.left + 4,
             });
         }
     }, [submenuOpen]);
@@ -194,7 +195,7 @@ export function InteractiveDropdownPreview({
             onClick={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
         >
-            <div className="relative inline-flex">
+            <div ref={relativeRef} className="relative inline-flex">
                 {renderWithMotionControls(triggerButton, motionConfig, false, true)}
                 <AnimatePresence>
                     {menuOpen ? (
