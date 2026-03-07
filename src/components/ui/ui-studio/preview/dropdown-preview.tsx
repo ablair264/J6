@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ListBox } from 'react-aria-components';
 import { Pencil, Copy, Share, Trash2, ChevronRight, MoreVertical, Users, Mail } from 'lucide-react';
@@ -45,6 +45,8 @@ export function InteractiveDropdownPreview({
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const submenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const shareItemRef = useRef<HTMLDivElement | null>(null);
+    const submenuRef = useRef<HTMLDivElement | null>(null);
     const menuOpen = pinnedOpen || isOpen;
     const buttonPreviewStateClass = buildButtonPreviewStateClass(motionConfig.buttonPreviewState);
     const dropdownBodyMotionConfig = buildEntryPresetMotionConfig('dropdown', motionConfig, motionConfig.dropdownBodyMotionPresetId);
@@ -93,16 +95,42 @@ export function InteractiveDropdownPreview({
         }
     }, [menuOpen]);
 
-    const handleSubmenuEnter = () => {
+    // Submenu hover: track pointer over both the share item and the submenu panel
+    const clearSubmenuTimer = useCallback(() => {
         if (submenuTimerRef.current) {
             clearTimeout(submenuTimerRef.current);
+            submenuTimerRef.current = null;
         }
-        setSubmenuOpen(true);
-    };
+    }, []);
 
-    const handleSubmenuLeave = () => {
-        submenuTimerRef.current = setTimeout(() => setSubmenuOpen(false), 150);
-    };
+    const startSubmenuClose = useCallback(() => {
+        clearSubmenuTimer();
+        submenuTimerRef.current = setTimeout(() => setSubmenuOpen(false), 200);
+    }, [clearSubmenuTimer]);
+
+    const handleSubmenuAreaEnter = useCallback(() => {
+        clearSubmenuTimer();
+        setSubmenuOpen(true);
+    }, [clearSubmenuTimer]);
+
+    useEffect(() => {
+        return () => clearSubmenuTimer();
+    }, [clearSubmenuTimer]);
+
+    // Compute submenu position relative to the share item
+    const [submenuPos, setSubmenuPos] = useState<{ top: number; left: number } | null>(null);
+    useEffect(() => {
+        if (submenuOpen && shareItemRef.current) {
+            const rect = shareItemRef.current.getBoundingClientRect();
+            const containerRect = containerRef.current?.getBoundingClientRect();
+            if (containerRect) {
+                setSubmenuPos({
+                    top: rect.top - containerRect.top,
+                    left: rect.right - containerRect.left + 4,
+                });
+            }
+        }
+    }, [submenuOpen]);
 
     const iconSize = 'size-4 text-muted-foreground';
 
@@ -227,7 +255,7 @@ export function InteractiveDropdownPreview({
                                 <ListBox
                                     aria-label="Dropdown preview"
                                     selectionMode="single"
-                                    className="grid min-w-[220px] grid-cols-[auto_1fr] gap-y-1 overflow-visible rounded-xl p-1"
+                                    className="grid min-w-[220px] grid-cols-[auto_1fr] gap-y-1 rounded-xl p-1"
                                     style={panelStyle}
                                 >
                                     <DropdownItem id={`${instanceId}-edit`} className={dropdownHoverClass} onAction={() => !pinnedOpen && setIsOpen(false)}>
@@ -238,9 +266,10 @@ export function InteractiveDropdownPreview({
                                     </DropdownItem>
                                     {showSubmenu ? (
                                         <div
-                                            className="relative col-span-full"
-                                            onPointerEnter={handleSubmenuEnter}
-                                            onPointerLeave={handleSubmenuLeave}
+                                            ref={shareItemRef}
+                                            className="col-span-full"
+                                            onMouseEnter={handleSubmenuAreaEnter}
+                                            onMouseLeave={startSubmenuClose}
                                         >
                                             <DropdownItem id={`${instanceId}-share`} className={cn(dropdownHoverClass, 'pr-1')}>
                                                 <DropdownLabel>
@@ -258,46 +287,6 @@ export function InteractiveDropdownPreview({
                                                     )}
                                                 </DropdownLabel>
                                             </DropdownItem>
-                                            <AnimatePresence>
-                                                {submenuOpen ? (
-                                                    <motion.div
-                                                        key={`${instanceId}-submenu`}
-                                                        className="absolute left-full top-0 z-20 ml-1"
-                                                        initial={{ opacity: 0, x: -4 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        exit={{ opacity: 0, x: -4 }}
-                                                        transition={{ duration: 0.15, ease: 'easeOut' }}
-                                                    >
-                                                        <div
-                                                            className="min-w-[160px] space-y-0.5 rounded-xl p-1"
-                                                            style={panelStyle}
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                className={cn(
-                                                                    'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
-                                                                    dropdownHoverClass,
-                                                                )}
-                                                                onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
-                                                            >
-                                                                {showIcons ? <Users className={iconSize} /> : null}
-                                                                <span style={itemLabelStyle}>Team</span>
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className={cn(
-                                                                    'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
-                                                                    dropdownHoverClass,
-                                                                )}
-                                                                onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
-                                                            >
-                                                                {showIcons ? <Mail className={iconSize} /> : null}
-                                                                <span style={itemLabelStyle}>Email</span>
-                                                            </button>
-                                                        </div>
-                                                    </motion.div>
-                                                ) : null}
-                                            </AnimatePresence>
                                         </div>
                                     ) : null}
                                     <DropdownSeparator />
@@ -312,6 +301,52 @@ export function InteractiveDropdownPreview({
                                 </ListBox>
                             </motion.div>
                         </div>
+                    ) : null}
+                </AnimatePresence>
+
+                {/* Submenu rendered OUTSIDE the ListBox to avoid React Aria focus conflicts */}
+                <AnimatePresence>
+                    {menuOpen && showSubmenu && submenuOpen && submenuPos ? (
+                        <motion.div
+                            ref={submenuRef}
+                            key={`${instanceId}-submenu`}
+                            className="absolute z-30"
+                            style={{ top: submenuPos.top, left: submenuPos.left }}
+                            initial={{ opacity: 0, x: -4 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -4 }}
+                            transition={{ duration: 0.15, ease: 'easeOut' }}
+                            onMouseEnter={handleSubmenuAreaEnter}
+                            onMouseLeave={startSubmenuClose}
+                        >
+                            <div
+                                className="min-w-[160px] space-y-0.5 rounded-xl p-1"
+                                style={panelStyle}
+                            >
+                                <button
+                                    type="button"
+                                    className={cn(
+                                        'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
+                                        dropdownHoverClass,
+                                    )}
+                                    onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
+                                >
+                                    {showIcons ? <Users className={iconSize} /> : null}
+                                    <span style={itemLabelStyle}>Team</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={cn(
+                                        'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
+                                        dropdownHoverClass,
+                                    )}
+                                    onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
+                                >
+                                    {showIcons ? <Mail className={iconSize} /> : null}
+                                    <span style={itemLabelStyle}>Email</span>
+                                </button>
+                            </div>
+                        </motion.div>
                     ) : null}
                 </AnimatePresence>
             </div>
