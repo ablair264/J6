@@ -464,9 +464,12 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     inputAutocompleteEnabled: false,
     inputAutocompleteBodyMotionPresetId: 'dropdown-down',
     tabsVariant: 'default',
-    tabsCount: 2,
+    tabsCount: 3,
     tabsListBg: '',
     tabsActiveBg: '',
+    tabsIndicatorColor: '',
+    tabsActiveTextColor: '',
+    tabsInactiveTextColor: '',
     tabsUnderlineMotionEnabled: true,
     tabsBodyMotionPresetId: 'fade-in',
     tabsTextMotionPresetId: 'fade-in',
@@ -2254,7 +2257,83 @@ export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = [
         },
     },
 ];
-export const TABS_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tabs');
+export const TABS_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    {
+        id: 'tabs-default',
+        kind: 'tabs',
+        label: 'Default',
+        description: 'Standard muted background tabs',
+        values: {
+            tabsVariant: 'default',
+            tabsCount: 3,
+            tabsListBg: '',
+            tabsActiveBg: '',
+            tabsIndicatorColor: '',
+            tabsActiveTextColor: '',
+            tabsInactiveTextColor: '',
+        },
+    },
+    {
+        id: 'tabs-underline',
+        kind: 'tabs',
+        label: 'Underline',
+        description: 'Clean underline indicator tabs',
+        values: {
+            tabsVariant: 'line',
+            tabsCount: 3,
+            tabsListBg: '',
+            tabsActiveBg: '',
+            tabsIndicatorColor: '#2dd4bf',
+            tabsActiveTextColor: '#f1f5f9',
+            tabsInactiveTextColor: '#94a3b8',
+        },
+    },
+    {
+        id: 'tabs-pill',
+        kind: 'tabs',
+        label: 'Pill',
+        description: 'Rounded pill active indicator',
+        values: {
+            tabsVariant: 'pill',
+            tabsCount: 3,
+            tabsListBg: '',
+            tabsActiveBg: 'rgba(45,212,191,0.15)',
+            tabsIndicatorColor: '',
+            tabsActiveTextColor: '#2dd4bf',
+            tabsInactiveTextColor: '#94a3b8',
+        },
+    },
+    {
+        id: 'tabs-segment',
+        kind: 'tabs',
+        label: 'Segment',
+        description: 'Enclosed segment control style',
+        values: {
+            tabsVariant: 'segment',
+            tabsCount: 3,
+            tabsListBg: '#1e293b',
+            tabsActiveBg: '#334155',
+            tabsIndicatorColor: '',
+            tabsActiveTextColor: '#f1f5f9',
+            tabsInactiveTextColor: '#64748b',
+        },
+    },
+    {
+        id: 'tabs-brand',
+        kind: 'tabs',
+        label: 'Brand',
+        description: 'Bold branded active tab',
+        values: {
+            tabsVariant: 'default',
+            tabsCount: 3,
+            tabsListBg: '#0f172a',
+            tabsActiveBg: '#2dd4bf',
+            tabsIndicatorColor: '',
+            tabsActiveTextColor: '#0f172a',
+            tabsInactiveTextColor: '#94a3b8',
+        },
+    },
+];
 export const TOOLTIP_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tooltip');
 export const SLIDER_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('slider', {
     soft: {

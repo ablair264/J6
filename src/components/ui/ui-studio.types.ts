@@ -42,7 +42,7 @@ export type ButtonPreviewState = 'default' | 'hover' | 'active' | 'disabled';
 export type GradientSlideDirection = 'left' | 'right' | 'top' | 'bottom';
 export type LoaderOutcome = 'success' | 'failure' | 'warning';
 export type CheckboxSelectionIcon = 'tick' | 'cross' | 'solid';
-export type TabsVariant = 'default' | 'line';
+export type TabsVariant = 'default' | 'line' | 'pill' | 'segment';
 export type SkeletonVariant = 'text' | 'avatar' | 'card' | 'custom';
 export type AvatarShape = 'circle' | 'rounded';
 export type ProgressVariant = 'linear' | 'circular';
@@ -338,6 +338,9 @@ export interface ComponentStyleConfig {
   tabsCount: number;
   tabsListBg: string;
   tabsActiveBg: string;
+  tabsIndicatorColor: string;
+  tabsActiveTextColor: string;
+  tabsInactiveTextColor: string;
   tabsUnderlineMotionEnabled: boolean;
   tabsBodyMotionPresetId: string;
   tabsTextMotionPresetId: string;

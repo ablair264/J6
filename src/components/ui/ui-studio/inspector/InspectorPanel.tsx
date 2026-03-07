@@ -1552,17 +1552,25 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'tabs' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Tabs Config" icon={Table} defaultOpen>
-                                <div className="flex flex-wrap items-start gap-3">
-                                    <FlatField label="Variant" stacked>
-                                        <FlatSelect value={selectedStyle.tabsVariant} onValueChange={(value) => updateSelectedStyle('tabsVariant', value as 'default' | 'line')} ariaLabel="Tabs variant">
-                                            <option value="default">Default</option>
-                                            <option value="line">Line</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                <FlatField label="Variant">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['default', 'line', 'pill', 'segment'] as const).map((v) => (
+                                            <button key={v} type="button" onClick={() => updateSelectedStyle('tabsVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.tabsVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {v === 'default' ? 'Default' : v === 'line' ? 'Line' : v === 'pill' ? 'Pill' : 'Segment'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                                <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                    <FlatColorControl label="List Background" value={selectedStyle.tabsListBg} onChange={(value) => updateSelectedStyle('tabsListBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Active Tab Bg" value={selectedStyle.tabsActiveBg} onChange={(value) => updateSelectedStyle('tabsActiveBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Active Text" value={selectedStyle.tabsActiveTextColor} onChange={(value) => updateSelectedStyle('tabsActiveTextColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Inactive Text" value={selectedStyle.tabsInactiveTextColor} onChange={(value) => updateSelectedStyle('tabsInactiveTextColor', value)} tokens={activeTokenSet.tokens} />
                                 </div>
-                                <FlatColorControl label="List Background" value={selectedStyle.tabsListBg} onChange={(value) => updateSelectedStyle('tabsListBg', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Active Tab Background" value={selectedStyle.tabsActiveBg} onChange={(value) => updateSelectedStyle('tabsActiveBg', value)} tokens={activeTokenSet.tokens} />
+                                {selectedStyle.tabsVariant === 'line' ? (
+                                    <FlatColorControl label="Indicator Color" value={selectedStyle.tabsIndicatorColor} onChange={(value) => updateSelectedStyle('tabsIndicatorColor', value)} tokens={activeTokenSet.tokens} />
+                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}

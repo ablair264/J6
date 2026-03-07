@@ -631,8 +631,14 @@ export function componentSnippet(
                 instance.style.tabsListBg ? `listBg="${instance.style.tabsListBg}"` : '',
             ].filter(Boolean).join(' ');
             const listAttr = listProps ? ` ${listProps}` : '';
-            const activeBgAttr = instance.style.tabsActiveBg ? ` activeBg="${instance.style.tabsActiveBg}"` : '';
-            return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}<Tabs defaultValue="tab-1">\n  <TabsList${listAttr}>\n    <TabsTrigger value="tab-1"${activeBgAttr}${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Tab 1${instance.style.iconPosition === 'right' ? iconRight : ''}</TabsTrigger>\n    <TabsTrigger value="tab-2"${activeBgAttr}${classNameSnippet}${previewStyleSnippet}>Tab 2</TabsTrigger>\n  </TabsList>\n  <TabsContent value="tab-1">Tab content</TabsContent>\n</Tabs>`;
+            const triggerProps = [
+                instance.style.tabsActiveBg ? `activeBg="${instance.style.tabsActiveBg}"` : '',
+                instance.style.tabsIndicatorColor ? `indicatorColor="${instance.style.tabsIndicatorColor}"` : '',
+                instance.style.tabsActiveTextColor ? `activeTextColor="${instance.style.tabsActiveTextColor}"` : '',
+                instance.style.tabsInactiveTextColor ? `inactiveTextColor="${instance.style.tabsInactiveTextColor}"` : '',
+            ].filter(Boolean).join(' ');
+            const triggerAttr = triggerProps ? ` ${triggerProps}` : '';
+            return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}<Tabs defaultValue="tab-1">\n  <TabsList${listAttr}>\n    <TabsTrigger value="tab-1"${triggerAttr}${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Tab 1${instance.style.iconPosition === 'right' ? iconRight : ''}</TabsTrigger>\n    <TabsTrigger value="tab-2"${triggerAttr}${classNameSnippet}${previewStyleSnippet}>Tab 2</TabsTrigger>\n  </TabsList>\n  <TabsContent value="tab-1">Tab content</TabsContent>\n</Tabs>`;
         }
         case 'tooltip': {
             const tooltipDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
@@ -1289,6 +1295,9 @@ export function renderPreview(
                                 value={`tab-${i}`}
                                 style={triggerStyle}
                                 activeBg={instance.style.tabsActiveBg || undefined}
+                                indicatorColor={instance.style.tabsIndicatorColor || undefined}
+                                activeTextColor={instance.style.tabsActiveTextColor || undefined}
+                                inactiveTextColor={instance.style.tabsInactiveTextColor || undefined}
                                 className={cn(
                                     'max-w-full overflow-hidden',
                                     instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger',
