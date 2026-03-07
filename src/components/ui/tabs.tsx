@@ -46,15 +46,16 @@ function TabsList({
   className,
   variant = "default",
   listBg,
+  fullWidth = false,
   style,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> &
-  VariantProps<typeof tabsListVariants> & { listBg?: string }) {
+  VariantProps<typeof tabsListVariants> & { listBg?: string; fullWidth?: boolean }) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
       data-variant={variant}
-      className={cn(tabsListVariants({ variant }), listBg && "!bg-transparent", className)}
+      className={cn(tabsListVariants({ variant }), listBg && "!bg-transparent", fullWidth && "w-full", className)}
       style={listBg ? { ...style, backgroundColor: listBg } : style}
       {...props}
     />

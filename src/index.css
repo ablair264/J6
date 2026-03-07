@@ -1200,6 +1200,45 @@
 /* Gradient border fill is driven by --ui-effect-grad-border-fill from inline vars
    so the inner layer tracks the selected component fill color. */
 
+/* ─── Tabs: hover state via CSS vars ──────────────────────────────────────── */
+.ui-studio-tabs-hover [data-slot="tabs-trigger"]:not([data-state="active"]):hover {
+  background-color: var(--tabs-hover-bg, transparent) !important;
+  color: var(--tabs-hover-text, inherit) !important;
+}
+
+.ui-studio-tabs-inactive [data-slot="tabs-trigger"][data-state="inactive"] {
+  background-color: var(--tabs-inactive-bg, transparent) !important;
+}
+
+/* ─── Switch: bordered track ─────────────────────────────────────────────── */
+.ui-studio-switch-bordered [data-slot="switch"] {
+  border: var(--switch-track-border-width, 1px) solid var(--switch-track-border, rgba(255,255,255,0.2)) !important;
+}
+
+/* ─── Switch: active glow ────────────────────────────────────────────────── */
+.ui-studio-switch-glow [data-slot="switch"][data-state="checked"] {
+  box-shadow: 0 0 var(--switch-glow-size, 8px) var(--switch-glow-color, #22d3ee) !important;
+  transition: box-shadow 0.3s ease !important;
+}
+
+/* ─── Switch: custom radius ──────────────────────────────────────────────── */
+.ui-studio-switch-custom-radius [data-slot="switch"] {
+  border-radius: var(--switch-track-radius, 9999px) !important;
+}
+.ui-studio-switch-custom-radius [data-slot="switch-thumb"] {
+  border-radius: var(--switch-thumb-radius, 9999px) !important;
+}
+
+/* ─── Switch: animation speed ────────────────────────────────────────────── */
+[data-slot="switch"],
+[data-slot="switch-thumb"] {
+  transition-duration: var(--switch-anim-speed, 0.2s) !important;
+}
+
+.ui-studio-switch-thumb-scale [data-slot="switch"][data-state="checked"] [data-slot="switch-thumb"] {
+  transform: translateX(calc(100% - 2px)) scale(var(--switch-thumb-scale, 1)) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   *,

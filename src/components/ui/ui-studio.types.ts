@@ -308,6 +308,25 @@ export interface ComponentStyleConfig {
   tabsUnderlineMotionEnabled: boolean;
   tabsBodyMotionPresetId: string;
   tabsTextMotionPresetId: string;
+  // Tabs — extended controls
+  tabsFullWidth: boolean;           // stretch TabsList to fill container width
+  tabsShowIcons: boolean;           // show icons in tab triggers
+  tabsIconPosition: 'left' | 'right';
+  tabsListRadius: number;           // border-radius of the TabsList container
+  tabsTabRadius: number;            // border-radius of individual TabsTrigger
+  tabsListPaddingX: number;         // horizontal padding inside TabsList
+  tabsListPaddingY: number;         // vertical padding inside TabsList
+  tabsTabPaddingX: number;          // horizontal padding inside each TabsTrigger
+  tabsGap: number;                  // gap between triggers (px)
+  tabsListBorderColor: string;      // border/stroke colour for the list container
+  tabsListBorderWidth: number;      // stroke weight (0 = none)
+  tabsActiveBorderColor: string;    // active tab border/underline color override
+  tabsInactiveBg: string;           // inactive trigger background
+  tabsHoverBg: string;              // hover background for inactive triggers
+  tabsHoverTextColor: string;       // hover text colour for inactive triggers
+  tabsShadow: boolean;              // drop shadow on TabsList
+  tabsListFontSize: number;         // font size for all tab triggers
+  tabsListFontWeight: number;       // font weight for all tab triggers
   checkboxHoverEnabled: boolean;
   checkboxHoverScale: number;
   checkboxTapEnabled: boolean;
@@ -509,6 +528,27 @@ export interface ComponentStyleConfig {
   switchTrackActiveColor: string;
   switchThumbColor: string;
   switchThumbActiveColor: string;
+  // Switch — extended controls
+  switchLabelPosition: 'left' | 'right';   // label before or after the switch
+  switchLabelSize: number;                  // font size of the label (px)
+  switchLabelColor: string;                 // label text colour
+  switchLabelWeight: number;                // label font weight
+  switchCustomWidth: number;                // track width override (px, 0 = auto)
+  switchCustomHeight: number;               // track height override (px, 0 = auto)
+  switchThumbScale: number;                 // thumb scale on checked (default 1.0, range 0.7–1.3)
+  switchAnimationSpeed: number;             // transition speed multiplier (0.5–2.0s)
+  switchTrackBorderColor: string;           // border/stroke of the track (unchecked)
+  switchTrackBorderWidth: number;           // track border width (0 = none)
+  switchTrackRadius: number;               // track border-radius override (px, 0 = pill)
+  switchThumbRadius: number;               // thumb border-radius override (px, 0 = circle)
+  switchShowIcon: boolean;                  // show icon inside thumb
+  switchIconChecked: string;               // lucide icon name shown when checked (e.g. 'check')
+  switchIconUnchecked: string;             // lucide icon name shown when unchecked (e.g. 'x')
+  switchIconColor: string;                 // icon colour
+  switchIconSize: number;                  // icon size (px)
+  switchGlowEnabled: boolean;              // glow effect on checked track
+  switchGlowColor: string;                // glow colour
+  switchGlowSize: number;                 // glow blur radius (px)
   // Advanced Hover Effects (Premium — mouse-tracking interactions)
   motionHoverTiltEnabled: boolean;
   motionHoverTiltStrength: number;

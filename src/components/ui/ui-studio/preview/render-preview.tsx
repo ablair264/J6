@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap, Mail, MessageCircle, PhoneCall } from 'lucide-react';
+import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap, Mail, MessageCircle, PhoneCall, Check, X, Minus, Heart, Ban, Slash, Star } from 'lucide-react';
 import { Checkbox as CheckboxPrimitive, Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
@@ -83,6 +83,50 @@ import { NavigationMenuPreview } from './navigation-menu-preview';
 import type { ExportStyleMode } from '../utilities';
 
 const MotionTooltipTrigger = motion.create(TooltipTrigger);
+
+function resolveSwitchIcon(iconName: string) {
+    switch (iconName) {
+        case 'check':
+            return Check;
+        case 'star':
+            return Star;
+        case 'bolt':
+            return Zap;
+        case 'heart':
+            return Heart;
+        case 'minus':
+            return Minus;
+        case 'slash':
+            return Slash;
+        case 'ban':
+            return Ban;
+        case 'x':
+        default:
+            return X;
+    }
+}
+
+function resolveSwitchIconName(iconName: string): string {
+    switch (iconName) {
+        case 'check':
+            return 'Check';
+        case 'star':
+            return 'Star';
+        case 'bolt':
+            return 'Zap';
+        case 'heart':
+            return 'Heart';
+        case 'minus':
+            return 'Minus';
+        case 'slash':
+            return 'Slash';
+        case 'ban':
+            return 'Ban';
+        case 'x':
+        default:
+            return 'X';
+    }
+}
 
 // ─── Avatar Popover Preview ─────────────────────────────────────────────────
 
@@ -618,19 +662,67 @@ export function componentSnippet(
         }
         case 'tabs': {
             const tabDeclarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const tabLabels = ['Style', 'Effects', 'Layout', 'Preview', 'Settings', 'Export'].slice(0, Math.max(2, Math.min(6, instance.style.tabsCount)));
+            const activeIndicatorColor = instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor;
+
+            const listStyle: CSSProperties = {
+                borderRadius: `${instance.style.tabsListRadius}px`,
+                paddingInline: `${instance.style.tabsListPaddingX}px`,
+                paddingBlock: `${instance.style.tabsListPaddingY}px`,
+                gap: `${instance.style.tabsGap}px`,
+                fontSize: `${instance.style.tabsListFontSize}px`,
+                fontWeight: instance.style.tabsListFontWeight,
+                ...(instance.style.tabsShadow
+                    ? { boxShadow: '0 8px 18px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.14)' }
+                    : {}),
+                ...(instance.style.tabsListBorderWidth > 0
+                    ? {
+                        borderStyle: 'solid',
+                        borderWidth: `${instance.style.tabsListBorderWidth}px`,
+                        borderColor: instance.style.tabsListBorderColor || '#e2e8f0',
+                    }
+                    : {}),
+                ...(instance.style.tabsInactiveBg ? { ['--tabs-inactive-bg' as string]: instance.style.tabsInactiveBg } : {}),
+                ...(instance.style.tabsHoverBg ? { ['--tabs-hover-bg' as string]: instance.style.tabsHoverBg } : {}),
+                ...(instance.style.tabsHoverTextColor ? { ['--tabs-hover-text' as string]: instance.style.tabsHoverTextColor } : {}),
+            };
+
+            const triggerStyle: CSSProperties = {
+                borderRadius: `${instance.style.tabsTabRadius}px`,
+                paddingInline: `${instance.style.tabsTabPaddingX}px`,
+            };
+
+            const listStyleCode = styleToCode(listStyle);
+            const triggerStyleCode = styleToCode(triggerStyle);
+
             const listProps = [
                 instance.style.tabsVariant !== 'default' ? `variant="${instance.style.tabsVariant}"` : '',
                 instance.style.tabsListBg ? `listBg="${instance.style.tabsListBg}"` : '',
+                instance.style.tabsFullWidth ? 'fullWidth' : '',
             ].filter(Boolean).join(' ');
             const listAttr = listProps ? ` ${listProps}` : '';
             const triggerProps = [
                 instance.style.tabsActiveBg ? `activeBg="${instance.style.tabsActiveBg}"` : '',
-                instance.style.tabsIndicatorColor ? `indicatorColor="${instance.style.tabsIndicatorColor}"` : '',
+                activeIndicatorColor ? `indicatorColor="${activeIndicatorColor}"` : '',
                 instance.style.tabsActiveTextColor ? `activeTextColor="${instance.style.tabsActiveTextColor}"` : '',
                 instance.style.tabsInactiveTextColor ? `inactiveTextColor="${instance.style.tabsInactiveTextColor}"` : '',
             ].filter(Boolean).join(' ');
             const triggerAttr = triggerProps ? ` ${triggerProps}` : '';
-            return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}<Tabs defaultValue="tab-1">\n  <TabsList${listAttr}>\n    <TabsTrigger value="tab-1"${triggerAttr}${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Tab 1${instance.style.iconPosition === 'right' ? iconRight : ''}</TabsTrigger>\n    <TabsTrigger value="tab-2"${triggerAttr}${classNameSnippet}${previewStyleSnippet}>Tab 2</TabsTrigger>\n  </TabsList>\n  <TabsContent value="tab-1">Tab content</TabsContent>\n</Tabs>`;
+            const listClassName = [
+                instance.style.tabsFullWidth ? 'w-full' : '',
+                (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : '',
+                instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : '',
+            ].filter(Boolean).join(' ');
+            const triggerClassName = instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : '';
+            const tabPrefixIcon = instance.style.tabsShowIcons && instance.style.icon !== 'none' && instance.style.tabsIconPosition === 'left' ? iconLeft : '';
+            const tabSuffixIcon = instance.style.tabsShowIcons && instance.style.icon !== 'none' && instance.style.tabsIconPosition === 'right' ? iconRight : '';
+            const triggerLines = tabLabels
+                .map((label, index) => `    <TabsTrigger value="tab-${index}"${triggerAttr}${triggerClassName ? ` className="${triggerClassName}"` : ''} style={tabsTriggerStyle}><span className="inline-flex items-center gap-1.5">${tabPrefixIcon}${label}${tabSuffixIcon}</span></TabsTrigger>`)
+                .join('\n');
+            const contentLines = tabLabels
+                .map((label, index) => `  <TabsContent value="tab-${index}">${label} tab body</TabsContent>`)
+                .join('\n');
+            return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}const tabsListStyle = ${listStyleCode};\nconst tabsTriggerStyle = ${triggerStyleCode};\n\n<Tabs defaultValue="tab-0"${instance.style.tabsFullWidth ? ' className="w-full"' : ''}${classNameSnippet}${previewStyleSnippet}>\n  <TabsList${listAttr}${listClassName ? ` className="${listClassName}"` : ''} style={tabsListStyle}>\n${triggerLines}\n  </TabsList>\n${contentLines}\n</Tabs>`;
         }
         case 'tooltip': {
             const tooltipDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
@@ -771,6 +863,54 @@ export function componentSnippet(
         }
         case 'switch': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const wrapperClassNames = [
+                'flex items-center gap-2',
+                instance.style.switchLabelPosition === 'left' ? 'flex-row-reverse justify-end' : '',
+                instance.style.switchTrackBorderWidth > 0 ? 'ui-studio-switch-bordered' : '',
+                instance.style.switchGlowEnabled ? 'ui-studio-switch-glow' : '',
+                (instance.style.switchTrackRadius > 0 || instance.style.switchThumbRadius > 0) ? 'ui-studio-switch-custom-radius' : '',
+                instance.style.switchThumbScale !== 1 ? 'ui-studio-switch-thumb-scale' : '',
+            ].filter(Boolean).join(' ');
+
+            const wrapperStyle: CSSProperties = {
+                ['--switch-anim-speed' as string]: `${instance.style.switchAnimationSpeed}s`,
+                ...(instance.style.switchTrackBorderWidth > 0
+                    ? {
+                        ['--switch-track-border' as string]: instance.style.switchTrackBorderColor || 'rgba(255,255,255,0.2)',
+                        ['--switch-track-border-width' as string]: `${instance.style.switchTrackBorderWidth}px`,
+                    }
+                    : {}),
+                ...(instance.style.switchGlowEnabled
+                    ? {
+                        ['--switch-glow-color' as string]: instance.style.switchGlowColor || '#22d3ee',
+                        ['--switch-glow-size' as string]: `${instance.style.switchGlowSize}px`,
+                    }
+                    : {}),
+                ...(instance.style.switchTrackRadius > 0
+                    ? { ['--switch-track-radius' as string]: `${instance.style.switchTrackRadius}px` }
+                    : {}),
+                ...(instance.style.switchThumbRadius > 0
+                    ? { ['--switch-thumb-radius' as string]: `${instance.style.switchThumbRadius}px` }
+                    : {}),
+                ...(instance.style.switchThumbScale !== 1
+                    ? { ['--switch-thumb-scale' as string]: String(instance.style.switchThumbScale) }
+                    : {}),
+            };
+            const labelStyle: CSSProperties = {
+                fontSize: `${instance.style.switchLabelSize}px`,
+                fontWeight: instance.style.switchLabelWeight,
+                ...(instance.style.switchLabelColor ? { color: instance.style.switchLabelColor } : {}),
+            };
+            const switchInlineStyle: CSSProperties = {
+                ...(instance.style.switchCustomWidth > 0 ? { width: `${instance.style.switchCustomWidth}px` } : {}),
+                ...(instance.style.switchCustomHeight > 0 ? { height: `${instance.style.switchCustomHeight}px` } : {}),
+            };
+            const wrapperStyleCode = styleToCode(wrapperStyle);
+            const labelStyleCode = styleToCode(labelStyle);
+            const switchStyleCode = styleToCode(switchInlineStyle);
+            const checkedIconName = resolveSwitchIconName(instance.style.switchIconChecked);
+            const uncheckedIconName = resolveSwitchIconName(instance.style.switchIconUnchecked);
+            const activeIconName = instance.style.switchChecked ? checkedIconName : uncheckedIconName;
             const switchProps = [
                 instance.style.switchChecked ? 'defaultChecked' : '',
                 instance.style.switchDisabled ? 'disabled' : '',
@@ -778,8 +918,15 @@ export function componentSnippet(
                 instance.style.switchTrackActiveColor ? `trackActiveColor="${instance.style.switchTrackActiveColor}"` : '',
                 instance.style.switchThumbColor ? `thumbColor="${instance.style.switchThumbColor}"` : '',
                 instance.style.switchThumbActiveColor ? `thumbActiveColor="${instance.style.switchThumbActiveColor}"` : '',
+                classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            return `${declarations ? `${declarations}\n\n` : ''}<div className="flex items-center gap-2">\n  <Switch\n    id="switch-demo"\n    ${switchProps ? `${switchProps}\n    ` : ''}${classNameSnippet.trim()}${previewStyleSnippet}\n  />\n  <Label htmlFor="switch-demo">${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
+            const iconComment = instance.style.switchShowIcon
+                ? `\n  {/* Thumb icon overlay requires a positioned wrapper around Switch */}`
+                : '';
+            const iconOverlay = instance.style.switchShowIcon
+                ? `\n  <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2" style={{ color: '${instance.style.switchIconColor}' }}>\n    <${activeIconName} size={${instance.style.switchIconSize}} />\n  </span>`
+                : '';
+            return `${declarations ? `${declarations}\n\n` : ''}const switchWrapperStyle = ${wrapperStyleCode};\nconst switchLabelStyle = ${labelStyleCode};\nconst switchStyle = ${switchStyleCode};\n\n<div className="${wrapperClassNames}" style={switchWrapperStyle}>\n  <div className="relative inline-flex">${iconComment}\n    <Switch\n      id="switch-demo"\n      ${switchProps ? `${switchProps}\n      ` : ''}style={switchStyle}\n    />${iconOverlay}\n  </div>\n  <Label htmlFor="switch-demo" style={switchLabelStyle}>${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
         }
         case 'animated-text': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1232,9 +1379,36 @@ export function renderPreview(
         case 'tabs': {
             const tabTextStyle = extractTextStyle(style);
             delete tabTextStyle.color;
+            const activeIndicatorColor = instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor || undefined;
+            const tabCount = Math.max(2, Math.min(6, instance.style.tabsCount));
+            const tabLabels = ['Style', 'Effects', 'Layout', 'Preview', 'Settings', 'Export'].slice(0, tabCount);
+            const showTabIcons = instance.style.tabsShowIcons && instance.style.icon !== 'none';
+
+            const listStyle: CSSProperties = {
+                borderRadius: `${instance.style.tabsListRadius}px`,
+                paddingInline: `${instance.style.tabsListPaddingX}px`,
+                paddingBlock: `${instance.style.tabsListPaddingY}px`,
+                gap: `${instance.style.tabsGap}px`,
+                fontSize: `${instance.style.tabsListFontSize}px`,
+                fontWeight: instance.style.tabsListFontWeight,
+                ...(instance.style.tabsListBorderWidth > 0
+                    ? {
+                        borderStyle: 'solid',
+                        borderWidth: `${instance.style.tabsListBorderWidth}px`,
+                        borderColor: instance.style.tabsListBorderColor || '#e2e8f0',
+                    }
+                    : {}),
+                ...(instance.style.tabsShadow
+                    ? { boxShadow: '0 8px 18px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.14)' }
+                    : {}),
+                ...(instance.style.tabsInactiveBg ? { ['--tabs-inactive-bg' as string]: instance.style.tabsInactiveBg } : {}),
+                ...(instance.style.tabsHoverBg ? { ['--tabs-hover-bg' as string]: instance.style.tabsHoverBg } : {}),
+                ...(instance.style.tabsHoverTextColor ? { ['--tabs-hover-text' as string]: instance.style.tabsHoverTextColor } : {}),
+            };
             const triggerStyle = {
                 ...tabTextStyle,
-                borderRadius: style.borderRadius,
+                borderRadius: `${instance.style.tabsTabRadius}px`,
+                paddingInline: `${instance.style.tabsTabPaddingX}px`,
                 minHeight: `${Math.round(32 * SIZE_SCALE[instance.style.size])}px`,
                 justifyContent:
                     instance.style.fontPosition === 'left'
@@ -1247,8 +1421,11 @@ export function renderPreview(
             const fallbackTextColor = typeof style.color === 'string' ? style.color : undefined;
             const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
             const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsTextMotionPresetId);
-            const tabLabels = ['Style', 'Effects', 'Layout', 'Tokens', 'Export'];
-            const tabCount = instance.style.tabsCount;
+            const listClassName = cn(
+                instance.style.tabsFullWidth ? 'w-full' : undefined,
+                (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : undefined,
+                instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : undefined,
+            );
 
             const hasHoverOrTap = instance.style.motionHoverEnabled || instance.style.motionTapEnabled;
             const tabHover = instance.style.motionHoverEnabled ? {
@@ -1266,39 +1443,72 @@ export function renderPreview(
                 opacity: instance.style.motionTapOpacity / 100,
             } : undefined;
 
+            const renderTabLabel = (label: string) => {
+                if (!showTabIcons) {
+                    return label;
+                }
+                const tabIcon = renderConfiguredIcon(instance.style, 'size-4 shrink-0');
+                return (
+                    <>
+                        {instance.style.tabsIconPosition === 'right' ? (
+                            <>
+                                {label}
+                                {tabIcon}
+                            </>
+                        ) : (
+                            <>
+                                {tabIcon}
+                                {label}
+                            </>
+                        )}
+                    </>
+                );
+            };
+
             return (
-                <Tabs defaultValue="tab-0" className="w-full max-w-md">
+                <Tabs
+                    defaultValue="tab-0"
+                    className={cn(instance.style.tabsFullWidth ? 'w-full' : 'max-w-md')}
+                >
                     <TabsList
                         variant={instance.style.tabsVariant}
                         listBg={instance.style.tabsListBg || undefined}
-                        style={{ borderRadius: style.borderRadius, boxShadow: style.boxShadow }}
+                        className={listClassName}
+                        style={listStyle}
                     >
-                        {Array.from({ length: tabCount }, (_, i) => (
+                        {tabLabels.map((label, i) => (
                             <TabsTrigger
                                 key={i}
                                 value={`tab-${i}`}
                                 style={triggerStyle}
                                 activeBg={instance.style.tabsActiveBg || undefined}
-                                indicatorColor={instance.style.tabsIndicatorColor || undefined}
+                                indicatorColor={activeIndicatorColor}
                                 activeTextColor={instance.style.tabsActiveTextColor || fallbackTextColor}
                                 inactiveTextColor={instance.style.tabsInactiveTextColor || fallbackTextColor}
-                                className="max-w-full overflow-hidden"
+                                className={cn(
+                                    'max-w-full overflow-hidden',
+                                    instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : undefined,
+                                )}
                                 asChild={hasHoverOrTap}
                             >
                                 {hasHoverOrTap ? (
-                                    <motion.button whileHover={tabHover} whileTap={tabTap}>
-                                        {i === 0 ? withIcon(tabLabels[i] ?? `Tab ${i + 1}`, icon, instance.style.iconPosition) : (tabLabels[i] ?? `Tab ${i + 1}`)}
+                                    <motion.button className="inline-flex max-w-full items-center justify-center overflow-hidden" whileHover={tabHover} whileTap={tabTap}>
+                                        <span className="inline-flex max-w-full items-center gap-1.5 overflow-hidden">
+                                            {renderTabLabel(label)}
+                                        </span>
                                     </motion.button>
                                 ) : (
-                                    <>{i === 0 ? withIcon(tabLabels[i] ?? `Tab ${i + 1}`, icon, instance.style.iconPosition) : (tabLabels[i] ?? `Tab ${i + 1}`)}</>
+                                    <span className="inline-flex max-w-full items-center gap-1.5 overflow-hidden">
+                                        {renderTabLabel(label)}
+                                    </span>
                                 )}
                             </TabsTrigger>
                         ))}
                     </TabsList>
-                    {Array.from({ length: tabCount }, (_, i) => (
+                    {tabLabels.map((label, i) => (
                         <TabsContent key={i} value={`tab-${i}`} className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
                             {renderEntryMotion(
-                                renderEntryMotion(<span>{tabLabels[i] ?? `Tab ${i + 1}`} tab body</span>, tabsTextMotion),
+                                renderEntryMotion(<span>{label} tab body</span>, tabsTextMotion),
                                 tabsBodyMotion,
                             )}
                         </TabsContent>
@@ -2029,25 +2239,99 @@ export function renderPreview(
                     transition: buildMotionTransition(instance.style, 'tap'),
                 }
                 : undefined;
+            const switchSize = instance.style.size === 'sm' ? 'sm' : 'default';
+            const defaultTrackWidth = switchSize === 'sm' ? 24 : 32;
+            const defaultTrackHeight = switchSize === 'sm' ? 14 : 18;
+            const trackWidth = instance.style.switchCustomWidth > 0 ? instance.style.switchCustomWidth : defaultTrackWidth;
+            const trackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
+            const thumbSize = switchSize === 'sm' ? 12 : 16;
+            const thumbOffset = Math.max(1, Math.round((trackHeight - thumbSize) / 2));
+            const maxThumbLeft = Math.max(thumbOffset, trackWidth - thumbSize - thumbOffset);
+            const thumbIconLeft = instance.style.switchChecked ? maxThumbLeft : thumbOffset;
+            const ThumbIcon = instance.style.switchChecked
+                ? resolveSwitchIcon(instance.style.switchIconChecked)
+                : resolveSwitchIcon(instance.style.switchIconUnchecked);
+            const wrapperStyle = buildComponentWrapperStyle(style, 'switch');
+            const switchDecorClassName = cn(
+                'shrink-0',
+                instance.style.switchTrackBorderWidth > 0 ? 'ui-studio-switch-bordered' : undefined,
+                instance.style.switchGlowEnabled ? 'ui-studio-switch-glow' : undefined,
+                (instance.style.switchTrackRadius > 0 || instance.style.switchThumbRadius > 0) ? 'ui-studio-switch-custom-radius' : undefined,
+                instance.style.switchThumbScale !== 1 ? 'ui-studio-switch-thumb-scale' : undefined,
+            );
+            const switchDecorStyle: CSSProperties = {
+                ['--switch-anim-speed' as string]: `${instance.style.switchAnimationSpeed}s`,
+                ...(instance.style.switchTrackBorderWidth > 0
+                    ? {
+                        ['--switch-track-border' as string]: instance.style.switchTrackBorderColor || 'rgba(255,255,255,0.2)',
+                        ['--switch-track-border-width' as string]: `${instance.style.switchTrackBorderWidth}px`,
+                    }
+                    : {}),
+                ...(instance.style.switchGlowEnabled
+                    ? {
+                        ['--switch-glow-color' as string]: instance.style.switchGlowColor || '#22d3ee',
+                        ['--switch-glow-size' as string]: `${instance.style.switchGlowSize}px`,
+                    }
+                    : {}),
+                ...(instance.style.switchTrackRadius > 0
+                    ? { ['--switch-track-radius' as string]: `${instance.style.switchTrackRadius}px` }
+                    : {}),
+                ...(instance.style.switchThumbRadius > 0
+                    ? { ['--switch-thumb-radius' as string]: `${instance.style.switchThumbRadius}px` }
+                    : {}),
+                ...(instance.style.switchThumbScale !== 1
+                    ? { ['--switch-thumb-scale' as string]: String(instance.style.switchThumbScale) }
+                    : {}),
+            };
+            const switchInlineStyle: CSSProperties = {
+                ...(instance.style.switchCustomWidth > 0 ? { width: `${instance.style.switchCustomWidth}px` } : {}),
+                ...(instance.style.switchCustomHeight > 0 ? { height: `${instance.style.switchCustomHeight}px` } : {}),
+            };
+            const labelStyle: CSSProperties = {
+                fontSize: `${instance.style.switchLabelSize}px`,
+                fontWeight: instance.style.switchLabelWeight,
+                ...(instance.style.switchLabelColor ? { color: instance.style.switchLabelColor } : {}),
+            };
 
             return (
-                <div className="flex items-center gap-3" style={buildComponentWrapperStyle(style, 'switch')}>
-                    <motion.div whileHover={switchHover} whileTap={switchTap} className="shrink-0">
-                        <Switch
-                            id={switchId}
-                            key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}
-                            defaultChecked={instance.style.switchChecked}
-                            disabled={instance.style.switchDisabled}
-                            size={instance.style.size === 'sm' ? 'sm' : 'default'}
-                            trackColor={instance.style.switchTrackColor || undefined}
-                            trackActiveColor={instance.style.switchTrackActiveColor || undefined}
-                            thumbColor={instance.style.switchThumbColor || undefined}
-                            thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
-                            className={cn(motionClassName)}
-                        />
+                <div
+                    className={cn(
+                        'flex items-center gap-3',
+                        instance.style.switchLabelPosition === 'left' ? 'flex-row-reverse justify-end' : undefined,
+                    )}
+                    style={wrapperStyle}
+                >
+                    <motion.div whileHover={switchHover} whileTap={switchTap} className={switchDecorClassName} style={switchDecorStyle}>
+                        <div className="relative inline-flex">
+                            <Switch
+                                id={switchId}
+                                key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}
+                                defaultChecked={instance.style.switchChecked}
+                                disabled={instance.style.switchDisabled}
+                                size={switchSize}
+                                trackColor={instance.style.switchTrackColor || undefined}
+                                trackActiveColor={instance.style.switchTrackActiveColor || undefined}
+                                thumbColor={instance.style.switchThumbColor || undefined}
+                                thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
+                                className={cn(motionClassName)}
+                                style={switchInlineStyle}
+                            />
+                            {instance.style.switchShowIcon ? (
+                                <span
+                                    className="pointer-events-none absolute top-1/2 z-10 -translate-y-1/2"
+                                    style={{
+                                        left: `${thumbIconLeft}px`,
+                                        color: instance.style.switchIconColor,
+                                        transition: `left ${instance.style.switchAnimationSpeed}s ease`,
+                                    }}
+                                >
+                                    <ThumbIcon size={instance.style.switchIconSize} />
+                                </span>
+                            ) : null}
+                        </div>
                     </motion.div>
                     {instance.style.switchLabel && (
-                        <Label htmlFor={switchId} className="cursor-pointer text-sm">
+                        <Label htmlFor={switchId} className="cursor-pointer" style={labelStyle}>
                             {instance.style.switchLabel}
                         </Label>
                     )}

@@ -10,6 +10,7 @@ function Switch({
   trackActiveColor,
   thumbColor,
   thumbActiveColor,
+  style,
   ...props
 }: React.ComponentProps<typeof SwitchPrimitive.Root> & {
   size?: "sm" | "default"
@@ -19,6 +20,7 @@ function Switch({
   thumbActiveColor?: string
 }) {
   const trackStyle = {
+    ...(style ?? {}),
     ['--switch-track-color' as string]: trackColor || undefined,
     ['--switch-track-active' as string]: trackActiveColor || undefined,
     ['--switch-thumb-color' as string]: thumbColor || undefined,

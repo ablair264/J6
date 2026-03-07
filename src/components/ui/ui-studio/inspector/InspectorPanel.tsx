@@ -1617,7 +1617,7 @@ export function InspectorPanel() {
                     {/* Tabs Config */}
                     {selectedInstance?.kind === 'tabs' && selectedStyle ? (
                         <div className="p-1">
-                            <FlatInspectorSection title="Tabs" icon={Table} defaultOpen>
+                            <FlatInspectorSection title="Tabs Config" icon={Table} defaultOpen>
                                 <FlatField label="Variant">
                                     <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                         {(['default', 'line', 'pill', 'segment'] as const).map((v) => (
@@ -1627,7 +1627,8 @@ export function InspectorPanel() {
                                         ))}
                                     </div>
                                 </FlatField>
-                                <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+
                                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                     <FlatColorControl label="List Background" value={selectedStyle.tabsListBg} onChange={(value) => updateSelectedStyle('tabsListBg', value)} tokens={activeTokenSet.tokens} />
                                     {selectedStyle.tabsVariant !== 'line' ? (
@@ -1636,61 +1637,86 @@ export function InspectorPanel() {
                                     <FlatColorControl label="Active Text" value={selectedStyle.tabsActiveTextColor} onChange={(value) => updateSelectedStyle('tabsActiveTextColor', value)} tokens={activeTokenSet.tokens} />
                                     <FlatColorControl label="Inactive Text" value={selectedStyle.tabsInactiveTextColor} onChange={(value) => updateSelectedStyle('tabsInactiveTextColor', value)} tokens={activeTokenSet.tokens} />
                                 </div>
-                                {selectedStyle.tabsVariant === 'line' ? (
-                                    <FlatColorControl label="Indicator Color" value={selectedStyle.tabsIndicatorColor} onChange={(value) => updateSelectedStyle('tabsIndicatorColor', value)} tokens={activeTokenSet.tokens} />
-                                ) : null}
-                                <FlatField label="Font" stacked>
-                                    <FlatSelect value={selectedStyle.fontFamily} onValueChange={(value) => updateSelectedStyle('fontFamily', value)} ariaLabel="Tabs font family">
-                                        {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
-                                    </FlatSelect>
-                                </FlatField>
-                                <FlatField label="Typography" stacked>
-                                    <div className="flex gap-2 [&>*]:min-w-0 [&>*]:flex-1">
-                                        <FlatUnitField label="Size" value={selectedStyle.fontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('fontSize', value)} />
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Layout</p>
+                                    <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Tab Gap" value={selectedStyle.tabsGap} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsGap', value)} />
+                                        <FlatUnitField label="List Padding H" value={selectedStyle.tabsListPaddingX} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingX', value)} />
+                                        <FlatUnitField label="List Padding V" value={selectedStyle.tabsListPaddingY} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingY', value)} />
+                                        <FlatUnitField label="Tab Padding H" value={selectedStyle.tabsTabPaddingX} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('tabsTabPaddingX', value)} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Shape</p>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="List Radius" value={selectedStyle.tabsListRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListRadius', value)} />
+                                        <FlatUnitField label="Tab Radius" value={selectedStyle.tabsTabRadius} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsTabRadius', value)} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Typography</p>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
                                         <FlatField label="Weight">
-                                            <FlatSelect value={selectedStyle.fontWeight} onValueChange={(value) => updateSelectedStyle('fontWeight', Number(value))} ariaLabel="Tabs font weight">
-                                                {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                            <FlatSelect value={selectedStyle.tabsListFontWeight} onValueChange={(value) => updateSelectedStyle('tabsListFontWeight', Number(value))} ariaLabel="Tabs list font weight">
+                                                {[400, 500, 600, 700].map((weight) => (
+                                                    <option key={weight} value={weight}>{weight}</option>
+                                                ))}
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                </FlatField>
-                                <FlatField label="Style">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeBold className="size-4" />
-                                        </button>
-                                        <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeItalic className="size-4" />
-                                        </button>
-                                        <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeUnderline className="size-4" />
-                                        </button>
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Color</p>
+                                    <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
+                                        <FlatColorControl
+                                            label="List Border"
+                                            value={selectedStyle.tabsListBorderColor}
+                                            onChange={(value) => updateSelectedStyle('tabsListBorderColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            stacked
+                                            compact
+                                        />
+                                        <FlatUnitField label="Width" value={selectedStyle.tabsListBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSelectedStyle('tabsListBorderWidth', value)} />
                                     </div>
-                                </FlatField>
-                                <FlatField label="Align">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {[
-                                            { value: 'left' as const, icon: TextAlignLeft },
-                                            { value: 'center' as const, icon: TextAlignCenter },
-                                            { value: 'right' as const, icon: TextAlignRight },
-                                        ].map((item) => {
-                                            const Icon = item.icon;
-                                            return (
-                                                <button key={item.value} type="button" onClick={() => updateSelectedStyle('fontPosition', item.value)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    <Icon className="size-4" />
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </FlatField>
-                                <FlatColorControl
-                                    label="Base Text"
-                                    value={selectedStyle.fontColor}
-                                    opacity={selectedStyle.fontOpacity}
-                                    onOpacityChange={(value) => updateSelectedStyle('fontOpacity', value)}
-                                    onChange={(value) => updateSelectedStyle('fontColor', value)}
-                                    tokens={activeTokenSet.tokens}
-                                />
+                                    <FlatColorControl label="Indicator Color" value={selectedStyle.tabsIndicatorColor} onChange={(value) => updateSelectedStyle('tabsIndicatorColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Inactive Bg" value={selectedStyle.tabsInactiveBg} onChange={(value) => updateSelectedStyle('tabsInactiveBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Hover Bg" value={selectedStyle.tabsHoverBg} onChange={(value) => updateSelectedStyle('tabsHoverBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Hover Text" value={selectedStyle.tabsHoverTextColor} onChange={(value) => updateSelectedStyle('tabsHoverTextColor', value)} tokens={activeTokenSet.tokens} />
+                                    {selectedStyle.tabsVariant === 'line' ? (
+                                        <FlatColorControl label="Active Indicator Color" value={selectedStyle.tabsActiveBorderColor} onChange={(value) => updateSelectedStyle('tabsActiveBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                    ) : null}
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Decorators</p>
+                                    <FlatSwitchRow label="Drop Shadow" checked={selectedStyle.tabsShadow} onCheckedChange={(value) => updateSelectedStyle('tabsShadow', value)} />
+                                    <FlatSwitchRow label="Show Icons" checked={selectedStyle.tabsShowIcons} onCheckedChange={(value) => updateSelectedStyle('tabsShowIcons', value)} />
+                                    {selectedStyle.tabsShowIcons ? (
+                                        <FlatField label="Icon Position">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                {(['left', 'right'] as const).map((value) => (
+                                                    <button
+                                                        key={value}
+                                                        type="button"
+                                                        onClick={() => updateSelectedStyle('tabsIconPosition', value)}
+                                                        className={cn(
+                                                            inspectorChoiceButtonBase,
+                                                            selectedStyle.tabsIconPosition === value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle,
+                                                        )}
+                                                    >
+                                                        {value === 'left' ? 'Left' : 'Right'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FlatField>
+                                    ) : null}
+                                </div>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -2180,10 +2206,111 @@ export function InspectorPanel() {
                                         placeholder="Toggle"
                                     />
                                 </FlatField>
-                                <FlatColorControl label="Track (Off)" value={selectedStyle.switchTrackColor} onChange={(value) => updateSelectedStyle('switchTrackColor', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Track (On)" value={selectedStyle.switchTrackActiveColor} onChange={(value) => updateSelectedStyle('switchTrackActiveColor', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Thumb (Off)" value={selectedStyle.switchThumbColor} onChange={(value) => updateSelectedStyle('switchThumbColor', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Thumb (On)" value={selectedStyle.switchThumbActiveColor} onChange={(value) => updateSelectedStyle('switchThumbActiveColor', value)} tokens={activeTokenSet.tokens} />
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Label</p>
+                                    <FlatField label="Label Position">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['left', 'right'] as const).map((value) => (
+                                                <button
+                                                    key={value}
+                                                    type="button"
+                                                    onClick={() => updateSelectedStyle('switchLabelPosition', value)}
+                                                    className={cn(
+                                                        inspectorChoiceButtonBase,
+                                                        selectedStyle.switchLabelPosition === value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle,
+                                                    )}
+                                                >
+                                                    {value === 'left' ? 'Left' : 'Right'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Label Size" value={selectedStyle.switchLabelSize} min={10} max={24} unit="px" onChange={(value) => updateSelectedStyle('switchLabelSize', value)} />
+                                        <FlatField label="Label Weight">
+                                            <FlatSelect value={selectedStyle.switchLabelWeight} onValueChange={(value) => updateSelectedStyle('switchLabelWeight', Number(value))} ariaLabel="Switch label weight">
+                                                {[400, 500, 600, 700].map((weight) => (
+                                                    <option key={weight} value={weight}>{weight}</option>
+                                                ))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                    <FlatColorControl label="Label Color" value={selectedStyle.switchLabelColor} onChange={(value) => updateSelectedStyle('switchLabelColor', value)} tokens={activeTokenSet.tokens} />
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Track &amp; Thumb</p>
+                                    <FlatColorControl label="Track (Off)" value={selectedStyle.switchTrackColor} onChange={(value) => updateSelectedStyle('switchTrackColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Track (On)" value={selectedStyle.switchTrackActiveColor} onChange={(value) => updateSelectedStyle('switchTrackActiveColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Thumb (Off)" value={selectedStyle.switchThumbColor} onChange={(value) => updateSelectedStyle('switchThumbColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Thumb (On)" value={selectedStyle.switchThumbActiveColor} onChange={(value) => updateSelectedStyle('switchThumbActiveColor', value)} tokens={activeTokenSet.tokens} />
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Track Width" value={selectedStyle.switchCustomWidth} min={0} max={80} unit="px" onChange={(value) => updateSelectedStyle('switchCustomWidth', value)} zeroLabel="auto" />
+                                        <FlatUnitField label="Track Height" value={selectedStyle.switchCustomHeight} min={0} max={40} unit="px" onChange={(value) => updateSelectedStyle('switchCustomHeight', value)} zeroLabel="auto" />
+                                    </div>
+                                    <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
+                                        <FlatColorControl
+                                            label="Track Border"
+                                            value={selectedStyle.switchTrackBorderColor}
+                                            onChange={(value) => updateSelectedStyle('switchTrackBorderColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            stacked
+                                            compact
+                                        />
+                                        <FlatUnitField label="Width" value={selectedStyle.switchTrackBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchTrackBorderWidth', value)} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Track Radius" value={selectedStyle.switchTrackRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchTrackRadius', value)} />
+                                        <FlatUnitField label="Thumb Radius" value={selectedStyle.switchThumbRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchThumbRadius', value)} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Animation</p>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Transition Speed" value={selectedStyle.switchAnimationSpeed} min={0.05} max={1} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('switchAnimationSpeed', value)} />
+                                        <FlatUnitField label="Thumb Scale (On)" value={selectedStyle.switchThumbScale} min={0.7} max={1.3} step={0.05} unit="x" onChange={(value) => updateSelectedStyle('switchThumbScale', value)} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Icons</p>
+                                    <FlatSwitchRow label="Thumb Icon" checked={selectedStyle.switchShowIcon} onCheckedChange={(value) => updateSelectedStyle('switchShowIcon', value)} />
+                                    {selectedStyle.switchShowIcon ? (
+                                        <>
+                                            <FlatField label="Checked Icon" stacked>
+                                                <FlatSelect value={selectedStyle.switchIconChecked} onValueChange={(value) => updateSelectedStyle('switchIconChecked', value)} ariaLabel="Switch checked icon">
+                                                    <option value="check">Check</option>
+                                                    <option value="star">Star</option>
+                                                    <option value="bolt">Bolt</option>
+                                                    <option value="heart">Heart</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <FlatField label="Unchecked Icon" stacked>
+                                                <FlatSelect value={selectedStyle.switchIconUnchecked} onValueChange={(value) => updateSelectedStyle('switchIconUnchecked', value)} ariaLabel="Switch unchecked icon">
+                                                    <option value="x">X</option>
+                                                    <option value="minus">Minus</option>
+                                                    <option value="slash">Slash</option>
+                                                    <option value="ban">Ban</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <FlatColorControl label="Icon Color" value={selectedStyle.switchIconColor} onChange={(value) => updateSelectedStyle('switchIconColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatUnitField label="Icon Size" value={selectedStyle.switchIconSize} min={6} max={16} unit="px" onChange={(value) => updateSelectedStyle('switchIconSize', value)} />
+                                        </>
+                                    ) : null}
+                                </div>
+
+                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
+                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Glow</p>
+                                    <FlatSwitchRow label="Glow (On)" checked={selectedStyle.switchGlowEnabled} onCheckedChange={(value) => updateSelectedStyle('switchGlowEnabled', value)} />
+                                    {selectedStyle.switchGlowEnabled ? (
+                                        <>
+                                            <FlatColorControl label="Glow Color" value={selectedStyle.switchGlowColor} onChange={(value) => updateSelectedStyle('switchGlowColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatUnitField label="Glow Size" value={selectedStyle.switchGlowSize} min={2} max={24} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchGlowSize', value)} />
+                                        </>
+                                    ) : null}
+                                </div>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
