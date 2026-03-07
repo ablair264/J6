@@ -699,6 +699,17 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
         result.textTransform = config.textTransform;
     }
 
+    // Typography: bold / italic / underline
+    if (config.fontBold) {
+        result.fontWeight = 700;
+    }
+    if (config.fontItalic) {
+        result.fontStyle = 'italic';
+    }
+    if (config.fontUnderline) {
+        result.textDecoration = 'underline';
+    }
+
     // Text shadow
     if (textShadow) {
         result.textShadow = textShadow;
@@ -727,9 +738,12 @@ export function buildComponentWrapperStyle(
         case 'typography-only': {
             const kept: CSSProperties = {};
             if (fullStyle.color) kept.color = fullStyle.color;
+            if (fullStyle.fontFamily) kept.fontFamily = fullStyle.fontFamily;
             if (fullStyle.fontSize) kept.fontSize = fullStyle.fontSize;
             if (fullStyle.fontWeight) kept.fontWeight = fullStyle.fontWeight;
+            if (fullStyle.fontStyle) kept.fontStyle = fullStyle.fontStyle;
             if (fullStyle.textAlign) kept.textAlign = fullStyle.textAlign;
+            if (fullStyle.textDecoration) kept.textDecoration = fullStyle.textDecoration;
             if (fullStyle.letterSpacing) kept.letterSpacing = fullStyle.letterSpacing;
             if (fullStyle.lineHeight) kept.lineHeight = fullStyle.lineHeight;
             if (fullStyle.textTransform) kept.textTransform = fullStyle.textTransform;
@@ -843,8 +857,11 @@ export function buildCardDirectStyle(fullStyle: CSSProperties, config: Component
 export function extractTextStyle(fullStyle: CSSProperties): CSSProperties {
     const result: CSSProperties = {};
     if (fullStyle.color) result.color = fullStyle.color;
+    if (fullStyle.fontFamily) result.fontFamily = fullStyle.fontFamily;
     if (fullStyle.fontSize) result.fontSize = fullStyle.fontSize;
     if (fullStyle.fontWeight) result.fontWeight = fullStyle.fontWeight;
+    if (fullStyle.fontStyle) result.fontStyle = fullStyle.fontStyle;
+    if (fullStyle.textDecoration) result.textDecoration = fullStyle.textDecoration;
     if (fullStyle.letterSpacing) result.letterSpacing = fullStyle.letterSpacing;
     if (fullStyle.lineHeight) result.lineHeight = fullStyle.lineHeight;
     if (fullStyle.textTransform) result.textTransform = fullStyle.textTransform;

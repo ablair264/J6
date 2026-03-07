@@ -227,7 +227,7 @@ export function InteractiveDropdownPreview({
                                 <ListBox
                                     aria-label="Dropdown preview"
                                     selectionMode="single"
-                                    className="grid min-w-[220px] grid-cols-[auto_1fr] gap-y-1 rounded-xl p-1"
+                                    className="grid min-w-[220px] grid-cols-[auto_1fr] gap-y-1 overflow-visible rounded-xl p-1"
                                     style={panelStyle}
                                 >
                                     <DropdownItem id={`${instanceId}-edit`} className={dropdownHoverClass} onAction={() => !pinnedOpen && setIsOpen(false)}>
@@ -268,19 +268,33 @@ export function InteractiveDropdownPreview({
                                                         exit={{ opacity: 0, x: -4 }}
                                                         transition={{ duration: 0.15, ease: 'easeOut' }}
                                                     >
-                                                        <ListBox
-                                                            aria-label="Share submenu"
-                                                            selectionMode="single"
-                                                            className="grid min-w-[160px] grid-cols-[auto_1fr] gap-y-1 rounded-xl p-1"
+                                                        <div
+                                                            className="min-w-[160px] space-y-0.5 rounded-xl p-1"
                                                             style={panelStyle}
                                                         >
-                                                            <DropdownItem id={`${instanceId}-share-team`} className={dropdownHoverClass} onAction={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}>
-                                                                {renderItemContent('Team', <Users className={iconSize} />)}
-                                                            </DropdownItem>
-                                                            <DropdownItem id={`${instanceId}-share-email`} className={dropdownHoverClass} onAction={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}>
-                                                                {renderItemContent('Email', <Mail className={iconSize} />)}
-                                                            </DropdownItem>
-                                                        </ListBox>
+                                                            <button
+                                                                type="button"
+                                                                className={cn(
+                                                                    'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
+                                                                    dropdownHoverClass,
+                                                                )}
+                                                                onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
+                                                            >
+                                                                {showIcons ? <Users className={iconSize} /> : null}
+                                                                <span style={itemLabelStyle}>Team</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className={cn(
+                                                                    'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
+                                                                    dropdownHoverClass,
+                                                                )}
+                                                                onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
+                                                            >
+                                                                {showIcons ? <Mail className={iconSize} /> : null}
+                                                                <span style={itemLabelStyle}>Email</span>
+                                                            </button>
+                                                        </div>
                                                     </motion.div>
                                                 ) : null}
                                             </AnimatePresence>

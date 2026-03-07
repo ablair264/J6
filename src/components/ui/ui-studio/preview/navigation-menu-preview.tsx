@@ -37,6 +37,15 @@ export function NavigationMenuPreview({
     const showDropdown = instanceStyle.navMenuShowDropdown;
     const triggerVariant = instanceStyle.navMenuTriggerVariant || 'ghost';
 
+    const hasActiveColors = instanceStyle.navMenuActiveBg || instanceStyle.navMenuActiveText;
+    const activeLinkStyle: CSSProperties = hasActiveColors
+        ? {
+            backgroundColor: instanceStyle.navMenuActiveBg || undefined,
+            color: instanceStyle.navMenuActiveText || undefined,
+            cursor: 'pointer',
+        }
+        : { cursor: 'pointer' };
+
     const dropdownPanelStyle: CSSProperties = {
         backgroundColor: instanceStyle.navMenuDropdownBg || undefined,
         color: instanceStyle.navMenuDropdownText || undefined,
@@ -46,7 +55,6 @@ export function NavigationMenuPreview({
     };
 
     const menuItems = navItems.map((label, idx) => {
-        // Make the second item ("About" typically) the dropdown trigger when enabled
         if (showDropdown && idx === 1) {
             return (
                 <NavigationMenuItem key={label}>
@@ -54,7 +62,7 @@ export function NavigationMenuPreview({
                         {label}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                        <ul className="grid w-[340px] gap-2 p-3 md:grid-cols-1" style={dropdownPanelStyle}>
+                        <ul className="grid w-[340px] gap-1 p-2" style={dropdownPanelStyle}>
                             {DROPDOWN_ITEMS.map((item) => (
                                 <li key={item.label}>
                                     <NavigationMenuLink asChild>
@@ -78,15 +86,17 @@ export function NavigationMenuPreview({
             );
         }
 
+        const isActive = instanceStyle.navMenuActiveIndicator && idx === activeIndex;
+
         return (
             <NavigationMenuItem key={label}>
                 <NavigationMenuLink
-                    active={instanceStyle.navMenuActiveIndicator && idx === activeIndex}
+                    active={isActive}
                     onClick={(e: React.MouseEvent) => {
                         e.preventDefault();
                         setActiveIndex(idx);
                     }}
-                    style={{ cursor: 'pointer' }}
+                    style={isActive ? activeLinkStyle : { cursor: 'pointer' }}
                 >
                     {label}
                 </NavigationMenuLink>

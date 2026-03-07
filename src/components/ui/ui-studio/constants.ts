@@ -212,7 +212,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     fontSize: 14,
     fontWeight: 500,
     fontPosition: 'center',
-    fontColor: '#111827',
+    fontColor: '#e2e8f0',
     fontOpacity: 100,
     effectDropShadow: false,
     dropShadowStrength: 22,
