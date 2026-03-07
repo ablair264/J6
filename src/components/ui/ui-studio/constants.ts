@@ -586,6 +586,15 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     navMenuOrientation: 'horizontal',
     navMenuActiveIndicator: true,
     navMenuItemCount: 4,
+    navMenuTriggerVariant: 'ghost',
+    navMenuHoverBg: '',
+    navMenuHoverText: '',
+    navMenuActiveBg: '',
+    navMenuActiveText: '',
+    navMenuShowDropdown: false,
+    navMenuDropdownBg: '#0f172a',
+    navMenuDropdownText: '#f8fafc',
+    navMenuDropdownBorderColor: '#334155',
     progressValue: 60,
     progressVariant: 'linear',
     progressShowLabel: true,
@@ -2975,6 +2984,81 @@ export const SWITCH_VISUAL_PRESETS: ComponentVisualPreset[] = [
     },
 ];
 
+// Navigation Menu visual presets
+export const NAV_MENU_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    {
+        id: 'default',
+        label: 'Default',
+        description: 'Horizontal nav with ghost links — standard site navigation',
+        kind: 'navigation-menu',
+        values: {
+            navMenuOrientation: 'horizontal',
+            navMenuTriggerVariant: 'ghost',
+            navMenuShowDropdown: false,
+            navMenuActiveIndicator: true,
+        },
+    },
+    {
+        id: 'with-dropdown',
+        label: 'With Dropdown',
+        description: 'Navigation with a dropdown submenu on one item',
+        kind: 'navigation-menu',
+        values: {
+            navMenuOrientation: 'horizontal',
+            navMenuTriggerVariant: 'ghost',
+            navMenuShowDropdown: true,
+            navMenuActiveIndicator: true,
+        },
+    },
+    {
+        id: 'branded',
+        label: 'Branded',
+        description: 'Custom accent hover colors — branded feel',
+        kind: 'navigation-menu',
+        values: {
+            navMenuOrientation: 'horizontal',
+            navMenuTriggerVariant: 'ghost',
+            navMenuShowDropdown: false,
+            navMenuActiveIndicator: true,
+            navMenuHoverBg: '#3b82f6',
+            navMenuHoverText: '#ffffff',
+            navMenuActiveBg: '#2563eb',
+            navMenuActiveText: '#ffffff',
+        },
+    },
+    {
+        id: 'vertical',
+        label: 'Vertical',
+        description: 'Vertical sidebar navigation layout',
+        kind: 'navigation-menu',
+        values: {
+            navMenuOrientation: 'vertical',
+            navMenuTriggerVariant: 'ghost',
+            navMenuShowDropdown: false,
+            navMenuActiveIndicator: true,
+        },
+    },
+    {
+        id: 'dropdown-branded',
+        label: 'Dropdown + Brand',
+        description: 'Branded nav with dropdown and custom panel colors',
+        kind: 'navigation-menu',
+        values: {
+            navMenuOrientation: 'horizontal',
+            navMenuTriggerVariant: 'ghost',
+            navMenuShowDropdown: true,
+            navMenuActiveIndicator: true,
+            navMenuHoverBg: '#1e293b',
+            navMenuHoverText: '#f8fafc',
+            navMenuActiveBg: '#334155',
+            navMenuActiveText: '#f8fafc',
+            navMenuDropdownBg: '#0f172a',
+            navMenuDropdownText: '#f8fafc',
+            navMenuDropdownBorderColor: '#1e293b',
+        },
+    },
+];
+
 export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPreset[]> = {
     'animated-text': [
         {
@@ -3145,7 +3229,7 @@ export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPr
     dropdown: DROPDOWN_VISUAL_PRESETS,
     input: INPUT_VISUAL_PRESETS,
     label: LABEL_VISUAL_PRESETS,
-    'navigation-menu': DEFAULT_KIND_VISUAL_PRESETS('navigation-menu'),
+    'navigation-menu': NAV_MENU_VISUAL_PRESETS,
     popover: POPOVER_VISUAL_PRESETS,
     progress: PROGRESS_VISUAL_PRESETS,
     skeleton: DEFAULT_KIND_VISUAL_PRESETS('skeleton'),

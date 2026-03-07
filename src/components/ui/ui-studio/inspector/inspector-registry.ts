@@ -244,15 +244,15 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     'navigation-menu': {
-        sections: { presets: true, dimensions: false, componentConfig: false, appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Nav Menu Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
         effects: {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: false, animatedBorder: true, rippleFill: false, loading: false,
             sweep: false, borderBeam: false, shineBorder: false, neonGlow: false, pulseRing: false,
         },
-        motion: { entryPresets: false, hoverEffects: true, tapEffects: true, stagger: true },
+        motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: true },
         wrapperStyle: 'strip-layout',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
 
     // ── Display / feedback components ───────────────────────────────────────

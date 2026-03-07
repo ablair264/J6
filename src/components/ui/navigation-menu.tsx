@@ -26,15 +26,31 @@ function NavigationMenu({
   className,
   children,
   orientation = "horizontal",
+  hoverBg,
+  hoverText,
+  activeBg,
+  activeText,
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Root> &
-  VariantProps<typeof navigationMenuVariants>) {
+  VariantProps<typeof navigationMenuVariants> & {
+    hoverBg?: string;
+    hoverText?: string;
+    activeBg?: string;
+    activeText?: string;
+  }) {
+  const cssVars = {
+    ...(hoverBg ? { '--nav-hover-bg': hoverBg } as React.CSSProperties : {}),
+    ...(hoverText ? { '--nav-hover-text': hoverText } as React.CSSProperties : {}),
+    ...(activeBg ? { '--nav-active-bg': activeBg } as React.CSSProperties : {}),
+    ...(activeText ? { '--nav-active-text': activeText } as React.CSSProperties : {}),
+  };
   return (
     <NavigationMenuPrimitive.Root
       data-slot="navigation-menu"
       data-orientation={orientation}
       orientation={orientation}
       className={cn(navigationMenuVariants({ orientation }), className)}
+      style={{ ...cssVars, ...props.style }}
       {...props}
     >
       {children}
@@ -76,9 +92,9 @@ const navigationMenuTriggerVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-background hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent/50 data-[active]:bg-accent/50",
+          "bg-background data-[state=open]:bg-[var(--nav-hover-bg,hsl(var(--accent)/0.5))]",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent/50 data-[active]:bg-accent/50",
+          "data-[state=open]:bg-[var(--nav-hover-bg,hsl(var(--accent)/0.5))]",
       },
     },
     defaultVariants: {
@@ -97,7 +113,12 @@ function NavigationMenuTrigger({
   return (
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
-      className={cn(navigationMenuTriggerVariants({ variant }), className)}
+      className={cn(
+        navigationMenuTriggerVariants({ variant }),
+        "hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]",
+        "focus:bg-[var(--nav-hover-bg)] focus:text-[var(--nav-hover-text)]",
+        className,
+      )}
       {...props}
     >
       {children}
@@ -130,9 +151,9 @@ const navigationMenuLinkVariants = cva(
   {
     variants: {
       active: {
-        true: "bg-accent text-accent-foreground",
+        true: "bg-[var(--nav-active-bg,hsl(var(--accent)))] text-[var(--nav-active-text,hsl(var(--accent-foreground)))]",
         false:
-          "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+          "hover:bg-[var(--nav-hover-bg,hsl(var(--accent)))] hover:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))] focus:bg-[var(--nav-hover-bg,hsl(var(--accent)))] focus:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))]",
       },
     },
     defaultVariants: {

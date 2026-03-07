@@ -668,7 +668,18 @@ export function componentSnippet(
         }
         case 'navigation-menu': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu orientation="${instance.style.navMenuOrientation}"${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active>Home</NavigationMenuLink>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuLink>About</NavigationMenuLink>\n    </NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>`;
+            const nS = instance.style;
+            const navProps = [
+                `orientation="${nS.navMenuOrientation}"`,
+                nS.navMenuHoverBg ? `hoverBg="${nS.navMenuHoverBg}"` : '',
+                nS.navMenuHoverText ? `hoverText="${nS.navMenuHoverText}"` : '',
+                nS.navMenuActiveBg ? `activeBg="${nS.navMenuActiveBg}"` : '',
+                nS.navMenuActiveText ? `activeText="${nS.navMenuActiveText}"` : '',
+            ].filter(Boolean).join(' ');
+            const dropdownSnippet = nS.navMenuShowDropdown
+                ? `\n    <NavigationMenuItem>\n      <NavigationMenuTrigger variant="${nS.navMenuTriggerVariant}">About</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className="grid w-[340px] gap-2 p-3">\n          <li><NavigationMenuLink asChild><a href="#">Documentation</a></NavigationMenuLink></li>\n          <li><NavigationMenuLink asChild><a href="#">Team</a></NavigationMenuLink></li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>`
+                : `\n    <NavigationMenuItem>\n      <NavigationMenuLink>About</NavigationMenuLink>\n    </NavigationMenuItem>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu ${navProps}${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active>Home</NavigationMenuLink>\n    </NavigationMenuItem>${dropdownSnippet}\n  </NavigationMenuList>\n</NavigationMenu>`;
         }
         case 'progress': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');

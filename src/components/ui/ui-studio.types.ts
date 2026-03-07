@@ -458,6 +458,15 @@ export interface ComponentStyleConfig {
   navMenuOrientation: NavMenuOrientation;
   navMenuActiveIndicator: boolean;
   navMenuItemCount: number;
+  navMenuTriggerVariant: 'default' | 'ghost';
+  navMenuHoverBg: string;
+  navMenuHoverText: string;
+  navMenuActiveBg: string;
+  navMenuActiveText: string;
+  navMenuShowDropdown: boolean;
+  navMenuDropdownBg: string;
+  navMenuDropdownText: string;
+  navMenuDropdownBorderColor: string;
   // Progress
   progressValue: number;
   progressVariant: ProgressVariant;

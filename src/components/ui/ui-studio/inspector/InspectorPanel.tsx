@@ -1017,6 +1017,50 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Nav Menu Config */}
+                    {selectedInstance?.kind === 'navigation-menu' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Nav Menu Config" icon={Table} defaultOpen>
+                                <FlatField label="Orientation">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['horizontal', 'vertical'] as const).map((v) => (
+                                            <button key={v} type="button" onClick={() => updateSelectedStyle('navMenuOrientation', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.navMenuOrientation === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {v.charAt(0).toUpperCase() + v.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                                <FlatField label="Style">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['ghost', 'default'] as const).map((v) => (
+                                            <button key={v} type="button" onClick={() => updateSelectedStyle('navMenuTriggerVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.navMenuTriggerVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {v.charAt(0).toUpperCase() + v.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                                <FlatUnitField label="Items" value={selectedStyle.navMenuItemCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('navMenuItemCount', value)} />
+                                <div className="space-y-1.5">
+                                    <FlatSwitchRow label="Active Indicator" checked={selectedStyle.navMenuActiveIndicator} onCheckedChange={(value) => updateSelectedStyle('navMenuActiveIndicator', value)} />
+                                    <FlatSwitchRow label="Show Dropdown" checked={selectedStyle.navMenuShowDropdown} onCheckedChange={(value) => updateSelectedStyle('navMenuShowDropdown', value)} />
+                                </div>
+                            </FlatInspectorSection>
+                            <FlatInspectorSection title="Link Colors" icon={Config}>
+                                <FlatColorControl label="Hover Background" value={selectedStyle.navMenuHoverBg} onChange={(value) => updateSelectedStyle('navMenuHoverBg', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Hover Text" value={selectedStyle.navMenuHoverText} onChange={(value) => updateSelectedStyle('navMenuHoverText', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Active Background" value={selectedStyle.navMenuActiveBg} onChange={(value) => updateSelectedStyle('navMenuActiveBg', value)} tokens={activeTokenSet.tokens} />
+                                <FlatColorControl label="Active Text" value={selectedStyle.navMenuActiveText} onChange={(value) => updateSelectedStyle('navMenuActiveText', value)} tokens={activeTokenSet.tokens} />
+                            </FlatInspectorSection>
+                            {selectedStyle.navMenuShowDropdown ? (
+                                <FlatInspectorSection title="Dropdown Panel" icon={Config}>
+                                    <FlatColorControl label="Background" value={selectedStyle.navMenuDropdownBg} onChange={(value) => updateSelectedStyle('navMenuDropdownBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Text" value={selectedStyle.navMenuDropdownText} onChange={(value) => updateSelectedStyle('navMenuDropdownText', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Border" value={selectedStyle.navMenuDropdownBorderColor} onChange={(value) => updateSelectedStyle('navMenuDropdownBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                </FlatInspectorSection>
+                            ) : null}
+                        </div>
+                    ) : null}
+
                     {/* Accordion Config */}
                     {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
