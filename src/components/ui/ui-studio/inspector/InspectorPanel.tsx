@@ -2219,10 +2219,6 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'switch' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Switch Config" icon={Table} defaultOpen>
-                                <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Checked" checked={selectedStyle.switchChecked} onCheckedChange={(value) => updateSelectedStyle('switchChecked', value)} />
-                                    <FlatSwitchRow label="Disabled" checked={selectedStyle.switchDisabled} onCheckedChange={(value) => updateSelectedStyle('switchDisabled', value)} />
-                                </div>
                                 <FlatField label="Label" stacked>
                                     <input
                                         type="text"
@@ -2289,14 +2285,6 @@ export function InspectorPanel() {
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Track Radius" value={selectedStyle.switchTrackRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchTrackRadius', value)} />
                                         <FlatUnitField label="Thumb Radius" value={selectedStyle.switchThumbRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchThumbRadius', value)} />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Animation</p>
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatUnitField label="Transition Speed" value={selectedStyle.switchAnimationSpeed} min={0.05} max={1} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('switchAnimationSpeed', value)} />
-                                        <FlatUnitField label="Thumb Scale (On)" value={selectedStyle.switchThumbScale} min={0.7} max={1.3} step={0.05} unit="x" onChange={(value) => updateSelectedStyle('switchThumbScale', value)} />
                                     </div>
                                 </div>
 

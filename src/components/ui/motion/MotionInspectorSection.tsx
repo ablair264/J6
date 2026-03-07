@@ -1568,6 +1568,29 @@ export function MotionInspectorSection({
                 </div>
             ) : null}
 
+            {componentKind === 'switch' ? (
+                <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
+                    <MotionParamRow
+                        label="Transition Speed"
+                        value={selectedStyle.switchAnimationSpeed}
+                        min={0.05}
+                        max={1}
+                        step={0.05}
+                        unit="s"
+                        onChange={(value) => updateSelectedStyle('switchAnimationSpeed', value)}
+                    />
+                    <MotionParamRow
+                        label="Thumb Scale (On)"
+                        value={selectedStyle.switchThumbScale}
+                        min={0.7}
+                        max={1.3}
+                        step={0.05}
+                        unit="x"
+                        onChange={(value) => updateSelectedStyle('switchThumbScale', value)}
+                    />
+                </div>
+            ) : null}
+
             {componentKind === 'checkbox' ? (
                 <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
                     <div className="flex items-center justify-between">

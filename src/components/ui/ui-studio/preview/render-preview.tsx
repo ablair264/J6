@@ -2240,17 +2240,8 @@ export function renderPreview(
                 }
                 : undefined;
             const switchSize = instance.style.size === 'sm' ? 'sm' : 'default';
-            const defaultTrackWidth = switchSize === 'sm' ? 24 : 32;
-            const defaultTrackHeight = switchSize === 'sm' ? 14 : 18;
-            const trackWidth = instance.style.switchCustomWidth > 0 ? instance.style.switchCustomWidth : defaultTrackWidth;
-            const trackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
-            const thumbSize = switchSize === 'sm' ? 12 : 16;
-            const thumbOffset = Math.max(1, Math.round((trackHeight - thumbSize) / 2));
-            const maxThumbLeft = Math.max(thumbOffset, trackWidth - thumbSize - thumbOffset);
-            const thumbIconLeft = instance.style.switchChecked ? maxThumbLeft : thumbOffset;
-            const ThumbIcon = instance.style.switchChecked
-                ? resolveSwitchIcon(instance.style.switchIconChecked)
-                : resolveSwitchIcon(instance.style.switchIconUnchecked);
+            const CheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconChecked);
+            const UncheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconUnchecked);
             const wrapperStyle = buildComponentWrapperStyle(style, 'switch');
             const switchDecorClassName = cn(
                 'shrink-0',
@@ -2292,6 +2283,16 @@ export function renderPreview(
                 fontWeight: instance.style.switchLabelWeight,
                 ...(instance.style.switchLabelColor ? { color: instance.style.switchLabelColor } : {}),
             };
+            const thumbContent = instance.style.switchShowIcon ? (
+                <span className="pointer-events-none inline-flex items-center justify-center text-current">
+                    <span className="inline-flex items-center justify-center group-data-[state=checked]/switch:hidden">
+                        <UncheckedThumbIcon size={instance.style.switchIconSize} />
+                    </span>
+                    <span className="hidden items-center justify-center group-data-[state=checked]/switch:inline-flex">
+                        <CheckedThumbIcon size={instance.style.switchIconSize} />
+                    </span>
+                </span>
+            ) : undefined;
 
             return (
                 <div
@@ -2302,33 +2303,23 @@ export function renderPreview(
                     style={wrapperStyle}
                 >
                     <motion.div whileHover={switchHover} whileTap={switchTap} className={switchDecorClassName} style={switchDecorStyle}>
-                        <div className="relative inline-flex">
-                            <Switch
-                                id={switchId}
-                                key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}
-                                defaultChecked={instance.style.switchChecked}
-                                disabled={instance.style.switchDisabled}
-                                size={switchSize}
-                                trackColor={instance.style.switchTrackColor || undefined}
-                                trackActiveColor={instance.style.switchTrackActiveColor || undefined}
-                                thumbColor={instance.style.switchThumbColor || undefined}
-                                thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
-                                className={cn(motionClassName)}
-                                style={switchInlineStyle}
-                            />
-                            {instance.style.switchShowIcon ? (
-                                <span
-                                    className="pointer-events-none absolute top-1/2 z-10 -translate-y-1/2"
-                                    style={{
-                                        left: `${thumbIconLeft}px`,
-                                        color: instance.style.switchIconColor,
-                                        transition: `left ${instance.style.switchAnimationSpeed}s ease`,
-                                    }}
-                                >
-                                    <ThumbIcon size={instance.style.switchIconSize} />
-                                </span>
-                            ) : null}
-                        </div>
+                        <Switch
+                            id={switchId}
+                            key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}
+                            defaultChecked={instance.style.switchChecked}
+                            disabled={instance.style.switchDisabled}
+                            size={switchSize}
+                            trackColor={instance.style.switchTrackColor || undefined}
+                            trackActiveColor={instance.style.switchTrackActiveColor || undefined}
+                            thumbColor={instance.style.switchThumbColor || undefined}
+                            thumbActiveColor={instance.style.switchThumbActiveColor || undefined}
+                            thumbContent={thumbContent}
+                            className={cn(motionClassName)}
+                            style={{
+                                ...switchInlineStyle,
+                                ...(instance.style.switchShowIcon ? { color: instance.style.switchIconColor } : {}),
+                            }}
+                        />
                     </motion.div>
                     {instance.style.switchLabel && (
                         <Label htmlFor={switchId} className="cursor-pointer" style={labelStyle}>
