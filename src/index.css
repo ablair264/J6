@@ -1147,6 +1147,61 @@
   background: color-mix(in srgb, var(--primary) 6%, transparent);
 }
 
+/* ─── Grain / Noise Texture ──────────────────────────────────────────────────
+   Uses an inline SVG data URI feTurbulence filter as an ::after pseudo-element.
+   The grain-size CSS var inversely maps to feTurbulence baseFrequency:
+   larger grainSize value → lower frequency → coarser grain.
+*/
+.ui-studio-effect-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.ui-studio-effect-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--ui-effect-grain-opacity, 0.18);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: calc(var(--ui-effect-grain-size, 120) * 1px) calc(var(--ui-effect-grain-size, 120) * 1px);
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+
+.ui-studio-effect-grain > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ─── Gradient Border ────────────────────────────────────────────────────────
+   Uses the background-clip padding-box/border-box technique.
+   The element needs border-color: transparent and a border-width set.
+   The gradient is applied as a background layer behind the fill.
+*/
+.ui-studio-effect-gradient-border {
+  border-color: transparent !important;
+  background-image:
+    linear-gradient(var(--background, #ffffff), var(--background, #ffffff)),
+    linear-gradient(
+      var(--ui-effect-grad-border-angle, 135deg),
+      var(--ui-effect-grad-border-1, #22d3ee),
+      var(--ui-effect-grad-border-2, #a78bfa),
+      var(--ui-effect-grad-border-3, #f59e0b)
+    ) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+  border-width: var(--ui-effect-grad-border-width, 2px) !important;
+  border-style: solid !important;
+}
+
+/* When gradient border is combined with a non-white fill, the inner layer
+   needs to match the actual background. Since we use inline styles for fillColor,
+   we can't easily grab it in CSS. Instead, fall back gracefully —
+   the effect works best with a white or near-white fill. */
+
 @media (prefers-reduced-motion: reduce) {
 
   *,

@@ -202,6 +202,30 @@ export function supportsPulseRingEffect(kind: UIComponentKind): boolean {
     return INSPECTOR_REGISTRY[kind].effects.pulseRing;
 }
 
+export function supportsGrainEffect(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].effects.grain;
+}
+
+export function supportsGradientBorderEffect(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].effects.gradientBorder;
+}
+
+export function supportsFrostedTintEffect(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].effects.frostedTint;
+}
+
+export function supportsRadialGlowEffect(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].effects.radialGlow;
+}
+
+export function supportsElevationShadowEffect(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].effects.elevationShadow;
+}
+
+export function supportsNeumorphicEffect(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].effects.neumorphic;
+}
+
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
     const classes: string[] = [];
     if (supportsGradientSlideEffect(kind) && style.effectGradientSlideEnabled) {
@@ -257,6 +281,12 @@ export function buildExtractedEffectsClassName(kind: UIComponentKind, style: Com
     }
     if (supportsPulseRingEffect(kind) && style.effectPulseRingEnabled) {
         classes.push('ui-studio-effect-pulse-ring');
+    }
+    if (supportsGrainEffect(kind) && style.effectGrain) {
+        classes.push('ui-studio-effect-grain');
+    }
+    if (supportsGradientBorderEffect(kind) && style.effectGradientBorder) {
+        classes.push('ui-studio-effect-gradient-border');
     }
     return classes.length > 0 ? classes.join(' ') : undefined;
 }
@@ -642,31 +672,64 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
     if (config.effectOutlineGlow) {
         shadowParts.push(`0 0 ${config.outlineGlowSize}px ${config.outlineGlowColor}`);
     }
+    if (config.effectElevationShadow) {
+        shadowParts.push(buildElevationShadow(config.elevationLevel));
+    }
+    if (config.effectNeumorphic) {
+        shadowParts.push(buildNeumorphicShadow(
+            config.fillColor,
+            config.neumorphicDistance,
+            config.neumorphicBlur,
+            config.neumorphicInset,
+        ));
+    }
 
     const textAlign: CSSProperties['textAlign'] = config.fontPosition;
     const justifyContent = fontPositionToJustify(config.fontPosition);
 
     const blurValue = config.effectBlur ? config.blurAmount : 0;
     const glassmorphismActive = config.effectGlassmorphism;
+    const glassBlur = config.effectGlass ? Math.max(config.blurAmount > 0 ? config.blurAmount : 12, 12) : 0;
     const backdropFilter =
         config.effectGlass || glassmorphismActive || blurValue > 0
             ? `blur(${Math.max(
-                  config.effectGlass ? 8 : 0,
+                  glassBlur,
                   glassmorphismActive ? config.glassmorphismBlur : 0,
                   blurValue,
-              )}px) saturate(${config.effectGlass ? 140 : 100}%)`
+              )}px) saturate(${config.effectGlass || glassmorphismActive ? 160 : 100}%)`
             : undefined;
 
-    const glassTint = config.effectGlass ? hexToRgba('#ffffff', config.glassOpacity / 100) : undefined;
+    // Glass: use fill color at glassOpacity rather than hard-coding white.
+    // This makes the blur visible over any canvas background.
+    const glassTint = config.effectGlass
+        ? hexToRgba(config.fillColor, config.glassOpacity / 100)
+        : undefined;
 
     // Resolve background: glassmorphism overrides glass which overrides standard fill
     let resolvedBackground: string;
     if (glassmorphismActive) {
-        resolvedBackground = `rgba(255,255,255,${(config.glassmorphismOpacity / 100).toFixed(3)})`;
+        resolvedBackground = hexToRgba(config.fillColor, config.glassmorphismOpacity / 100);
     } else if (config.effectGlass) {
         resolvedBackground = glassTint ?? background;
     } else {
         resolvedBackground = background;
+    }
+
+    // Frosted Tint: blend a colour wash over the resolved background
+    if (config.effectFrostedTint) {
+        const tint = hexToRgba(config.frostedTintColor, config.frostedTintOpacity / 100);
+        resolvedBackground = resolvedBackground
+            ? `linear-gradient(${tint}, ${tint}), ${resolvedBackground}`
+            : tint;
+    }
+
+    // Radial Glow: add as a background layer behind fill
+    if (config.effectRadialGlow) {
+        const glowColor = hexToRgba(config.radialGlowColor, config.radialGlowOpacity / 100);
+        const glowGradient = `radial-gradient(${config.radialGlowSize}% ${config.radialGlowSize}% at 50% 50%, ${glowColor} 0%, transparent 70%)`;
+        resolvedBackground = resolvedBackground
+            ? `${resolvedBackground}, ${glowGradient}`
+            : glowGradient;
     }
 
     // Text shadow
@@ -940,6 +1003,13 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         ['--ui-effect-pulse-speed' as string]: `${config.effectPulseRingSpeed}s`,
         ['--ui-effect-pulse-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
         ['--ui-effect-pulse-color' as string]: config.effectPulseRingColor,
+        ['--ui-effect-grain-opacity' as string]: `${Math.max(0, Math.min(100, config.grainOpacity)) / 100}`,
+        ['--ui-effect-grain-size' as string]: `${config.grainSize}`,
+        ['--ui-effect-grad-border-1' as string]: config.gradientBorderColor1,
+        ['--ui-effect-grad-border-2' as string]: config.gradientBorderColor2,
+        ['--ui-effect-grad-border-3' as string]: config.gradientBorderColor3,
+        ['--ui-effect-grad-border-angle' as string]: `${config.gradientBorderAngle}deg`,
+        ['--ui-effect-grad-border-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
         ['--ui-checkbox-selection-speed' as string]: `${config.checkboxSelectionAnimationSpeed}s`,
         ['--ui-slider-thumb-hover-scale' as string]: String(config.sliderThumbHoverScale),
         ['--ui-slider-thumb-tap-bounce' as string]: `${config.sliderThumbTapBounce}s`,
@@ -1047,6 +1117,21 @@ export function buildActiveMotionVariables(kind: UIComponentKind, config: Compon
         vars['--ui-effect-pulse-color'] = config.effectPulseRingColor;
     }
 
+    // Grain
+    if (supportsGrainEffect(kind) && config.effectGrain) {
+        vars['--ui-effect-grain-opacity'] = `${Math.max(0, Math.min(100, config.grainOpacity)) / 100}`;
+        vars['--ui-effect-grain-size'] = `${config.grainSize}`;
+    }
+
+    // Gradient Border
+    if (supportsGradientBorderEffect(kind) && config.effectGradientBorder) {
+        vars['--ui-effect-grad-border-1'] = config.gradientBorderColor1;
+        vars['--ui-effect-grad-border-2'] = config.gradientBorderColor2;
+        vars['--ui-effect-grad-border-3'] = config.gradientBorderColor3;
+        vars['--ui-effect-grad-border-angle'] = `${config.gradientBorderAngle}deg`;
+        vars['--ui-effect-grad-border-width'] = `${Math.max(0, config.strokeWeight)}px`;
+    }
+
     // Checkbox/slider — only for those kinds
     if (kind === 'checkbox') {
         vars['--ui-checkbox-selection-speed'] = `${config.checkboxSelectionAnimationSpeed}s`;
@@ -1089,6 +1174,48 @@ export function buildStateFill(
         )} 100%)`;
     }
     return hexToRgba(color, alpha);
+}
+
+/**
+ * Multi-layer elevation shadow — realistic depth via stacked shadows.
+ * Levels 1–5 map to progressively deeper shadows (inspired by Material elevation).
+ */
+export function buildElevationShadow(level: number): string {
+    const shadows: Record<number, string> = {
+        1: '0 1px 2px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)',
+        2: '0 2px 4px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.08)',
+        3: '0 4px 8px rgba(0,0,0,0.16), 0 8px 16px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08)',
+        4: '0 8px 16px rgba(0,0,0,0.18), 0 16px 32px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.10)',
+        5: '0 12px 24px rgba(0,0,0,0.22), 0 24px 48px rgba(0,0,0,0.18), 0 6px 12px rgba(0,0,0,0.12)',
+    };
+    return shadows[Math.max(1, Math.min(5, Math.round(level)))] ?? shadows[2];
+}
+
+/**
+ * Neumorphic shadow — derives light/dark shadows from fillColor.
+ * Returns a boxShadow value for inset (sunken) or outset (raised) appearance.
+ */
+export function buildNeumorphicShadow(
+    fillColor: string,
+    distance: number,
+    blur: number,
+    inset: boolean,
+): string {
+    const d = Math.max(4, distance);
+    const b = Math.max(8, blur);
+    const prefix = inset ? 'inset ' : '';
+
+    void fillColor;
+
+    // Derive light/shadow colours by lightening/darkening fillColor
+    // Simple approach: use white/black at low opacity rather than computing from hex
+    const lightShadow = 'rgba(255,255,255,0.18)';
+    const darkShadow = 'rgba(0,0,0,0.32)';
+
+    return [
+        `${prefix}${d}px ${d}px ${b}px ${darkShadow}`,
+        `${prefix}-${d}px -${d}px ${b}px ${lightShadow}`,
+    ].join(', ');
 }
 
 // ─── Visual Preset Helpers ────────────────────────────────────────────────────

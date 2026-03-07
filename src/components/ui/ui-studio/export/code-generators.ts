@@ -8,7 +8,9 @@ import {
     supportsAnimatedBorderEffect,
     supportsBorderBeamEffect,
     supportsEntryMotion,
+    supportsGradientBorderEffect,
     supportsGradientSlideEffect,
+    supportsGrainEffect,
     supportsNeonGlowEffect,
     supportsPulseRingEffect,
     supportsRippleFillEffect,
@@ -224,6 +226,12 @@ export function buildTailwindThemeStyles(
     );
     const usesPulseRingEffect = instances.some(
         (instance) => supportsPulseRingEffect(instance.kind) && instance.style.effectPulseRingEnabled,
+    );
+    const usesGrainEffect = instances.some(
+        (instance) => supportsGrainEffect(instance.kind) && instance.style.effectGrain,
+    );
+    const usesGradientBorderEffect = instances.some(
+        (instance) => supportsGradientBorderEffect(instance.kind) && instance.style.effectGradientBorder,
     );
     const usesAnimatedText = instances.some(
         (instance) => instance.kind === 'animated-text',
@@ -500,6 +508,50 @@ export function buildTailwindThemeStyles(
     border: 2px solid var(--ui-effect-pulse-color, #22d3ee);
     pointer-events: none;
     animation: ui-studio-effect-pulse-expand var(--ui-effect-pulse-speed, 1.5s) ease-out infinite;
+  }`);
+    }
+
+    if (usesGrainEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-grain {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .ui-studio-effect-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: var(--ui-effect-grain-opacity, 0.18);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: calc(var(--ui-effect-grain-size, 120) * 1px) calc(var(--ui-effect-grain-size, 120) * 1px);
+    mix-blend-mode: overlay;
+    z-index: 1;
+  }
+
+  .ui-studio-effect-grain > * {
+    position: relative;
+    z-index: 2;
+  }`);
+    }
+
+    if (usesGradientBorderEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-gradient-border {
+    border-color: transparent !important;
+    background-image:
+      linear-gradient(var(--background, #ffffff), var(--background, #ffffff)),
+      linear-gradient(
+        var(--ui-effect-grad-border-angle, 135deg),
+        var(--ui-effect-grad-border-1, #22d3ee),
+        var(--ui-effect-grad-border-2, #a78bfa),
+        var(--ui-effect-grad-border-3, #f59e0b)
+      ) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    border-width: var(--ui-effect-grad-border-width, 2px) !important;
+    border-style: solid !important;
   }`);
     }
 

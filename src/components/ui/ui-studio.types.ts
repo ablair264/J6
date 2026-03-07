@@ -556,6 +556,43 @@ export interface ComponentStyleConfig {
   glassmorphismOpacity: number;
   glassmorphismBorderOpacity: number;
 
+  // ─── Glass (fixed) ──────────────────────────────────────────────
+  // effectGlass and glassOpacity already exist — no change needed to those fields.
+  // effectGlassmorphism, glassmorphismBlur, glassmorphismOpacity, glassmorphismBorderOpacity already exist.
+
+  // ─── Noise / Grain ──────────────────────────────────────────────
+  effectGrain: boolean;
+  grainOpacity: number;           // 0–100
+  grainSize: number;              // 60–200 (SVG feTurbulence baseFrequency inverse scale)
+
+  // ─── Gradient Border ────────────────────────────────────────────
+  effectGradientBorder: boolean;
+  gradientBorderColor1: string;
+  gradientBorderColor2: string;
+  gradientBorderColor3: string;
+  gradientBorderAngle: number;    // 0–360 degrees
+
+  // ─── Frosted Tint ───────────────────────────────────────────────
+  effectFrostedTint: boolean;
+  frostedTintColor: string;
+  frostedTintOpacity: number;     // 0–100
+
+  // ─── Radial Glow ────────────────────────────────────────────────
+  effectRadialGlow: boolean;
+  radialGlowColor: string;
+  radialGlowSize: number;         // 40–200 (% of element width)
+  radialGlowOpacity: number;      // 0–100
+
+  // ─── Elevation Shadow ───────────────────────────────────────────
+  effectElevationShadow: boolean;
+  elevationLevel: number;         // 1–5
+
+  // ─── Neumorphic Shadow ──────────────────────────────────────────
+  effectNeumorphic: boolean;
+  neumorphicDistance: number;     // 4–20
+  neumorphicBlur: number;         // 8–40
+  neumorphicInset: boolean;       // raised vs sunken
+
   // ─── Phase 4: Motion Refinements ────────────────────────────────
   // Entry scale
   motionInitialScale: number;

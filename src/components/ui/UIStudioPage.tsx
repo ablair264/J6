@@ -103,8 +103,8 @@ const studioActionButtonClass =
     'inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-[#b7c8df] transition hover:bg-white/[0.1] hover:text-[#eef5ff]';
 
 export function UIStudioComponentPage() {
-    const { component } = useParams<{ component: string }>();
-    const activeKind: UIComponentKind = isUIComponentKind(component) ? component : 'button';
+    const { id: projectId } = useParams<{ id: string }>();
+    const activeKind: UIComponentKind = 'button'; // Default — sidebar switches kinds via addInstance
 
     // ─── Store state ──────────────────────────────────────────────
     const selectedInstance = useStudioStore(selectSelectedInstance);
@@ -131,6 +131,8 @@ export function UIStudioComponentPage() {
     const exportStyleMode = useStudioStore((s) => s.exportStyleMode);
 
     const hydrateForKind = useStudioStore((s) => s.hydrateForKind);
+    const hydrateFromNeon = useStudioStore((s) => s.hydrateFromNeon);
+    const setActiveProjectId = useStudioStore((s) => s.setActiveProjectId);
     const persistComponentState = useStudioStore((s) => s.persistComponentState);
     const updateSelectedStyle = useStudioStore((s) => s.updateSelectedStyle);
     const applyComponentVisualPreset = useStudioStore((s) => s.applyComponentVisualPreset);
@@ -145,10 +147,16 @@ export function UIStudioComponentPage() {
     // ─── Debounced preview ────────────────────────────────────────
     const [debouncedPreviewInstance, setDebouncedPreviewInstance] = useState<ComponentInstance | null>(null);
 
-    // ─── Route-driven hydration ───────────────────────────────────
+    // ─── Project + route-driven hydration ────────────────────────
+    useEffect(() => {
+        if (projectId) setActiveProjectId(projectId);
+    }, [projectId, setActiveProjectId]);
+
     useEffect(() => {
         hydrateForKind(activeKind);
-    }, [activeKind, hydrateForKind]);
+        // After fast localStorage hydration, async-load from Neon (overwrites if newer)
+        if (projectId) hydrateFromNeon(activeKind);
+    }, [activeKind, projectId, hydrateForKind, hydrateFromNeon]);
 
     // ─── Persist component state ──────────────────────────────────
     useEffect(() => {

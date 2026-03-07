@@ -40,6 +40,12 @@ export interface InspectorEffects {
     shineBorder: boolean;
     neonGlow: boolean;
     pulseRing: boolean;
+    grain: boolean;
+    gradientBorder: boolean;
+    frostedTint: boolean;
+    radialGlow: boolean;
+    elevationShadow: boolean;
+    neumorphic: boolean;
 }
 
 export interface InspectorMotion {
@@ -68,18 +74,24 @@ const NO_EFFECTS: InspectorEffects = {
     dropShadow: false, innerShadow: false, backgroundBlur: false, glassTint: false,
     gradientSlide: false, animatedBorder: false, rippleFill: false, loading: false,
     sweep: false, borderBeam: false, shineBorder: false, neonGlow: false, pulseRing: false,
+    grain: false, gradientBorder: false, frostedTint: false, radialGlow: false,
+    elevationShadow: false, neumorphic: false,
 };
 
 const STANDARD_EFFECTS: InspectorEffects = {
     dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
     gradientSlide: true, animatedBorder: true, rippleFill: true, loading: true,
     sweep: true, borderBeam: true, shineBorder: true, neonGlow: false, pulseRing: false,
+    grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+    elevationShadow: true, neumorphic: true,
 };
 
 const SURFACE_EFFECTS: InspectorEffects = {
     dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
     gradientSlide: false, animatedBorder: true, rippleFill: false, loading: false,
-    sweep: false, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: false,
+    sweep: false, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: true,
+    grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+    elevationShadow: true, neumorphic: true,
 };
 
 const NO_MOTION: InspectorMotion = {
@@ -144,6 +156,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
+            grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+            elevationShadow: true, neumorphic: true,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
@@ -155,6 +169,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
+            grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+            elevationShadow: true, neumorphic: true,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
@@ -166,6 +182,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
+            grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+            elevationShadow: true, neumorphic: true,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
@@ -214,6 +232,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: false,
+            grain: false, gradientBorder: false, frostedTint: false, radialGlow: false,
+            elevationShadow: false, neumorphic: false,
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: true },
         wrapperStyle: 'strip-border',
@@ -225,6 +245,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: true, loading: false,
             sweep: false, borderBeam: true, shineBorder: true, neonGlow: false, pulseRing: false,
+            grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+            elevationShadow: true, neumorphic: true,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
@@ -243,6 +265,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: false, animatedBorder: true, rippleFill: false, loading: false,
             sweep: false, borderBeam: false, shineBorder: false, neonGlow: false, pulseRing: false,
+            grain: false, gradientBorder: false, frostedTint: false, radialGlow: false,
+            elevationShadow: false, neumorphic: false,
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: true },
         wrapperStyle: 'strip-layout',
@@ -256,6 +280,8 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: false,
+            grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
+            elevationShadow: true, neumorphic: true,
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: false },
         wrapperStyle: 'full',

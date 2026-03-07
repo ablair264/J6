@@ -391,6 +391,33 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     effectPulseRingEnabled: false,
     effectPulseRingSpeed: 1.5,
     effectPulseRingColor: '#22d3ee',
+    // Grain
+    effectGrain: false,
+    grainOpacity: 18,
+    grainSize: 120,
+    // Gradient Border
+    effectGradientBorder: false,
+    gradientBorderColor1: '#22d3ee',
+    gradientBorderColor2: '#a78bfa',
+    gradientBorderColor3: '#f59e0b',
+    gradientBorderAngle: 135,
+    // Frosted Tint
+    effectFrostedTint: false,
+    frostedTintColor: '#3b82f6',
+    frostedTintOpacity: 20,
+    // Radial Glow
+    effectRadialGlow: false,
+    radialGlowColor: '#6366f1',
+    radialGlowSize: 100,
+    radialGlowOpacity: 45,
+    // Elevation Shadow
+    effectElevationShadow: false,
+    elevationLevel: 2,
+    // Neumorphic
+    effectNeumorphic: false,
+    neumorphicDistance: 8,
+    neumorphicBlur: 16,
+    neumorphicInset: false,
     tooltipBodyMotionPresetId: 'fade-in',
     tooltipTextMotionPresetId: 'fade-in',
     dialogBodyMotionPresetId: 'fade-scale',
@@ -3384,4 +3411,3 @@ export function buildButtonPreviewStateClass(previewState: ButtonPreviewState): 
     }
     return undefined;
 }
-

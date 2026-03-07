@@ -47,9 +47,15 @@ import {
     buildKindTitle,
     getComponentVisualPreset,
     getComponentVisualPresets,
-    supportsStateStyles,
+    supportsElevationShadowEffect,
+    supportsFrostedTintEffect,
+    supportsGradientBorderEffect,
+    supportsGrainEffect,
+    supportsNeumorphicEffect,
+    supportsRadialGlowEffect,
     supportsDropdownHoverStyle,
     supportsIconSelection,
+    supportsStateStyles,
     supportsTypographyStyle,
 } from '../utilities';
 import { getInspectorLayout } from './inspector-registry';
@@ -299,7 +305,7 @@ export function InspectorPanel() {
             { id: 'drop-shadow', label: 'Drop Shadow', enabled: selectedStyle.effectDropShadow, supported: layout.effects.dropShadow },
             { id: 'inner-shadow', label: 'Inner Shadow', enabled: selectedStyle.effectInnerShadow, supported: layout.effects.innerShadow },
             { id: 'background-blur', label: 'Background Blur', enabled: selectedStyle.effectBlur, supported: layout.effects.backgroundBlur },
-            { id: 'glass-tint', label: 'Glass Tint', enabled: selectedStyle.effectGlass, supported: layout.effects.glassTint },
+            { id: 'glass-tint', label: 'Glass / Blur', enabled: selectedStyle.effectGlass, supported: layout.effects.glassTint },
             { id: 'gradient-slide', label: 'Gradient Slide', enabled: selectedStyle.effectGradientSlideEnabled, supported: layout.effects.gradientSlide },
             { id: 'animated-border', label: hasPanelElementControls ? 'Animated Border (Trigger)' : 'Animated Border', enabled: selectedStyle.effectAnimatedBorderEnabled, supported: layout.effects.animatedBorder },
             { id: 'ripple-fill', label: 'Ripple Fill (Hover)', enabled: selectedStyle.effectRippleFillEnabled, supported: layout.effects.rippleFill },
@@ -309,6 +315,12 @@ export function InspectorPanel() {
             { id: 'shine-border', label: 'Shine Border', enabled: selectedStyle.effectShineBorderEnabled, supported: layout.effects.shineBorder },
             { id: 'neon-glow', label: 'Neon Glow', enabled: selectedStyle.effectNeonGlowEnabled, supported: layout.effects.neonGlow },
             { id: 'pulse-ring', label: 'Pulse Ring', enabled: selectedStyle.effectPulseRingEnabled, supported: layout.effects.pulseRing },
+            { id: 'grain', label: 'Noise & Grain', enabled: selectedStyle.effectGrain, supported: selectedInstance ? supportsGrainEffect(selectedInstance.kind) : false },
+            { id: 'gradient-border', label: 'Gradient Border', enabled: selectedStyle.effectGradientBorder, supported: selectedInstance ? supportsGradientBorderEffect(selectedInstance.kind) : false },
+            { id: 'frosted-tint', label: 'Frosted Tint', enabled: selectedStyle.effectFrostedTint, supported: selectedInstance ? supportsFrostedTintEffect(selectedInstance.kind) : false },
+            { id: 'radial-glow', label: 'Radial Glow', enabled: selectedStyle.effectRadialGlow, supported: selectedInstance ? supportsRadialGlowEffect(selectedInstance.kind) : false },
+            { id: 'elevation-shadow', label: 'Elevation', enabled: selectedStyle.effectElevationShadow, supported: selectedInstance ? supportsElevationShadowEffect(selectedInstance.kind) : false },
+            { id: 'neumorphic', label: 'Neumorphic', enabled: selectedStyle.effectNeumorphic, supported: selectedInstance ? supportsNeumorphicEffect(selectedInstance.kind) : false },
         ].filter((item) => item.supported)
         : [];
     const inactiveEffectOptions = effectOptions.filter((item) => !item.enabled);
@@ -425,7 +437,7 @@ export function InspectorPanel() {
 
     // ─── Effect helpers ───────────────────────────────────────────────────
 
-    type EffectId = 'drop-shadow' | 'inner-shadow' | 'background-blur' | 'glass-tint' | 'gradient-slide' | 'animated-border' | 'ripple-fill' | 'loading-state' | 'sweep' | 'border-beam' | 'shine-border' | 'neon-glow' | 'pulse-ring';
+    type EffectId = 'drop-shadow' | 'inner-shadow' | 'background-blur' | 'glass-tint' | 'gradient-slide' | 'animated-border' | 'ripple-fill' | 'loading-state' | 'sweep' | 'border-beam' | 'shine-border' | 'neon-glow' | 'pulse-ring' | 'grain' | 'gradient-border' | 'frosted-tint' | 'radial-glow' | 'elevation-shadow' | 'neumorphic';
 
     const setEffectEnabled = (effectId: EffectId, enabled: boolean) => {
         switch (effectId) {
@@ -442,6 +454,12 @@ export function InspectorPanel() {
             case 'shine-border': updateSelectedStyle('effectShineBorderEnabled', enabled); break;
             case 'neon-glow': updateSelectedStyle('effectNeonGlowEnabled', enabled); break;
             case 'pulse-ring': updateSelectedStyle('effectPulseRingEnabled', enabled); break;
+            case 'grain': updateSelectedStyle('effectGrain', enabled); break;
+            case 'gradient-border': updateSelectedStyle('effectGradientBorder', enabled); break;
+            case 'frosted-tint': updateSelectedStyle('effectFrostedTint', enabled); break;
+            case 'radial-glow': updateSelectedStyle('effectRadialGlow', enabled); break;
+            case 'elevation-shadow': updateSelectedStyle('effectElevationShadow', enabled); break;
+            case 'neumorphic': updateSelectedStyle('effectNeumorphic', enabled); break;
         }
     };
 
@@ -534,7 +552,13 @@ export function InspectorPanel() {
             case 'background-blur':
                 return <MiniNumberField label="Amount" value={selectedStyle.blurAmount} min={0} max={30} unit="px" onChange={(value) => updateSelectedStyle('blurAmount', value)} />;
             case 'glass-tint':
-                return <MiniNumberField label="Opacity" value={selectedStyle.glassOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('glassOpacity', value)} />;
+                return (
+                    <div className="space-y-3">
+                        <FlatUnitField label="Fill Opacity" value={selectedStyle.glassOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('glassOpacity', value)} />
+                        <FlatUnitField label="Blur Amount" value={selectedStyle.blurAmount} min={4} max={40} unit="px" onChange={(value) => updateSelectedStyle('blurAmount', value)} />
+                        <p className="text-[11px] text-[var(--inspector-muted-text)]">Place the component over content for best results.</p>
+                    </div>
+                );
             case 'gradient-slide':
                 return (
                     <div className="space-y-3">
@@ -656,6 +680,51 @@ export function InspectorPanel() {
                     <div className="space-y-3">
                         <FlatColorControl label="Ring Color" value={selectedStyle.effectPulseRingColor} onChange={(value) => updateSelectedStyle('effectPulseRingColor', value)} tokens={activeTokenSet.tokens} />
                         <FlatUnitField label="Speed" value={selectedStyle.effectPulseRingSpeed} min={0.5} max={4} step={0.25} unit="s" onChange={(value) => updateSelectedStyle('effectPulseRingSpeed', value)} />
+                    </div>
+                );
+            case 'grain':
+                return (
+                    <div className="space-y-3">
+                        <FlatUnitField label="Opacity" value={selectedStyle.grainOpacity} min={0} max={100} step={1} unit="%" onChange={(value) => updateSelectedStyle('grainOpacity', value)} />
+                        <FlatUnitField label="Grain Size" value={selectedStyle.grainSize} min={60} max={200} step={10} unit="px" onChange={(value) => updateSelectedStyle('grainSize', value)} />
+                    </div>
+                );
+            case 'gradient-border':
+                return (
+                    <div className="space-y-3">
+                        <FlatUnitField label="Angle" value={selectedStyle.gradientBorderAngle} min={0} max={360} step={5} unit="deg" onChange={(value) => updateSelectedStyle('gradientBorderAngle', value)} />
+                        <FlatColorControl label="Color 1" value={selectedStyle.gradientBorderColor1} onChange={(value) => updateSelectedStyle('gradientBorderColor1', value)} tokens={activeTokenSet.tokens} />
+                        <FlatColorControl label="Color 2" value={selectedStyle.gradientBorderColor2} onChange={(value) => updateSelectedStyle('gradientBorderColor2', value)} tokens={activeTokenSet.tokens} />
+                        <FlatColorControl label="Color 3" value={selectedStyle.gradientBorderColor3} onChange={(value) => updateSelectedStyle('gradientBorderColor3', value)} tokens={activeTokenSet.tokens} />
+                    </div>
+                );
+            case 'frosted-tint':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Tint Color" value={selectedStyle.frostedTintColor} onChange={(value) => updateSelectedStyle('frostedTintColor', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Opacity" value={selectedStyle.frostedTintOpacity} min={0} max={100} step={1} unit="%" onChange={(value) => updateSelectedStyle('frostedTintOpacity', value)} />
+                    </div>
+                );
+            case 'radial-glow':
+                return (
+                    <div className="space-y-3">
+                        <FlatColorControl label="Glow Color" value={selectedStyle.radialGlowColor} onChange={(value) => updateSelectedStyle('radialGlowColor', value)} tokens={activeTokenSet.tokens} />
+                        <FlatUnitField label="Size" value={selectedStyle.radialGlowSize} min={40} max={200} step={5} unit="%" onChange={(value) => updateSelectedStyle('radialGlowSize', value)} />
+                        <FlatUnitField label="Opacity" value={selectedStyle.radialGlowOpacity} min={0} max={100} step={1} unit="%" onChange={(value) => updateSelectedStyle('radialGlowOpacity', value)} />
+                    </div>
+                );
+            case 'elevation-shadow':
+                return <FlatUnitField label="Level" value={selectedStyle.elevationLevel} min={1} max={5} step={1} onChange={(value) => updateSelectedStyle('elevationLevel', value)} />;
+            case 'neumorphic':
+                return (
+                    <div className="space-y-3">
+                        <FlatUnitField label="Distance" value={selectedStyle.neumorphicDistance} min={4} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('neumorphicDistance', value)} />
+                        <FlatUnitField label="Blur" value={selectedStyle.neumorphicBlur} min={8} max={40} step={2} unit="px" onChange={(value) => updateSelectedStyle('neumorphicBlur', value)} />
+                        <FlatSwitchRow
+                            label="Inset (sunken)"
+                            checked={selectedStyle.neumorphicInset}
+                            onCheckedChange={(checked) => updateSelectedStyle('neumorphicInset', checked)}
+                        />
                     </div>
                 );
         }

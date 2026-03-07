@@ -42,6 +42,25 @@ import {
     supportsEntryMotion,
 } from './utilities';
 import { getMotionComponentPresets } from './motion';
+import {
+    fetchProjectComponentKind,
+    saveProjectComponentKind,
+} from '@/lib/project-data-api';
+
+// ─── Debounced Neon sync ─────────────────────────────────────────────────
+
+let neonSyncTimer: ReturnType<typeof setTimeout> | null = null;
+const NEON_SYNC_DELAY_MS = 2500;
+
+function scheduleNeonSync(projectId: string, kind: UIComponentKind, payload: PersistedComponentState) {
+    if (neonSyncTimer) clearTimeout(neonSyncTimer);
+    neonSyncTimer = setTimeout(() => {
+        neonSyncTimer = null;
+        saveProjectComponentKind(projectId, kind, payload).catch((err) => {
+            console.warn('[ui-studio] Neon sync failed:', err);
+        });
+    }, NEON_SYNC_DELAY_MS);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -63,6 +82,12 @@ const TOKEN_SETS_STORAGE_KEY = `${STUDIO_STORAGE_PREFIX}token-sets`;
 const ACTIVE_TOKEN_SET_STORAGE_KEY = `${STUDIO_STORAGE_PREFIX}active-token-set`;
 const STUDIO_THEME_STORAGE_KEY = `${STUDIO_STORAGE_PREFIX}studio-theme`;
 
+/** Project-scoped localStorage key: `ui-studio-oss:v1:proj:{projectId}:{kind}` */
+function getProjectComponentStorageKey(projectId: string, kind: UIComponentKind): string {
+    return `${STUDIO_STORAGE_PREFIX}proj:${projectId}:${kind}`;
+}
+
+/** Legacy un-scoped key (pre-project era) — kept for fallback reads */
 export function getComponentStorageKey(kind: UIComponentKind): string {
     return `${STUDIO_STORAGE_PREFIX}${kind}`;
 }
@@ -95,32 +120,19 @@ export function createInstance(kind: UIComponentKind, index: number): ComponentI
     };
 }
 
-export function hydrateComponentState(kind: UIComponentKind): PersistedComponentState {
-    const fallback: PersistedComponentState = {
-        instances: [createInstance(kind, 1)],
-        selectedInstanceId: null,
-        nextInstanceIndex: 2,
-    };
-
-    if (typeof window === 'undefined') {
-        return fallback;
-    }
-
+function parsePersistedData(kind: UIComponentKind, raw: unknown): PersistedComponentState | null {
     try {
-        const raw = window.localStorage.getItem(getComponentStorageKey(kind));
-        if (!raw) {
-            return fallback;
-        }
-        const parsed = JSON.parse(raw) as Partial<PersistedComponentState>;
-        if (!Array.isArray(parsed.instances) || parsed.instances.length === 0) {
-            return fallback;
-        }
-        const normalizedInstances = parsed.instances.map((instance) =>
-            migrateLegacyStateFields({
-                ...instance,
-                style: normalizeStyleConfig(instance.style),
-            }),
-        );
+        const parsed = (typeof raw === 'string' ? JSON.parse(raw) : raw) as Partial<PersistedComponentState>;
+        if (!Array.isArray(parsed.instances) || parsed.instances.length === 0) return null;
+        const normalizedInstances = parsed.instances
+            .filter((instance) => isUIComponentKind(instance.kind))
+            .map((instance) =>
+                migrateLegacyStateFields({
+                    ...instance,
+                    style: normalizeStyleConfig(instance.style),
+                }),
+            );
+        if (normalizedInstances.length === 0) return null;
         const selectedExists = normalizedInstances.some((instance) => instance.id === parsed.selectedInstanceId);
         return {
             instances: normalizedInstances,
@@ -131,8 +143,38 @@ export function hydrateComponentState(kind: UIComponentKind): PersistedComponent
                     : normalizedInstances.length + 1,
         };
     } catch {
-        return fallback;
+        return null;
     }
+}
+
+function buildFallback(kind: UIComponentKind): PersistedComponentState {
+    return {
+        instances: [createInstance(kind, 1)],
+        selectedInstanceId: null,
+        nextInstanceIndex: 2,
+    };
+}
+
+export function hydrateComponentState(kind: UIComponentKind, projectId?: string): PersistedComponentState {
+    const fallback = buildFallback(kind);
+    if (typeof window === 'undefined') return fallback;
+
+    // Try project-scoped key first, then legacy un-scoped key
+    const projectRaw = projectId
+        ? window.localStorage.getItem(getProjectComponentStorageKey(projectId, kind))
+        : null;
+    if (projectRaw) {
+        const result = parsePersistedData(kind, projectRaw);
+        if (result) return result;
+    }
+
+    const legacyRaw = window.localStorage.getItem(getComponentStorageKey(kind));
+    if (legacyRaw) {
+        const result = parsePersistedData(kind, legacyRaw);
+        if (result) return result;
+    }
+
+    return fallback;
 }
 
 export function resolveStateStyle(
@@ -243,8 +285,9 @@ interface StudioState {
     selectedInstanceId: string | null;
     nextInstanceIndex: number;
 
-    // ─── Active component kind ────────────────────────────────────────
+    // ─── Active component kind + project ────────────────────────────────
     activeKind: UIComponentKind;
+    activeProjectId: string | null;
 
     // ─── UI chrome state (NOT tracked by undo) ────────────────────────
     copiedCode: boolean;
@@ -351,8 +394,10 @@ interface StudioState {
     clearVisualMotionPreset: () => void;
 
     // ─── Persistence ──────────────────────────────────────────────────
+    setActiveProjectId: (projectId: string | null) => void;
     persistComponentState: () => void;
     hydrateForKind: (kind: UIComponentKind) => void;
+    hydrateFromNeon: (kind: UIComponentKind) => Promise<void>;
 }
 
 // ─── Hydrate helpers ──────────────────────────────────────────────────────
@@ -414,6 +459,7 @@ export const useStudioStore = create<StudioState>()(
             selectedInstanceId: initialComponentState.selectedInstanceId,
             nextInstanceIndex: initialComponentState.nextInstanceIndex,
             activeKind: initialKind,
+            activeProjectId: null,
 
             // ─── UI chrome state ──────────────────────────────────
             copiedCode: false,
@@ -786,19 +832,31 @@ export const useStudioStore = create<StudioState>()(
             },
 
             // ─── Persistence ──────────────────────────────────────
+
+            setActiveProjectId: (projectId) => set({ activeProjectId: projectId }),
+
             persistComponentState: () => {
                 if (typeof window === 'undefined') return;
-                const { activeKind, instances, selectedInstanceId, nextInstanceIndex } = get();
+                const { activeKind, activeProjectId, instances, selectedInstanceId, nextInstanceIndex } = get();
                 const payload: PersistedComponentState = {
                     instances,
                     selectedInstanceId: instances.some((i) => i.id === selectedInstanceId) ? selectedInstanceId : null,
                     nextInstanceIndex,
                 };
-                window.localStorage.setItem(getComponentStorageKey(activeKind), JSON.stringify(payload));
+                const json = JSON.stringify(payload);
+
+                // Write to project-scoped localStorage (and legacy key for compat)
+                if (activeProjectId) {
+                    window.localStorage.setItem(getProjectComponentStorageKey(activeProjectId, activeKind), json);
+                    // Schedule debounced Neon sync
+                    scheduleNeonSync(activeProjectId, activeKind, payload);
+                }
+                window.localStorage.setItem(getComponentStorageKey(activeKind), json);
             },
 
             hydrateForKind: (kind) => {
-                const persisted = hydrateComponentState(kind);
+                const { activeProjectId } = get();
+                const persisted = hydrateComponentState(kind, activeProjectId ?? undefined);
                 set({
                     activeKind: kind,
                     instances: persisted.instances,
@@ -811,6 +869,33 @@ export const useStudioStore = create<StudioState>()(
                     componentPickerOpen: false,
                     componentPickerQuery: '',
                 });
+            },
+
+            hydrateFromNeon: async (kind) => {
+                const { activeProjectId } = get();
+                if (!activeProjectId) return;
+                try {
+                    const remote = await fetchProjectComponentKind(activeProjectId, kind);
+                    if (!remote) return; // No remote data yet — keep localStorage data
+                    const parsed = parsePersistedData(kind, remote);
+                    if (!parsed) return;
+                    // Write to localStorage cache
+                    window.localStorage.setItem(
+                        getProjectComponentStorageKey(activeProjectId, kind),
+                        JSON.stringify(parsed),
+                    );
+                    // Update store if still on the same project + kind
+                    const current = get();
+                    if (current.activeProjectId === activeProjectId && current.activeKind === kind) {
+                        set({
+                            instances: parsed.instances,
+                            selectedInstanceId: parsed.selectedInstanceId,
+                            nextInstanceIndex: parsed.nextInstanceIndex,
+                        });
+                    }
+                } catch (err) {
+                    console.warn('[ui-studio] Neon hydration failed, using localStorage:', err);
+                }
             },
         }),
         {
