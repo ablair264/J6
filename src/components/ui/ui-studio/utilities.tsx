@@ -1235,35 +1235,29 @@ export function buildNeumorphicShadow(
     const base = hexToRgbChannels(fillColor) ?? { r: 100, g: 116, b: 139 };
     const luminance = (0.2126 * base.r + 0.7152 * base.g + 0.0722 * base.b) / 255;
     const darkSurface = luminance < 0.45;
-    const UI_DARK_BG_LUMINANCE = 0.145; // matches design-system dark --background baseline
-    const nearUiDarkBg = clamp01(1 - Math.abs(luminance - UI_DARK_BG_LUMINANCE) / 0.22);
-
     const normalizedIntensity = clamp01((((d - 4) / 16) + ((b - 8) / 32)) / 2);
 
-    // Scale offsets/blur up slightly so minimum values are still clearly visible.
-    const offset = Math.max(4, Math.round(d * (1.1 + normalizedIntensity * 0.4)));
-    const blurRadius = Math.max(10, Math.round(b * (1.15 + normalizedIntensity * 0.3)));
-    const ambientBlur = Math.max(6, Math.round(blurRadius * 0.7));
+    // Keep neumorphic relief directional and tight (avoid broad glow halos).
+    const offset = Math.max(3, Math.round(d * (0.95 + normalizedIntensity * 0.15)));
+    const blurRadius = Math.max(8, Math.round(b * (0.9 + normalizedIntensity * 0.2)));
+    const spread = -Math.max(1, Math.round(blurRadius * 0.26));
+    const ambientBlur = Math.max(5, Math.round(blurRadius * 0.58));
+    const ambientSpread = -Math.max(1, Math.round(ambientBlur * 0.3));
 
-    // Extra contrast boost when fill sits near the app dark background band.
-    const darkContrastBoost = darkSurface ? 1 + nearUiDarkBg * 0.28 : 1;
-
-    const highlightAlpha = clamp01((darkSurface ? 0.34 : 0.62) + normalizedIntensity * 0.22 * darkContrastBoost);
-    const shadowAlpha = clamp01((darkSurface ? 0.68 : 0.28) + normalizedIntensity * 0.22 * darkContrastBoost);
-    const ambientAlpha = clamp01((darkSurface ? 0.4 : 0.16) + normalizedIntensity * 0.16 * darkContrastBoost);
-
-    const highlight = darkSurface
-        ? { r: 255, g: 255, b: 255 }
-        : {
-            r: mixChannel(base.r, 255, 0.9),
-            g: mixChannel(base.g, 255, 0.9),
-            b: mixChannel(base.b, 255, 0.9),
-        };
-    const shadow = {
-        r: mixChannel(base.r, 0, darkSurface ? 0.85 : 0.52),
-        g: mixChannel(base.g, 0, darkSurface ? 0.85 : 0.52),
-        b: mixChannel(base.b, 0, darkSurface ? 0.85 : 0.52),
+    const highlight = {
+        r: mixChannel(base.r, 255, darkSurface ? 0.42 : 0.84),
+        g: mixChannel(base.g, 255, darkSurface ? 0.42 : 0.84),
+        b: mixChannel(base.b, 255, darkSurface ? 0.42 : 0.84),
     };
+    const shadow = {
+        r: mixChannel(base.r, 0, darkSurface ? 0.76 : 0.5),
+        g: mixChannel(base.g, 0, darkSurface ? 0.76 : 0.5),
+        b: mixChannel(base.b, 0, darkSurface ? 0.76 : 0.5),
+    };
+
+    const highlightAlpha = clamp01((darkSurface ? 0.24 : 0.34) + normalizedIntensity * (darkSurface ? 0.14 : 0.12));
+    const shadowAlpha = clamp01((darkSurface ? 0.46 : 0.24) + normalizedIntensity * (darkSurface ? 0.16 : 0.1));
+    const ambientAlpha = clamp01((darkSurface ? 0.16 : 0.1) + normalizedIntensity * 0.08);
 
     const highlightShadow = `rgba(${highlight.r}, ${highlight.g}, ${highlight.b}, ${highlightAlpha})`;
     const darkShadow = `rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, ${shadowAlpha})`;
@@ -1271,16 +1265,16 @@ export function buildNeumorphicShadow(
 
     if (inset) {
         return [
-            `inset ${offset}px ${offset}px ${blurRadius}px ${darkShadow}`,
-            `inset -${offset}px -${offset}px ${blurRadius}px ${highlightShadow}`,
-            `inset 0 1px ${Math.max(6, Math.round(ambientBlur * 0.65))}px ${ambientShadow}`,
+            `inset ${offset}px ${offset}px ${Math.round(blurRadius * 0.95)}px ${spread}px ${darkShadow}`,
+            `inset -${offset}px -${offset}px ${Math.round(blurRadius * 0.95)}px ${spread}px ${highlightShadow}`,
+            `inset 0 0 ${Math.max(4, Math.round(ambientBlur * 0.65))}px ${ambientSpread}px ${ambientShadow}`,
         ].join(', ');
     }
 
     return [
-        `${offset}px ${offset}px ${blurRadius}px ${darkShadow}`,
-        `-${offset}px -${offset}px ${blurRadius}px ${highlightShadow}`,
-        `0 ${Math.max(2, Math.round(offset * 0.5))}px ${ambientBlur}px ${ambientShadow}`,
+        `${offset}px ${offset}px ${blurRadius}px ${spread}px ${darkShadow}`,
+        `-${offset}px -${offset}px ${blurRadius}px ${spread}px ${highlightShadow}`,
+        `0 ${Math.max(1, Math.round(offset * 0.45))}px ${ambientBlur}px ${ambientSpread}px ${ambientShadow}`,
     ].join(', ');
 }
 

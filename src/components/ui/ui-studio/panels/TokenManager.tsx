@@ -1,4 +1,5 @@
-import { Download, Minus, RotateCcw } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Minus, RotateCcw } from 'lucide-react';
 import { Delete, Plus, Sparkles } from '@mynaui/icons-react';
 import { cn } from '@/lib/utils';
 import {
@@ -14,6 +15,8 @@ import {
 } from '@/lib/token-set-api';
 import { resolveTokenToHex } from '../utilities';
 import { useStudioStore, selectActiveTokenSet } from '../store';
+
+const AUTO_SAVE_DELAY_MS = 2000;
 
 export function TokenManager() {
     const tokenSets = useStudioStore((s) => s.tokenSets);
@@ -37,6 +40,33 @@ export function TokenManager() {
     const setSuggestingPalette = useStudioStore((s) => s.setSuggestingPalette);
     const activeTokenSet = useStudioStore(selectActiveTokenSet);
 
+    // ─── Auto-save to Neon (debounced) ────────────────────────────────────
+    const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isFirstRenderRef = useRef(true);
+
+    useEffect(() => {
+        // Skip the initial render — only save on actual user changes
+        if (isFirstRenderRef.current) {
+            isFirstRenderRef.current = false;
+            return;
+        }
+        if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = setTimeout(() => {
+            autoSaveTimerRef.current = null;
+            const setToSave = activeTokenSet.source === 'system'
+                ? { ...activeTokenSet, source: 'user' as const }
+                : activeTokenSet;
+            setTokenSyncMessage('Saving…');
+            upsertTokenSetToApi(setToSave)
+                .then(() => setTokenSyncMessage('Saved'))
+                .catch(() => setTokenSyncMessage('Auto-save failed'));
+        }, AUTO_SAVE_DELAY_MS);
+
+        return () => {
+            if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        };
+    }, [activeTokenSet, setTokenSyncMessage]);
+
     // ─── Token Actions ───────────────────────────────────────────────────
 
     const createUserTokenSet = (name: string) => {
@@ -59,7 +89,6 @@ export function TokenManager() {
         };
         setTokenSets((current) => ensureTokenSetsWithSystem([...current.filter((set) => set.id !== nextSet.id), nextSet]));
         setActiveTokenSetId(nextSet.id);
-        setTokenSyncMessage('New token set created locally. Save to Neon to persist across sessions.');
         setNewSetName('');
         setShowNewSetInput(false);
     };
@@ -127,29 +156,6 @@ export function TokenManager() {
         );
     };
 
-    const saveActiveTokenSetToNeon = async () => {
-        setTokensLoading(true);
-        try {
-            const setToSave = activeTokenSet.source === 'system'
-                ? { ...activeTokenSet, source: 'user' as const }
-                : activeTokenSet;
-            const saved = await upsertTokenSetToApi(setToSave);
-            const sanitized = (await import('@/components/ui/token-sets')).sanitizeTokenSet(saved);
-            if (sanitized) {
-                setTokenSets((current) =>
-                    ensureTokenSetsWithSystem(
-                        current.map((set) => set.id === sanitized.id ? { ...sanitized, source: 'user' as const } : set),
-                    ),
-                );
-            }
-            setTokenSyncMessage('Token set saved to Neon.');
-        } catch {
-            setTokenSyncMessage('Could not save token set to Neon. Check your session and database configuration.');
-        } finally {
-            setTokensLoading(false);
-        }
-    };
-
     const deleteActiveTokenSetFromNeon = async () => {
         if (activeTokenSet.source !== 'user') return;
         if (!window.confirm(`Delete token set "${activeTokenSet.name}"?`)) return;
@@ -210,7 +216,7 @@ export function TokenManager() {
                     return { ...set, tokens: updatedTokens };
                 }),
             );
-            setTokenSyncMessage('Palette applied! Save to Neon to persist.');
+            setTokenSyncMessage('Palette applied!');
         } catch {
             setTokenSyncMessage('Could not reach palette suggestion service.');
         } finally {
@@ -295,15 +301,6 @@ export function TokenManager() {
 
                     {/* Set actions */}
                     <div className="mt-auto flex flex-col gap-1 pt-3 border-t border-white/8">
-                        <button
-                            type="button"
-                            onClick={() => void saveActiveTokenSetToNeon()}
-                            disabled={tokensLoading}
-                            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#63e8da]/16 px-2.5 py-2 text-xs font-semibold text-[#86fff1] transition hover:bg-[#63e8da]/24 disabled:opacity-50"
-                        >
-                            {tokensLoading ? <svg className="size-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : <Download className="size-3" />}
-                            Save to Neon
-                        </button>
                         {activeTokenSet.id === SYSTEM_TOKEN_SET_ID ? (
                             <button
                                 type="button"
