@@ -63,6 +63,33 @@ export function hexToRgba(hex: string, opacity: number): string {
     return `rgba(${red}, ${green}, ${blue}, ${Math.max(0, Math.min(opacity, 1)).toFixed(3)})`;
 }
 
+function hexToRgbChannels(hex: string): { r: number; g: number; b: number } | null {
+    const value = hex.replace('#', '');
+    const normalized =
+        value.length === 3
+            ? value
+                .split('')
+                .map((char) => `${char}${char}`)
+                .join('')
+            : value;
+    if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+        return null;
+    }
+    return {
+        r: Number.parseInt(normalized.slice(0, 2), 16),
+        g: Number.parseInt(normalized.slice(2, 4), 16),
+        b: Number.parseInt(normalized.slice(4, 6), 16),
+    };
+}
+
+function mixChannel(from: number, to: number, amount: number): number {
+    return Math.round(from + (to - from) * Math.max(0, Math.min(1, amount)));
+}
+
+function clamp01(value: number): number {
+    return Math.max(0, Math.min(1, value));
+}
+
 export function rgbStringToHex(value: string): string | null {
     const match = value.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i);
     if (!match) {
@@ -728,7 +755,7 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
         const glowColor = hexToRgba(config.radialGlowColor, config.radialGlowOpacity / 100);
         const glowGradient = `radial-gradient(${config.radialGlowSize}% ${config.radialGlowSize}% at 50% 50%, ${glowColor} 0%, transparent 70%)`;
         resolvedBackground = resolvedBackground
-            ? `${resolvedBackground}, ${glowGradient}`
+            ? `${glowGradient}, ${resolvedBackground}`
             : glowGradient;
     }
 
@@ -1010,6 +1037,7 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         ['--ui-effect-grad-border-3' as string]: config.gradientBorderColor3,
         ['--ui-effect-grad-border-angle' as string]: `${config.gradientBorderAngle}deg`,
         ['--ui-effect-grad-border-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
+        ['--ui-effect-grad-border-fill' as string]: hexToRgba(config.fillColor, Math.max(0, Math.min(1, config.fillOpacity / 100))),
         ['--ui-checkbox-selection-speed' as string]: `${config.checkboxSelectionAnimationSpeed}s`,
         ['--ui-slider-thumb-hover-scale' as string]: String(config.sliderThumbHoverScale),
         ['--ui-slider-thumb-tap-bounce' as string]: `${config.sliderThumbTapBounce}s`,
@@ -1130,6 +1158,7 @@ export function buildActiveMotionVariables(kind: UIComponentKind, config: Compon
         vars['--ui-effect-grad-border-3'] = config.gradientBorderColor3;
         vars['--ui-effect-grad-border-angle'] = `${config.gradientBorderAngle}deg`;
         vars['--ui-effect-grad-border-width'] = `${Math.max(0, config.strokeWeight)}px`;
+        vars['--ui-effect-grad-border-fill'] = hexToRgba(config.fillColor, Math.max(0, Math.min(1, config.fillOpacity / 100)));
     }
 
     // Checkbox/slider — only for those kinds
@@ -1205,16 +1234,73 @@ export function buildNeumorphicShadow(
     const b = Math.max(8, blur);
     const prefix = inset ? 'inset ' : '';
 
-    void fillColor;
+    const base = hexToRgbChannels(fillColor) ?? { r: 100, g: 116, b: 139 };
+    const luminance = (0.2126 * base.r + 0.7152 * base.g + 0.0722 * base.b) / 255;
+    const darkSurface = luminance < 0.45;
+    const UI_DARK_BG_LUMINANCE = 0.145; // matches design-system dark --background baseline
+    const nearUiDarkBg = clamp01(1 - Math.abs(luminance - UI_DARK_BG_LUMINANCE) / 0.22);
 
-    // Derive light/shadow colours by lightening/darkening fillColor
-    // Simple approach: use white/black at low opacity rather than computing from hex
-    const lightShadow = 'rgba(255,255,255,0.18)';
-    const darkShadow = 'rgba(0,0,0,0.32)';
+    const normalizedIntensity = Math.max(
+        0,
+        Math.min(1, (((d - 4) / 16) + ((b - 8) / 32)) / 2),
+    );
+    const profile: 'subtle' | 'medium' | 'strong' =
+        normalizedIntensity < 0.34 ? 'subtle' : normalizedIntensity < 0.67 ? 'medium' : 'strong';
+
+    const profileStrength = {
+        subtle: {
+            lightMix: darkSurface ? 0.36 : 0.7,
+            darkMix: darkSurface ? 0.68 : 0.34,
+            lightOpacity: darkSurface ? 0.46 : 0.78,
+            darkOpacity: darkSurface ? 0.68 : 0.3,
+            ambientOpacity: darkSurface ? 0.38 : 0.18,
+        },
+        medium: {
+            lightMix: darkSurface ? 0.34 : 0.78,
+            darkMix: darkSurface ? 0.7 : 0.38,
+            lightOpacity: darkSurface ? 0.5 : 0.92,
+            darkOpacity: darkSurface ? 0.76 : 0.38,
+            ambientOpacity: darkSurface ? 0.46 : 0.24,
+        },
+        strong: {
+            lightMix: darkSurface ? 0.42 : 0.86,
+            darkMix: darkSurface ? 0.78 : 0.44,
+            lightOpacity: darkSurface ? 0.56 : 1,
+            darkOpacity: darkSurface ? 0.86 : 0.46,
+            ambientOpacity: darkSurface ? 0.56 : 0.3,
+        },
+    }[profile];
+
+    // Extra contrast boost when fill sits near the app dark background band.
+    const tuned = darkSurface
+        ? {
+            lightMix: clamp01(profileStrength.lightMix + nearUiDarkBg * 0.08),
+            darkMix: clamp01(profileStrength.darkMix + nearUiDarkBg * 0.08),
+            lightOpacity: clamp01(profileStrength.lightOpacity + nearUiDarkBg * 0.08),
+            darkOpacity: clamp01(profileStrength.darkOpacity + nearUiDarkBg * 0.08),
+            ambientOpacity: clamp01(profileStrength.ambientOpacity + nearUiDarkBg * 0.08),
+        }
+        : profileStrength;
+
+    const light = {
+        r: mixChannel(base.r, 255, tuned.lightMix),
+        g: mixChannel(base.g, 255, tuned.lightMix),
+        b: mixChannel(base.b, 255, tuned.lightMix),
+    };
+    const dark = {
+        r: mixChannel(base.r, 0, tuned.darkMix),
+        g: mixChannel(base.g, 0, tuned.darkMix),
+        b: mixChannel(base.b, 0, tuned.darkMix),
+    };
+
+    const lightShadow = `rgba(${light.r}, ${light.g}, ${light.b}, ${tuned.lightOpacity})`;
+    const darkShadow = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${tuned.darkOpacity})`;
+    const ambientShadow = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${tuned.ambientOpacity})`;
 
     return [
         `${prefix}${d}px ${d}px ${b}px ${darkShadow}`,
         `${prefix}-${d}px -${d}px ${b}px ${lightShadow}`,
+        `${prefix}0 ${Math.max(1, Math.round(d * 0.28))}px ${Math.max(2, Math.round(b * 0.6))}px ${ambientShadow}`,
     ].join(', ');
 }
 

@@ -1184,7 +1184,7 @@
 .ui-studio-effect-gradient-border {
   border-color: transparent !important;
   background-image:
-    linear-gradient(var(--background, #ffffff), var(--background, #ffffff)),
+    linear-gradient(var(--ui-effect-grad-border-fill, #ffffff), var(--ui-effect-grad-border-fill, #ffffff)),
     linear-gradient(
       var(--ui-effect-grad-border-angle, 135deg),
       var(--ui-effect-grad-border-1, #22d3ee),
@@ -1197,10 +1197,8 @@
   border-style: solid !important;
 }
 
-/* When gradient border is combined with a non-white fill, the inner layer
-   needs to match the actual background. Since we use inline styles for fillColor,
-   we can't easily grab it in CSS. Instead, fall back gracefully —
-   the effect works best with a white or near-white fill. */
+/* Gradient border fill is driven by --ui-effect-grad-border-fill from inline vars
+   so the inner layer tracks the selected component fill color. */
 
 @media (prefers-reduced-motion: reduce) {
 

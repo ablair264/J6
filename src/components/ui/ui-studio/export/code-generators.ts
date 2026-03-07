@@ -541,7 +541,7 @@ export function buildTailwindThemeStyles(
         motionUtilityBlocks.push(`  .ui-studio-effect-gradient-border {
     border-color: transparent !important;
     background-image:
-      linear-gradient(var(--background, #ffffff), var(--background, #ffffff)),
+      linear-gradient(var(--ui-effect-grad-border-fill, #ffffff), var(--ui-effect-grad-border-fill, #ffffff)),
       linear-gradient(
         var(--ui-effect-grad-border-angle, 135deg),
         var(--ui-effect-grad-border-1, #22d3ee),

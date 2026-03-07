@@ -149,14 +149,12 @@ export function UIStudioComponentPage() {
 
     // ─── Project + route-driven hydration ────────────────────────
     useEffect(() => {
+        // Set project ID first so hydration reads the correct scoped key
         if (projectId) setActiveProjectId(projectId);
-    }, [projectId, setActiveProjectId]);
-
-    useEffect(() => {
         hydrateForKind(activeKind);
         // After fast localStorage hydration, async-load from Neon (overwrites if newer)
         if (projectId) hydrateFromNeon(activeKind);
-    }, [activeKind, projectId, hydrateForKind, hydrateFromNeon]);
+    }, [activeKind, projectId, setActiveProjectId, hydrateForKind, hydrateFromNeon]);
 
     // ─── Persist component state ──────────────────────────────────
     useEffect(() => {

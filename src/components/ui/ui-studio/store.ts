@@ -159,15 +159,17 @@ export function hydrateComponentState(kind: UIComponentKind, projectId?: string)
     const fallback = buildFallback(kind);
     if (typeof window === 'undefined') return fallback;
 
-    // Try project-scoped key first, then legacy un-scoped key
-    const projectRaw = projectId
-        ? window.localStorage.getItem(getProjectComponentStorageKey(projectId, kind))
-        : null;
-    if (projectRaw) {
-        const result = parsePersistedData(kind, projectRaw);
-        if (result) return result;
+    if (projectId) {
+        // Project-scoped — only read from project key, never fall back to legacy
+        const projectRaw = window.localStorage.getItem(getProjectComponentStorageKey(projectId, kind));
+        if (projectRaw) {
+            const result = parsePersistedData(kind, projectRaw);
+            if (result) return result;
+        }
+        return fallback;
     }
 
+    // No project — legacy un-scoped key
     const legacyRaw = window.localStorage.getItem(getComponentStorageKey(kind));
     if (legacyRaw) {
         const result = parsePersistedData(kind, legacyRaw);
@@ -845,13 +847,14 @@ export const useStudioStore = create<StudioState>()(
                 };
                 const json = JSON.stringify(payload);
 
-                // Write to project-scoped localStorage (and legacy key for compat)
                 if (activeProjectId) {
+                    // Project-scoped: write only to project key + schedule Neon sync
                     window.localStorage.setItem(getProjectComponentStorageKey(activeProjectId, activeKind), json);
-                    // Schedule debounced Neon sync
                     scheduleNeonSync(activeProjectId, activeKind, payload);
+                } else {
+                    // Legacy un-scoped (no project context)
+                    window.localStorage.setItem(getComponentStorageKey(activeKind), json);
                 }
-                window.localStorage.setItem(getComponentStorageKey(activeKind), json);
             },
 
             hydrateForKind: (kind) => {
