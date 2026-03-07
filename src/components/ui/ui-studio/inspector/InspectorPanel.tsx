@@ -1429,17 +1429,29 @@ export function InspectorPanel() {
                                         placeholder="Type here..."
                                     />
                                 </FlatField>
-                                <FlatSwitchRow label="Show Icon" checked={selectedStyle.inputShowIcon} onCheckedChange={(value) => updateSelectedStyle('inputShowIcon', value)} />
+                                <FlatSwitchRow label="Show Icon" checked={selectedStyle.inputShowIcon} onCheckedChange={(value) => {
+                                    updateSelectedStyle('inputShowIcon', value);
+                                    if (value && selectedStyle.icon === 'none') {
+                                        updateSelectedStyle('icon', 'search');
+                                    }
+                                }} />
                                 {selectedStyle.inputShowIcon ? (
-                                    <FlatField label="Icon Position">
-                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            {(['left', 'right'] as const).map((pos) => (
-                                                <button key={pos} type="button" onClick={() => updateSelectedStyle('inputIconPosition', pos)} className={cn(inspectorChoiceButtonBase, selectedStyle.inputIconPosition === pos ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    {pos.charAt(0).toUpperCase() + pos.slice(1)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </FlatField>
+                                    <>
+                                        <FlatField label="Icon">
+                                            <FlatSelect value={selectedStyle.icon === 'none' ? 'search' : selectedStyle.icon} onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)} ariaLabel="Input icon">
+                                                {ICON_OPTIONS.filter((o) => o.id !== 'none').map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                        <FlatField label="Icon Position">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                {(['left', 'right'] as const).map((pos) => (
+                                                    <button key={pos} type="button" onClick={() => updateSelectedStyle('inputIconPosition', pos)} className={cn(inspectorChoiceButtonBase, selectedStyle.inputIconPosition === pos ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FlatField>
+                                    </>
                                 ) : null}
                             </FlatInspectorSection>
                             <FlatInspectorSection title="Autocomplete Dropdown" icon={Config}>

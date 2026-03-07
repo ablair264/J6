@@ -2215,6 +2215,7 @@ export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = [
             inputShowIcon: true,
             inputIconPosition: 'left',
             inputPlaceholder: 'Search...',
+            icon: 'search',
         },
     },
     {
@@ -2227,6 +2228,7 @@ export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = [
             inputShowIcon: true,
             inputIconPosition: 'left',
             inputPlaceholder: 'Find something...',
+            icon: 'search',
         },
     },
     {
@@ -2239,6 +2241,7 @@ export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = [
             inputShowIcon: true,
             inputIconPosition: 'right',
             inputPlaceholder: 'Enter value...',
+            icon: 'star',
         },
     },
 ];

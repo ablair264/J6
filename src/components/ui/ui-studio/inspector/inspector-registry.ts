@@ -112,7 +112,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: false },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
     },
     label: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
