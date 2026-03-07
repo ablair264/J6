@@ -1230,11 +1230,21 @@ export function renderPreview(
             }
 
         case 'tabs': {
+            const tabTextStyle = extractTextStyle(style);
+            delete tabTextStyle.color;
             const triggerStyle = {
-                ...extractTextStyle(style),
+                ...tabTextStyle,
                 borderRadius: style.borderRadius,
                 minHeight: `${Math.round(32 * SIZE_SCALE[instance.style.size])}px`,
+                justifyContent:
+                    instance.style.fontPosition === 'left'
+                        ? 'flex-start'
+                        : instance.style.fontPosition === 'right'
+                            ? 'flex-end'
+                            : 'center',
+                textAlign: instance.style.fontPosition,
             } satisfies CSSProperties;
+            const fallbackTextColor = typeof style.color === 'string' ? style.color : undefined;
             const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
             const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsTextMotionPresetId);
             const tabLabels = ['Style', 'Effects', 'Layout', 'Tokens', 'Export'];
@@ -1261,7 +1271,6 @@ export function renderPreview(
                     <TabsList
                         variant={instance.style.tabsVariant}
                         listBg={instance.style.tabsListBg || undefined}
-                        className={cn(instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline')}
                         style={{ borderRadius: style.borderRadius, boxShadow: style.boxShadow }}
                     >
                         {Array.from({ length: tabCount }, (_, i) => (
@@ -1271,12 +1280,9 @@ export function renderPreview(
                                 style={triggerStyle}
                                 activeBg={instance.style.tabsActiveBg || undefined}
                                 indicatorColor={instance.style.tabsIndicatorColor || undefined}
-                                activeTextColor={instance.style.tabsActiveTextColor || undefined}
-                                inactiveTextColor={instance.style.tabsInactiveTextColor || undefined}
-                                className={cn(
-                                    'max-w-full overflow-hidden',
-                                    instance.style.tabsUnderlineMotionEnabled && 'ui-studio-tabs-underline-trigger',
-                                )}
+                                activeTextColor={instance.style.tabsActiveTextColor || fallbackTextColor}
+                                inactiveTextColor={instance.style.tabsInactiveTextColor || fallbackTextColor}
+                                className="max-w-full overflow-hidden"
                                 asChild={hasHoverOrTap}
                             >
                                 {hasHoverOrTap ? (

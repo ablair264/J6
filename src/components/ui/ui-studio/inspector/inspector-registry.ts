@@ -240,7 +240,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
     tabs: {
-        sections: { presets: true, dimensions: false, componentConfig: 'Tabs Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
+        sections: { presets: true, dimensions: false, componentConfig: 'Tabs Config', appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
         effects: {
             dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true,
             gradientSlide: true, animatedBorder: true, rippleFill: true, loading: false,

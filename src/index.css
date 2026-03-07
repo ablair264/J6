@@ -1028,7 +1028,7 @@
   width: auto !important;
   height: 2px !important;
   border-radius: 999px !important;
-  background: color-mix(in srgb, var(--inspector-accent, #2dd4bf) 82%, transparent) !important;
+  background: var(--tabs-indicator-color, color-mix(in srgb, var(--inspector-accent, #2dd4bf) 82%, transparent)) !important;
   opacity: 1 !important;
   transform: scaleX(0);
   transform-origin: center;
