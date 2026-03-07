@@ -23,22 +23,22 @@ import type {
     FontPosition,
     IconOptionId,
     SizeOption,
+    StyleableState,
+    StateOverrides,
     StylePreset,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
 import {
-    BUTTON_STATE_FIELD_KEYS,
     COMPONENTS,
     DEFAULT_STYLE,
     normalizeStyleConfig,
 } from './constants';
-import type { ButtonStateField } from './constants';
 import {
     getComponentVisualPreset,
     getComponentVisualPresets,
     isUIComponentKind,
     resolveTokenToHex,
-    supportsButtonStateStyle,
+    supportsStateStyles,
     supportsEntryMotion,
 } from './utilities';
 import { getMotionComponentPresets } from './motion';
@@ -115,10 +115,12 @@ export function hydrateComponentState(kind: UIComponentKind): PersistedComponent
         if (!Array.isArray(parsed.instances) || parsed.instances.length === 0) {
             return fallback;
         }
-        const normalizedInstances = parsed.instances.map((instance) => ({
-            ...instance,
-            style: normalizeStyleConfig(instance.style),
-        }));
+        const normalizedInstances = parsed.instances.map((instance) =>
+            migrateLegacyStateFields({
+                ...instance,
+                style: normalizeStyleConfig(instance.style),
+            }),
+        );
         const selectedExists = normalizedInstances.some((instance) => instance.id === parsed.selectedInstanceId);
         return {
             instances: normalizedInstances,
@@ -133,51 +135,96 @@ export function hydrateComponentState(kind: UIComponentKind): PersistedComponent
     }
 }
 
-function syncBaseStateStyles(kind: UIComponentKind, style: ComponentStyleConfig): ComponentStyleConfig {
-    if (!supportsButtonStateStyle(kind)) {
-        return style;
+export function resolveStateStyle(
+    instance: ComponentInstance,
+    state: ButtonPreviewState,
+): ComponentStyleConfig {
+    if (state === 'default' || !instance.stateOverrides?.[state]) {
+        return instance.style;
     }
+    return { ...instance.style, ...instance.stateOverrides[state] };
+}
+
+// ─── Migration: flat button* fields → stateOverrides ─────────────────────
+
+const LEGACY_STATE_FIELD_MAP: Record<string, { state: 'hover' | 'active' | 'disabled'; key: keyof ComponentStyleConfig }> = {
+    buttonHoverFillMode: { state: 'hover', key: 'fillMode' },
+    buttonHoverFillColor: { state: 'hover', key: 'fillColor' },
+    buttonHoverFillColorTo: { state: 'hover', key: 'fillColorTo' },
+    buttonHoverFillWeight: { state: 'hover', key: 'fillWeight' },
+    buttonHoverFillOpacity: { state: 'hover', key: 'fillOpacity' },
+    buttonHoverFontColor: { state: 'hover', key: 'fontColor' },
+    buttonHoverFontOpacity: { state: 'hover', key: 'fontOpacity' },
+    buttonHoverFontSize: { state: 'hover', key: 'fontSize' },
+    buttonHoverFontWeight: { state: 'hover', key: 'fontWeight' },
+    buttonHoverFontPosition: { state: 'hover', key: 'fontPosition' },
+    buttonHoverStrokeColor: { state: 'hover', key: 'strokeColor' },
+    buttonHoverStrokeOpacity: { state: 'hover', key: 'strokeOpacity' },
+    buttonHoverStrokeWeight: { state: 'hover', key: 'strokeWeight' },
+    buttonActiveFillMode: { state: 'active', key: 'fillMode' },
+    buttonActiveFillColor: { state: 'active', key: 'fillColor' },
+    buttonActiveFillColorTo: { state: 'active', key: 'fillColorTo' },
+    buttonActiveFillWeight: { state: 'active', key: 'fillWeight' },
+    buttonActiveFillOpacity: { state: 'active', key: 'fillOpacity' },
+    buttonActiveFontColor: { state: 'active', key: 'fontColor' },
+    buttonActiveFontOpacity: { state: 'active', key: 'fontOpacity' },
+    buttonActiveFontSize: { state: 'active', key: 'fontSize' },
+    buttonActiveFontWeight: { state: 'active', key: 'fontWeight' },
+    buttonActiveFontPosition: { state: 'active', key: 'fontPosition' },
+    buttonActiveStrokeColor: { state: 'active', key: 'strokeColor' },
+    buttonActiveStrokeOpacity: { state: 'active', key: 'strokeOpacity' },
+    buttonActiveStrokeWeight: { state: 'active', key: 'strokeWeight' },
+    buttonDisabledFillMode: { state: 'disabled', key: 'fillMode' },
+    buttonDisabledFillColor: { state: 'disabled', key: 'fillColor' },
+    buttonDisabledFillColorTo: { state: 'disabled', key: 'fillColorTo' },
+    buttonDisabledFillWeight: { state: 'disabled', key: 'fillWeight' },
+    buttonDisabledFillOpacity: { state: 'disabled', key: 'fillOpacity' },
+    buttonDisabledFontColor: { state: 'disabled', key: 'fontColor' },
+    buttonDisabledFontOpacity: { state: 'disabled', key: 'fontOpacity' },
+    buttonDisabledFontSize: { state: 'disabled', key: 'fontSize' },
+    buttonDisabledFontWeight: { state: 'disabled', key: 'fontWeight' },
+    buttonDisabledFontPosition: { state: 'disabled', key: 'fontPosition' },
+    buttonDisabledStrokeColor: { state: 'disabled', key: 'strokeColor' },
+    buttonDisabledStrokeOpacity: { state: 'disabled', key: 'strokeOpacity' },
+    buttonDisabledStrokeWeight: { state: 'disabled', key: 'strokeWeight' },
+};
+
+function migrateLegacyStateFields(instance: ComponentInstance): ComponentInstance {
+    const styleAny = instance.style as Record<string, unknown>;
+    let hasLegacy = false;
+    for (const legacyKey of Object.keys(LEGACY_STATE_FIELD_MAP)) {
+        if (legacyKey in styleAny) {
+            hasLegacy = true;
+            break;
+        }
+    }
+    if (!hasLegacy) return instance;
+
+    const overrides: StateOverrides = { ...instance.stateOverrides };
+    const cleanedStyle = { ...instance.style } as Record<string, unknown>;
+
+    for (const [legacyKey, { state, key }] of Object.entries(LEGACY_STATE_FIELD_MAP)) {
+        if (!(legacyKey in styleAny)) continue;
+        const value = styleAny[legacyKey];
+        // Only store as override if it differs from the base style
+        if (value !== (instance.style as Record<string, unknown>)[key]) {
+            if (!overrides[state]) overrides[state] = {};
+            (overrides[state] as Record<string, unknown>)[key] = value;
+        }
+        delete cleanedStyle[legacyKey];
+    }
+
+    // Prune empty override objects
+    for (const state of ['hover', 'active', 'disabled'] as const) {
+        if (overrides[state] && Object.keys(overrides[state]!).length === 0) {
+            delete overrides[state];
+        }
+    }
+
     return {
-        ...style,
-        buttonHoverFillMode: style.fillMode,
-        buttonHoverFillColor: style.fillColor,
-        buttonHoverFillColorTo: style.fillColorTo,
-        buttonHoverFillWeight: style.fillWeight,
-        buttonHoverFillOpacity: style.fillOpacity,
-        buttonHoverFontColor: style.fontColor,
-        buttonHoverFontOpacity: style.fontOpacity,
-        buttonHoverFontSize: style.fontSize,
-        buttonHoverFontWeight: style.fontWeight,
-        buttonHoverFontPosition: style.fontPosition,
-        buttonHoverStrokeColor: style.strokeColor,
-        buttonHoverStrokeOpacity: style.strokeOpacity,
-        buttonHoverStrokeWeight: style.strokeWeight,
-        buttonActiveFillMode: style.fillMode,
-        buttonActiveFillColor: style.fillColor,
-        buttonActiveFillColorTo: style.fillColorTo,
-        buttonActiveFillWeight: style.fillWeight,
-        buttonActiveFillOpacity: style.fillOpacity,
-        buttonActiveFontColor: style.fontColor,
-        buttonActiveFontOpacity: style.fontOpacity,
-        buttonActiveFontSize: style.fontSize,
-        buttonActiveFontWeight: style.fontWeight,
-        buttonActiveFontPosition: style.fontPosition,
-        buttonActiveStrokeColor: style.strokeColor,
-        buttonActiveStrokeOpacity: style.strokeOpacity,
-        buttonActiveStrokeWeight: style.strokeWeight,
-        buttonDisabledFillMode: style.fillMode,
-        buttonDisabledFillColor: style.fillColor,
-        buttonDisabledFillColorTo: style.fillColorTo,
-        buttonDisabledFillWeight: style.fillWeight,
-        buttonDisabledFillOpacity: style.fillOpacity,
-        buttonDisabledFontColor: style.fontColor,
-        buttonDisabledFontOpacity: style.fontOpacity,
-        buttonDisabledFontSize: style.fontSize,
-        buttonDisabledFontWeight: style.fontWeight,
-        buttonDisabledFontPosition: style.fontPosition,
-        buttonDisabledStrokeColor: style.strokeColor,
-        buttonDisabledStrokeOpacity: style.strokeOpacity,
-        buttonDisabledStrokeWeight: style.strokeWeight,
+        ...instance,
+        style: cleanedStyle as ComponentStyleConfig,
+        stateOverrides: Object.keys(overrides).length > 0 ? overrides : undefined,
     };
 }
 
@@ -289,6 +336,8 @@ interface StudioState {
     // ─── Design Actions ───────────────────────────────────────────────
     updateSelectedStyle: <K extends keyof ComponentStyleConfig>(key: K, value: ComponentStyleConfig[K]) => void;
     updateSelectedStyles: (updates: Partial<ComponentStyleConfig>) => void;
+    updateStateOverride: <K extends keyof ComponentStyleConfig>(state: StyleableState, key: K, value: ComponentStyleConfig[K]) => void;
+    updateStateOverrides: (state: StyleableState, updates: Partial<ComponentStyleConfig>) => void;
     applySizeTokenToSelected: (size: SizeOption, sizeToken: { height: number; width?: number }) => void;
     addInstance: (kind?: UIComponentKind) => void;
     deleteInstance: (id: string) => void;
@@ -522,6 +571,60 @@ export const useStudioStore = create<StudioState>()(
                 }));
             },
 
+            updateStateOverride: (state, key, value) => {
+                const { selectedInstanceId } = get();
+                if (!selectedInstanceId) return;
+                set((s) => ({
+                    instances: s.instances.map((instance) => {
+                        if (instance.id !== selectedInstanceId) return instance;
+                        const overrides: StateOverrides = { ...instance.stateOverrides };
+                        const stateObj = { ...overrides[state] };
+                        // Prune if value matches base style
+                        if (instance.style[key] === value) {
+                            delete (stateObj as Record<string, unknown>)[key];
+                        } else {
+                            (stateObj as Record<string, unknown>)[key] = value;
+                        }
+                        if (Object.keys(stateObj).length === 0) {
+                            delete overrides[state];
+                        } else {
+                            overrides[state] = stateObj;
+                        }
+                        return {
+                            ...instance,
+                            stateOverrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+                        };
+                    }),
+                }));
+            },
+
+            updateStateOverrides: (state, updates) => {
+                const { selectedInstanceId } = get();
+                if (!selectedInstanceId) return;
+                set((s) => ({
+                    instances: s.instances.map((instance) => {
+                        if (instance.id !== selectedInstanceId) return instance;
+                        const overrides: StateOverrides = { ...instance.stateOverrides };
+                        const stateObj = { ...overrides[state], ...updates };
+                        // Prune keys that match base style
+                        for (const [k, v] of Object.entries(updates)) {
+                            if ((instance.style as Record<string, unknown>)[k] === v) {
+                                delete (stateObj as Record<string, unknown>)[k];
+                            }
+                        }
+                        if (Object.keys(stateObj).length === 0) {
+                            delete overrides[state];
+                        } else {
+                            overrides[state] = stateObj;
+                        }
+                        return {
+                            ...instance,
+                            stateOverrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+                        };
+                    }),
+                }));
+            },
+
             applySizeTokenToSelected: (size, sizeToken) => {
                 const { selectedInstanceId } = get();
                 if (!selectedInstanceId) return;
@@ -574,6 +677,9 @@ export const useStudioStore = create<StudioState>()(
                 const duplicate = createInstance(source.kind, nextInstanceIndex);
                 duplicate.name = `${source.name} Copy`;
                 duplicate.style = { ...source.style };
+                if (source.stateOverrides) {
+                    duplicate.stateOverrides = JSON.parse(JSON.stringify(source.stateOverrides));
+                }
                 set((state) => ({
                     instances: [...state.instances, duplicate],
                     selectedInstanceId: duplicate.id,
@@ -595,7 +701,7 @@ export const useStudioStore = create<StudioState>()(
                 set((state) => ({
                     instances: state.instances.map((instance) =>
                         instance.id === selectedInstanceId
-                            ? { ...instance, style: createDefaultStyle(instance.kind) }
+                            ? { ...instance, style: createDefaultStyle(instance.kind), stateOverrides: undefined }
                             : instance,
                     ),
                 }));
@@ -644,7 +750,8 @@ export const useStudioStore = create<StudioState>()(
                                 };
                                 return {
                                     ...instance,
-                                    style: syncBaseStateStyles(instance.kind, mergedStyle),
+                                    style: mergedStyle,
+                                    stateOverrides: undefined,
                                 };
                             })()
                             : instance,

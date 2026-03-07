@@ -10,12 +10,10 @@ export type UIComponentKind =
   | 'dialog'
   | 'drawer'
   | 'dropdown'
-  | 'label'
   | 'input'
   | 'navigation-menu'
   | 'popover'
   | 'progress'
-  | 'skeleton'
   | 'slider'
   | 'tabs'
   | 'animated-text'
@@ -38,12 +36,20 @@ export type PrimitiveSide = 'top' | 'right' | 'bottom' | 'left';
 export type PrimitiveAlign = 'start' | 'center' | 'end';
 export type MotionTransitionType = 'tween' | 'spring';
 export type MotionEaseOption = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'anticipate' | 'backIn' | 'backOut' | 'backInOut' | 'circIn' | 'circOut' | 'circInOut' | 'cubicBezier';
-export type ButtonPreviewState = 'default' | 'hover' | 'active' | 'disabled';
+export type StyleableState = 'hover' | 'active' | 'disabled' | 'focus';
+
+export interface StateOverrides {
+  hover?:    Partial<ComponentStyleConfig>;
+  active?:   Partial<ComponentStyleConfig>;
+  disabled?: Partial<ComponentStyleConfig>;
+  focus?:    Partial<ComponentStyleConfig>;
+}
+
+export type ButtonPreviewState = 'default' | StyleableState;
 export type GradientSlideDirection = 'left' | 'right' | 'top' | 'bottom';
 export type LoaderOutcome = 'success' | 'failure' | 'warning';
 export type CheckboxSelectionIcon = 'tick' | 'cross' | 'solid';
 export type TabsVariant = 'default' | 'line' | 'pill' | 'segment';
-export type SkeletonVariant = 'text' | 'avatar' | 'card' | 'custom';
 export type AvatarShape = 'circle' | 'rounded';
 export type ProgressVariant = 'linear' | 'circular';
 export type AlertVariant = 'info' | 'success' | 'warning' | 'error';
@@ -120,45 +126,6 @@ export interface ComponentStyleConfig {
   panelEffectBlur: boolean;
   panelBlurAmount: number;
   buttonPreviewState: ButtonPreviewState;
-  buttonHoverFillMode: FillMode;
-  buttonHoverFillColor: string;
-  buttonHoverFillColorTo: string;
-  buttonHoverFillWeight: number;
-  buttonHoverFillOpacity: number;
-  buttonHoverFontColor: string;
-  buttonHoverFontOpacity: number;
-  buttonHoverFontSize: number;
-  buttonHoverFontWeight: number;
-  buttonHoverFontPosition: FontPosition;
-  buttonHoverStrokeColor: string;
-  buttonHoverStrokeOpacity: number;
-  buttonHoverStrokeWeight: number;
-  buttonActiveFillMode: FillMode;
-  buttonActiveFillColor: string;
-  buttonActiveFillColorTo: string;
-  buttonActiveFillWeight: number;
-  buttonActiveFillOpacity: number;
-  buttonActiveFontColor: string;
-  buttonActiveFontOpacity: number;
-  buttonActiveFontSize: number;
-  buttonActiveFontWeight: number;
-  buttonActiveFontPosition: FontPosition;
-  buttonActiveStrokeColor: string;
-  buttonActiveStrokeOpacity: number;
-  buttonActiveStrokeWeight: number;
-  buttonDisabledFillMode: FillMode;
-  buttonDisabledFillColor: string;
-  buttonDisabledFillColorTo: string;
-  buttonDisabledFillWeight: number;
-  buttonDisabledFillOpacity: number;
-  buttonDisabledFontColor: string;
-  buttonDisabledFontOpacity: number;
-  buttonDisabledFontSize: number;
-  buttonDisabledFontWeight: number;
-  buttonDisabledFontPosition: FontPosition;
-  buttonDisabledStrokeColor: string;
-  buttonDisabledStrokeOpacity: number;
-  buttonDisabledStrokeWeight: number;
   badgeShowText: boolean;
   buttonShowText: boolean;
   icon: IconOptionId;
@@ -202,9 +169,6 @@ export interface ComponentStyleConfig {
   dropdownAlign: PrimitiveAlign;
   dropdownSideOffset: number;
   dropdownAlignOffset: number;
-  labelFor: string;
-  labelText: string;
-  labelShowField: boolean;
   tooltipSide: PrimitiveSide;
   tooltipAlign: PrimitiveAlign;
   tooltipSideOffset: number;
@@ -481,10 +445,6 @@ export interface ComponentStyleConfig {
   progressPlayAnimation: boolean;
   progressCircularSize: number;
   progressCircularStrokeWidth: number;
-  // Skeleton
-  skeletonVariant: SkeletonVariant;
-  skeletonAnimationSpeed: number;
-  skeletonLines: number;
   // Alert
   alertVariant: AlertVariant;
   alertDismissible: boolean;
@@ -618,6 +578,7 @@ export interface ComponentInstance {
   kind: UIComponentKind;
   name: string;
   style: ComponentStyleConfig;
+  stateOverrides?: StateOverrides;
 }
 
 export interface StylePreset {

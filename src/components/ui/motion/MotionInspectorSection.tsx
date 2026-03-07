@@ -71,16 +71,6 @@ const MOTION_CONTROL_TUNING_BY_KIND: Partial<Record<UIComponentKind, Partial<Mot
         tapOffset: 10,
         tapRotateRange: 10,
     },
-    label: {
-        hoverScaleMin: 96,
-        hoverScaleMax: 108,
-        hoverOffset: 12,
-        hoverRotateRange: 10,
-        tapScaleMin: 92,
-        tapScaleMax: 104,
-        tapOffset: 10,
-        tapRotateRange: 10,
-    },
     tabs: {
         hoverScaleMin: 94,
         hoverScaleMax: 112,

@@ -17,7 +17,8 @@ import {
     buildPreviewPresentation,
     isUIComponentKind,
     supportsAdvancedHover,
-    supportsButtonStateStyle,
+    supportsStateStyles,
+    getSupportedStates,
     supportsEntryMotion,
     supportsPanelStyle,
 } from './ui-studio/utilities';
@@ -198,7 +199,7 @@ export function UIStudioComponentPage() {
     }, [instances, selectedInstanceId, setSelectedInstanceId]);
 
     const isOverlayComponent = selectedInstance ? supportsPanelStyle(selectedInstance.kind) : false;
-    const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
+    const usesStateAppearanceControls = selectedInstance ? supportsStateStyles(selectedInstance.kind) : false;
     const canReplayEntryMotion = Boolean(
         selectedInstance &&
         supportsEntryMotion(selectedInstance.kind) &&
@@ -236,12 +237,15 @@ export function UIStudioComponentPage() {
     const activePreviewInstance =
         selectedInstance && debouncedPreviewInstance?.id === selectedInstance.id ? debouncedPreviewInstance : selectedInstance;
 
-    const buttonStateOptions: Array<{ value: ButtonPreviewState; label: string }> = [
-        { value: 'default', label: 'Default' },
-        { value: 'hover', label: 'Hover' },
-        { value: 'active', label: 'Active' },
-        { value: 'disabled', label: 'Disabled' },
-    ];
+    const STATE_LABELS: Record<string, string> = { default: 'Default', hover: 'Hover', active: 'Active', disabled: 'Disabled', focus: 'Focus' };
+    const buttonStateOptions: Array<{ value: ButtonPreviewState; label: string }> = useMemo(() => {
+        if (!selectedInstance) return [{ value: 'default' as ButtonPreviewState, label: 'Default' }];
+        const states = getSupportedStates(selectedInstance.kind);
+        return [
+            { value: 'default' as ButtonPreviewState, label: 'Default' },
+            ...states.map((s) => ({ value: s as ButtonPreviewState, label: STATE_LABELS[s] ?? s })),
+        ];
+    }, [selectedInstance?.kind]);
 
     const previewStateSource = activePreviewInstance ?? selectedInstance ?? null;
     const stagePreviewInstance =

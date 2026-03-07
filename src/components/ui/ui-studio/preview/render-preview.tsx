@@ -6,7 +6,6 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { DataTable } from '@/components/ui/data-table';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -501,8 +500,6 @@ export function componentSnippet(
             : instance.style.checkboxState === 'checked'
                 ? 'true'
                 : 'false';
-    const labelFor = instance.style.labelFor.trim() || 'field-id';
-    const safeLabelText = instance.style.labelText.replace(/'/g, "\\'");
     const safeCheckboxName = instance.style.checkboxName.replace(/'/g, "\\'");
     const safeCheckboxValue = instance.style.checkboxValue.replace(/'/g, "\\'");
     const dropdownHoverClass =
@@ -608,11 +605,6 @@ export function componentSnippet(
             const popoverAlignAttr = instance.style.popoverAlign !== 'center' ? ` align="${instance.style.popoverAlign}"` : '';
             return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${popoverSideAttr}${popoverAlignAttr}${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</PopoverContent>\n</Popover>`;
         }
-        case 'label':
-            {
-                const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-                return `${declarations ? `${declarations}\n\n` : ''}<div className="flex items-center justify-center">\n  <Label htmlFor="${labelFor}"${classNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}${safeLabelText}${instance.style.iconPosition === 'right' ? iconRight : ''}</Label>\n  ${instance.style.labelShowField ? `<Input id="${labelFor}" placeholder="Linked field" />` : `<div id="${labelFor}" />`}\n</div>`;
-            }
         case 'input': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const inputHasLeftIcon = instance.style.inputShowIcon && instance.style.inputIconPosition === 'left';
@@ -708,10 +700,6 @@ export function componentSnippet(
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
             return `${declarations ? `${declarations}\n\n` : ''}<Progress\n  ${progressProps}${previewStyleSnippet}\n/>`;
-        }
-        case 'skeleton': {
-            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<div className="space-y-2">\n  <Skeleton variant="${instance.style.skeletonVariant}"${classNameSnippet}${previewStyleSnippet} />\n  ${instance.style.skeletonLines > 1 ? `<Skeleton variant="text" />\n  ` : ''}${instance.style.skeletonLines > 2 ? '<Skeleton variant="text" className="w-3/4" />' : ''}\n</div>`;
         }
         case 'slider': {
             const declarations = [previewBindings.declarations, sliderClassBinding.declarations].filter(Boolean).join('\n');
@@ -841,8 +829,6 @@ export function renderPreview(
     const animatedCheckboxChecked =
         instance.style.checkboxState === 'indeterminate' ? ('indeterminate' as const) : undefined;
     const animatedCheckboxDefaultChecked = instance.style.checkboxState === 'checked';
-    const labelFor = instance.style.labelFor.trim() || `${instance.id}-label-field`;
-    const labelText = instance.style.labelText.trim() || 'Monthly rental';
     const badgeText = instance.style.badgeShowText ? 'Badge token' : '';
     const buttonText = instance.style.buttonShowText ? 'Primary action' : '';
     const icon = renderConfiguredIcon(instance.style, 'shrink-0');
@@ -1173,22 +1159,6 @@ export function renderPreview(
                     </div>
                 );
             }
-
-        case 'label':
-            return (
-                <div className="flex w-full items-center justify-center">
-                    <div className="flex max-w-full items-center gap-3">
-                        {instance.style.labelShowField ? (
-                            <Input id={labelFor} placeholder="Linked field" className="w-[180px]" />
-                        ) : (
-                            <div id={labelFor} className="size-3 rounded-full bg-primary/30" />
-                        )}
-                        <Label style={style} className="inline-flex max-w-full items-center overflow-hidden">
-                            {withIcon(labelText, icon, instance.style.iconPosition)}
-                        </Label>
-                    </div>
-                </div>
-            );
 
         case 'input':
             {
@@ -1631,25 +1601,6 @@ export function renderPreview(
                     motionClassName={motionClassName}
                 />
             );
-
-        case 'skeleton': {
-            const animSpeed = instance.style.skeletonAnimationSpeed <= 0.75 ? 'fast' as const
-                : instance.style.skeletonAnimationSpeed >= 1.5 ? 'slow' as const
-                : 'normal' as const;
-            const skeletonPassthrough = { borderRadius: style.borderRadius, boxShadow: style.boxShadow };
-            return (
-                <div className="w-full max-w-sm space-y-2" style={buildComponentWrapperStyle(style, 'skeleton')}>
-                    <Skeleton
-                        variant={instance.style.skeletonVariant}
-                        animationSpeed={animSpeed}
-                        className={cn(motionClassName)}
-                        style={skeletonPassthrough}
-                    />
-                    {instance.style.skeletonLines > 1 && <Skeleton variant="text" animationSpeed={animSpeed} style={skeletonPassthrough} />}
-                    {instance.style.skeletonLines > 2 && <Skeleton variant="text" animationSpeed={animSpeed} className="w-3/4" style={skeletonPassthrough} />}
-                </div>
-            );
-        }
 
         case 'card': {
             const showImage = hasCardContent(instance.style.cardImageSrc);

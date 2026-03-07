@@ -1,4 +1,4 @@
-import type { UIComponentKind } from '@/components/ui/ui-studio.types';
+import type { StyleableState, UIComponentKind } from '@/components/ui/ui-studio.types';
 
 // ─── Wrapper Style Strategies ────────────────────────────────────────────────
 // Controls which CSS properties buildComponentWrapperStyle keeps/strips.
@@ -56,7 +56,8 @@ export interface InspectorLayout {
     wrapperStyle: WrapperStyleStrategy;
     iconSelection: boolean;
     panelStyle: boolean;
-    buttonStateStyle: boolean;
+    stateStyles: boolean;
+    supportedStates: StyleableState[];
     primitiveControls: boolean;
     motionPreset: boolean;          // rainbow/shimmer class preset
 }
@@ -98,49 +99,42 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, buttonStateStyle: true, primitiveControls: false, motionPreset: true,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: false, motionPreset: true,
     },
     badge: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true, loading: false },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: true,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active'], primitiveControls: false, motionPreset: true,
     },
     input: {
         sections: { presets: true, dimensions: true, componentConfig: 'Input Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: false },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
-    },
-    label: {
-        sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
-        effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
-        motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: false },
-        wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: true, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'focus', 'disabled'], primitiveControls: false, motionPreset: false,
     },
     checkbox: {
         sections: { presets: true, dimensions: true, componentConfig: 'Checkbox Config', appearance: false, typography: true, effects: false, advancedHover: false, motion: true },
         effects: NO_EFFECTS,
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'disabled'], primitiveControls: false, motionPreset: false,
     },
     slider: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: false, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: false, panelStyle: false, buttonStateStyle: true, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'disabled'], primitiveControls: false, motionPreset: false,
     },
     switch: {
         sections: { presets: true, dimensions: false, componentConfig: 'Switch Config', appearance: false, typography: false, effects: false, advancedHover: false, motion: true },
         effects: NO_EFFECTS,
         motion: { entryPresets: false, hoverEffects: true, tapEffects: true, stagger: false },
         wrapperStyle: 'shadow-only',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'disabled'], primitiveControls: false, motionPreset: false,
     },
 
     // ── Surface / panel components ──────────────────────────────────────────
@@ -153,7 +147,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover'], primitiveControls: false, motionPreset: false,
     },
     'product-card': {
         sections: { presets: true, dimensions: true, componentConfig: 'Product Card Config', appearance: true, typography: true, effects: true, advancedHover: true, motion: true },
@@ -164,7 +158,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover'], primitiveControls: false, motionPreset: false,
     },
     'listing-card': {
         sections: { presets: true, dimensions: true, componentConfig: 'Listing Card Config', appearance: true, typography: true, effects: true, advancedHover: true, motion: true },
@@ -175,42 +169,42 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover'], primitiveControls: false, motionPreset: false,
     },
     dialog: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: false, panelStyle: true, buttonStateStyle: true, primitiveControls: true, motionPreset: false,
+        iconSelection: false, panelStyle: true, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: true, motionPreset: false,
     },
     drawer: {
         sections: { presets: true, dimensions: true, componentConfig: 'Drawer Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: true, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: false, motionPreset: false,
     },
     dropdown: {
         sections: { presets: true, dimensions: true, componentConfig: 'Dropdown Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: true, motionPreset: false,
+        iconSelection: true, panelStyle: true, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: true, motionPreset: false,
     },
     popover: {
         sections: { presets: true, dimensions: true, componentConfig: 'Popover Config', appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: true, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: false, motionPreset: false,
     },
     tooltip: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...SURFACE_EFFECTS },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: true, buttonStateStyle: true, primitiveControls: true, motionPreset: false,
+        iconSelection: true, panelStyle: true, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: true, motionPreset: false,
     },
 
     // ── Structured / data components ────────────────────────────────────────
@@ -223,7 +217,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: true },
         wrapperStyle: 'strip-border',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
     tabs: {
         sections: { presets: true, dimensions: false, componentConfig: 'Tabs Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
@@ -234,14 +228,14 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active'], primitiveControls: false, motionPreset: false,
     },
     'data-table': {
         sections: { presets: true, dimensions: false, componentConfig: 'Table Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'strip-all',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
     'navigation-menu': {
         sections: { presets: true, dimensions: false, componentConfig: 'Nav Menu Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
@@ -252,7 +246,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: true },
         wrapperStyle: 'strip-layout',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
 
     // ── Display / feedback components ───────────────────────────────────────
@@ -265,44 +259,36 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: false },
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover'], primitiveControls: false, motionPreset: false,
     },
     avatar: {
         sections: { presets: true, dimensions: false, componentConfig: 'Avatar Config', appearance: false, typography: false, effects: false, advancedHover: false, motion: true },
         effects: NO_EFFECTS,
         motion: FULL_MOTION,
         wrapperStyle: 'minimal',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
     'avatar-group': {
         sections: { presets: true, dimensions: false, componentConfig: 'Avatar Group Config', appearance: false, typography: false, effects: false, advancedHover: false, motion: true },
         effects: NO_EFFECTS,
         motion: FULL_MOTION,
         wrapperStyle: 'minimal',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
     progress: {
         sections: { presets: true, dimensions: false, componentConfig: 'Progress Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
         effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
         motion: { entryPresets: true, hoverEffects: false, tapEffects: false, stagger: false },
         wrapperStyle: 'strip-all',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
-    skeleton: {
-        sections: { presets: true, dimensions: false, componentConfig: false, appearance: false, typography: false, effects: true, advancedHover: false, motion: true },
-        effects: { ...NO_EFFECTS, dropShadow: true, innerShadow: true, backgroundBlur: true, glassTint: true },
-        motion: FULL_MOTION,
-        wrapperStyle: 'strip-all',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
-    },
-
     // ── Text animation ──────────────────────────────────────────────────────
     'animated-text': {
         sections: { presets: true, dimensions: false, componentConfig: false, appearance: false, typography: true, effects: false, advancedHover: false, motion: false },
         effects: NO_EFFECTS,
         motion: NO_MOTION,
         wrapperStyle: 'typography-only',
-        iconSelection: false, panelStyle: false, buttonStateStyle: false, primitiveControls: false, motionPreset: false,
+        iconSelection: false, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
 };
 

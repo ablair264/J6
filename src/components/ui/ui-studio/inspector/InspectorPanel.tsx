@@ -40,16 +40,14 @@ import type {
     IconOptionId,
 } from '@/components/ui/ui-studio.types';
 import {
-    BUTTON_STATE_FIELD_KEYS,
     GOOGLE_FONTS,
     ICON_OPTIONS,
 } from '../constants';
-import type { ButtonStateField } from '../constants';
 import {
     buildKindTitle,
     getComponentVisualPreset,
     getComponentVisualPresets,
-    supportsButtonStateStyle,
+    supportsStateStyles,
     supportsDropdownHoverStyle,
     supportsIconSelection,
     supportsTypographyStyle,
@@ -60,6 +58,7 @@ import {
     selectSelectedInstance,
     selectActiveTokenSet,
     selectSelectedStyle,
+    resolveStateStyle,
 } from '../store';
 import {
     FlatColorControl,
@@ -236,6 +235,8 @@ export function InspectorPanel() {
     const setPendingEffectId = useStudioStore((s) => s.setPendingEffectId);
     const updateSelectedStyle = useStudioStore((s) => s.updateSelectedStyle);
     const updateSelectedStyles = useStudioStore((s) => s.updateSelectedStyles);
+    const updateStateOverride = useStudioStore((s) => s.updateStateOverride);
+    const updateStateOverrides = useStudioStore((s) => s.updateStateOverrides);
     const applySizeTokenToSelected = useStudioStore((s) => s.applySizeTokenToSelected);
     const deleteInstance = useStudioStore((s) => s.deleteInstance);
     const updateInstanceName = useStudioStore((s) => s.updateInstanceName);
@@ -245,7 +246,7 @@ export function InspectorPanel() {
 
     const layout = selectedInstance ? getInspectorLayout(selectedInstance.kind) : null;
     const hasPanelElementControls = layout?.panelStyle ?? false;
-    const usesStateAppearanceControls = selectedInstance ? supportsButtonStateStyle(selectedInstance.kind) : false;
+    const usesStateAppearanceControls = selectedInstance ? supportsStateStyles(selectedInstance.kind) : false;
     const isCardKind = Boolean(selectedInstance && cardKinds.includes(selectedInstance.kind as typeof cardKinds[number]));
     const usesCustomCardTypographyInspector = isCardKind;
 
@@ -321,40 +322,31 @@ export function InspectorPanel() {
 
     // ─── Appearance helpers ───────────────────────────────────────────────
 
-    const getButtonStateValues = (state: ButtonPreviewState) => {
-        if (!selectedStyle || !selectedInstance || !supportsButtonStateStyle(selectedInstance.kind)) {
+    const getStateAppearanceValues = (state: ButtonPreviewState) => {
+        if (!selectedStyle || !selectedInstance || !supportsStateStyles(selectedInstance.kind)) {
             return null;
         }
-        const keys = BUTTON_STATE_FIELD_KEYS[state];
+        const resolved = resolveStateStyle(selectedInstance, state);
         return {
-            fillMode: selectedStyle[keys.fillMode] as FillMode,
-            fillColor: selectedStyle[keys.fillColor] as string,
-            fillColorTo: selectedStyle[keys.fillColorTo] as string,
-            fillWeight: selectedStyle[keys.fillWeight] as number,
-            fillOpacity: selectedStyle[keys.fillOpacity] as number,
-            fontSize: selectedStyle[keys.fontSize] as number,
-            fontWeight: selectedStyle[keys.fontWeight] as number,
-            fontPosition: selectedStyle[keys.fontPosition] as FontPosition,
-            fontColor: selectedStyle[keys.fontColor] as string,
-            fontOpacity: selectedStyle[keys.fontOpacity] as number,
-            strokeColor: selectedStyle[keys.strokeColor] as string,
-            strokeOpacity: selectedStyle[keys.strokeOpacity] as number,
-            strokeWeight: selectedStyle[keys.strokeWeight] as number,
+            fillMode: resolved.fillMode,
+            fillColor: resolved.fillColor,
+            fillColorTo: resolved.fillColorTo,
+            fillWeight: resolved.fillWeight,
+            fillOpacity: resolved.fillOpacity,
+            fontSize: resolved.fontSize,
+            fontWeight: resolved.fontWeight,
+            fontPosition: resolved.fontPosition,
+            fontColor: resolved.fontColor,
+            fontOpacity: resolved.fontOpacity,
+            strokeColor: resolved.strokeColor,
+            strokeOpacity: resolved.strokeOpacity,
+            strokeWeight: resolved.strokeWeight,
         };
-    };
-
-    const updateButtonStateValue = (
-        state: ButtonPreviewState,
-        field: ButtonStateField,
-        value: string | number | FillMode,
-    ) => {
-        const key = BUTTON_STATE_FIELD_KEYS[state][field] as keyof ComponentStyleConfig;
-        updateSelectedStyle(key, value as never);
     };
 
     const currentAppearanceValues = selectedStyle
         ? usesStateAppearanceControls
-            ? getButtonStateValues(selectedStyle.buttonPreviewState)
+            ? getStateAppearanceValues(selectedStyle.buttonPreviewState)
             : {
                 fillMode: selectedStyle.fillMode,
                 fillColor: selectedStyle.fillColor,
@@ -384,17 +376,21 @@ export function InspectorPanel() {
         ),
     );
 
+    type AppearanceField = 'fillMode' | 'fillColor' | 'fillColorTo' | 'fillWeight' | 'fillOpacity'
+        | 'fontSize' | 'fontWeight' | 'fontPosition' | 'fontColor' | 'fontOpacity'
+        | 'strokeColor' | 'strokeOpacity' | 'strokeWeight';
+
     const updateAppearanceField = (
-        field: ButtonStateField,
+        field: AppearanceField,
         value: string | number | FillMode,
     ) => {
         if (!selectedStyle) return;
-        if (usesStateAppearanceControls) {
-            updateButtonStateValue(selectedStyle.buttonPreviewState, field, value);
+        const previewState = selectedStyle.buttonPreviewState;
+        if (usesStateAppearanceControls && previewState !== 'default') {
+            updateStateOverride(previewState, field, value as never);
             return;
         }
-        const key = BUTTON_STATE_FIELD_KEYS.default[field] as keyof ComponentStyleConfig;
-        updateSelectedStyle(key, value as never);
+        updateSelectedStyle(field, value as never);
     };
 
     const updateContentDisplayMode = (mode: 'text' | 'text-icon' | 'icon') => {

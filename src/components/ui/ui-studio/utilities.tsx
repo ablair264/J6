@@ -24,6 +24,7 @@ import type {
     MotionPresetId,
     PrimitiveAlign,
     PrimitiveSide,
+    StyleableState,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
 
@@ -137,8 +138,12 @@ export function supportsDropdownHoverStyle(kind: UIComponentKind): boolean {
     return kind === 'dropdown';
 }
 
-export function supportsButtonStateStyle(kind: UIComponentKind): boolean {
-    return INSPECTOR_REGISTRY[kind].buttonStateStyle;
+export function supportsStateStyles(kind: UIComponentKind): boolean {
+    return INSPECTOR_REGISTRY[kind].stateStyles;
+}
+
+export function getSupportedStates(kind: UIComponentKind): StyleableState[] {
+    return INSPECTOR_REGISTRY[kind].supportedStates;
 }
 
 export function supportsTypographyStyle(kind: UIComponentKind): boolean {
@@ -728,7 +733,7 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
 }
 
 /**
- * For components with internal styling (Progress, Skeleton, DataTable, etc.),
+ * For components with internal styling (Progress, DataTable, etc.),
  * strip background/border/fill properties from the wrapper style so they
  * don't override the component's own visuals. Keep layout properties.
  *
@@ -1375,6 +1380,45 @@ function isTailwindColorClassCandidate(value: string): boolean {
     return trimmed.startsWith('var(') || Boolean(normalizeHexColor(trimmed));
 }
 
+/** Standard Tailwind opacity steps */
+const TAILWIND_OPACITY_STEPS = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 100];
+
+/**
+ * Try to convert an rgba(...) value into a Tailwind `hex/opacity` pair.
+ * Returns e.g. { hex: '#1f2937', opacity: 30 } or null if it can't snap.
+ */
+function tryRgbaToTailwindOpacity(value: string): { hex: string; opacity: number } | null {
+    const match = value.match(
+        /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9.]+)\s*\)$/i,
+    );
+    if (!match) return null;
+
+    const alpha = Number(match[4]);
+    if (!Number.isFinite(alpha)) return null;
+
+    // alpha=1 → full opacity, just use hex directly (no modifier needed)
+    if (alpha >= 0.999) return null;
+
+    const pct = alpha * 100;
+    // Find nearest Tailwind step
+    let nearest = TAILWIND_OPACITY_STEPS[0];
+    let minDist = Math.abs(pct - nearest);
+    for (const step of TAILWIND_OPACITY_STEPS) {
+        const dist = Math.abs(pct - step);
+        if (dist < minDist) {
+            minDist = dist;
+            nearest = step;
+        }
+    }
+    // Only snap if within 2 percentage points
+    if (minDist > 2) return null;
+
+    const hex = rgbStringToHex(value);
+    if (!hex) return null;
+
+    return { hex, opacity: nearest };
+}
+
 export function buildTailwindStylePayload(
     style: CSSProperties,
     tokenSet?: StudioTokenSet,
@@ -1402,9 +1446,9 @@ export function buildTailwindStylePayload(
             if (token.cssVar) {
                 return `var(${token.cssVar})`;
             }
-            const localVar = `--ui-token-${sanitizeTokenVarName(token.id)}`;
-            localTokenVars[localVar] = tokenHex;
-            return `var(${localVar})`;
+            // No semantic CSS variable — return the raw hex directly instead of
+            // creating unnecessary local var indirection like [--ui-token-x:#fff]
+            return tokenHex;
         }
 
         return null;
@@ -1423,7 +1467,12 @@ export function buildTailwindStylePayload(
                 if (isTailwindColorClassCandidate(resolved)) {
                     classes.push(`bg-[${toTailwindArbitraryValue(resolved)}]`);
                 } else {
-                    fallbackStyle.background = rawValue as never;
+                    const rgbaOp = tryRgbaToTailwindOpacity(resolved);
+                    if (rgbaOp) {
+                        classes.push(`bg-[${rgbaOp.hex}]/${rgbaOp.opacity}`);
+                    } else {
+                        fallbackStyle.background = rawValue as never;
+                    }
                 }
                 break;
             }
@@ -1432,7 +1481,12 @@ export function buildTailwindStylePayload(
                 if (isTailwindColorClassCandidate(resolved)) {
                     classes.push(`text-[${toTailwindArbitraryValue(resolved)}]`);
                 } else {
-                    fallbackStyle.color = rawValue as never;
+                    const rgbaOp = tryRgbaToTailwindOpacity(resolved);
+                    if (rgbaOp) {
+                        classes.push(`text-[${rgbaOp.hex}]/${rgbaOp.opacity}`);
+                    } else {
+                        fallbackStyle.color = rawValue as never;
+                    }
                 }
                 break;
             }
@@ -1441,7 +1495,12 @@ export function buildTailwindStylePayload(
                 if (isTailwindColorClassCandidate(resolved)) {
                     classes.push(`border-[${toTailwindArbitraryValue(resolved)}]`);
                 } else {
-                    fallbackStyle.borderColor = rawValue as never;
+                    const rgbaOp = tryRgbaToTailwindOpacity(resolved);
+                    if (rgbaOp) {
+                        classes.push(`border-[${rgbaOp.hex}]/${rgbaOp.opacity}`);
+                    } else {
+                        fallbackStyle.borderColor = rawValue as never;
+                    }
                 }
                 break;
             }
@@ -1628,7 +1687,11 @@ export function buildExportClassBinding(
     }
 
     const classNameVar = `${baseName}ClassName`;
-    declarations.push(`const ${classNameVar} = [${classNameParts.join(', ')}].filter(Boolean).join(' ');`);
+    if (classNameParts.length === 1) {
+        declarations.push(`const ${classNameVar} = ${classNameParts[0]};`);
+    } else {
+        declarations.push(`const ${classNameVar} = [${classNameParts.join(', ')}].filter(Boolean).join(' ');`);
+    }
     return { declarations: declarations.join('\n'), classNameVar };
 }
 
@@ -1704,8 +1767,7 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
         ? buildActiveMotionVariables(instance.kind, instance.style)
         : buildMotionVariables(instance.style);
 
-    // Button state CSS vars — only needed for button/badge/dropdown kinds
-    const hasButtonStates = !forExport || supportsButtonStateStyle(instance.kind);
+    // Dropdown hover CSS vars
     const hasDropdownVars = !forExport || supportsDropdownHoverStyle(instance.kind);
 
     const contextVars: Record<string, string | undefined> = {};
@@ -1713,28 +1775,28 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
         contextVars['--ui-dropdown-hover-bg'] = hexToRgba(instance.style.dropdownHoverFill, instance.style.dropdownHoverFillOpacity / 100);
         contextVars['--ui-dropdown-hover-fg'] = instance.style.dropdownHoverText;
     }
-    if (hasButtonStates) {
-        contextVars['--ui-btn-hover-bg'] = buildStateFill(instance.style.buttonHoverFillMode, instance.style.buttonHoverFillColor, instance.style.buttonHoverFillColorTo, instance.style.buttonHoverFillWeight, instance.style.buttonHoverFillOpacity);
-        contextVars['--ui-btn-hover-fg'] = hexToRgba(instance.style.buttonHoverFontColor, instance.style.buttonHoverFontOpacity / 100);
-        contextVars['--ui-btn-hover-border'] = hexToRgba(instance.style.buttonHoverStrokeColor, instance.style.buttonHoverStrokeOpacity / 100);
-        contextVars['--ui-btn-hover-border-width'] = `${instance.style.buttonHoverStrokeWeight}px`;
-        contextVars['--ui-btn-hover-font-size'] = `${Math.round(instance.style.buttonHoverFontSize * SIZE_SCALE[instance.style.size])}px`;
-        contextVars['--ui-btn-hover-font-weight'] = `${instance.style.buttonHoverFontWeight}`;
-        contextVars['--ui-btn-hover-justify'] = fontPositionToJustify(instance.style.buttonHoverFontPosition);
-        contextVars['--ui-btn-active-bg'] = buildStateFill(instance.style.buttonActiveFillMode, instance.style.buttonActiveFillColor, instance.style.buttonActiveFillColorTo, instance.style.buttonActiveFillWeight, instance.style.buttonActiveFillOpacity);
-        contextVars['--ui-btn-active-fg'] = hexToRgba(instance.style.buttonActiveFontColor, instance.style.buttonActiveFontOpacity / 100);
-        contextVars['--ui-btn-active-border'] = hexToRgba(instance.style.buttonActiveStrokeColor, instance.style.buttonActiveStrokeOpacity / 100);
-        contextVars['--ui-btn-active-border-width'] = `${instance.style.buttonActiveStrokeWeight}px`;
-        contextVars['--ui-btn-active-font-size'] = `${Math.round(instance.style.buttonActiveFontSize * SIZE_SCALE[instance.style.size])}px`;
-        contextVars['--ui-btn-active-font-weight'] = `${instance.style.buttonActiveFontWeight}`;
-        contextVars['--ui-btn-active-justify'] = fontPositionToJustify(instance.style.buttonActiveFontPosition);
-        contextVars['--ui-btn-disabled-bg'] = buildStateFill(instance.style.buttonDisabledFillMode, instance.style.buttonDisabledFillColor, instance.style.buttonDisabledFillColorTo, instance.style.buttonDisabledFillWeight, instance.style.buttonDisabledFillOpacity);
-        contextVars['--ui-btn-disabled-fg'] = hexToRgba(instance.style.buttonDisabledFontColor, instance.style.buttonDisabledFontOpacity / 100);
-        contextVars['--ui-btn-disabled-border'] = hexToRgba(instance.style.buttonDisabledStrokeColor, instance.style.buttonDisabledStrokeOpacity / 100);
-        contextVars['--ui-btn-disabled-border-width'] = `${instance.style.buttonDisabledStrokeWeight}px`;
-        contextVars['--ui-btn-disabled-font-size'] = `${Math.round(instance.style.buttonDisabledFontSize * SIZE_SCALE[instance.style.size])}px`;
-        contextVars['--ui-btn-disabled-font-weight'] = `${instance.style.buttonDisabledFontWeight}`;
-        contextVars['--ui-btn-disabled-justify'] = fontPositionToJustify(instance.style.buttonDisabledFontPosition);
+
+    // State override CSS vars — derived from stateOverrides map
+    const hasStateStyles = !forExport || supportsStateStyles(instance.kind);
+    if (hasStateStyles && instance.stateOverrides) {
+        const base = instance.style;
+        const stateVarMap: Array<{ state: string; prefix: string }> = [
+            { state: 'hover', prefix: '--ui-btn-hover' },
+            { state: 'active', prefix: '--ui-btn-active' },
+            { state: 'disabled', prefix: '--ui-btn-disabled' },
+        ];
+        for (const { state, prefix } of stateVarMap) {
+            const overrides = instance.stateOverrides[state as keyof typeof instance.stateOverrides];
+            if (!overrides) continue;
+            const s = { ...base, ...overrides };
+            contextVars[`${prefix}-bg`] = buildStateFill(s.fillMode, s.fillColor, s.fillColorTo, s.fillWeight, s.fillOpacity);
+            contextVars[`${prefix}-fg`] = hexToRgba(s.fontColor, s.fontOpacity / 100);
+            contextVars[`${prefix}-border`] = hexToRgba(s.strokeColor, s.strokeOpacity / 100);
+            contextVars[`${prefix}-border-width`] = `${s.strokeWeight}px`;
+            contextVars[`${prefix}-font-size`] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;
+            contextVars[`${prefix}-font-weight`] = `${s.fontWeight}`;
+            contextVars[`${prefix}-justify`] = fontPositionToJustify(s.fontPosition);
+        }
     }
 
     const baseStyle = {
