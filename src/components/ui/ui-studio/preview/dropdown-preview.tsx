@@ -46,7 +46,6 @@ export function InteractiveDropdownPreview({
     const containerRef = useRef<HTMLDivElement | null>(null);
     const submenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const shareItemRef = useRef<HTMLDivElement | null>(null);
-    const submenuRef = useRef<HTMLDivElement | null>(null);
     const menuOpen = pinnedOpen || isOpen;
     const buttonPreviewStateClass = buildButtonPreviewStateClass(motionConfig.buttonPreviewState);
     const dropdownBodyMotionConfig = buildEntryPresetMotionConfig('dropdown', motionConfig, motionConfig.dropdownBodyMotionPresetId);
@@ -95,7 +94,7 @@ export function InteractiveDropdownPreview({
         }
     }, [menuOpen]);
 
-    // Submenu hover: track pointer over both the share item and the submenu panel
+    // Submenu hover timers
     const clearSubmenuTimer = useCallback(() => {
         if (submenuTimerRef.current) {
             clearTimeout(submenuTimerRef.current);
@@ -117,18 +116,18 @@ export function InteractiveDropdownPreview({
         return () => clearSubmenuTimer();
     }, [clearSubmenuTimer]);
 
-    // Compute submenu position relative to the share item
+    // Compute submenu position relative to the share item's ListBoxItem parent
     const [submenuPos, setSubmenuPos] = useState<{ top: number; left: number } | null>(null);
     useEffect(() => {
-        if (submenuOpen && shareItemRef.current) {
-            const rect = shareItemRef.current.getBoundingClientRect();
-            const containerRect = containerRef.current?.getBoundingClientRect();
-            if (containerRect) {
-                setSubmenuPos({
-                    top: rect.top - containerRect.top,
-                    left: rect.right - containerRect.left + 4,
-                });
-            }
+        if (submenuOpen && shareItemRef.current && containerRef.current) {
+            // Walk up to the ListBoxItem element (the closest rendered item ancestor)
+            const itemEl = shareItemRef.current.closest('[role="option"]') ?? shareItemRef.current.parentElement?.parentElement;
+            const rect = (itemEl ?? shareItemRef.current).getBoundingClientRect();
+            const containerRect = containerRef.current.getBoundingClientRect();
+            setSubmenuPos({
+                top: rect.top - containerRect.top,
+                left: rect.right - containerRect.left + 4,
+            });
         }
     }, [submenuOpen]);
 
@@ -265,29 +264,30 @@ export function InteractiveDropdownPreview({
                                         {renderItemContent('Duplicate', <Copy className={iconSize} />)}
                                     </DropdownItem>
                                     {showSubmenu ? (
-                                        <div
-                                            ref={shareItemRef}
-                                            className="col-span-full"
-                                            onMouseEnter={handleSubmenuAreaEnter}
-                                            onMouseLeave={startSubmenuClose}
+                                        <DropdownItem
+                                            id={`${instanceId}-share`}
+                                            className={cn(dropdownHoverClass, 'pr-1')}
+                                            onHoverStart={() => handleSubmenuAreaEnter()}
+                                            onHoverEnd={() => startSubmenuClose()}
                                         >
-                                            <DropdownItem id={`${instanceId}-share`} className={cn(dropdownHoverClass, 'pr-1')}>
-                                                <DropdownLabel>
-                                                    {renderWithMotionControls(
-                                                        <span className="inline-flex w-full items-center justify-between gap-2">
-                                                            <span className="inline-flex items-center gap-2">
-                                                                {showIcons ? <Share className={iconSize} /> : null}
-                                                                <span style={itemLabelStyle}>Share</span>
-                                                            </span>
-                                                            <ChevronRight className="size-3.5 text-muted-foreground" />
-                                                        </span>,
-                                                        dropdownOptionMotionConfig,
-                                                        false,
-                                                        true,
-                                                    )}
-                                                </DropdownLabel>
-                                            </DropdownItem>
-                                        </div>
+                                            <DropdownLabel>
+                                                {renderWithMotionControls(
+                                                    <span
+                                                        ref={shareItemRef}
+                                                        className="inline-flex w-full items-center justify-between gap-2"
+                                                    >
+                                                        <span className="inline-flex items-center gap-2">
+                                                            {showIcons ? <Share className={iconSize} /> : null}
+                                                            <span style={itemLabelStyle}>Share</span>
+                                                        </span>
+                                                        <ChevronRight className="size-3.5 text-muted-foreground" />
+                                                    </span>,
+                                                    dropdownOptionMotionConfig,
+                                                    false,
+                                                    true,
+                                                )}
+                                            </DropdownLabel>
+                                        </DropdownItem>
                                     ) : null}
                                     <DropdownSeparator />
                                     <DropdownItem
@@ -308,7 +308,6 @@ export function InteractiveDropdownPreview({
                 <AnimatePresence>
                     {menuOpen && showSubmenu && submenuOpen && submenuPos ? (
                         <motion.div
-                            ref={submenuRef}
                             key={`${instanceId}-submenu`}
                             className="absolute z-30"
                             style={{ top: submenuPos.top, left: submenuPos.left }}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
+import { motion } from 'motion/react';
 import { FileText, Users, Settings, Mail } from 'lucide-react';
 import {
     NavigationMenu,
@@ -26,7 +27,7 @@ const DROPDOWN_ITEMS = [
 export function NavigationMenuPreview({
     instanceStyle,
     style,
-    motionClassName,
+    motionClassName: _motionClassName,
 }: {
     instanceStyle: ComponentStyleConfig;
     style: CSSProperties;
@@ -37,15 +38,6 @@ export function NavigationMenuPreview({
     const showDropdown = instanceStyle.navMenuShowDropdown;
     const triggerVariant = instanceStyle.navMenuTriggerVariant || 'ghost';
 
-    const hasActiveColors = instanceStyle.navMenuActiveBg || instanceStyle.navMenuActiveText;
-    const activeLinkStyle: CSSProperties = hasActiveColors
-        ? {
-            backgroundColor: instanceStyle.navMenuActiveBg || undefined,
-            color: instanceStyle.navMenuActiveText || undefined,
-            cursor: 'pointer',
-        }
-        : { cursor: 'pointer' };
-
     const dropdownPanelStyle: CSSProperties = {
         backgroundColor: instanceStyle.navMenuDropdownBg || undefined,
         color: instanceStyle.navMenuDropdownText || undefined,
@@ -54,13 +46,41 @@ export function NavigationMenuPreview({
         borderStyle: instanceStyle.navMenuDropdownBorderColor ? 'solid' : undefined,
     };
 
+    // Per-item hover/tap motion
+    const hasHoverOrTap = instanceStyle.motionHoverEnabled || instanceStyle.motionTapEnabled;
+    const itemHover = instanceStyle.motionHoverEnabled ? {
+        scale: instanceStyle.motionHoverScale / 100,
+        x: instanceStyle.motionHoverX,
+        y: instanceStyle.motionHoverY,
+        rotate: instanceStyle.motionHoverRotate,
+        opacity: instanceStyle.motionHoverOpacity / 100,
+    } : undefined;
+    const itemTap = instanceStyle.motionTapEnabled ? {
+        scale: instanceStyle.motionTapScale / 100,
+        x: instanceStyle.motionTapX,
+        y: instanceStyle.motionTapY,
+        rotate: instanceStyle.motionTapRotate,
+        opacity: instanceStyle.motionTapOpacity / 100,
+    } : undefined;
+
+    const wrapLink = (content: React.ReactNode) => {
+        if (!hasHoverOrTap) return content;
+        return (
+            <motion.div whileHover={itemHover} whileTap={itemTap}>
+                {content}
+            </motion.div>
+        );
+    };
+
     const menuItems = navItems.map((label, idx) => {
         if (showDropdown && idx === 1) {
             return (
                 <NavigationMenuItem key={label}>
-                    <NavigationMenuTrigger variant={triggerVariant}>
-                        {label}
-                    </NavigationMenuTrigger>
+                    {wrapLink(
+                        <NavigationMenuTrigger variant={triggerVariant}>
+                            {label}
+                        </NavigationMenuTrigger>
+                    )}
                     <NavigationMenuContent>
                         <ul className="grid w-[340px] gap-1 p-2" style={dropdownPanelStyle}>
                             {DROPDOWN_ITEMS.map((item) => (
@@ -90,16 +110,20 @@ export function NavigationMenuPreview({
 
         return (
             <NavigationMenuItem key={label}>
-                <NavigationMenuLink
-                    active={isActive}
-                    onClick={(e: React.MouseEvent) => {
-                        e.preventDefault();
-                        setActiveIndex(idx);
-                    }}
-                    style={isActive ? activeLinkStyle : { cursor: 'pointer' }}
-                >
-                    {label}
-                </NavigationMenuLink>
+                {wrapLink(
+                    <NavigationMenuLink
+                        active={isActive}
+                        activeBg={instanceStyle.navMenuActiveBg || undefined}
+                        activeText={instanceStyle.navMenuActiveText || undefined}
+                        onClick={(e: React.MouseEvent) => {
+                            e.preventDefault();
+                            setActiveIndex(idx);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        {label}
+                    </NavigationMenuLink>
+                )}
             </NavigationMenuItem>
         );
     });
@@ -111,7 +135,6 @@ export function NavigationMenuPreview({
         <NavigationMenu
             orientation={instanceStyle.navMenuOrientation}
             style={wrapperStyle}
-            className={cn(motionClassName)}
             hoverBg={instanceStyle.navMenuHoverBg || undefined}
             hoverText={instanceStyle.navMenuHoverText || undefined}
             activeBg={instanceStyle.navMenuActiveBg || undefined}

@@ -38,12 +38,12 @@ function NavigationMenu({
     activeBg?: string;
     activeText?: string;
   }) {
-  const cssVars = {
-    ...(hoverBg ? { '--nav-hover-bg': hoverBg } as React.CSSProperties : {}),
-    ...(hoverText ? { '--nav-hover-text': hoverText } as React.CSSProperties : {}),
-    ...(activeBg ? { '--nav-active-bg': activeBg } as React.CSSProperties : {}),
-    ...(activeText ? { '--nav-active-text': activeText } as React.CSSProperties : {}),
-  };
+  const cssVars: Record<string, string> = {};
+  if (hoverBg) cssVars['--nav-hover-bg'] = hoverBg;
+  if (hoverText) cssVars['--nav-hover-text'] = hoverText;
+  if (activeBg) cssVars['--nav-active-bg'] = activeBg;
+  if (activeText) cssVars['--nav-active-text'] = activeText;
+
   return (
     <NavigationMenuPrimitive.Root
       data-slot="navigation-menu"
@@ -115,8 +115,8 @@ function NavigationMenuTrigger({
       data-slot="navigation-menu-trigger"
       className={cn(
         navigationMenuTriggerVariants({ variant }),
-        "hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]",
-        "focus:bg-[var(--nav-hover-bg)] focus:text-[var(--nav-hover-text)]",
+        "hover:bg-[var(--nav-hover-bg,hsl(var(--accent)/0.5))] hover:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))]",
+        "focus:bg-[var(--nav-hover-bg,hsl(var(--accent)/0.5))] focus:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))]",
         className,
       )}
       {...props}
@@ -151,7 +151,7 @@ const navigationMenuLinkVariants = cva(
   {
     variants: {
       active: {
-        true: "bg-[var(--nav-active-bg,hsl(var(--accent)))] text-[var(--nav-active-text,hsl(var(--accent-foreground)))]",
+        true: "",
         false:
           "hover:bg-[var(--nav-hover-bg,hsl(var(--accent)))] hover:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))] focus:bg-[var(--nav-hover-bg,hsl(var(--accent)))] focus:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))]",
       },
@@ -165,14 +165,29 @@ const navigationMenuLinkVariants = cva(
 function NavigationMenuLink({
   className,
   active,
+  activeBg,
+  activeText,
+  style,
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Link> &
-  VariantProps<typeof navigationMenuLinkVariants>) {
+  VariantProps<typeof navigationMenuLinkVariants> & {
+    activeBg?: string;
+    activeText?: string;
+  }) {
+  // Apply active colors as inline styles — more reliable than CSS vars for state-dependent styling
+  const activeStyle: React.CSSProperties | undefined = active
+    ? {
+        backgroundColor: activeBg || 'hsl(var(--accent))',
+        color: activeText || 'hsl(var(--accent-foreground))',
+      }
+    : undefined;
+
   return (
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       data-active={active || undefined}
       className={cn(navigationMenuLinkVariants({ active }), className)}
+      style={{ ...style, ...activeStyle }}
       {...props}
     />
   )

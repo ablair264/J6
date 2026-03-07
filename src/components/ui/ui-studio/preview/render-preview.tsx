@@ -685,7 +685,12 @@ export function componentSnippet(
             const dropdownSnippet = nS.navMenuShowDropdown
                 ? `\n    <NavigationMenuItem>\n      <NavigationMenuTrigger variant="${nS.navMenuTriggerVariant}">About</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className="grid w-[340px] gap-2 p-3">\n          <li><NavigationMenuLink asChild><a href="#">Documentation</a></NavigationMenuLink></li>\n          <li><NavigationMenuLink asChild><a href="#">Team</a></NavigationMenuLink></li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>`
                 : `\n    <NavigationMenuItem>\n      <NavigationMenuLink>About</NavigationMenuLink>\n    </NavigationMenuItem>`;
-            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu ${navProps}${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active>Home</NavigationMenuLink>\n    </NavigationMenuItem>${dropdownSnippet}\n  </NavigationMenuList>\n</NavigationMenu>`;
+            const linkProps = [
+                nS.navMenuActiveBg ? `activeBg="${nS.navMenuActiveBg}"` : '',
+                nS.navMenuActiveText ? `activeText="${nS.navMenuActiveText}"` : '',
+            ].filter(Boolean).join(' ');
+            const linkAttr = linkProps ? ` ${linkProps}` : '';
+            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu ${navProps}${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active${linkAttr}>Home</NavigationMenuLink>\n    </NavigationMenuItem>${dropdownSnippet}\n  </NavigationMenuList>\n</NavigationMenu>`;
         }
         case 'progress': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
