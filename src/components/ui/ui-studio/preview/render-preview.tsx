@@ -604,7 +604,9 @@ export function componentSnippet(
         }
         case 'popover': {
             const popoverDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
-            return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</PopoverContent>\n</Popover>`;
+            const popoverSideAttr = instance.style.popoverSide !== 'bottom' ? ` side="${instance.style.popoverSide}"` : '';
+            const popoverAlignAttr = instance.style.popoverAlign !== 'center' ? ` align="${instance.style.popoverAlign}"` : '';
+            return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${popoverSideAttr}${popoverAlignAttr}${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</PopoverContent>\n</Popover>`;
         }
         case 'label':
             {
@@ -1121,7 +1123,7 @@ export function renderPreview(
                                     true,
                                 )}
                             </PopoverTrigger>
-                            <PopoverContent className="w-72" style={panelStyle}>
+                            <PopoverContent className="w-72" side={instance.style.popoverSide} align={instance.style.popoverAlign} style={panelStyle}>
                                 {renderEntryMotion(
                                     <div className="space-y-2">
                                         {renderEntryMotion(

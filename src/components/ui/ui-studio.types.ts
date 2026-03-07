@@ -319,6 +319,8 @@ export interface ComponentStyleConfig {
   dialogTextMotionPresetId: string;
   popoverBodyMotionPresetId: string;
   popoverTextMotionPresetId: string;
+  popoverSide: 'top' | 'right' | 'bottom' | 'left';
+  popoverAlign: 'start' | 'center' | 'end';
   dropdownBodyMotionPresetId: string;
   dropdownOptionHoverEnabled: boolean;
   dropdownOptionHoverScale: number;

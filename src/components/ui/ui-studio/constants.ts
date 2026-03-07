@@ -452,6 +452,8 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     dialogTextMotionPresetId: 'fade-in',
     popoverBodyMotionPresetId: 'fade-scale',
     popoverTextMotionPresetId: 'fade-in',
+    popoverSide: 'bottom',
+    popoverAlign: 'center',
     dropdownBodyMotionPresetId: 'dropdown-down',
     dropdownOptionHoverEnabled: true,
     dropdownOptionHoverScale: 102,
@@ -2114,7 +2116,66 @@ export const DROPDOWN_VISUAL_PRESETS: ComponentVisualPreset[] = [
         },
     },
 ];
-export const POPOVER_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('popover');
+// Popover-specific visual presets (inspired by shadcn/ui popover patterns)
+export const POPOVER_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    {
+        id: 'default',
+        label: 'Default',
+        description: 'Standard popover — center-aligned below trigger',
+        kind: 'popover',
+        values: {
+            popoverSide: 'bottom',
+            popoverAlign: 'center',
+        },
+    },
+    {
+        id: 'start-aligned',
+        label: 'Start Aligned',
+        description: 'Popover aligned to the start edge of the trigger',
+        kind: 'popover',
+        values: {
+            popoverSide: 'bottom',
+            popoverAlign: 'start',
+        },
+    },
+    {
+        id: 'right-panel',
+        label: 'Right Panel',
+        description: 'Popover appearing to the right of the trigger',
+        kind: 'popover',
+        values: {
+            popoverSide: 'right',
+            popoverAlign: 'start',
+        },
+    },
+    {
+        id: 'top-center',
+        label: 'Top Center',
+        description: 'Popover above the trigger — tooltip-like placement',
+        kind: 'popover',
+        values: {
+            popoverSide: 'top',
+            popoverAlign: 'center',
+        },
+    },
+    {
+        id: 'glass',
+        label: 'Glass',
+        description: 'Translucent backdrop-blur glass popover',
+        kind: 'popover',
+        values: {
+            popoverSide: 'bottom',
+            popoverAlign: 'center',
+            panelFillColor: '#0f172a',
+            panelFillOpacity: 60,
+            panelStrokeColor: '#475569',
+            panelStrokeOpacity: 40,
+            panelCornerRadius: 16,
+            panelEffectBlur: true,
+            panelBlurAmount: 12,
+        },
+    },
+];
 export const LABEL_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('label');
 export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('input');
 export const TABS_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tabs');

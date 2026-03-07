@@ -991,6 +991,32 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Popover Config */}
+                    {selectedInstance?.kind === 'popover' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Popover Config" icon={Table} defaultOpen>
+                                <FlatField label="Side">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
+                                            <button key={side} type="button" onClick={() => updateSelectedStyle('popoverSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {side.charAt(0).toUpperCase() + side.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                                <FlatField label="Align">
+                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                        {(['start', 'center', 'end'] as const).map((align) => (
+                                            <button key={align} type="button" onClick={() => updateSelectedStyle('popoverAlign', align)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverAlign === align ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                {align.charAt(0).toUpperCase() + align.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FlatField>
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Accordion Config */}
                     {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
