@@ -615,7 +615,14 @@ export function componentSnippet(
             }
         case 'input': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<Input${classNameSnippet}${previewStyleSnippet} placeholder="Type here..." />`;
+            const inputHasLeftIcon = instance.style.inputShowIcon && instance.style.inputIconPosition === 'left';
+            const inputHasRightIcon = instance.style.inputShowIcon && instance.style.inputIconPosition === 'right';
+            const inputPlaceholder = instance.style.inputPlaceholder || 'Type here...';
+            const inputIconSnippetLeft = inputHasLeftIcon ? `\n  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">${iconLeft.trim()}</span>` : '';
+            const inputIconSnippetRight = inputHasRightIcon ? `\n  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">${iconRight.trim()}</span>` : '';
+            const inputPaddingClass = inputHasLeftIcon ? ' pl-10' : inputHasRightIcon ? ' pr-10' : '';
+            const labelSnippet = instance.style.inputLabel ? `<Label>${instance.style.inputLabel}</Label>\n` : '';
+            return `${declarations ? `${declarations}\n\n` : ''}${labelSnippet}<div className="relative">${inputIconSnippetLeft}\n  <Input${classNameSnippet ? classNameSnippet.replace('"', `"${inputPaddingClass}`) : inputPaddingClass ? ` className="${inputPaddingClass.trim()}"` : ''}${previewStyleSnippet} placeholder="${inputPlaceholder}" />${inputIconSnippetRight}\n</div>`;
         }
         case 'tabs': {
             const tabDeclarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1164,10 +1171,37 @@ export function renderPreview(
         case 'input':
             {
                 const autocompleteMotion = buildEntryPresetMotionConfig('input', instance.style, instance.style.inputAutocompleteBodyMotionPresetId);
+                const inputHasIcon = instance.style.inputShowIcon && icon;
+                const inputIconLeft = inputHasIcon && instance.style.inputIconPosition === 'left';
+                const inputIconRight = inputHasIcon && instance.style.inputIconPosition === 'right';
+                const inputPaddingStyle: CSSProperties = {
+                    ...style,
+                    paddingLeft: inputIconLeft ? '2.5rem' : style.paddingInline,
+                    paddingRight: inputIconRight ? '2.5rem' : style.paddingInline,
+                };
+                const labelStyle: CSSProperties = {
+                    fontSize: style.fontSize,
+                    fontWeight: style.fontWeight,
+                    fontFamily: style.fontFamily,
+                    color: style.color,
+                };
                 return (
                     <div className="w-full max-w-sm space-y-2">
+                        {instance.style.inputLabel ? (
+                            <label className="block text-sm" style={labelStyle}>{instance.style.inputLabel}</label>
+                        ) : null}
                         <div className="relative w-full">
-                            <Input style={style} placeholder="Type here..." className={cn('max-w-sm', motionClassName)} />
+                            {inputIconLeft ? (
+                                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                    {icon}
+                                </span>
+                            ) : null}
+                            <Input style={inputPaddingStyle} placeholder={instance.style.inputPlaceholder || 'Type here...'} className={cn('max-w-sm', motionClassName)} />
+                            {inputIconRight ? (
+                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                    {icon}
+                                </span>
+                            ) : null}
                             {loadingStateIcon ? (
                                 <span
                                     className={cn(
@@ -1179,26 +1213,26 @@ export function renderPreview(
                                 </span>
                             ) : null}
                         </div>
-            {instance.style.inputAutocompleteEnabled ? (
-                renderEntryMotion(
-                    <div
-                        className="rounded-lg px-2 py-1.5 text-[11px] shadow-lg ui-studio-input-autocomplete"
-                        style={{
-                            backgroundColor: instance.style.inputAutocompleteBgColor,
-                            borderColor: instance.style.inputAutocompleteBorderColor,
-                            color: instance.style.inputAutocompleteTextColor,
-                            borderWidth: 1,
-                            borderStyle: 'solid',
-                            ['--ui-input-autocomplete-option-hover-bg' as string]: instance.style.inputAutocompleteOptionHoverBgColor,
-                            ['--ui-input-autocomplete-option-hover-text' as string]: instance.style.inputAutocompleteOptionHoverTextColor,
-                        }}
-                    >
-                        <div className="rounded px-1.5 py-1 ui-studio-input-autocomplete-option">Autocomplete option</div>
-                        <div className="rounded px-1.5 py-1 ui-studio-input-autocomplete-option">Another result</div>
-                    </div>,
-                    autocompleteMotion,
-                )
-            ) : null}
+                        {instance.style.inputAutocompleteEnabled ? (
+                            renderEntryMotion(
+                                <div
+                                    className="rounded-lg px-2 py-1.5 text-[11px] shadow-lg ui-studio-input-autocomplete"
+                                    style={{
+                                        backgroundColor: instance.style.inputAutocompleteBgColor,
+                                        borderColor: instance.style.inputAutocompleteBorderColor,
+                                        color: instance.style.inputAutocompleteTextColor,
+                                        borderWidth: 1,
+                                        borderStyle: 'solid',
+                                        ['--ui-input-autocomplete-option-hover-bg' as string]: instance.style.inputAutocompleteOptionHoverBgColor,
+                                        ['--ui-input-autocomplete-option-hover-text' as string]: instance.style.inputAutocompleteOptionHoverTextColor,
+                                    }}
+                                >
+                                    <div className="rounded px-1.5 py-1 ui-studio-input-autocomplete-option">Autocomplete option</div>
+                                    <div className="rounded px-1.5 py-1 ui-studio-input-autocomplete-option">Another result</div>
+                                </div>,
+                                autocompleteMotion,
+                            )
+                        ) : null}
                     </div>
                 );
             }

@@ -486,6 +486,10 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     inputAutocompleteTextColor: '#dbe7f8',
     inputAutocompleteOptionHoverBgColor: 'rgba(255,255,255,0.08)',
     inputAutocompleteOptionHoverTextColor: '#ffffff',
+    inputLabel: '',
+    inputShowIcon: false,
+    inputIconPosition: 'left',
+    inputPlaceholder: 'Type here...',
 
     // ─── Phase 2: New Component Defaults ──────────────────────────
     accordionCollapsible: true,
@@ -2177,7 +2181,67 @@ export const POPOVER_VISUAL_PRESETS: ComponentVisualPreset[] = [
     },
 ];
 export const LABEL_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('label');
-export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('input');
+// Input-specific visual presets (inspired by shadcn/ui input patterns)
+export const INPUT_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    {
+        id: 'default',
+        label: 'Default',
+        description: 'Standard input with placeholder text',
+        kind: 'input',
+        values: {
+            inputLabel: '',
+            inputShowIcon: false,
+            inputPlaceholder: 'Type here...',
+        },
+    },
+    {
+        id: 'with-label',
+        label: 'With Label',
+        description: 'Input with a floating label above',
+        kind: 'input',
+        values: {
+            inputLabel: 'Email',
+            inputShowIcon: false,
+            inputPlaceholder: 'you@example.com',
+        },
+    },
+    {
+        id: 'with-icon',
+        label: 'With Icon',
+        description: 'Input with a leading icon — search or action context',
+        kind: 'input',
+        values: {
+            inputLabel: '',
+            inputShowIcon: true,
+            inputIconPosition: 'left',
+            inputPlaceholder: 'Search...',
+        },
+    },
+    {
+        id: 'label-icon',
+        label: 'Label + Icon',
+        description: 'Full input with label and leading icon',
+        kind: 'input',
+        values: {
+            inputLabel: 'Search',
+            inputShowIcon: true,
+            inputIconPosition: 'left',
+            inputPlaceholder: 'Find something...',
+        },
+    },
+    {
+        id: 'icon-right',
+        label: 'Icon Right',
+        description: 'Input with a trailing icon — validation or action hint',
+        kind: 'input',
+        values: {
+            inputLabel: '',
+            inputShowIcon: true,
+            inputIconPosition: 'right',
+            inputPlaceholder: 'Enter value...',
+        },
+    },
+];
 export const TABS_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tabs');
 export const TOOLTIP_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('tooltip');
 export const SLIDER_VISUAL_PRESETS: ComponentVisualPreset[] = buildVisualPresetsForKind('slider', {

@@ -251,6 +251,10 @@ export interface ComponentStyleConfig {
   inputAutocompleteTextColor: string;
   inputAutocompleteOptionHoverBgColor: string;
   inputAutocompleteOptionHoverTextColor: string;
+  inputLabel: string;
+  inputShowIcon: boolean;
+  inputIconPosition: 'left' | 'right';
+  inputPlaceholder: string;
   motionTransitionType: MotionTransitionType;
   motionEase: MotionEaseOption;
   motionDuration: number;

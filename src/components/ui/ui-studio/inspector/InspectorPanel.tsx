@@ -1410,37 +1410,49 @@ export function InspectorPanel() {
 
                     {selectedInstance?.kind === 'input' && selectedStyle ? (
                         <div className="p-1">
-                            <FlatInspectorSection title="Autocomplete Dropdown" icon={Config} defaultOpen>
-                                <FlatColorControl
-                                    label="Background"
-                                    value={selectedStyle.inputAutocompleteBgColor}
-                                    onChange={(value) => updateSelectedStyle('inputAutocompleteBgColor', value)}
-                                    tokens={activeTokenSet.tokens}
-                                />
-                                <FlatColorControl
-                                    label="Border"
-                                    value={selectedStyle.inputAutocompleteBorderColor}
-                                    onChange={(value) => updateSelectedStyle('inputAutocompleteBorderColor', value)}
-                                    tokens={activeTokenSet.tokens}
-                                />
-                                <FlatColorControl
-                                    label="Text"
-                                    value={selectedStyle.inputAutocompleteTextColor}
-                                    onChange={(value) => updateSelectedStyle('inputAutocompleteTextColor', value)}
-                                    tokens={activeTokenSet.tokens}
-                                />
-                                <FlatColorControl
-                                    label="Option hover background"
-                                    value={selectedStyle.inputAutocompleteOptionHoverBgColor}
-                                    onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverBgColor', value)}
-                                    tokens={activeTokenSet.tokens}
-                                />
-                                <FlatColorControl
-                                    label="Option hover text"
-                                    value={selectedStyle.inputAutocompleteOptionHoverTextColor}
-                                    onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverTextColor', value)}
-                                    tokens={activeTokenSet.tokens}
-                                />
+                            <FlatInspectorSection title="Input Config" icon={Table} defaultOpen>
+                                <FlatField label="Label" stacked>
+                                    <input
+                                        type="text"
+                                        value={selectedStyle.inputLabel}
+                                        onChange={(e) => updateSelectedStyle('inputLabel', e.target.value)}
+                                        className={studioInputClass}
+                                        placeholder="No label"
+                                    />
+                                </FlatField>
+                                <FlatField label="Placeholder" stacked>
+                                    <input
+                                        type="text"
+                                        value={selectedStyle.inputPlaceholder}
+                                        onChange={(e) => updateSelectedStyle('inputPlaceholder', e.target.value)}
+                                        className={studioInputClass}
+                                        placeholder="Type here..."
+                                    />
+                                </FlatField>
+                                <FlatSwitchRow label="Show Icon" checked={selectedStyle.inputShowIcon} onCheckedChange={(value) => updateSelectedStyle('inputShowIcon', value)} />
+                                {selectedStyle.inputShowIcon ? (
+                                    <FlatField label="Icon Position">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['left', 'right'] as const).map((pos) => (
+                                                <button key={pos} type="button" onClick={() => updateSelectedStyle('inputIconPosition', pos)} className={cn(inspectorChoiceButtonBase, selectedStyle.inputIconPosition === pos ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                ) : null}
+                            </FlatInspectorSection>
+                            <FlatInspectorSection title="Autocomplete Dropdown" icon={Config}>
+                                <FlatSwitchRow label="Show Autocomplete" checked={selectedStyle.inputAutocompleteEnabled} onCheckedChange={(value) => updateSelectedStyle('inputAutocompleteEnabled', value)} />
+                                {selectedStyle.inputAutocompleteEnabled ? (
+                                    <>
+                                        <FlatColorControl label="Background" value={selectedStyle.inputAutocompleteBgColor} onChange={(value) => updateSelectedStyle('inputAutocompleteBgColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Border" value={selectedStyle.inputAutocompleteBorderColor} onChange={(value) => updateSelectedStyle('inputAutocompleteBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Text" value={selectedStyle.inputAutocompleteTextColor} onChange={(value) => updateSelectedStyle('inputAutocompleteTextColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Option hover bg" value={selectedStyle.inputAutocompleteOptionHoverBgColor} onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverBgColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Option hover text" value={selectedStyle.inputAutocompleteOptionHoverTextColor} onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverTextColor', value)} tokens={activeTokenSet.tokens} />
+                                    </>
+                                ) : null}
                             </FlatInspectorSection>
                         </div>
                     ) : null}
