@@ -1232,75 +1232,55 @@ export function buildNeumorphicShadow(
 ): string {
     const d = Math.max(4, distance);
     const b = Math.max(8, blur);
-    const prefix = inset ? 'inset ' : '';
-
     const base = hexToRgbChannels(fillColor) ?? { r: 100, g: 116, b: 139 };
     const luminance = (0.2126 * base.r + 0.7152 * base.g + 0.0722 * base.b) / 255;
     const darkSurface = luminance < 0.45;
     const UI_DARK_BG_LUMINANCE = 0.145; // matches design-system dark --background baseline
     const nearUiDarkBg = clamp01(1 - Math.abs(luminance - UI_DARK_BG_LUMINANCE) / 0.22);
 
-    const normalizedIntensity = Math.max(
-        0,
-        Math.min(1, (((d - 4) / 16) + ((b - 8) / 32)) / 2),
-    );
-    const profile: 'subtle' | 'medium' | 'strong' =
-        normalizedIntensity < 0.34 ? 'subtle' : normalizedIntensity < 0.67 ? 'medium' : 'strong';
+    const normalizedIntensity = clamp01((((d - 4) / 16) + ((b - 8) / 32)) / 2);
 
-    const profileStrength = {
-        subtle: {
-            lightMix: darkSurface ? 0.36 : 0.7,
-            darkMix: darkSurface ? 0.68 : 0.34,
-            lightOpacity: darkSurface ? 0.46 : 0.78,
-            darkOpacity: darkSurface ? 0.68 : 0.3,
-            ambientOpacity: darkSurface ? 0.38 : 0.18,
-        },
-        medium: {
-            lightMix: darkSurface ? 0.34 : 0.78,
-            darkMix: darkSurface ? 0.7 : 0.38,
-            lightOpacity: darkSurface ? 0.5 : 0.92,
-            darkOpacity: darkSurface ? 0.76 : 0.38,
-            ambientOpacity: darkSurface ? 0.46 : 0.24,
-        },
-        strong: {
-            lightMix: darkSurface ? 0.42 : 0.86,
-            darkMix: darkSurface ? 0.78 : 0.44,
-            lightOpacity: darkSurface ? 0.56 : 1,
-            darkOpacity: darkSurface ? 0.86 : 0.46,
-            ambientOpacity: darkSurface ? 0.56 : 0.3,
-        },
-    }[profile];
+    // Scale offsets/blur up slightly so minimum values are still clearly visible.
+    const offset = Math.max(4, Math.round(d * (1.1 + normalizedIntensity * 0.4)));
+    const blurRadius = Math.max(10, Math.round(b * (1.15 + normalizedIntensity * 0.3)));
+    const ambientBlur = Math.max(6, Math.round(blurRadius * 0.7));
 
     // Extra contrast boost when fill sits near the app dark background band.
-    const tuned = darkSurface
-        ? {
-            lightMix: clamp01(profileStrength.lightMix + nearUiDarkBg * 0.08),
-            darkMix: clamp01(profileStrength.darkMix + nearUiDarkBg * 0.08),
-            lightOpacity: clamp01(profileStrength.lightOpacity + nearUiDarkBg * 0.08),
-            darkOpacity: clamp01(profileStrength.darkOpacity + nearUiDarkBg * 0.08),
-            ambientOpacity: clamp01(profileStrength.ambientOpacity + nearUiDarkBg * 0.08),
-        }
-        : profileStrength;
+    const darkContrastBoost = darkSurface ? 1 + nearUiDarkBg * 0.28 : 1;
 
-    const light = {
-        r: mixChannel(base.r, 255, tuned.lightMix),
-        g: mixChannel(base.g, 255, tuned.lightMix),
-        b: mixChannel(base.b, 255, tuned.lightMix),
-    };
-    const dark = {
-        r: mixChannel(base.r, 0, tuned.darkMix),
-        g: mixChannel(base.g, 0, tuned.darkMix),
-        b: mixChannel(base.b, 0, tuned.darkMix),
+    const highlightAlpha = clamp01((darkSurface ? 0.34 : 0.62) + normalizedIntensity * 0.22 * darkContrastBoost);
+    const shadowAlpha = clamp01((darkSurface ? 0.68 : 0.28) + normalizedIntensity * 0.22 * darkContrastBoost);
+    const ambientAlpha = clamp01((darkSurface ? 0.4 : 0.16) + normalizedIntensity * 0.16 * darkContrastBoost);
+
+    const highlight = darkSurface
+        ? { r: 255, g: 255, b: 255 }
+        : {
+            r: mixChannel(base.r, 255, 0.9),
+            g: mixChannel(base.g, 255, 0.9),
+            b: mixChannel(base.b, 255, 0.9),
+        };
+    const shadow = {
+        r: mixChannel(base.r, 0, darkSurface ? 0.85 : 0.52),
+        g: mixChannel(base.g, 0, darkSurface ? 0.85 : 0.52),
+        b: mixChannel(base.b, 0, darkSurface ? 0.85 : 0.52),
     };
 
-    const lightShadow = `rgba(${light.r}, ${light.g}, ${light.b}, ${tuned.lightOpacity})`;
-    const darkShadow = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${tuned.darkOpacity})`;
-    const ambientShadow = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${tuned.ambientOpacity})`;
+    const highlightShadow = `rgba(${highlight.r}, ${highlight.g}, ${highlight.b}, ${highlightAlpha})`;
+    const darkShadow = `rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, ${shadowAlpha})`;
+    const ambientShadow = `rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, ${ambientAlpha})`;
+
+    if (inset) {
+        return [
+            `inset ${offset}px ${offset}px ${blurRadius}px ${darkShadow}`,
+            `inset -${offset}px -${offset}px ${blurRadius}px ${highlightShadow}`,
+            `inset 0 1px ${Math.max(6, Math.round(ambientBlur * 0.65))}px ${ambientShadow}`,
+        ].join(', ');
+    }
 
     return [
-        `${prefix}${d}px ${d}px ${b}px ${darkShadow}`,
-        `${prefix}-${d}px -${d}px ${b}px ${lightShadow}`,
-        `${prefix}0 ${Math.max(1, Math.round(d * 0.28))}px ${Math.max(2, Math.round(b * 0.6))}px ${ambientShadow}`,
+        `${offset}px ${offset}px ${blurRadius}px ${darkShadow}`,
+        `-${offset}px -${offset}px ${blurRadius}px ${highlightShadow}`,
+        `0 ${Math.max(2, Math.round(offset * 0.5))}px ${ambientBlur}px ${ambientShadow}`,
     ].join(', ');
 }
 
