@@ -541,7 +541,16 @@ export function wrapSnippetInNamedComponent(
     }
 
     if (motionSnippet && motionSnippet.trim().length > 0) {
-        sections.push('', motionSnippet.trim());
+        // Insert motion declarations inside the function body, before the return statement
+        const returnIdx = sections.findIndex((line) => line.trimStart().startsWith('return ('));
+        if (returnIdx > 0) {
+            sections.splice(returnIdx, 0, indentBlock(motionSnippet.trim(), 2), '');
+        } else {
+            // Fallback: insert before closing brace
+            const closingBrace = sections.pop();
+            sections.push('', indentBlock(motionSnippet.trim(), 2));
+            sections.push(closingBrace!);
+        }
     }
 
     if (includeDefaultExport) {
@@ -933,6 +942,119 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         ['--ui-slider-bar-scale' as string]: String(config.sliderBarScale),
         ['--ui-slider-bar-bounce' as string]: `${config.sliderBarBounce}s`,
     } as CSSProperties;
+}
+
+/**
+ * Build only the CSS variables that are actually needed by active effects/motions.
+ * Prevents 40+ unused vars from bloating exported snippets.
+ */
+export function buildActiveMotionVariables(kind: UIComponentKind, config: ComponentStyleConfig): CSSProperties {
+    const vars: Record<string, string> = {};
+    const motionPreset = buildMotionClassName(kind, config.motionPreset);
+
+    // Core motion speed — needed by shimmer, rainbow, and most effects
+    const needsSpeed = motionPreset ||
+        (supportsAnimatedBorderEffect(kind) && config.effectAnimatedBorderEnabled) ||
+        (supportsBorderBeamEffect(kind) && config.effectBorderBeamEnabled) ||
+        (supportsShineBorderEffect(kind) && config.effectShineBorderEnabled) ||
+        (supportsNeonGlowEffect(kind) && config.effectNeonGlowEnabled) ||
+        (supportsPulseRingEffect(kind) && config.effectPulseRingEnabled);
+    if (needsSpeed) {
+        vars['--ui-motion-speed'] = `${config.motionSpeed}s`;
+        vars['--ui-motion-fill'] = hexToRgba(config.fillColor, Math.max(0.25, config.fillOpacity / 100));
+    }
+
+    // Rainbow
+    if (motionPreset === 'ui-studio-motion-rainbow') {
+        vars['--ui-motion-rainbow-1'] = config.rainbowColor1;
+        vars['--ui-motion-rainbow-2'] = config.rainbowColor2;
+        vars['--ui-motion-rainbow-3'] = config.rainbowColor3;
+        vars['--ui-motion-rainbow-4'] = config.rainbowColor4;
+        vars['--ui-motion-rainbow-5'] = config.rainbowColor5;
+    }
+
+    // Shimmer
+    if (motionPreset === 'ui-studio-motion-shimmer') {
+        vars['--ui-motion-shimmer'] = hexToRgba(config.shimmerColor, 0.68);
+    }
+
+    // Gradient Slide
+    if (supportsGradientSlideEffect(kind) && config.effectGradientSlideEnabled) {
+        vars['--ui-motion-gradient-from'] = config.effectGradientSlideColor;
+        vars['--ui-motion-gradient-to'] = config.effectGradientSlideColorTo;
+        vars['--ui-effect-gs-speed'] = `${config.effectGradientSlideSpeed}s`;
+    }
+
+    // Animated Border
+    if (supportsAnimatedBorderEffect(kind) && config.effectAnimatedBorderEnabled) {
+        vars['--ui-effect-border-speed'] = `${config.effectAnimatedBorderSpeed}s`;
+        vars['--ui-effect-border-width'] = `${Math.max(0, config.strokeWeight)}px`;
+        vars['--ui-effect-border-1'] = config.effectAnimatedBorderColor1;
+        vars['--ui-effect-border-2'] = config.effectAnimatedBorderColor2;
+        vars['--ui-effect-border-3'] = config.effectAnimatedBorderColor3;
+        vars['--ui-effect-border-4'] = config.effectAnimatedBorderColor4;
+        vars['--ui-effect-border-5'] = config.effectAnimatedBorderColor5;
+        vars['--ui-effect-border-count'] = String(Math.max(2, Math.min(5, config.effectAnimatedBorderColorCount)));
+    }
+
+    // Ripple Fill
+    if (supportsRippleFillEffect(kind) && config.effectRippleFillEnabled) {
+        vars['--ui-motion-ripple-color'] = config.effectRippleFillColor;
+        vars['--ui-effect-ripple-speed'] = `${config.effectRippleFillSpeed}s`;
+    }
+
+    // Sweep
+    if (supportsSweepEffect(kind) && config.effectSweepEnabled) {
+        vars['--ui-effect-sweep-color'] = config.effectSweepColor;
+        vars['--ui-effect-sweep-opacity'] = `${Math.max(0, Math.min(100, config.effectSweepOpacity)) / 100}`;
+        vars['--ui-effect-sweep-width'] = `${Math.max(4, config.effectSweepWidth)}%`;
+        vars['--ui-effect-sweep-speed'] = `${config.effectSweepSpeed}s`;
+    }
+
+    // Border Beam
+    if (supportsBorderBeamEffect(kind) && config.effectBorderBeamEnabled) {
+        vars['--ui-effect-beam-speed'] = `${config.effectBorderBeamSpeed}s`;
+        vars['--ui-effect-beam-size'] = `${config.effectBorderBeamSize}px`;
+        vars['--ui-effect-beam-width'] = `${Math.max(0, config.strokeWeight)}px`;
+        vars['--ui-effect-beam-from'] = config.effectBorderBeamColorFrom;
+        vars['--ui-effect-beam-to'] = config.effectBorderBeamColorTo;
+    }
+
+    // Shine Border
+    if (supportsShineBorderEffect(kind) && config.effectShineBorderEnabled) {
+        vars['--ui-effect-shine-speed'] = `${config.effectShineBorderSpeed}s`;
+        vars['--ui-effect-shine-color'] = config.effectShineBorderColor;
+        vars['--ui-effect-shine-width'] = `${Math.max(0, config.strokeWeight)}px`;
+    }
+
+    // Neon Glow
+    if (supportsNeonGlowEffect(kind) && config.effectNeonGlowEnabled) {
+        vars['--ui-effect-neon-speed'] = `${config.effectNeonGlowSpeed}s`;
+        vars['--ui-effect-neon-color1'] = config.effectNeonGlowColor1;
+        vars['--ui-effect-neon-color2'] = config.effectNeonGlowColor2;
+        vars['--ui-effect-neon-size'] = `${config.effectNeonGlowSize}px`;
+    }
+
+    // Pulse Ring
+    if (supportsPulseRingEffect(kind) && config.effectPulseRingEnabled) {
+        vars['--ui-effect-pulse-speed'] = `${config.effectPulseRingSpeed}s`;
+        vars['--ui-effect-pulse-width'] = `${Math.max(0, config.strokeWeight)}px`;
+        vars['--ui-effect-pulse-color'] = config.effectPulseRingColor;
+    }
+
+    // Checkbox/slider — only for those kinds
+    if (kind === 'checkbox') {
+        vars['--ui-checkbox-selection-speed'] = `${config.checkboxSelectionAnimationSpeed}s`;
+    }
+    if (kind === 'slider') {
+        vars['--ui-slider-thumb-hover-scale'] = String(config.sliderThumbHoverScale);
+        vars['--ui-slider-thumb-tap-bounce'] = `${config.sliderThumbTapBounce}s`;
+        vars['--ui-slider-bar-fill-speed'] = `${config.sliderBarFillSpeed}s`;
+        vars['--ui-slider-bar-scale'] = String(config.sliderBarScale);
+        vars['--ui-slider-bar-bounce'] = `${config.sliderBarBounce}s`;
+    }
+
+    return vars as CSSProperties;
 }
 
 export function supportsMotionPreset(kind: UIComponentKind): boolean {
@@ -1556,7 +1678,7 @@ export function buildSnippetStyleBindings(
     };
 }
 
-export function buildPreviewPresentation(instance: ComponentInstance): { style: CSSProperties; motionClassName?: string } {
+export function buildPreviewPresentation(instance: ComponentInstance, forExport = false): { style: CSSProperties; motionClassName?: string } {
     const componentPreset = getComponentVisualPreset(instance.kind, instance.style.componentPreset);
     const extractedEffectsClassName = buildExtractedEffectsClassName(instance.kind, instance.style);
     const hasAnimatedBorderEffect = supportsAnimatedBorderEffect(instance.kind) && instance.style.effectAnimatedBorderEnabled;
@@ -1578,68 +1700,47 @@ export function buildPreviewPresentation(instance: ComponentInstance): { style: 
         previewStyle.paddingInline = '0px';
     }
 
+    const motionVars = forExport
+        ? buildActiveMotionVariables(instance.kind, instance.style)
+        : buildMotionVariables(instance.style);
+
+    // Button state CSS vars — only needed for button/badge/dropdown kinds
+    const hasButtonStates = !forExport || supportsButtonStateStyle(instance.kind);
+    const hasDropdownVars = !forExport || supportsDropdownHoverStyle(instance.kind);
+
+    const contextVars: Record<string, string | undefined> = {};
+    if (hasDropdownVars) {
+        contextVars['--ui-dropdown-hover-bg'] = hexToRgba(instance.style.dropdownHoverFill, instance.style.dropdownHoverFillOpacity / 100);
+        contextVars['--ui-dropdown-hover-fg'] = instance.style.dropdownHoverText;
+    }
+    if (hasButtonStates) {
+        contextVars['--ui-btn-hover-bg'] = buildStateFill(instance.style.buttonHoverFillMode, instance.style.buttonHoverFillColor, instance.style.buttonHoverFillColorTo, instance.style.buttonHoverFillWeight, instance.style.buttonHoverFillOpacity);
+        contextVars['--ui-btn-hover-fg'] = hexToRgba(instance.style.buttonHoverFontColor, instance.style.buttonHoverFontOpacity / 100);
+        contextVars['--ui-btn-hover-border'] = hexToRgba(instance.style.buttonHoverStrokeColor, instance.style.buttonHoverStrokeOpacity / 100);
+        contextVars['--ui-btn-hover-border-width'] = `${instance.style.buttonHoverStrokeWeight}px`;
+        contextVars['--ui-btn-hover-font-size'] = `${Math.round(instance.style.buttonHoverFontSize * SIZE_SCALE[instance.style.size])}px`;
+        contextVars['--ui-btn-hover-font-weight'] = `${instance.style.buttonHoverFontWeight}`;
+        contextVars['--ui-btn-hover-justify'] = fontPositionToJustify(instance.style.buttonHoverFontPosition);
+        contextVars['--ui-btn-active-bg'] = buildStateFill(instance.style.buttonActiveFillMode, instance.style.buttonActiveFillColor, instance.style.buttonActiveFillColorTo, instance.style.buttonActiveFillWeight, instance.style.buttonActiveFillOpacity);
+        contextVars['--ui-btn-active-fg'] = hexToRgba(instance.style.buttonActiveFontColor, instance.style.buttonActiveFontOpacity / 100);
+        contextVars['--ui-btn-active-border'] = hexToRgba(instance.style.buttonActiveStrokeColor, instance.style.buttonActiveStrokeOpacity / 100);
+        contextVars['--ui-btn-active-border-width'] = `${instance.style.buttonActiveStrokeWeight}px`;
+        contextVars['--ui-btn-active-font-size'] = `${Math.round(instance.style.buttonActiveFontSize * SIZE_SCALE[instance.style.size])}px`;
+        contextVars['--ui-btn-active-font-weight'] = `${instance.style.buttonActiveFontWeight}`;
+        contextVars['--ui-btn-active-justify'] = fontPositionToJustify(instance.style.buttonActiveFontPosition);
+        contextVars['--ui-btn-disabled-bg'] = buildStateFill(instance.style.buttonDisabledFillMode, instance.style.buttonDisabledFillColor, instance.style.buttonDisabledFillColorTo, instance.style.buttonDisabledFillWeight, instance.style.buttonDisabledFillOpacity);
+        contextVars['--ui-btn-disabled-fg'] = hexToRgba(instance.style.buttonDisabledFontColor, instance.style.buttonDisabledFontOpacity / 100);
+        contextVars['--ui-btn-disabled-border'] = hexToRgba(instance.style.buttonDisabledStrokeColor, instance.style.buttonDisabledStrokeOpacity / 100);
+        contextVars['--ui-btn-disabled-border-width'] = `${instance.style.buttonDisabledStrokeWeight}px`;
+        contextVars['--ui-btn-disabled-font-size'] = `${Math.round(instance.style.buttonDisabledFontSize * SIZE_SCALE[instance.style.size])}px`;
+        contextVars['--ui-btn-disabled-font-weight'] = `${instance.style.buttonDisabledFontWeight}`;
+        contextVars['--ui-btn-disabled-justify'] = fontPositionToJustify(instance.style.buttonDisabledFontPosition);
+    }
+
     const baseStyle = {
         ...previewStyle,
-        ...buildMotionVariables(instance.style),
-        ['--ui-dropdown-hover-bg' as string]: hexToRgba(
-            instance.style.dropdownHoverFill,
-            instance.style.dropdownHoverFillOpacity / 100,
-        ),
-        ['--ui-dropdown-hover-fg' as string]: instance.style.dropdownHoverText,
-        ['--ui-btn-hover-bg' as string]: buildStateFill(
-            instance.style.buttonHoverFillMode,
-            instance.style.buttonHoverFillColor,
-            instance.style.buttonHoverFillColorTo,
-            instance.style.buttonHoverFillWeight,
-            instance.style.buttonHoverFillOpacity,
-        ),
-        ['--ui-btn-hover-fg' as string]: hexToRgba(instance.style.buttonHoverFontColor, instance.style.buttonHoverFontOpacity / 100),
-        ['--ui-btn-hover-border' as string]: hexToRgba(
-            instance.style.buttonHoverStrokeColor,
-            instance.style.buttonHoverStrokeOpacity / 100,
-        ),
-        ['--ui-btn-hover-border-width' as string]: `${instance.style.buttonHoverStrokeWeight}px`,
-        ['--ui-btn-hover-font-size' as string]: `${Math.round(instance.style.buttonHoverFontSize * SIZE_SCALE[instance.style.size])}px`,
-        ['--ui-btn-hover-font-weight' as string]: instance.style.buttonHoverFontWeight,
-        ['--ui-btn-hover-justify' as string]: fontPositionToJustify(instance.style.buttonHoverFontPosition),
-        ['--ui-btn-active-bg' as string]: buildStateFill(
-            instance.style.buttonActiveFillMode,
-            instance.style.buttonActiveFillColor,
-            instance.style.buttonActiveFillColorTo,
-            instance.style.buttonActiveFillWeight,
-            instance.style.buttonActiveFillOpacity,
-        ),
-        ['--ui-btn-active-fg' as string]: hexToRgba(
-            instance.style.buttonActiveFontColor,
-            instance.style.buttonActiveFontOpacity / 100,
-        ),
-        ['--ui-btn-active-border' as string]: hexToRgba(
-            instance.style.buttonActiveStrokeColor,
-            instance.style.buttonActiveStrokeOpacity / 100,
-        ),
-        ['--ui-btn-active-border-width' as string]: `${instance.style.buttonActiveStrokeWeight}px`,
-        ['--ui-btn-active-font-size' as string]: `${Math.round(instance.style.buttonActiveFontSize * SIZE_SCALE[instance.style.size])}px`,
-        ['--ui-btn-active-font-weight' as string]: instance.style.buttonActiveFontWeight,
-        ['--ui-btn-active-justify' as string]: fontPositionToJustify(instance.style.buttonActiveFontPosition),
-        ['--ui-btn-disabled-bg' as string]: buildStateFill(
-            instance.style.buttonDisabledFillMode,
-            instance.style.buttonDisabledFillColor,
-            instance.style.buttonDisabledFillColorTo,
-            instance.style.buttonDisabledFillWeight,
-            instance.style.buttonDisabledFillOpacity,
-        ),
-        ['--ui-btn-disabled-fg' as string]: hexToRgba(
-            instance.style.buttonDisabledFontColor,
-            instance.style.buttonDisabledFontOpacity / 100,
-        ),
-        ['--ui-btn-disabled-border' as string]: hexToRgba(
-            instance.style.buttonDisabledStrokeColor,
-            instance.style.buttonDisabledStrokeOpacity / 100,
-        ),
-        ['--ui-btn-disabled-border-width' as string]: `${instance.style.buttonDisabledStrokeWeight}px`,
-        ['--ui-btn-disabled-font-size' as string]: `${Math.round(instance.style.buttonDisabledFontSize * SIZE_SCALE[instance.style.size])}px`,
-        ['--ui-btn-disabled-font-weight' as string]: instance.style.buttonDisabledFontWeight,
-        ['--ui-btn-disabled-justify' as string]: fontPositionToJustify(instance.style.buttonDisabledFontPosition),
+        ...motionVars,
+        ...contextVars,
     } as CSSProperties;
     const motionClassName = buildMotionClassName(instance.kind, instance.style.motionPreset);
     const className = cn(componentPreset?.className, motionClassName, extractedEffectsClassName);

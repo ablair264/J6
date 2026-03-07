@@ -153,7 +153,7 @@ export function ExportPanel() {
                         value="snippet"
                         className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
                     >
-                        Snippet
+                        Inline
                     </TabsTrigger>
                     <TabsTrigger
                         value="named"

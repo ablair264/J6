@@ -35,7 +35,7 @@ export function buildSnippetForInstance(
     exportStyleMode: ExportStyleMode,
     activeTokenSet: StudioTokenSet,
 ): string {
-    const preview = buildPreviewPresentation(instance);
+    const preview = buildPreviewPresentation(instance, true);
     const baseSnippet = componentSnippet(
         instance,
         preview.style,
@@ -52,7 +52,7 @@ export function buildNamedSnippetForInstance(
     exportStyleMode: ExportStyleMode,
     activeTokenSet: StudioTokenSet,
 ): string {
-    const preview = buildPreviewPresentation(instance);
+    const preview = buildPreviewPresentation(instance, true);
     const baseSnippet = componentSnippet(
         instance,
         preview.style,
