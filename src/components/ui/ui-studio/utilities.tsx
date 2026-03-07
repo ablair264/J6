@@ -255,6 +255,7 @@ export function supportsNeumorphicEffect(kind: UIComponentKind): boolean {
 
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
     const classes: string[] = [];
+    const animatedBorderActive = supportsAnimatedBorderEffect(kind) && style.effectAnimatedBorderEnabled;
     if (supportsGradientSlideEffect(kind) && style.effectGradientSlideEnabled) {
         classes.push(
             'ui-studio-effect-gradient-slide',
@@ -264,9 +265,14 @@ export function buildExtractedEffectsClassName(kind: UIComponentKind, style: Com
                 : 'ui-studio-effect-gradient-slide-solid',
         );
     }
-    if (supportsAnimatedBorderEffect(kind) && style.effectAnimatedBorderEnabled) {
+    if (animatedBorderActive) {
         classes.push('ui-studio-effect-animated-border');
-        if (style.effectAnimatedBorderStateDefault) {
+        const hasAnyAnimatedBorderState =
+            style.effectAnimatedBorderStateDefault ||
+            style.effectAnimatedBorderStateHover ||
+            style.effectAnimatedBorderStateActive ||
+            style.effectAnimatedBorderStateDisabled;
+        if (!hasAnyAnimatedBorderState || style.effectAnimatedBorderStateDefault) {
             classes.push('ui-studio-effect-animated-border-state-default');
         }
         if (style.effectAnimatedBorderStateHover) {
@@ -312,7 +318,9 @@ export function buildExtractedEffectsClassName(kind: UIComponentKind, style: Com
     if (supportsGrainEffect(kind) && style.effectGrain) {
         classes.push('ui-studio-effect-grain');
     }
-    if (supportsGradientBorderEffect(kind) && style.effectGradientBorder) {
+    // Gradient border and animated border both control layered background/border.
+    // If both are enabled, prefer animated border to preserve motion feedback.
+    if (!animatedBorderActive && supportsGradientBorderEffect(kind) && style.effectGradientBorder) {
         classes.push('ui-studio-effect-gradient-border');
     }
     return classes.length > 0 ? classes.join(' ') : undefined;

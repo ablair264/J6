@@ -447,7 +447,12 @@ export function InspectorPanel() {
             case 'background-blur': updateSelectedStyle('effectBlur', enabled); break;
             case 'glass-tint': updateSelectedStyle('effectGlass', enabled); break;
             case 'gradient-slide': updateSelectedStyle('effectGradientSlideEnabled', enabled); break;
-            case 'animated-border': updateSelectedStyle('effectAnimatedBorderEnabled', enabled); break;
+            case 'animated-border':
+                updateSelectedStyles({
+                    effectAnimatedBorderEnabled: enabled,
+                    ...(enabled ? { effectGradientBorder: false } : {}),
+                });
+                break;
             case 'ripple-fill': updateSelectedStyle('effectRippleFillEnabled', enabled); break;
             case 'loading-state': updateSelectedStyle('effectLoadingActiveEnabled', enabled); break;
             case 'sweep': updateSelectedStyle('effectSweepEnabled', enabled); break;
@@ -456,7 +461,12 @@ export function InspectorPanel() {
             case 'neon-glow': updateSelectedStyle('effectNeonGlowEnabled', enabled); break;
             case 'pulse-ring': updateSelectedStyle('effectPulseRingEnabled', enabled); break;
             case 'grain': updateSelectedStyle('effectGrain', enabled); break;
-            case 'gradient-border': updateSelectedStyle('effectGradientBorder', enabled); break;
+            case 'gradient-border':
+                updateSelectedStyles({
+                    effectGradientBorder: enabled,
+                    ...(enabled ? { effectAnimatedBorderEnabled: false } : {}),
+                });
+                break;
             case 'frosted-tint': updateSelectedStyle('effectFrostedTint', enabled); break;
             case 'radial-glow': updateSelectedStyle('effectRadialGlow', enabled); break;
             case 'elevation-shadow': updateSelectedStyle('effectElevationShadow', enabled); break;
@@ -1638,8 +1648,7 @@ export function InspectorPanel() {
                                     <FlatColorControl label="Inactive Text" value={selectedStyle.tabsInactiveTextColor} onChange={(value) => updateSelectedStyle('tabsInactiveTextColor', value)} tokens={activeTokenSet.tokens} />
                                 </div>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Layout</p>
+                                <FlatElementSubsection title="Layout" defaultOpen>
                                     <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Tab Gap" value={selectedStyle.tabsGap} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsGap', value)} />
@@ -1647,18 +1656,16 @@ export function InspectorPanel() {
                                         <FlatUnitField label="List Padding V" value={selectedStyle.tabsListPaddingY} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingY', value)} />
                                         <FlatUnitField label="Tab Padding H" value={selectedStyle.tabsTabPaddingX} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('tabsTabPaddingX', value)} />
                                     </div>
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Shape</p>
+                                <FlatElementSubsection title="Shape" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="List Radius" value={selectedStyle.tabsListRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListRadius', value)} />
                                         <FlatUnitField label="Tab Radius" value={selectedStyle.tabsTabRadius} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsTabRadius', value)} />
                                     </div>
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Typography</p>
+                                <FlatElementSubsection title="Typography" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
                                         <FlatField label="Weight">
@@ -1669,10 +1676,9 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Color</p>
+                                <FlatElementSubsection title="Advanced Colors" defaultOpen={false}>
                                     <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
                                         <FlatColorControl
                                             label="List Border"
@@ -1691,32 +1697,52 @@ export function InspectorPanel() {
                                     {selectedStyle.tabsVariant === 'line' ? (
                                         <FlatColorControl label="Active Indicator Color" value={selectedStyle.tabsActiveBorderColor} onChange={(value) => updateSelectedStyle('tabsActiveBorderColor', value)} tokens={activeTokenSet.tokens} />
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Decorators</p>
-                                    <FlatSwitchRow label="Drop Shadow" checked={selectedStyle.tabsShadow} onCheckedChange={(value) => updateSelectedStyle('tabsShadow', value)} />
-                                    <FlatSwitchRow label="Show Icons" checked={selectedStyle.tabsShowIcons} onCheckedChange={(value) => updateSelectedStyle('tabsShowIcons', value)} />
+                                <FlatElementSubsection title="Icons" defaultOpen={false}>
+                                    <FlatSwitchRow
+                                        label="Show Icons"
+                                        checked={selectedStyle.tabsShowIcons}
+                                        onCheckedChange={(value) => {
+                                            updateSelectedStyle('tabsShowIcons', value);
+                                            if (value && selectedStyle.icon === 'none') {
+                                                updateSelectedStyle('icon', 'search');
+                                            }
+                                        }}
+                                    />
                                     {selectedStyle.tabsShowIcons ? (
-                                        <FlatField label="Icon Position">
-                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                {(['left', 'right'] as const).map((value) => (
-                                                    <button
-                                                        key={value}
-                                                        type="button"
-                                                        onClick={() => updateSelectedStyle('tabsIconPosition', value)}
-                                                        className={cn(
-                                                            inspectorChoiceButtonBase,
-                                                            selectedStyle.tabsIconPosition === value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle,
-                                                        )}
-                                                    >
-                                                        {value === 'left' ? 'Left' : 'Right'}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </FlatField>
+                                        <>
+                                            <FlatField label="Tab Icon" stacked>
+                                                <FlatSelect
+                                                    value={selectedStyle.icon === 'none' ? 'search' : selectedStyle.icon}
+                                                    onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                    ariaLabel="Tabs icon"
+                                                >
+                                                    {ICON_OPTIONS.filter((option) => option.id !== 'none').map((option) => (
+                                                        <option key={option.id} value={option.id}>{option.label}</option>
+                                                    ))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <FlatField label="Icon Position">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    {(['left', 'right'] as const).map((value) => (
+                                                        <button
+                                                            key={value}
+                                                            type="button"
+                                                            onClick={() => updateSelectedStyle('tabsIconPosition', value)}
+                                                            className={cn(
+                                                                inspectorChoiceButtonBase,
+                                                                selectedStyle.tabsIconPosition === value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle,
+                                                            )}
+                                                        >
+                                                            {value === 'left' ? 'Left' : 'Right'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </FlatField>
+                                        </>
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}

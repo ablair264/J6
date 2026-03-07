@@ -821,6 +821,15 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
             merged.effectSweepStateHover = true;
         }
     }
+    if (
+        merged.effectAnimatedBorderEnabled &&
+        !merged.effectAnimatedBorderStateDefault &&
+        !merged.effectAnimatedBorderStateHover &&
+        !merged.effectAnimatedBorderStateActive &&
+        !merged.effectAnimatedBorderStateDisabled
+    ) {
+        merged.effectAnimatedBorderStateDefault = true;
+    }
     merged.effectAnimatedBorderColorCount = Math.max(2, Math.min(5, Math.round(merged.effectAnimatedBorderColorCount)));
     merged.sliderThumbHoverScale = Math.max(0.8, Math.min(1.6, merged.sliderThumbHoverScale));
     merged.sliderBarScale = Math.max(0.8, Math.min(1.6, merged.sliderBarScale));
