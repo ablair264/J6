@@ -349,11 +349,13 @@ export function UIStudioComponentPage() {
     const resolvedCanvasBg = canvasBackground || defaultCanvasBg;
     const canvasDotColor = studioTheme === 'dark' ? 'rgba(126, 255, 237, 0.09)' : 'rgba(31, 56, 94, 0.16)';
     const canvasDark = isDarkCanvasColor(resolvedCanvasBg);
-    const stateSnapshotVars = useMemo(() => ({
+    const canvasStateVars = useMemo(() => ({
         ['--ui-canvas-state-heading' as string]: canvasDark ? 'rgba(127,149,180,0.92)' : 'rgba(56,80,110,0.86)',
         ['--ui-canvas-state-label' as string]: canvasDark ? '#dbe8fb' : '#1a3656',
         ['--ui-canvas-state-label-selected' as string]: canvasDark ? '#eafcff' : '#0f304d',
         ['--ui-canvas-state-meta' as string]: canvasDark ? '#9bb0cc' : '#3f6087',
+        ['--ui-canvas-state-accent' as string]: canvasDark ? '#86fff1' : '#0f7ea1',
+        ['--ui-canvas-state-empty' as string]: canvasDark ? 'rgba(127,149,180,0.96)' : 'rgba(56,80,110,0.90)',
         ['--ui-canvas-state-selected-bg' as string]: canvasDark ? 'rgba(99,232,218,0.06)' : 'rgba(19,96,151,0.10)',
         ['--ui-canvas-state-selected-ring' as string]: canvasDark ? 'rgba(126,254,240,0.16)' : 'rgba(19,96,151,0.24)',
         ['--ui-canvas-state-hover-bg' as string]: canvasDark ? 'rgba(255,255,255,0.03)' : 'rgba(13,42,74,0.08)',
@@ -506,6 +508,7 @@ export function UIStudioComponentPage() {
                                 <div
                                     className="flex min-h-0 flex-1 flex-col"
                                     style={{
+                                        ...canvasStateVars,
                                         backgroundColor: resolvedCanvasBg,
                                         backgroundImage: showCanvasGrid
                                             ? `radial-gradient(circle, ${canvasDotColor} 1px, transparent 1px)`
@@ -539,11 +542,11 @@ export function UIStudioComponentPage() {
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-[#7f95b4]">Choose a component from the sidebar list.</p>
+                                            <p className="text-sm text-[color:var(--ui-canvas-state-empty)]">Choose a component from the sidebar list.</p>
                                         )}
                                     </div>
                                     {statePreviewItems.length > 0 ? (
-                                        <div className="flex min-h-0 flex-[2_1_0%] flex-col border-t border-white/8 px-4 py-3" style={stateSnapshotVars}>
+                                        <div className="flex min-h-0 flex-[2_1_0%] flex-col border-t border-white/8 px-4 py-3">
                                             <div className="mb-2 flex items-center justify-between">
                                                 <p className="ui-studio-heading text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--ui-canvas-state-heading)]">
                                                     State Snapshots
@@ -562,7 +565,7 @@ export function UIStudioComponentPage() {
                                                                     <span className={cn('text-[11px] font-semibold transition', isSelected ? 'text-[color:var(--ui-canvas-state-label-selected)]' : 'text-[color:var(--ui-canvas-state-label)]')}>
                                                                         {state.label}
                                                                     </span>
-                                                                    {isSelected ? <Check className="size-3.5 text-[#86fff1]" /> : null}
+                                                                    {isSelected ? <Check className="size-3.5 text-[color:var(--ui-canvas-state-accent)]" /> : null}
                                                                 </div>
                                                                 <button
                                                                     type="button"
