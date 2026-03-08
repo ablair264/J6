@@ -2315,6 +2315,28 @@ export function InspectorPanel() {
                                                 placeholder="Leave empty to hide the button"
                                             />
                                         </FlatField>
+                                        <FlatField label="Secondary Button" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardSecondaryButtonText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardSecondaryButtonText: event.target.value,
+                                                    cardShowSecondaryButton: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide"
+                                            />
+                                        </FlatField>
+                                        {selectedStyle.cardShowSecondaryButton && selectedStyle.cardSecondaryButtonText.trim() ? (
+                                            <FlatField label="Secondary Variant" stacked>
+                                                <FlatSelect value={selectedStyle.cardSecondaryButtonVariant} onValueChange={(value) => updateSelectedStyle('cardSecondaryButtonVariant', value as ComponentStyleConfig['cardSecondaryButtonVariant'])} ariaLabel="Secondary button variant">
+                                                    <option value="default">Default</option>
+                                                    <option value="outline">Outline</option>
+                                                    <option value="ghost">Ghost</option>
+                                                    <option value="secondary">Secondary</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
                                         {(selectedStyle.cardToggleText.trim() || selectedStyle.cardButtonText.trim()) ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Actions position">
@@ -2572,6 +2594,28 @@ export function InspectorPanel() {
                                                 placeholder="Leave empty to hide the footer action"
                                             />
                                         </FlatField>
+                                        <FlatField label="Secondary Button" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardSecondaryButtonText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardSecondaryButtonText: event.target.value,
+                                                    cardShowSecondaryButton: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide"
+                                            />
+                                        </FlatField>
+                                        {selectedStyle.cardShowSecondaryButton && selectedStyle.cardSecondaryButtonText.trim() ? (
+                                            <FlatField label="Secondary Variant" stacked>
+                                                <FlatSelect value={selectedStyle.cardSecondaryButtonVariant} onValueChange={(value) => updateSelectedStyle('cardSecondaryButtonVariant', value as ComponentStyleConfig['cardSecondaryButtonVariant'])} ariaLabel="Secondary button variant">
+                                                    <option value="default">Default</option>
+                                                    <option value="outline">Outline</option>
+                                                    <option value="ghost">Ghost</option>
+                                                    <option value="secondary">Secondary</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
                                         {selectedStyle.cardButtonText.trim() ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="Footer position">
@@ -2849,6 +2893,28 @@ export function InspectorPanel() {
                                                 placeholder="Leave empty to hide the CTA"
                                             />
                                         </FlatField>
+                                        <FlatField label="Secondary Button" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardSecondaryButtonText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardSecondaryButtonText: event.target.value,
+                                                    cardShowSecondaryButton: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide"
+                                            />
+                                        </FlatField>
+                                        {selectedStyle.cardShowSecondaryButton && selectedStyle.cardSecondaryButtonText.trim() ? (
+                                            <FlatField label="Secondary Variant" stacked>
+                                                <FlatSelect value={selectedStyle.cardSecondaryButtonVariant} onValueChange={(value) => updateSelectedStyle('cardSecondaryButtonVariant', value as ComponentStyleConfig['cardSecondaryButtonVariant'])} ariaLabel="Secondary button variant">
+                                                    <option value="default">Default</option>
+                                                    <option value="outline">Outline</option>
+                                                    <option value="ghost">Ghost</option>
+                                                    <option value="secondary">Secondary</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
                                         {selectedStyle.cardCtaText.trim() ? (
                                             <FlatField label="Placement" stacked>
                                                 <FlatSelect value={selectedStyle.cardActionsPosition} onValueChange={(value) => updateSelectedStyle('cardActionsPosition', value as ComponentStyleConfig['cardActionsPosition'])} ariaLabel="CTA position">
