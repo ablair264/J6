@@ -1263,43 +1263,45 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'navigation-menu' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Nav Menu Config" icon={Table} defaultOpen>
-                                <FlatField label="Orientation">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {(['horizontal', 'vertical'] as const).map((v) => (
-                                            <button key={v} type="button" onClick={() => updateSelectedStyle('navMenuOrientation', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.navMenuOrientation === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                {v.charAt(0).toUpperCase() + v.slice(1)}
-                                            </button>
-                                        ))}
+                                <FlatElementSubsection title="Behavior" defaultOpen>
+                                    <FlatField label="Orientation">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['horizontal', 'vertical'] as const).map((v) => (
+                                                <button key={v} type="button" onClick={() => updateSelectedStyle('navMenuOrientation', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.navMenuOrientation === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <FlatField label="Style">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['ghost', 'default'] as const).map((v) => (
+                                                <button key={v} type="button" onClick={() => updateSelectedStyle('navMenuTriggerVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.navMenuTriggerVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <FlatUnitField label="Items" value={selectedStyle.navMenuItemCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('navMenuItemCount', value)} />
+                                    <div className="space-y-1.5">
+                                        <FlatSwitchRow label="Active Indicator" checked={selectedStyle.navMenuActiveIndicator} onCheckedChange={(value) => updateSelectedStyle('navMenuActiveIndicator', value)} />
+                                        <FlatSwitchRow label="Show Dropdown" checked={selectedStyle.navMenuShowDropdown} onCheckedChange={(value) => updateSelectedStyle('navMenuShowDropdown', value)} />
                                     </div>
-                                </FlatField>
-                                <FlatField label="Style">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {(['ghost', 'default'] as const).map((v) => (
-                                            <button key={v} type="button" onClick={() => updateSelectedStyle('navMenuTriggerVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.navMenuTriggerVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                {v.charAt(0).toUpperCase() + v.slice(1)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </FlatField>
-                                <FlatUnitField label="Items" value={selectedStyle.navMenuItemCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('navMenuItemCount', value)} />
-                                <div className="space-y-1.5">
-                                    <FlatSwitchRow label="Active Indicator" checked={selectedStyle.navMenuActiveIndicator} onCheckedChange={(value) => updateSelectedStyle('navMenuActiveIndicator', value)} />
-                                    <FlatSwitchRow label="Show Dropdown" checked={selectedStyle.navMenuShowDropdown} onCheckedChange={(value) => updateSelectedStyle('navMenuShowDropdown', value)} />
-                                </div>
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Colors" defaultOpen={false}>
+                                    <FlatColorControl label="Hover Background" value={selectedStyle.navMenuHoverBg} onChange={(value) => updateSelectedStyle('navMenuHoverBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Hover Text" value={selectedStyle.navMenuHoverText} onChange={(value) => updateSelectedStyle('navMenuHoverText', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Active Background" value={selectedStyle.navMenuActiveBg} onChange={(value) => updateSelectedStyle('navMenuActiveBg', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatColorControl label="Active Text" value={selectedStyle.navMenuActiveText} onChange={(value) => updateSelectedStyle('navMenuActiveText', value)} tokens={activeTokenSet.tokens} />
+                                </FlatElementSubsection>
+                                {selectedStyle.navMenuShowDropdown ? (
+                                    <FlatElementSubsection title="Dropdown Panel" defaultOpen={false}>
+                                        <FlatColorControl label="Background" value={selectedStyle.navMenuDropdownBg} onChange={(value) => updateSelectedStyle('navMenuDropdownBg', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Text" value={selectedStyle.navMenuDropdownText} onChange={(value) => updateSelectedStyle('navMenuDropdownText', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatColorControl label="Border" value={selectedStyle.navMenuDropdownBorderColor} onChange={(value) => updateSelectedStyle('navMenuDropdownBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                    </FlatElementSubsection>
+                                ) : null}
                             </FlatInspectorSection>
-                            <FlatInspectorSection title="Link Colors" icon={Config}>
-                                <FlatColorControl label="Hover Background" value={selectedStyle.navMenuHoverBg} onChange={(value) => updateSelectedStyle('navMenuHoverBg', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Hover Text" value={selectedStyle.navMenuHoverText} onChange={(value) => updateSelectedStyle('navMenuHoverText', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Active Background" value={selectedStyle.navMenuActiveBg} onChange={(value) => updateSelectedStyle('navMenuActiveBg', value)} tokens={activeTokenSet.tokens} />
-                                <FlatColorControl label="Active Text" value={selectedStyle.navMenuActiveText} onChange={(value) => updateSelectedStyle('navMenuActiveText', value)} tokens={activeTokenSet.tokens} />
-                            </FlatInspectorSection>
-                            {selectedStyle.navMenuShowDropdown ? (
-                                <FlatInspectorSection title="Dropdown Panel" icon={Config}>
-                                    <FlatColorControl label="Background" value={selectedStyle.navMenuDropdownBg} onChange={(value) => updateSelectedStyle('navMenuDropdownBg', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatColorControl label="Text" value={selectedStyle.navMenuDropdownText} onChange={(value) => updateSelectedStyle('navMenuDropdownText', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatColorControl label="Border" value={selectedStyle.navMenuDropdownBorderColor} onChange={(value) => updateSelectedStyle('navMenuDropdownBorderColor', value)} tokens={activeTokenSet.tokens} />
-                                </FlatInspectorSection>
-                            ) : null}
                         </div>
                     ) : null}
 
@@ -1307,101 +1309,103 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'accordion' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Accordion Config" icon={Table} defaultOpen>
-                                <div className="space-y-2">
-                                    <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
-                                    <FlatSwitchRow label="Allow Multiple" checked={selectedStyle.accordionAllowMultiple} onCheckedChange={(value) => updateSelectedStyle('accordionAllowMultiple', value)} />
-                                </div>
-                                <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
-                                <div className="flex flex-wrap items-start gap-3">
-                                    <FlatUnitField label="Padding (H)" value={selectedStyle.accordionPaddingH} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingH', value)} />
-                                    <FlatUnitField label="Padding (W)" value={selectedStyle.accordionPaddingW} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingW', value)} />
-                                    <FlatUnitField label="Spacing" value={selectedStyle.accordionSpacing} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('accordionSpacing', value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <FlatSwitchRow label="Divider" checked={selectedStyle.accordionDividerEnabled} onCheckedChange={(value) => updateSelectedStyle('accordionDividerEnabled', value)} />
-                                    {selectedStyle.accordionDividerEnabled && (
-                                        <>
-                                            <FlatUnitField label="Divider Weight" value={selectedStyle.accordionDividerWeight} min={0.5} max={4} step={0.5} unit="px" onChange={(value) => updateSelectedStyle('accordionDividerWeight', value)} />
-                                            <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
-                                        </>
+                                <FlatElementSubsection title="Layout & Behavior" defaultOpen>
+                                    <div className="space-y-2">
+                                        <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
+                                        <FlatSwitchRow label="Allow Multiple" checked={selectedStyle.accordionAllowMultiple} onCheckedChange={(value) => updateSelectedStyle('accordionAllowMultiple', value)} />
+                                    </div>
+                                    <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
+                                    <div className="flex flex-wrap items-start gap-3">
+                                        <FlatUnitField label="Padding (H)" value={selectedStyle.accordionPaddingH} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingH', value)} />
+                                        <FlatUnitField label="Padding (W)" value={selectedStyle.accordionPaddingW} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingW', value)} />
+                                        <FlatUnitField label="Spacing" value={selectedStyle.accordionSpacing} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('accordionSpacing', value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FlatSwitchRow label="Divider" checked={selectedStyle.accordionDividerEnabled} onCheckedChange={(value) => updateSelectedStyle('accordionDividerEnabled', value)} />
+                                        {selectedStyle.accordionDividerEnabled && (
+                                            <>
+                                                <FlatUnitField label="Divider Weight" value={selectedStyle.accordionDividerWeight} min={0.5} max={4} step={0.5} unit="px" onChange={(value) => updateSelectedStyle('accordionDividerWeight', value)} />
+                                                <FlatColorControl label="Divider Color" value={selectedStyle.accordionDividerColor} onChange={(value) => updateSelectedStyle('accordionDividerColor', value)} tokens={activeTokenSet.tokens} />
+                                            </>
+                                        )}
+                                    </div>
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Icons" defaultOpen={false}>
+                                    <FlatSwitchRow label="Show Icons" checked={selectedStyle.accordionShowIcons} onCheckedChange={(value) => updateSelectedStyle('accordionShowIcons', value)} />
+                                    {selectedStyle.accordionShowIcons && (
+                                        <FlatField label="Icon Position">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                {(['left', 'right'] as const).map((position) => (
+                                                    <button key={position} type="button" onClick={() => updateSelectedStyle('accordionIconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.accordionIconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        {position === 'left' ? 'Left' : 'Right'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FlatField>
                                     )}
-                                </div>
-                            </FlatInspectorSection>
-                            <FlatInspectorSection title="Icons" icon={Sparkles} defaultOpen={false}>
-                                <FlatSwitchRow label="Show Icons" checked={selectedStyle.accordionShowIcons} onCheckedChange={(value) => updateSelectedStyle('accordionShowIcons', value)} />
-                                {selectedStyle.accordionShowIcons && (
-                                    <FlatField label="Icon Position">
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Trigger Typography" defaultOpen={false}>
+                                    <FlatField label="Font" stacked>
+                                        <FlatSelect value={selectedStyle.accordionTriggerFontFamily} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontFamily', value)} ariaLabel="Trigger font family">
+                                            {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <div className="flex flex-wrap items-end gap-3">
+                                        <FlatUnitField label="Size" value={selectedStyle.accordionTriggerFontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('accordionTriggerFontSize', value)} />
+                                        <div className="w-[92px] shrink-0">
+                                            <FlatField label="Weight" stacked>
+                                                <FlatSelect value={selectedStyle.accordionTriggerFontWeight} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontWeight', Number(value))} ariaLabel="Trigger font weight">
+                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                        </div>
+                                    </div>
+                                    <FlatField label="Style">
                                         <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            {(['left', 'right'] as const).map((position) => (
-                                                <button key={position} type="button" onClick={() => updateSelectedStyle('accordionIconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.accordionIconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    {position === 'left' ? 'Left' : 'Right'}
-                                                </button>
-                                            ))}
+                                            <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontBold', !selectedStyle.accordionTriggerFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeBold className="size-4" />
+                                            </button>
+                                            <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontItalic', !selectedStyle.accordionTriggerFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeItalic className="size-4" />
+                                            </button>
+                                            <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontUnderline', !selectedStyle.accordionTriggerFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeUnderline className="size-4" />
+                                            </button>
                                         </div>
                                     </FlatField>
-                                )}
-                            </FlatInspectorSection>
-                            <FlatInspectorSection title="Trigger Typography" icon={Sparkles} defaultOpen={false}>
-                                <FlatField label="Font" stacked>
-                                    <FlatSelect value={selectedStyle.accordionTriggerFontFamily} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontFamily', value)} ariaLabel="Trigger font family">
-                                        {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
-                                    </FlatSelect>
-                                </FlatField>
-                                <div className="flex flex-wrap items-end gap-3">
-                                    <FlatUnitField label="Size" value={selectedStyle.accordionTriggerFontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('accordionTriggerFontSize', value)} />
-                                    <div className="w-[92px] shrink-0">
-                                        <FlatField label="Weight" stacked>
-                                            <FlatSelect value={selectedStyle.accordionTriggerFontWeight} onValueChange={(value) => updateSelectedStyle('accordionTriggerFontWeight', Number(value))} ariaLabel="Trigger font weight">
-                                                {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                            </FlatSelect>
-                                        </FlatField>
+                                    <FlatColorControl label="Color" value={selectedStyle.accordionTriggerFontColor} onChange={(value) => updateSelectedStyle('accordionTriggerFontColor', value)} tokens={activeTokenSet.tokens} />
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Content Typography" defaultOpen={false}>
+                                    <FlatField label="Font" stacked>
+                                        <FlatSelect value={selectedStyle.accordionContentFontFamily} onValueChange={(value) => updateSelectedStyle('accordionContentFontFamily', value)} ariaLabel="Content font family">
+                                            {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                        </FlatSelect>
+                                    </FlatField>
+                                    <div className="flex flex-wrap items-end gap-3">
+                                        <FlatUnitField label="Size" value={selectedStyle.accordionContentFontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('accordionContentFontSize', value)} />
+                                        <div className="w-[92px] shrink-0">
+                                            <FlatField label="Weight" stacked>
+                                                <FlatSelect value={selectedStyle.accordionContentFontWeight} onValueChange={(value) => updateSelectedStyle('accordionContentFontWeight', Number(value))} ariaLabel="Content font weight">
+                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                        </div>
                                     </div>
-                                </div>
-                                <FlatField label="Style">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontBold', !selectedStyle.accordionTriggerFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeBold className="size-4" />
-                                        </button>
-                                        <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontItalic', !selectedStyle.accordionTriggerFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeItalic className="size-4" />
-                                        </button>
-                                        <button type="button" onClick={() => updateSelectedStyle('accordionTriggerFontUnderline', !selectedStyle.accordionTriggerFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionTriggerFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeUnderline className="size-4" />
-                                        </button>
-                                    </div>
-                                </FlatField>
-                                <FlatColorControl label="Color" value={selectedStyle.accordionTriggerFontColor} onChange={(value) => updateSelectedStyle('accordionTriggerFontColor', value)} tokens={activeTokenSet.tokens} />
-                            </FlatInspectorSection>
-                            <FlatInspectorSection title="Content Typography" icon={Sparkles} defaultOpen={false}>
-                                <FlatField label="Font" stacked>
-                                    <FlatSelect value={selectedStyle.accordionContentFontFamily} onValueChange={(value) => updateSelectedStyle('accordionContentFontFamily', value)} ariaLabel="Content font family">
-                                        {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
-                                    </FlatSelect>
-                                </FlatField>
-                                <div className="flex flex-wrap items-end gap-3">
-                                    <FlatUnitField label="Size" value={selectedStyle.accordionContentFontSize} min={10} max={72} unit="px" onChange={(value) => updateSelectedStyle('accordionContentFontSize', value)} />
-                                    <div className="w-[92px] shrink-0">
-                                        <FlatField label="Weight" stacked>
-                                            <FlatSelect value={selectedStyle.accordionContentFontWeight} onValueChange={(value) => updateSelectedStyle('accordionContentFontWeight', Number(value))} ariaLabel="Content font weight">
-                                                {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                            </FlatSelect>
-                                        </FlatField>
-                                    </div>
-                                </div>
-                                <FlatField label="Style">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        <button type="button" onClick={() => updateSelectedStyle('accordionContentFontBold', !selectedStyle.accordionContentFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeBold className="size-4" />
-                                        </button>
-                                        <button type="button" onClick={() => updateSelectedStyle('accordionContentFontItalic', !selectedStyle.accordionContentFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeItalic className="size-4" />
-                                        </button>
-                                        <button type="button" onClick={() => updateSelectedStyle('accordionContentFontUnderline', !selectedStyle.accordionContentFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                            <TypeUnderline className="size-4" />
-                                        </button>
-                                    </div>
-                                </FlatField>
-                                <FlatColorControl label="Color" value={selectedStyle.accordionContentFontColor} onChange={(value) => updateSelectedStyle('accordionContentFontColor', value)} tokens={activeTokenSet.tokens} />
+                                    <FlatField label="Style">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            <button type="button" onClick={() => updateSelectedStyle('accordionContentFontBold', !selectedStyle.accordionContentFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeBold className="size-4" />
+                                            </button>
+                                            <button type="button" onClick={() => updateSelectedStyle('accordionContentFontItalic', !selectedStyle.accordionContentFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeItalic className="size-4" />
+                                            </button>
+                                            <button type="button" onClick={() => updateSelectedStyle('accordionContentFontUnderline', !selectedStyle.accordionContentFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.accordionContentFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <TypeUnderline className="size-4" />
+                                            </button>
+                                        </div>
+                                    </FlatField>
+                                    <FlatColorControl label="Color" value={selectedStyle.accordionContentFontColor} onChange={(value) => updateSelectedStyle('accordionContentFontColor', value)} tokens={activeTokenSet.tokens} />
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -1854,89 +1858,91 @@ export function InspectorPanel() {
                                         placeholder="Type here..."
                                     />
                                 </FlatField>
-                                <FlatSwitchRow label="Show Icon" checked={selectedStyle.inputShowIcon} onCheckedChange={(value) => {
-                                    updateSelectedStyle('inputShowIcon', value);
-                                    if (value && selectedStyle.icon === 'none') {
-                                        const fallbackLibrary = selectedStyle.iconLibrary === 'custom' ? 'studio' : selectedStyle.iconLibrary;
-                                        updateSelectedStyle('icon', getDefaultIconForLibrary(fallbackLibrary));
-                                    }
-                                }} />
-                                {selectedStyle.inputShowIcon ? (
-                                    <>
-                                        <FlatField label="Icon Library">
-                                            <FlatSelect
-                                                value={selectedStyle.iconLibrary}
-                                                onValueChange={(value) => {
-                                                    const nextLibrary = value as IconLibrary;
-                                                    updateSelectedStyle('iconLibrary', nextLibrary);
-                                                    if (nextLibrary !== 'custom') {
-                                                        updateSelectedStyle('icon', getResolvedIconValue(nextLibrary, selectedStyle.icon, false));
-                                                    }
-                                                }}
-                                                ariaLabel="Input icon library"
-                                            >
-                                                {ICON_LIBRARY_OPTIONS.map((option) => (
-                                                    <option key={option.id} value={option.id}>{option.label}</option>
-                                                ))}
-                                            </FlatSelect>
-                                        </FlatField>
-                                        {selectedStyle.iconLibrary === 'custom' ? (
-                                            <>
-                                                <FlatField label="Icon Import Path" stacked>
-                                                    <input
-                                                        type="text"
-                                                        value={selectedStyle.iconCustomImportPath}
-                                                        onChange={(event) => updateSelectedStyle('iconCustomImportPath', event.target.value)}
-                                                        className={studioInputClass}
-                                                        placeholder="@my/icons"
-                                                    />
-                                                </FlatField>
-                                                <FlatField label="Icon Name" stacked>
-                                                    <input
-                                                        type="text"
-                                                        value={selectedStyle.iconCustomName}
-                                                        onChange={(event) => updateSelectedStyle('iconCustomName', event.target.value)}
-                                                        className={studioInputClass}
-                                                        placeholder="SearchIcon"
-                                                    />
-                                                </FlatField>
-                                            </>
-                                        ) : (
-                                            <FlatField label="Icon">
+                                <FlatElementSubsection title="Icon" defaultOpen={false}>
+                                    <FlatSwitchRow label="Show Icon" checked={selectedStyle.inputShowIcon} onCheckedChange={(value) => {
+                                        updateSelectedStyle('inputShowIcon', value);
+                                        if (value && selectedStyle.icon === 'none') {
+                                            const fallbackLibrary = selectedStyle.iconLibrary === 'custom' ? 'studio' : selectedStyle.iconLibrary;
+                                            updateSelectedStyle('icon', getDefaultIconForLibrary(fallbackLibrary));
+                                        }
+                                    }} />
+                                    {selectedStyle.inputShowIcon ? (
+                                        <>
+                                            <FlatField label="Icon Library">
                                                 <FlatSelect
-                                                    value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, false)}
-                                                    onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
-                                                    ariaLabel="Input icon"
+                                                    value={selectedStyle.iconLibrary}
+                                                    onValueChange={(value) => {
+                                                        const nextLibrary = value as IconLibrary;
+                                                        updateSelectedStyle('iconLibrary', nextLibrary);
+                                                        if (nextLibrary !== 'custom') {
+                                                            updateSelectedStyle('icon', getResolvedIconValue(nextLibrary, selectedStyle.icon, false));
+                                                        }
+                                                    }}
+                                                    ariaLabel="Input icon library"
                                                 >
-                                                    {getIconOptionsForLibrary(selectedStyle.iconLibrary)
-                                                        .filter((option) => option.id !== 'none')
-                                                        .map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                        <option key={option.id} value={option.id}>{option.label}</option>
+                                                    ))}
                                                 </FlatSelect>
                                             </FlatField>
-                                        )}
-                                        <FlatField label="Icon Position">
-                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                {(['left', 'right'] as const).map((pos) => (
-                                                    <button key={pos} type="button" onClick={() => updateSelectedStyle('inputIconPosition', pos)} className={cn(inspectorChoiceButtonBase, selectedStyle.inputIconPosition === pos ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                        {pos.charAt(0).toUpperCase() + pos.slice(1)}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </FlatField>
-                                    </>
-                                ) : null}
-                            </FlatInspectorSection>
-                            <FlatInspectorSection title="Autocomplete Dropdown" icon={Config}>
-                                <FlatSwitchRow label="Show Autocomplete" checked={selectedStyle.inputAutocompleteEnabled} onCheckedChange={(value) => updateSelectedStyle('inputAutocompleteEnabled', value)} />
-                                {selectedStyle.inputAutocompleteEnabled ? (
-                                    <>
-                                        <FlatColorControl label="Background" value={selectedStyle.inputAutocompleteBgColor} onChange={(value) => updateSelectedStyle('inputAutocompleteBgColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatColorControl label="Border" value={selectedStyle.inputAutocompleteBorderColor} onChange={(value) => updateSelectedStyle('inputAutocompleteBorderColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatColorControl label="Text" value={selectedStyle.inputAutocompleteTextColor} onChange={(value) => updateSelectedStyle('inputAutocompleteTextColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatColorControl label="Option hover bg" value={selectedStyle.inputAutocompleteOptionHoverBgColor} onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverBgColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatColorControl label="Option hover text" value={selectedStyle.inputAutocompleteOptionHoverTextColor} onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverTextColor', value)} tokens={activeTokenSet.tokens} />
-                                    </>
-                                ) : null}
+                                            {selectedStyle.iconLibrary === 'custom' ? (
+                                                <>
+                                                    <FlatField label="Icon Import Path" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.iconCustomImportPath}
+                                                            onChange={(event) => updateSelectedStyle('iconCustomImportPath', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="@my/icons"
+                                                        />
+                                                    </FlatField>
+                                                    <FlatField label="Icon Name" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.iconCustomName}
+                                                            onChange={(event) => updateSelectedStyle('iconCustomName', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="SearchIcon"
+                                                        />
+                                                    </FlatField>
+                                                </>
+                                            ) : (
+                                                <FlatField label="Icon">
+                                                    <FlatSelect
+                                                        value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, false)}
+                                                        onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                        ariaLabel="Input icon"
+                                                    >
+                                                        {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                            .filter((option) => option.id !== 'none')
+                                                            .map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            )}
+                                            <FlatField label="Icon Position">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    {(['left', 'right'] as const).map((pos) => (
+                                                        <button key={pos} type="button" onClick={() => updateSelectedStyle('inputIconPosition', pos)} className={cn(inspectorChoiceButtonBase, selectedStyle.inputIconPosition === pos ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                            {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </FlatField>
+                                        </>
+                                    ) : null}
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Autocomplete" defaultOpen={false}>
+                                    <FlatSwitchRow label="Show Autocomplete" checked={selectedStyle.inputAutocompleteEnabled} onCheckedChange={(value) => updateSelectedStyle('inputAutocompleteEnabled', value)} />
+                                    {selectedStyle.inputAutocompleteEnabled ? (
+                                        <>
+                                            <FlatColorControl label="Background" value={selectedStyle.inputAutocompleteBgColor} onChange={(value) => updateSelectedStyle('inputAutocompleteBgColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatColorControl label="Border" value={selectedStyle.inputAutocompleteBorderColor} onChange={(value) => updateSelectedStyle('inputAutocompleteBorderColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatColorControl label="Text" value={selectedStyle.inputAutocompleteTextColor} onChange={(value) => updateSelectedStyle('inputAutocompleteTextColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatColorControl label="Option hover bg" value={selectedStyle.inputAutocompleteOptionHoverBgColor} onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverBgColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatColorControl label="Option hover text" value={selectedStyle.inputAutocompleteOptionHoverTextColor} onChange={(value) => updateSelectedStyle('inputAutocompleteOptionHoverTextColor', value)} tokens={activeTokenSet.tokens} />
+                                        </>
+                                    ) : null}
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -2141,6 +2147,78 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
+                                    <CardConfigSubsection title="Icon" defaultOpen={selectedStyle.cardShowIcon}>
+                                        <FlatSwitchRow label="Show icon" checked={selectedStyle.cardShowIcon} onCheckedChange={(value) => updateSelectedStyle('cardShowIcon', value)} />
+                                        {selectedStyle.cardShowIcon ? (
+                                            <>
+                                                <FlatField label="Icon Library" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.iconLibrary}
+                                                        onValueChange={(value) => updateSelectedStyle('iconLibrary', value as IconLibrary)}
+                                                        ariaLabel="Icon library"
+                                                    >
+                                                        {ICON_LIBRARY_OPTIONS.filter(o => o.id !== 'custom').map((option) => (
+                                                            <option key={option.id} value={option.id}>{option.label}</option>
+                                                        ))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Icon" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.cardIconName}
+                                                        onValueChange={(value) => updateSelectedStyle('cardIconName', value as IconOptionId)}
+                                                        ariaLabel="Card icon"
+                                                    >
+                                                        {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                            .filter((option) => option.id !== 'none')
+                                                            .map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatColorControl label="Icon Color" value={selectedStyle.cardIconColor} onChange={(value) => updateSelectedStyle('cardIconColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatUnitField label="Size" value={selectedStyle.cardIconSize} min={12} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardIconSize', value)} />
+                                                </div>
+                                                <FlatSwitchRow label="Background" checked={selectedStyle.cardIconBgEnabled} onCheckedChange={(value) => updateSelectedStyle('cardIconBgEnabled', value)} />
+                                                {selectedStyle.cardIconBgEnabled ? (
+                                                    <div className="flex flex-wrap items-start gap-3">
+                                                        <FlatColorControl label="Bg Color" value={selectedStyle.cardIconBgColor} onChange={(value) => updateSelectedStyle('cardIconBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                        <FlatUnitField label="Radius" value={selectedStyle.cardIconBgRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('cardIconBgRadius', value)} />
+                                                    </div>
+                                                ) : null}
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText?.trim())}>
+                                        <FlatField label="Badge Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardBadgeText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardBadgeText: event.target.value,
+                                                    cardShowBadge: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide badge"
+                                            />
+                                        </FlatField>
+                                        {Boolean(selectedStyle.cardBadgeText?.trim()) ? (
+                                            <>
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatColorControl label="Text Color" value={selectedStyle.cardBadgeColor} onChange={(value) => updateSelectedStyle('cardBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatColorControl label="Background" value={selectedStyle.cardBadgeBgColor} onChange={(value) => updateSelectedStyle('cardBadgeBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                </div>
+                                                <FlatField label="Position" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBadgePosition} onValueChange={(value) => updateSelectedStyle('cardBadgePosition', value as ComponentStyleConfig['cardBadgePosition'])} ariaLabel="Badge position">
+                                                        <option value="top-left">Top Left</option>
+                                                        <option value="top-right">Top Right</option>
+                                                        <option value="bottom-left">Bottom Left</option>
+                                                        <option value="bottom-right">Bottom Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
                                     <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-card-image`}
@@ -2292,6 +2370,78 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Product Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
+                                    <CardConfigSubsection title="Icon" defaultOpen={selectedStyle.cardShowIcon}>
+                                        <FlatSwitchRow label="Show icon" checked={selectedStyle.cardShowIcon} onCheckedChange={(value) => updateSelectedStyle('cardShowIcon', value)} />
+                                        {selectedStyle.cardShowIcon ? (
+                                            <>
+                                                <FlatField label="Icon Library" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.iconLibrary}
+                                                        onValueChange={(value) => updateSelectedStyle('iconLibrary', value as IconLibrary)}
+                                                        ariaLabel="Icon library"
+                                                    >
+                                                        {ICON_LIBRARY_OPTIONS.filter(o => o.id !== 'custom').map((option) => (
+                                                            <option key={option.id} value={option.id}>{option.label}</option>
+                                                        ))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Icon" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.cardIconName}
+                                                        onValueChange={(value) => updateSelectedStyle('cardIconName', value as IconOptionId)}
+                                                        ariaLabel="Card icon"
+                                                    >
+                                                        {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                            .filter((option) => option.id !== 'none')
+                                                            .map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatColorControl label="Icon Color" value={selectedStyle.cardIconColor} onChange={(value) => updateSelectedStyle('cardIconColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatUnitField label="Size" value={selectedStyle.cardIconSize} min={12} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardIconSize', value)} />
+                                                </div>
+                                                <FlatSwitchRow label="Background" checked={selectedStyle.cardIconBgEnabled} onCheckedChange={(value) => updateSelectedStyle('cardIconBgEnabled', value)} />
+                                                {selectedStyle.cardIconBgEnabled ? (
+                                                    <div className="flex flex-wrap items-start gap-3">
+                                                        <FlatColorControl label="Bg Color" value={selectedStyle.cardIconBgColor} onChange={(value) => updateSelectedStyle('cardIconBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                        <FlatUnitField label="Radius" value={selectedStyle.cardIconBgRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('cardIconBgRadius', value)} />
+                                                    </div>
+                                                ) : null}
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText?.trim())}>
+                                        <FlatField label="Badge Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardBadgeText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardBadgeText: event.target.value,
+                                                    cardShowBadge: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide badge"
+                                            />
+                                        </FlatField>
+                                        {Boolean(selectedStyle.cardBadgeText?.trim()) ? (
+                                            <>
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatColorControl label="Text Color" value={selectedStyle.cardBadgeColor} onChange={(value) => updateSelectedStyle('cardBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatColorControl label="Background" value={selectedStyle.cardBadgeBgColor} onChange={(value) => updateSelectedStyle('cardBadgeBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                </div>
+                                                <FlatField label="Position" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBadgePosition} onValueChange={(value) => updateSelectedStyle('cardBadgePosition', value as ComponentStyleConfig['cardBadgePosition'])} ariaLabel="Badge position">
+                                                        <option value="top-left">Top Left</option>
+                                                        <option value="top-right">Top Right</option>
+                                                        <option value="bottom-left">Bottom Left</option>
+                                                        <option value="bottom-right">Bottom Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
                                     <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-product-card-image`}
@@ -2439,6 +2589,78 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Listing Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
+                                    <CardConfigSubsection title="Icon" defaultOpen={selectedStyle.cardShowIcon}>
+                                        <FlatSwitchRow label="Show icon" checked={selectedStyle.cardShowIcon} onCheckedChange={(value) => updateSelectedStyle('cardShowIcon', value)} />
+                                        {selectedStyle.cardShowIcon ? (
+                                            <>
+                                                <FlatField label="Icon Library" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.iconLibrary}
+                                                        onValueChange={(value) => updateSelectedStyle('iconLibrary', value as IconLibrary)}
+                                                        ariaLabel="Icon library"
+                                                    >
+                                                        {ICON_LIBRARY_OPTIONS.filter(o => o.id !== 'custom').map((option) => (
+                                                            <option key={option.id} value={option.id}>{option.label}</option>
+                                                        ))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <FlatField label="Icon" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.cardIconName}
+                                                        onValueChange={(value) => updateSelectedStyle('cardIconName', value as IconOptionId)}
+                                                        ariaLabel="Card icon"
+                                                    >
+                                                        {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                            .filter((option) => option.id !== 'none')
+                                                            .map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatColorControl label="Icon Color" value={selectedStyle.cardIconColor} onChange={(value) => updateSelectedStyle('cardIconColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatUnitField label="Size" value={selectedStyle.cardIconSize} min={12} max={48} unit="px" onChange={(value) => updateSelectedStyle('cardIconSize', value)} />
+                                                </div>
+                                                <FlatSwitchRow label="Background" checked={selectedStyle.cardIconBgEnabled} onCheckedChange={(value) => updateSelectedStyle('cardIconBgEnabled', value)} />
+                                                {selectedStyle.cardIconBgEnabled ? (
+                                                    <div className="flex flex-wrap items-start gap-3">
+                                                        <FlatColorControl label="Bg Color" value={selectedStyle.cardIconBgColor} onChange={(value) => updateSelectedStyle('cardIconBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                        <FlatUnitField label="Radius" value={selectedStyle.cardIconBgRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('cardIconBgRadius', value)} />
+                                                    </div>
+                                                ) : null}
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText?.trim())}>
+                                        <FlatField label="Badge Text" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.cardBadgeText}
+                                                onChange={(event) => updateSelectedStyles({
+                                                    cardBadgeText: event.target.value,
+                                                    cardShowBadge: event.target.value.trim().length > 0,
+                                                })}
+                                                className={studioInputClass}
+                                                placeholder="Leave empty to hide badge"
+                                            />
+                                        </FlatField>
+                                        {Boolean(selectedStyle.cardBadgeText?.trim()) ? (
+                                            <>
+                                                <div className="flex flex-wrap items-start gap-3">
+                                                    <FlatColorControl label="Text Color" value={selectedStyle.cardBadgeColor} onChange={(value) => updateSelectedStyle('cardBadgeColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatColorControl label="Background" value={selectedStyle.cardBadgeBgColor} onChange={(value) => updateSelectedStyle('cardBadgeBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                </div>
+                                                <FlatField label="Position" stacked>
+                                                    <FlatSelect value={selectedStyle.cardBadgePosition} onValueChange={(value) => updateSelectedStyle('cardBadgePosition', value as ComponentStyleConfig['cardBadgePosition'])} ariaLabel="Badge position">
+                                                        <option value="top-left">Top Left</option>
+                                                        <option value="top-right">Top Right</option>
+                                                        <option value="bottom-left">Bottom Left</option>
+                                                        <option value="bottom-right">Bottom Right</option>
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
                                     <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-listing-card-image`}
@@ -2464,21 +2686,6 @@ export function InspectorPanel() {
                                                 <FlatUnitField label="Width" value={selectedStyle.cardDividerWidth} min={1} max={8} unit="px" onChange={(value) => updateSelectedStyle('cardDividerWidth', value)} />
                                             </>
                                         ) : null}
-                                    </CardConfigSubsection>
-
-                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText.trim())}>
-                                        <FlatField label="Badge Text" stacked>
-                                            <input
-                                                type="text"
-                                                value={selectedStyle.cardBadgeText}
-                                                onChange={(event) => updateSelectedStyles({
-                                                    cardBadgeText: event.target.value,
-                                                    cardShowBadge: event.target.value.trim().length > 0,
-                                                })}
-                                                className={studioInputClass}
-                                                placeholder="Leave empty to hide the badge"
-                                            />
-                                        </FlatField>
                                     </CardConfigSubsection>
 
                                     <CardConfigSubsection title="Details" defaultOpen={selectedStyle.cardShowSpecs || Boolean(selectedStyle.cardPriceText.trim()) || Boolean(selectedStyle.cardBodyText.trim())}>
