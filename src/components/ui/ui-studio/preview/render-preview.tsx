@@ -1684,6 +1684,8 @@ export function renderPreview(
             };
             const triggerStyle = {
                 ...tabTextStyle,
+                fontSize: `${instance.style.tabsListFontSize}px`,
+                fontWeight: instance.style.tabsListFontWeight,
                 borderRadius: `${instance.style.tabsTabRadius}px`,
                 paddingInline: `${instance.style.tabsTabPaddingX}px`,
                 minHeight: `${Math.round(32 * SIZE_SCALE[instance.style.size])}px`,

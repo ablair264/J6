@@ -250,7 +250,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
         },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
-        iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active'], primitiveControls: false, motionPreset: false,
+        iconSelection: true, panelStyle: false, stateStyles: false, supportedStates: [], primitiveControls: false, motionPreset: false,
     },
     'data-table': {
         sections: { presets: true, dimensions: false, componentConfig: 'Table Config', appearance: false, typography: true, effects: true, advancedHover: false, motion: true },
