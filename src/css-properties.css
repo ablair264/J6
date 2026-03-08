@@ -1,0 +1,16 @@
+/* CSS Houdini @property declarations for conic-gradient angle animation.
+   These MUST survive CSS processing — if Tailwind strips them, the beam/shine
+   border effects won't animate. The JS fallback in register-css-properties.ts
+   guarantees they're registered at runtime. */
+
+@property --ui-effect-beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --ui-effect-shine-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}

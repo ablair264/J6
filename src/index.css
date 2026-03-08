@@ -5,18 +5,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── CSS Houdini @property for conic-gradient angle animation ────────── */
-@property --ui-effect-beam-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@property --ui-effect-shine-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
+/* @property declarations for beam/shine angle animation are in css-properties.css
+   (imported in main.tsx before Tailwind to ensure they survive CSS processing) */
 
 :root {
   /* Customer website fixed theme tokens */
@@ -920,7 +910,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: var(--ui-effect-beam-width, 1px);
+  padding: var(--ui-effect-beam-width, 2px);
   background: conic-gradient(
     from var(--ui-effect-beam-angle, 0deg),
     transparent 0%,
