@@ -647,7 +647,7 @@ ${themeInlineLines.join('\n')}
 }
 
 @layer utilities {
-  .ui-studio-button-state:hover {
+  .ui-studio-button-state:not(:disabled):not([data-disabled='true']):not([aria-disabled='true']):hover {
     background: var(--ui-btn-hover-bg) !important;
     --ui-animated-border-fill: var(--ui-btn-hover-bg);
     color: var(--ui-btn-hover-fg) !important;
@@ -659,7 +659,7 @@ ${themeInlineLines.join('\n')}
     border-style: solid !important;
   }
 
-  .ui-studio-button-state:active {
+  .ui-studio-button-state:not(:disabled):not([data-disabled='true']):not([aria-disabled='true']):active {
     background: var(--ui-btn-active-bg) !important;
     --ui-animated-border-fill: var(--ui-btn-active-bg);
     color: var(--ui-btn-active-fg) !important;

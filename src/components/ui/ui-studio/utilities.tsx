@@ -2144,24 +2144,23 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
 
     // State override CSS vars — derived from stateOverrides map
     const hasStateStyles = !forExport || supportsStateStyles(instance.kind);
-    if (hasStateStyles && instance.stateOverrides) {
+    if (hasStateStyles) {
         const base = instance.style;
-        const stateVarMap: Array<{ state: string; prefix: string }> = [
+        const stateVarMap: Array<{ state: 'hover' | 'active' | 'disabled'; prefix: string }> = [
             { state: 'hover', prefix: '--ui-btn-hover' },
             { state: 'active', prefix: '--ui-btn-active' },
             { state: 'disabled', prefix: '--ui-btn-disabled' },
         ];
         for (const { state, prefix } of stateVarMap) {
-            const overrides = instance.stateOverrides[state as keyof typeof instance.stateOverrides];
-            if (!overrides) continue;
-            const s = { ...base, ...overrides };
-            contextVars[`${prefix}-bg`] = buildStateFill(s.fillMode, s.fillColor, s.fillColorTo, s.fillWeight, s.fillOpacity);
-            contextVars[`${prefix}-fg`] = hexToRgba(s.fontColor, s.fontOpacity / 100);
-            contextVars[`${prefix}-border`] = hexToRgba(s.strokeColor, s.strokeOpacity / 100);
-            contextVars[`${prefix}-border-width`] = `${s.strokeWeight}px`;
-            contextVars[`${prefix}-font-size`] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;
-            contextVars[`${prefix}-font-weight`] = `${s.fontWeight}`;
-            contextVars[`${prefix}-justify`] = fontPositionToJustify(s.fontPosition);
+            const overrides = instance.stateOverrides?.[state];
+            const resolved = overrides ? { ...base, ...overrides } : base;
+            contextVars[`${prefix}-bg`] = buildStateFill(resolved.fillMode, resolved.fillColor, resolved.fillColorTo, resolved.fillWeight, resolved.fillOpacity);
+            contextVars[`${prefix}-fg`] = hexToRgba(resolved.fontColor, resolved.fontOpacity / 100);
+            contextVars[`${prefix}-border`] = hexToRgba(resolved.strokeColor, resolved.strokeOpacity / 100);
+            contextVars[`${prefix}-border-width`] = `${resolved.strokeWeight}px`;
+            contextVars[`${prefix}-font-size`] = `${Math.round(resolved.fontSize * SIZE_SCALE[resolved.size])}px`;
+            contextVars[`${prefix}-font-weight`] = `${resolved.fontWeight}`;
+            contextVars[`${prefix}-justify`] = fontPositionToJustify(resolved.fontPosition);
         }
     }
 
