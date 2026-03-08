@@ -153,6 +153,8 @@ export function isUIComponentKind(value: string | undefined): value is UICompone
 
 import { INSPECTOR_REGISTRY } from './inspector/inspector-registry';
 
+const NEUMORPHIC_EFFECT_ENABLED = false;
+
 export function supportsIconSelection(kind: UIComponentKind): boolean {
     return INSPECTOR_REGISTRY[kind].iconSelection;
 }
@@ -250,7 +252,7 @@ export function supportsElevationShadowEffect(kind: UIComponentKind): boolean {
 }
 
 export function supportsNeumorphicEffect(kind: UIComponentKind): boolean {
-    return INSPECTOR_REGISTRY[kind].effects.neumorphic;
+    return NEUMORPHIC_EFFECT_ENABLED && INSPECTOR_REGISTRY[kind].effects.neumorphic;
 }
 
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
@@ -710,7 +712,7 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
     if (config.effectElevationShadow) {
         shadowParts.push(buildElevationShadow(config.elevationLevel));
     }
-    if (config.effectNeumorphic) {
+    if (NEUMORPHIC_EFFECT_ENABLED && config.effectNeumorphic) {
         shadowParts.push(buildNeumorphicShadow(
             config.fillColor,
             config.neumorphicDistance,

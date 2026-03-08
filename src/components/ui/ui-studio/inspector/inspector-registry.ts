@@ -83,7 +83,7 @@ const STANDARD_EFFECTS: InspectorEffects = {
     gradientSlide: true, animatedBorder: true, rippleFill: true, loading: true,
     sweep: true, borderBeam: true, shineBorder: true, neonGlow: false, pulseRing: false,
     grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-    elevationShadow: true, neumorphic: true,
+    elevationShadow: true, neumorphic: false,
 };
 
 const SURFACE_EFFECTS: InspectorEffects = {
@@ -91,7 +91,7 @@ const SURFACE_EFFECTS: InspectorEffects = {
     gradientSlide: false, animatedBorder: true, rippleFill: false, loading: false,
     sweep: false, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: true,
     grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-    elevationShadow: true, neumorphic: true,
+    elevationShadow: true, neumorphic: false,
 };
 
 const NO_MOTION: InspectorMotion = {
@@ -157,7 +157,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
             grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-            elevationShadow: true, neumorphic: true,
+            elevationShadow: true, neumorphic: false,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
@@ -170,7 +170,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
             grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-            elevationShadow: true, neumorphic: true,
+            elevationShadow: true, neumorphic: false,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
@@ -183,7 +183,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: false, shineBorder: false, neonGlow: true, pulseRing: false,
             grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-            elevationShadow: true, neumorphic: true,
+            elevationShadow: true, neumorphic: false,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'strip-structural',
@@ -246,7 +246,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             gradientSlide: true, animatedBorder: true, rippleFill: true, loading: false,
             sweep: false, borderBeam: true, shineBorder: true, neonGlow: false, pulseRing: false,
             grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-            elevationShadow: true, neumorphic: true,
+            elevationShadow: true, neumorphic: false,
         },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
@@ -281,7 +281,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
             gradientSlide: true, animatedBorder: true, rippleFill: false, loading: false,
             sweep: true, borderBeam: true, shineBorder: true, neonGlow: true, pulseRing: false,
             grain: true, gradientBorder: true, frostedTint: true, radialGlow: true,
-            elevationShadow: true, neumorphic: true,
+            elevationShadow: true, neumorphic: false,
         },
         motion: { entryPresets: true, hoverEffects: true, tapEffects: true, stagger: false },
         wrapperStyle: 'full',
