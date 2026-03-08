@@ -1239,19 +1239,17 @@
 .ui-studio-switch-custom-size [data-slot="switch"] [data-slot="switch-thumb"] {
   width: var(--switch-thumb-width, 16px) !important;
   height: var(--switch-thumb-height, 16px) !important;
+  translate: 0 0 !important;
 }
 
 .ui-studio-switch-custom-size [data-slot="switch"][data-state="unchecked"] [data-slot="switch-thumb"] {
+  translate: 0 0 !important;
   transform: translateX(0) !important;
 }
 
 .ui-studio-switch-custom-size [data-slot="switch"][data-state="checked"] [data-slot="switch-thumb"] {
-  transform: translateX(calc(
-    var(--switch-track-width, 32px) -
-    var(--switch-thumb-width, 16px) -
-    (var(--switch-track-padding, 1px) * 2) -
-    (var(--switch-track-border-width, 0px) * 2)
-  )) !important;
+  translate: 0 0 !important;
+  transform: translateX(var(--switch-thumb-travel, 0px)) !important;
 }
 
 /* ─── Switch: animation speed ────────────────────────────────────────────── */

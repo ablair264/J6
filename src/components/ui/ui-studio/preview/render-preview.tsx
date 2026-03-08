@@ -915,6 +915,12 @@ export function componentSnippet(
             const resolvedTrackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
             const resolvedThumbWidth = instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize;
             const resolvedThumbHeight = instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize;
+            const trackPadding = 1;
+            const trackBorderWidth = Math.max(0, instance.style.switchTrackBorderWidth);
+            const thumbTravel = Math.max(
+                0,
+                resolvedTrackWidth - resolvedThumbWidth - (trackPadding * 2) - (trackBorderWidth * 2),
+            );
             const hasCustomSizing =
                 instance.style.switchCustomWidth > 0 ||
                 instance.style.switchCustomHeight > 0 ||
@@ -932,7 +938,7 @@ export function componentSnippet(
 
             const wrapperStyle: CSSProperties = {
                 ['--switch-anim-speed' as string]: `${instance.style.switchAnimationSpeed}s`,
-                ['--switch-track-border-width' as string]: `${Math.max(0, instance.style.switchTrackBorderWidth)}px`,
+                ['--switch-track-border-width' as string]: `${trackBorderWidth}px`,
                 ...(instance.style.switchTrackBorderWidth > 0
                     ? {
                         ['--switch-track-border' as string]: instance.style.switchTrackBorderColor || 'rgba(255,255,255,0.2)',
@@ -959,6 +965,8 @@ export function componentSnippet(
                         ['--switch-track-height' as string]: `${resolvedTrackHeight}px`,
                         ['--switch-thumb-width' as string]: `${resolvedThumbWidth}px`,
                         ['--switch-thumb-height' as string]: `${resolvedThumbHeight}px`,
+                        ['--switch-track-padding' as string]: `${trackPadding}px`,
+                        ['--switch-thumb-travel' as string]: `${thumbTravel}px`,
                     }
                     : {}),
             };
@@ -2305,6 +2313,12 @@ export function renderPreview(
             const resolvedTrackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
             const resolvedThumbWidth = instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize;
             const resolvedThumbHeight = instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize;
+            const trackPadding = 1;
+            const trackBorderWidth = Math.max(0, instance.style.switchTrackBorderWidth);
+            const thumbTravel = Math.max(
+                0,
+                resolvedTrackWidth - resolvedThumbWidth - (trackPadding * 2) - (trackBorderWidth * 2),
+            );
             const hasCustomSizing =
                 instance.style.switchCustomWidth > 0 ||
                 instance.style.switchCustomHeight > 0 ||
@@ -2323,7 +2337,7 @@ export function renderPreview(
             );
             const switchDecorStyle: CSSProperties = {
                 ['--switch-anim-speed' as string]: `${instance.style.switchAnimationSpeed}s`,
-                ['--switch-track-border-width' as string]: `${Math.max(0, instance.style.switchTrackBorderWidth)}px`,
+                ['--switch-track-border-width' as string]: `${trackBorderWidth}px`,
                 ...(instance.style.switchTrackBorderWidth > 0
                     ? {
                         ['--switch-track-border' as string]: instance.style.switchTrackBorderColor || 'rgba(255,255,255,0.2)',
@@ -2350,6 +2364,8 @@ export function renderPreview(
                         ['--switch-track-height' as string]: `${resolvedTrackHeight}px`,
                         ['--switch-thumb-width' as string]: `${resolvedThumbWidth}px`,
                         ['--switch-thumb-height' as string]: `${resolvedThumbHeight}px`,
+                        ['--switch-track-padding' as string]: `${trackPadding}px`,
+                        ['--switch-thumb-travel' as string]: `${thumbTravel}px`,
                     }
                     : {}),
             };
