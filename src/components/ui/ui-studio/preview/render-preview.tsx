@@ -515,6 +515,16 @@ function buildCardSectionStack(
     });
 }
 
+const getIconExportName = (iconId: string): string => {
+    const nameMap: Record<string, string> = {
+        'search': 'Search', 'lightning': 'Zap', 'bolt': 'Zap', 'heart': 'Heart',
+        'star': 'Star', 'cog': 'Settings', 'bell': 'Bell', 'user': 'User',
+        'mail': 'Mail', 'bookmark': 'Bookmark', 'globe': 'Globe', 'shield': 'Shield',
+        'sparkles': 'Sparkles', 'home': 'Home', 'plus': 'Plus', 'minus': 'Minus',
+    };
+    return nameMap[iconId] ?? iconId.charAt(0).toUpperCase() + iconId.slice(1);
+};
+
 export function componentSnippet(
     instance: ComponentInstance,
     previewStyle: CSSProperties,
@@ -870,67 +880,204 @@ export function componentSnippet(
         }
         case 'card': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const s = instance.style;
             const cardProps = [
-                instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
+                s.cardVariant !== 'default' ? `variant="${s.cardVariant}"` : '',
                 `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const imageSnippet = hasCardContent(instance.style.cardImageSrc)
-                ? `\n  <img src="/placeholder.jpg" alt="Card" className="aspect-[16/10] w-full object-cover" />`
+
+            // Icon snippet
+            const iconExportName = getIconExportName(s.cardIconName);
+            const iconSnippet = s.cardShowIcon
+                ? s.cardIconBgEnabled
+                    ? `    <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ backgroundColor: '${s.cardIconBgColor}15' }}>\n      <${iconExportName} className="h-6 w-6" style={{ color: '${s.cardIconColor}' }} />\n    </div>`
+                    : `    <${iconExportName} className="h-6 w-6" style={{ color: '${s.cardIconColor}' }} />`
                 : '';
-            const contentParts: string[] = [];
-            if (hasCardContent(instance.style.cardTitleText)) contentParts.push(`    <h3 className="text-lg font-semibold">${instance.style.cardTitleText}</h3>`);
-            if (hasCardContent(instance.style.cardSubtitleText)) contentParts.push(`    <p className="text-sm text-muted-foreground">${instance.style.cardSubtitleText}</p>`);
-            if (hasCardContent(instance.style.cardBodyText)) contentParts.push(`    <p className="text-sm text-muted-foreground">${instance.style.cardBodyText}</p>`);
-            if (hasCardContent(instance.style.cardPriceText)) contentParts.push(`    <div className="text-2xl font-bold">${instance.style.cardPriceText}</div>`);
-            if (hasCardContent(instance.style.cardToggleText)) contentParts.push(`    <div className="flex items-center justify-between">\n      <span className="text-sm">${instance.style.cardToggleText}</span>\n      <Switch />\n    </div>`);
-            if (hasCardContent(instance.style.cardButtonText)) contentParts.push(`    <Button size="sm" className="w-full">${instance.style.cardButtonText}</Button>`);
+
+            // Badge position map
+            const badgePos = { 'top-left': 'top-3 left-3', 'top-right': 'top-3 right-3', 'bottom-left': 'bottom-3 left-3', 'bottom-right': 'bottom-3 right-3' }[s.cardBadgePosition];
+
+            // Image snippet (with optional badge overlay)
+            const imageSnippet = hasCardContent(s.cardImageSrc)
+                ? hasCardContent(s.cardBadgeText)
+                    ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Card" className="h-full w-full object-cover" />\n    <span className="absolute ${badgePos} rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide" style={{ color: '${s.cardBadgeColor}', backgroundColor: '${s.cardBadgeBgColor}' }}>${s.cardBadgeText}</span>\n  </div>`
+                    : `\n  <img src="/placeholder.jpg" alt="Card" className="aspect-[16/10] w-full object-cover" />`
+                : '';
+
+            // Standalone badge (when no image)
+            const standaloneBadgeSnippet = hasCardContent(s.cardBadgeText) && !hasCardContent(s.cardImageSrc)
+                ? `    <span className="inline-block self-start rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide" style={{ color: '${s.cardBadgeColor}', backgroundColor: '${s.cardBadgeBgColor}' }}>${s.cardBadgeText}</span>`
+                : '';
+
+            // Feature items
+            const featuresSnippet = s.cardFeatureItems.length > 0
+                ? `    <div className="flex flex-wrap gap-1.5">\n${s.cardFeatureItems.map(
+                    (item) => `      <span className="rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ backgroundColor: '${s.cardFeatureItemBgColor}', color: '${s.cardFeatureItemTextColor}' }}>${item.label}</span>`,
+                  ).join('\n')}\n    </div>`
+                : '';
+
+            // Text snippet helper
+            const buildTextSnippet = (tag: string, text: string, fontFamily: string, className: string) => {
+                const styleAttr = fontFamily ? ` style={{ fontFamily: '${fontFamily}' }}` : '';
+                return `    <${tag} className="${className}"${styleAttr}>${text}</${tag}>`;
+            };
+
+            // Actions snippet
+            const actionsSnippet = (() => {
+                const parts: string[] = [];
+                if (hasCardContent(s.cardToggleText)) {
+                    parts.push(`    <div className="flex items-center justify-between">\n      <span className="text-sm">${s.cardToggleText}</span>\n      <Switch />\n    </div>`);
+                }
+                const hasPrimary = hasCardContent(s.cardButtonText);
+                const hasSecondary = s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText);
+                if (hasPrimary && hasSecondary) {
+                    parts.push(`    <div className="flex gap-2">\n      <Button size="sm" className="flex-1">${s.cardButtonText}</Button>\n      <Button size="sm" variant="${s.cardSecondaryButtonVariant}">${s.cardSecondaryButtonText}</Button>\n    </div>`);
+                } else if (hasPrimary) {
+                    parts.push(`    <Button size="sm" className="w-full">${s.cardButtonText}</Button>`);
+                } else if (hasSecondary) {
+                    parts.push(`    <Button size="sm" variant="${s.cardSecondaryButtonVariant}" className="w-full">${s.cardSecondaryButtonText}</Button>`);
+                }
+                return parts.join('\n');
+            })();
+
+            // Section ordering
+            const sectionSnippets: Record<string, string> = {
+                'icon': iconSnippet,
+                'badge-standalone': standaloneBadgeSnippet,
+                'title': hasCardContent(s.cardTitleText) ? buildTextSnippet('h3', s.cardTitleText, s.cardTitleFontFamily, 'text-lg font-semibold') : '',
+                'subtitle': hasCardContent(s.cardSubtitleText) ? buildTextSnippet('p', s.cardSubtitleText, s.cardSubtitleFontFamily, 'text-sm text-muted-foreground') : '',
+                'features': featuresSnippet,
+                'body': hasCardContent(s.cardBodyText) ? buildTextSnippet('p', s.cardBodyText, s.cardBodyFontFamily, 'text-sm text-muted-foreground') : '',
+                'price': hasCardContent(s.cardPriceText)
+                    ? `    <div className="text-2xl font-bold"${s.cardPriceFontFamily ? ` style={{ fontFamily: '${s.cardPriceFontFamily}' }}` : ''}>${s.cardPriceText}</div>`
+                    : '',
+                'actions': actionsSnippet,
+            };
+
+            const order = s.cardSectionOrder.length > 0
+                ? s.cardSectionOrder
+                : ['icon', 'badge-standalone', 'title', 'subtitle', 'features', 'body', 'price', 'actions'];
+
+            const contentParts = order.map((key) => sectionSnippets[key] ?? '').filter(Boolean);
+
             const contentSnippet = contentParts.length > 0
                 ? `\n  <CardContent className="space-y-3">\n${contentParts.join('\n')}\n  </CardContent>`
                 : '';
+
             return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${contentSnippet}\n</Card>`;
         }
         case 'product-card': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const s = instance.style;
             const cardProps = [
-                instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
+                s.cardVariant !== 'default' ? `variant="${s.cardVariant}"` : '',
                 `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const imageSnippet = hasCardContent(instance.style.cardImageSrc)
-                ? `\n  <img src="/placeholder.jpg" alt="Product" className="aspect-[16/10] w-full object-cover" />`
+
+            // Badge position map
+            const badgePos = { 'top-left': 'top-3 left-3', 'top-right': 'top-3 right-3', 'bottom-left': 'bottom-3 left-3', 'bottom-right': 'bottom-3 right-3' }[s.cardBadgePosition];
+
+            const imageSnippet = hasCardContent(s.cardImageSrc)
+                ? hasCardContent(s.cardBadgeText)
+                    ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Product" className="h-full w-full object-cover" />\n    <span className="absolute ${badgePos} rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide" style={{ color: '${s.cardBadgeColor}', backgroundColor: '${s.cardBadgeBgColor}' }}>${s.cardBadgeText}</span>\n  </div>`
+                    : `\n  <img src="/placeholder.jpg" alt="Product" className="aspect-[16/10] w-full object-cover" />`
                 : '';
-            const headerSnippet = (hasCardContent(instance.style.cardTitleText) || hasCardContent(instance.style.cardSubtitleText))
-                ? `\n  <CardHeader>${hasCardContent(instance.style.cardTitleText) ? `\n    <CardTitle>${instance.style.cardTitleText}</CardTitle>` : ''}${hasCardContent(instance.style.cardSubtitleText) ? `\n    <CardDescription>${instance.style.cardSubtitleText}</CardDescription>` : ''}\n  </CardHeader>`
+
+            // Icon in header
+            const iconExportName = getIconExportName(s.cardIconName);
+            const headerIconSnippet = s.cardShowIcon
+                ? `\n    <${iconExportName} className="h-5 w-5" style={{ color: '${s.cardIconColor}' }} />`
                 : '';
-            const priceSnippet = hasCardContent(instance.style.cardPriceText)
-                ? `\n    <div className="text-2xl font-bold">${instance.style.cardPriceText}</div>`
+
+            const titleSnippet = hasCardContent(s.cardTitleText)
+                ? `\n    <CardTitle${s.cardTitleFontFamily ? ` style={{ fontFamily: '${s.cardTitleFontFamily}' }}` : ''}>${s.cardTitleText}</CardTitle>`
                 : '';
-            const footerSnippet = hasCardContent(instance.style.cardButtonText)
-                ? `\n  <CardFooter className="justify-between gap-2">\n    <span className="text-xs text-muted-foreground">In stock</span>\n    <Button size="sm">${instance.style.cardButtonText}</Button>\n  </CardFooter>`
+            const descSnippet = hasCardContent(s.cardSubtitleText)
+                ? `\n    <CardDescription${s.cardSubtitleFontFamily ? ` style={{ fontFamily: '${s.cardSubtitleFontFamily}' }}` : ''}>${s.cardSubtitleText}</CardDescription>`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>${priceSnippet}${hasCardContent(instance.style.cardBodyText) ? `\n    <p className="mt-2 text-sm text-muted-foreground">${instance.style.cardBodyText}</p>` : ''}\n  </CardContent>${footerSnippet}\n</Card>`;
+
+            const headerSnippet = (headerIconSnippet || titleSnippet || descSnippet)
+                ? `\n  <CardHeader>${headerIconSnippet}${titleSnippet}${descSnippet}\n  </CardHeader>`
+                : '';
+
+            const priceSnippet = hasCardContent(s.cardPriceText)
+                ? `\n    <div className="text-2xl font-bold"${s.cardPriceFontFamily ? ` style={{ fontFamily: '${s.cardPriceFontFamily}' }}` : ''}>${s.cardPriceText}</div>`
+                : '';
+            const bodySnippet = hasCardContent(s.cardBodyText)
+                ? `\n    <p className="mt-2 text-sm text-muted-foreground"${s.cardBodyFontFamily ? ` style={{ fontFamily: '${s.cardBodyFontFamily}' }}` : ''}>${s.cardBodyText}</p>`
+                : '';
+
+            // Feature items in content
+            const featuresSnippet = s.cardFeatureItems.length > 0
+                ? `\n    <div className="mt-2 flex flex-wrap gap-1.5">\n${s.cardFeatureItems.map(
+                    (item) => `      <span className="rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ backgroundColor: '${s.cardFeatureItemBgColor}', color: '${s.cardFeatureItemTextColor}' }}>${item.label}</span>`,
+                  ).join('\n')}\n    </div>`
+                : '';
+
+            // Footer with primary + secondary buttons
+            const hasPrimary = hasCardContent(s.cardButtonText);
+            const hasSecondary = s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText);
+            let footerSnippet = '';
+            if (hasPrimary && hasSecondary) {
+                footerSnippet = `\n  <CardFooter className="gap-2">\n    <Button size="sm" className="flex-1">${s.cardButtonText}</Button>\n    <Button size="sm" variant="${s.cardSecondaryButtonVariant}">${s.cardSecondaryButtonText}</Button>\n  </CardFooter>`;
+            } else if (hasPrimary) {
+                footerSnippet = `\n  <CardFooter className="justify-between gap-2">\n    <span className="text-xs text-muted-foreground">In stock</span>\n    <Button size="sm">${s.cardButtonText}</Button>\n  </CardFooter>`;
+            } else if (hasSecondary) {
+                footerSnippet = `\n  <CardFooter>\n    <Button size="sm" variant="${s.cardSecondaryButtonVariant}" className="w-full">${s.cardSecondaryButtonText}</Button>\n  </CardFooter>`;
+            }
+
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}${headerSnippet}\n  <CardContent>${priceSnippet}${bodySnippet}${featuresSnippet}\n  </CardContent>${footerSnippet}\n</Card>`;
         }
         case 'listing-card': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const s = instance.style;
             const cardProps = [
-                instance.style.cardVariant !== 'default' ? `variant="${instance.style.cardVariant}"` : '',
+                s.cardVariant !== 'default' ? `variant="${s.cardVariant}"` : '',
                 `className="overflow-hidden"`,
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const imageSnippet = hasCardContent(instance.style.cardImageSrc)
-                ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Listing" className="w-full h-full object-cover" />${hasCardContent(instance.style.cardBadgeText) ? `\n    <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white">${instance.style.cardBadgeText}</span>` : ''}\n  </div>`
+
+            // Badge position map
+            const badgePos = { 'top-left': 'top-3 left-3', 'top-right': 'top-3 right-3', 'bottom-left': 'bottom-3 left-3', 'bottom-right': 'bottom-3 right-3' }[s.cardBadgePosition];
+
+            const imageSnippet = hasCardContent(s.cardImageSrc)
+                ? hasCardContent(s.cardBadgeText)
+                    ? `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Listing" className="h-full w-full object-cover" />\n    <span className="absolute ${badgePos} rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide" style={{ color: '${s.cardBadgeColor}', backgroundColor: '${s.cardBadgeBgColor}' }}>${s.cardBadgeText}</span>\n  </div>`
+                    : `\n  <div className="relative aspect-[16/10] w-full overflow-hidden">\n    <img src="/placeholder.jpg" alt="Listing" className="h-full w-full object-cover" />\n  </div>`
                 : '';
-            const specsSnippet = instance.style.cardShowSpecs
-                ? `\n    <div className="flex flex-wrap gap-1.5">\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>\n    </div>`
+
+            // Feature items (replaces hardcoded specs)
+            const featuresSnippet = s.cardFeatureItems.length > 0
+                ? `\n    <div className="flex flex-wrap gap-1.5">\n${s.cardFeatureItems.map(
+                    (item) => `      <span className="rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ backgroundColor: '${s.cardFeatureItemBgColor}', color: '${s.cardFeatureItemTextColor}' }}>${item.label}</span>`,
+                  ).join('\n')}\n    </div>`
+                : s.cardShowSpecs
+                    ? `\n    <div className="flex flex-wrap gap-1.5">\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>\n      <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>\n    </div>`
+                    : '';
+
+            const pricingSnippet = (hasCardContent(s.cardPriceText) || hasCardContent(s.cardBodyText))
+                ? `\n    <div>${hasCardContent(s.cardPriceText) ? `\n      <div className="text-3xl font-bold"${s.cardPriceFontFamily ? ` style={{ fontFamily: '${s.cardPriceFontFamily}' }}` : ''}>${s.cardPriceText}</div>` : ''}${hasCardContent(s.cardBodyText) ? `\n      <p className="mt-0.5 text-xs text-muted-foreground"${s.cardBodyFontFamily ? ` style={{ fontFamily: '${s.cardBodyFontFamily}' }}` : ''}>${s.cardBodyText}</p>` : ''}\n    </div>`
                 : '';
-            const pricingSnippet = (hasCardContent(instance.style.cardPriceText) || hasCardContent(instance.style.cardBodyText))
-                ? `\n    <div>${hasCardContent(instance.style.cardPriceText) ? `\n      <div className="text-3xl font-bold">${instance.style.cardPriceText}</div>` : ''}${hasCardContent(instance.style.cardBodyText) ? `\n      <p className="mt-0.5 text-xs text-muted-foreground">${instance.style.cardBodyText}</p>` : ''}\n    </div>`
+
+            // CTA with optional secondary button
+            const hasCta = hasCardContent(s.cardCtaText);
+            const hasSecondary = s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText);
+            let ctaSnippet = '';
+            if (hasCta && hasSecondary) {
+                ctaSnippet = `\n    <div className="flex gap-2">\n      <Button className="flex-1" size="sm">${s.cardCtaText}</Button>\n      <Button size="sm" variant="${s.cardSecondaryButtonVariant}">${s.cardSecondaryButtonText}</Button>\n    </div>`;
+            } else if (hasCta) {
+                ctaSnippet = `\n    <Button className="w-full" size="sm">${s.cardCtaText}</Button>`;
+            } else if (hasSecondary) {
+                ctaSnippet = `\n    <Button className="w-full" size="sm" variant="${s.cardSecondaryButtonVariant}">${s.cardSecondaryButtonText}</Button>`;
+            }
+
+            const titleBlock = (hasCardContent(s.cardTitleText) || hasCardContent(s.cardSubtitleText))
+                ? `\n    <div>${hasCardContent(s.cardTitleText) ? `\n      <h3 className="text-xl font-bold"${s.cardTitleFontFamily ? ` style={{ fontFamily: '${s.cardTitleFontFamily}' }}` : ''}>${s.cardTitleText}</h3>` : ''}${hasCardContent(s.cardSubtitleText) ? `\n      <p className="text-sm text-muted-foreground"${s.cardSubtitleFontFamily ? ` style={{ fontFamily: '${s.cardSubtitleFontFamily}' }}` : ''}>${s.cardSubtitleText}</p>` : ''}\n    </div>`
                 : '';
-            const ctaSnippet = hasCardContent(instance.style.cardCtaText)
-                ? `\n    <Button className="w-full" size="sm">${instance.style.cardCtaText}</Button>`
-                : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}\n  <CardContent className="space-y-3 pt-4">\n    <div>${hasCardContent(instance.style.cardTitleText) ? `\n      <h3 className="text-xl font-bold">${instance.style.cardTitleText}</h3>` : ''}${hasCardContent(instance.style.cardSubtitleText) ? `\n      <p className="text-sm text-muted-foreground">${instance.style.cardSubtitleText}</p>` : ''}\n    </div>${specsSnippet}${pricingSnippet}${ctaSnippet}\n  </CardContent>\n</Card>`;
+
+            return `${declarations ? `${declarations}\n\n` : ''}<Card${cardProps ? `\n  ${cardProps}` : ''}${previewStyleSnippet}\n>${imageSnippet}\n  <CardContent className="space-y-3 pt-4">${titleBlock}${featuresSnippet}${pricingSnippet}${ctaSnippet}\n  </CardContent>\n</Card>`;
         }
         case 'switch': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
