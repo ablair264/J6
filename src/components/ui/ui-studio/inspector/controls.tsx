@@ -435,7 +435,7 @@ export function FlatInspectorSection({
     return (
         <Collapsible defaultOpen={defaultOpen}>
             <section className="py-0.5">
-                <CollapsibleTrigger className="group/flat-section flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left transition-colors hover:bg-white/[0.04]">
+                <CollapsibleTrigger className="group/flat-section flex w-full items-center justify-between rounded-md px-2 py-2 text-left transition-colors hover:bg-white/[0.04]">
                     <div className="inline-flex min-w-0 items-center gap-2.5">
                         <Icon className="size-4 shrink-0 text-[var(--inspector-muted-text)]" />
                         <div className="min-w-0">
@@ -445,8 +445,8 @@ export function FlatInspectorSection({
                     </div>
                     <ChevronDown className="size-4 text-[var(--inspector-muted-text)] transition-transform duration-200 group-data-[state=open]/flat-section:rotate-180" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="overflow-hidden px-1.5 pb-2 pt-0.5 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-200 data-[state=open]:duration-200">
-                    <div className="space-y-2">{children}</div>
+                <CollapsibleContent className="overflow-hidden px-2 pb-3 pt-1 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-200 data-[state=open]:duration-200">
+                    <div className="space-y-3">{children}</div>
                 </CollapsibleContent>
             </section>
         </Collapsible>
@@ -470,16 +470,16 @@ export function FlatElementSubsection({
 }) {
     return (
         <Collapsible {...(open !== undefined ? { open, onOpenChange } : { defaultOpen })}>
-            <div className="space-y-2.5">
+            <div className="space-y-4">
                 <CollapsibleTrigger className="group/flat-subsection flex w-full items-center justify-between rounded-md py-0.5 text-left transition-colors hover:bg-white/[0.02]">
                     <div className="min-w-0">
                         <p className="truncate text-[12px] font-bold text-[var(--inspector-text)]">{title}</p>
-                        {subtitle ? <p className="mt-0.5 text-[11px] text-[var(--inspector-muted-text)]">{subtitle}</p> : null}
+                        {subtitle ? <p className="mt-0.5 text-[12px] text-[var(--inspector-muted-text)]">{subtitle}</p> : null}
                     </div>
                     <ChevronDown className="size-3.5 text-[var(--inspector-muted-text)] transition-transform duration-200 group-data-[state=open]/flat-subsection:rotate-180" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="overflow-hidden pt-0.5 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                    <div className="space-y-2">{children}</div>
+                <CollapsibleContent className="overflow-hidden pt-1 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                    <div className="space-y-2.5">{children}</div>
                 </CollapsibleContent>
             </div>
         </Collapsible>
@@ -496,8 +496,8 @@ export function FlatField({
     stacked?: boolean;
 }) {
     return (
-        <div className="space-y-1">
-            <span className="block text-[11px] font-medium text-[var(--inspector-muted-text)]">{label}</span>
+        <div className="space-y-1.5">
+            <span className="block text-[12px] font-medium text-[var(--inspector-muted-text)]">{label}</span>
             <div className="min-w-0 w-full">{children}</div>
         </div>
     );
@@ -544,8 +544,8 @@ export function FlatUnitField({
     );
 
     return (
-        <label className="block space-y-1">
-            <span className="text-[11px] font-medium text-[var(--inspector-muted-text)]">{label}</span>
+        <label className="block space-y-2">
+            <span className="text-[12px] font-medium text-[var(--inspector-muted-text)]">{label}</span>
             {fieldControl}
         </label>
     );
@@ -692,7 +692,7 @@ export function FlatSwitchRow({
 }) {
     return (
         <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-medium text-[var(--inspector-text)]">{label}</span>
+            <span className="text-[12px] font-medium text-[var(--inspector-text)]">{label}</span>
             <Switch.Root
                 checked={checked}
                 onCheckedChange={onCheckedChange}
@@ -781,7 +781,7 @@ export function FlatColorControl({
     const gradientHex = normalizeHexColor(secondaryValue ?? '#ffffff') ?? '#ffffff';
 
     return (
-        <div className="space-y-1">
+        <div className="space-y-2">
             <FlatField label={label} stacked={stacked}>
                 <div className={cn('flex min-w-0 flex-nowrap items-center', compact ? 'gap-1.5' : 'gap-2')}>
                     <Popover open={open} onOpenChange={setOpen}>

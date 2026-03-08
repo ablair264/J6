@@ -684,7 +684,7 @@
   animation: ui-studio-slider-elastic-pulse 1.6s ease-in-out infinite;
 }
 
-.ui-studio-button-state:not(:disabled):not([data-disabled='true']):not([aria-disabled='true']):hover {
+.ui-studio-button-state:hover {
   background: var(--ui-btn-hover-bg) !important;
   --ui-animated-border-fill: var(--ui-btn-hover-bg);
   color: var(--ui-btn-hover-fg) !important;
@@ -696,7 +696,7 @@
   border-style: solid !important;
 }
 
-.ui-studio-button-state:not(:disabled):not([data-disabled='true']):not([aria-disabled='true']):active {
+.ui-studio-button-state:active {
   background: var(--ui-btn-active-bg) !important;
   --ui-animated-border-fill: var(--ui-btn-active-bg);
   color: var(--ui-btn-active-fg) !important;
@@ -911,13 +911,12 @@
   position: relative;
   border-radius: inherit;
   isolation: isolate;
-  border-color: transparent !important;
 }
 
 .ui-studio-effect-border-beam::before {
   content: '';
   position: absolute;
-  inset: calc(var(--ui-effect-beam-width, 1px) * -1);
+  inset: 0;
   border-radius: inherit;
   padding: var(--ui-effect-beam-width, 1px);
   background: conic-gradient(
@@ -941,13 +940,12 @@
   position: relative;
   border-radius: inherit;
   isolation: isolate;
-  border-color: transparent !important;
 }
 
 .ui-studio-effect-shine-border::before {
   content: '';
   position: absolute;
-  inset: calc(var(--ui-effect-shine-width, 2px) * -1);
+  inset: 0;
   border-radius: inherit;
   padding: var(--ui-effect-shine-width, 2px);
   background: conic-gradient(
@@ -972,13 +970,12 @@
 /* ─── Pulse Ring (Animate UI — ::after ring scales out + fades) ─── */
 .ui-studio-effect-pulse-ring {
   position: relative;
-  border-color: transparent !important;
 }
 
 .ui-studio-effect-pulse-ring::after {
   content: '';
   position: absolute;
-  inset: calc(var(--ui-effect-pulse-width, 2px) * -1);
+  inset: 0;
   border-radius: inherit;
   border: var(--ui-effect-pulse-width, 2px) solid var(--ui-effect-pulse-color, #22d3ee);
   pointer-events: none;
@@ -1444,7 +1441,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--inspector-border-soft) 72%, transparent);
   border-radius: 0;
   background: transparent;
-  padding: 0.35rem 0 0.55rem;
+  padding: 0.5rem 0 0.8rem;
 }
 
 .ui-studio-shell .ui-studio-inspector .ui-studio-inspector-panel:last-child {
