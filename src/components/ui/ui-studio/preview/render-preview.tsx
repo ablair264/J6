@@ -567,15 +567,59 @@ export function componentSnippet(
         }
         case 'alert': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const listItems = instance.style.alertListItems
+                .split('\n')
+                .map((item) => item.trim())
+                .filter(Boolean);
+            const showInlineLink = instance.style.alertShowInlineLink && instance.style.alertInlineLinkLabel.trim().length > 0;
+            const hasPrimaryAction = instance.style.alertPrimaryActionLabel.trim().length > 0;
+            const hasSecondaryAction = instance.style.alertActionMode === 'double' && instance.style.alertSecondaryActionLabel.trim().length > 0;
+            const showActionRow = instance.style.alertActionMode !== 'none' && (hasPrimaryAction || hasSecondaryAction);
+
+            const alertIconComponent =
+                instance.style.alertIconMode === 'shield'
+                    ? 'ShieldCheck'
+                    : instance.style.alertIconMode === 'database'
+                        ? 'Database'
+                        : instance.style.alertIconMode === 'globe'
+                            ? 'Globe'
+                            : instance.style.alertIconMode === 'lightbulb'
+                                ? 'Lightbulb'
+                                : instance.style.alertIconMode === 'circle-alert'
+                                    ? 'CircleAlert'
+                                    : instance.style.alertIconMode === 'circle-check'
+                                        ? 'CircleCheck'
+                                        : instance.style.alertIconMode === 'x-circle'
+                                            ? 'CircleX'
+                                            : null;
+            const iconProp =
+                instance.style.icon !== 'none' && icon
+                    ? `icon={${icon}}`
+                    : alertIconComponent
+                        ? `icon={<${alertIconComponent} className="size-4" />}`
+                        : '';
             const alertProps = [
                 `variant="${instance.style.alertVariant}"`,
                 `dismissible={${String(instance.style.alertDismissible)}}`,
                 instance.style.alertShowIcon ? '' : 'showIcon={false}',
+                instance.style.alertShowIcon && iconProp ? iconProp : '',
                 instance.style.alertDismissible
                     ? `dismissMotion={{ hoverEnabled: ${String(instance.style.alertCloseHoverEnabled)}, hoverScale: ${instance.style.alertCloseHoverScale}, tapEnabled: ${String(instance.style.alertCloseTapEnabled)}, tapScale: ${instance.style.alertCloseTapScale} }}`
                     : '',
             ].filter(Boolean).join('\n  ');
-            return `${declarations ? `${declarations}\n\n` : ''}<Alert\n  ${alertProps}${classNameSnippet}${previewStyleSnippet}\n>\n  <AlertTitle>Alert Title</AlertTitle>\n  <AlertDescription>This is an alert message.</AlertDescription>\n</Alert>`;
+            const descriptionSnippet = instance.style.alertDescriptionMode === 'list'
+                ? `<AlertDescription>\n    <p>${instance.style.alertDescriptionText || 'Please check the following details:'}</p>${listItems.length > 0 ? `\n    <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm">\n${listItems.map((item) => `      <li>${item}</li>`).join('\n')}\n    </ul>` : ''}${showInlineLink ? `\n    <Button variant="${instance.style.alertInlineLinkVariant}" size="sm" className="h-auto p-0 underline">${instance.style.alertInlineLinkLabel}</Button>` : ''}\n  </AlertDescription>`
+                : `<AlertDescription>${instance.style.alertDescriptionText || 'This is an alert message with relevant details.'}${showInlineLink ? ` <Button variant="${instance.style.alertInlineLinkVariant}" size="sm" className="h-auto p-0 underline">${instance.style.alertInlineLinkLabel}</Button>` : ''}</AlertDescription>`;
+            const primaryActionIcon =
+                instance.style.alertPrimaryActionIcon === 'refresh'
+                    ? '<RefreshCw className="size-3" /> '
+                    : instance.style.alertPrimaryActionIcon === 'x'
+                        ? '<X className="size-3" /> '
+                        : '';
+            const actionSnippet = showActionRow
+                ? `\n  <AlertAction>${hasSecondaryAction ? `\n    <Button variant="${instance.style.alertSecondaryActionVariant}" size="${instance.style.alertActionSize}">${instance.style.alertSecondaryActionLabel}</Button>` : ''}${hasPrimaryAction ? `\n    <Button variant="${instance.style.alertPrimaryActionVariant}" size="${instance.style.alertActionSize}">${primaryActionIcon}${instance.style.alertPrimaryActionLabel}</Button>` : ''}\n  </AlertAction>`
+                : '';
+            return `${declarations ? `${declarations}\n\n` : ''}<Alert\n  ${alertProps}${classNameSnippet}${previewStyleSnippet}\n>\n  <AlertTitle>${instance.style.alertTitleText || 'Alert Title'}</AlertTitle>\n  ${descriptionSnippet}${actionSnippet}\n</Alert>`;
         }
         case 'avatar': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -863,6 +907,19 @@ export function componentSnippet(
         }
         case 'switch': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const switchSize = instance.style.size === 'sm' ? 'sm' : 'default';
+            const defaultTrackWidth = switchSize === 'sm' ? 24 : 32;
+            const defaultTrackHeight = switchSize === 'sm' ? 14 : 18;
+            const defaultThumbSize = switchSize === 'sm' ? 12 : 16;
+            const resolvedTrackWidth = instance.style.switchCustomWidth > 0 ? instance.style.switchCustomWidth : defaultTrackWidth;
+            const resolvedTrackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
+            const resolvedThumbWidth = instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize;
+            const resolvedThumbHeight = instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize;
+            const hasCustomSizing =
+                instance.style.switchCustomWidth > 0 ||
+                instance.style.switchCustomHeight > 0 ||
+                instance.style.switchThumbWidth > 0 ||
+                instance.style.switchThumbHeight > 0;
             const wrapperClassNames = [
                 'flex items-center gap-2',
                 instance.style.switchLabelPosition === 'left' ? 'flex-row-reverse justify-end' : '',
@@ -870,14 +927,15 @@ export function componentSnippet(
                 instance.style.switchGlowEnabled ? 'ui-studio-switch-glow' : '',
                 (instance.style.switchTrackRadius > 0 || instance.style.switchThumbRadius > 0) ? 'ui-studio-switch-custom-radius' : '',
                 instance.style.switchThumbScale !== 1 ? 'ui-studio-switch-thumb-scale' : '',
+                hasCustomSizing ? 'ui-studio-switch-custom-size' : '',
             ].filter(Boolean).join(' ');
 
             const wrapperStyle: CSSProperties = {
                 ['--switch-anim-speed' as string]: `${instance.style.switchAnimationSpeed}s`,
+                ['--switch-track-border-width' as string]: `${Math.max(0, instance.style.switchTrackBorderWidth)}px`,
                 ...(instance.style.switchTrackBorderWidth > 0
                     ? {
                         ['--switch-track-border' as string]: instance.style.switchTrackBorderColor || 'rgba(255,255,255,0.2)',
-                        ['--switch-track-border-width' as string]: `${instance.style.switchTrackBorderWidth}px`,
                     }
                     : {}),
                 ...(instance.style.switchGlowEnabled
@@ -895,22 +953,31 @@ export function componentSnippet(
                 ...(instance.style.switchThumbScale !== 1
                     ? { ['--switch-thumb-scale' as string]: String(instance.style.switchThumbScale) }
                     : {}),
+                ...(hasCustomSizing
+                    ? {
+                        ['--switch-track-width' as string]: `${resolvedTrackWidth}px`,
+                        ['--switch-track-height' as string]: `${resolvedTrackHeight}px`,
+                        ['--switch-thumb-width' as string]: `${resolvedThumbWidth}px`,
+                        ['--switch-thumb-height' as string]: `${resolvedThumbHeight}px`,
+                    }
+                    : {}),
             };
             const labelStyle: CSSProperties = {
                 fontSize: `${instance.style.switchLabelSize}px`,
                 fontWeight: instance.style.switchLabelWeight,
                 ...(instance.style.switchLabelColor ? { color: instance.style.switchLabelColor } : {}),
             };
-            const switchInlineStyle: CSSProperties = {
-                ...(instance.style.switchCustomWidth > 0 ? { width: `${instance.style.switchCustomWidth}px` } : {}),
-                ...(instance.style.switchCustomHeight > 0 ? { height: `${instance.style.switchCustomHeight}px` } : {}),
-            };
+            const switchInlineStyle: CSSProperties = hasCustomSizing
+                ? {}
+                : {
+                    ...(instance.style.switchCustomWidth > 0 ? { width: `${instance.style.switchCustomWidth}px` } : {}),
+                    ...(instance.style.switchCustomHeight > 0 ? { height: `${instance.style.switchCustomHeight}px` } : {}),
+                };
             const wrapperStyleCode = styleToCode(wrapperStyle);
             const labelStyleCode = styleToCode(labelStyle);
             const switchStyleCode = styleToCode(switchInlineStyle);
             const checkedIconName = resolveSwitchIconName(instance.style.switchIconChecked);
             const uncheckedIconName = resolveSwitchIconName(instance.style.switchIconUnchecked);
-            const activeIconName = instance.style.switchChecked ? checkedIconName : uncheckedIconName;
             const switchProps = [
                 instance.style.switchChecked ? 'defaultChecked' : '',
                 instance.style.switchDisabled ? 'disabled' : '',
@@ -920,13 +987,10 @@ export function componentSnippet(
                 instance.style.switchThumbActiveColor ? `thumbActiveColor="${instance.style.switchThumbActiveColor}"` : '',
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            const iconComment = instance.style.switchShowIcon
-                ? `\n  {/* Thumb icon overlay requires a positioned wrapper around Switch */}`
+            const thumbContentSnippet = instance.style.switchShowIcon
+                ? `\nconst switchThumbContent = (\n  <span className="pointer-events-none inline-flex items-center justify-center text-current">\n    <span className="inline-flex items-center justify-center group-data-[state=checked]/switch:hidden">\n      <${uncheckedIconName} size={${instance.style.switchIconSize}} />\n    </span>\n    <span className="hidden items-center justify-center group-data-[state=checked]/switch:inline-flex">\n      <${checkedIconName} size={${instance.style.switchIconSize}} />\n    </span>\n  </span>\n);`
                 : '';
-            const iconOverlay = instance.style.switchShowIcon
-                ? `\n  <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2" style={{ color: '${instance.style.switchIconColor}' }}>\n    <${activeIconName} size={${instance.style.switchIconSize}} />\n  </span>`
-                : '';
-            return `${declarations ? `${declarations}\n\n` : ''}const switchWrapperStyle = ${wrapperStyleCode};\nconst switchLabelStyle = ${labelStyleCode};\nconst switchStyle = ${switchStyleCode};\n\n<div className="${wrapperClassNames}" style={switchWrapperStyle}>\n  <div className="relative inline-flex">${iconComment}\n    <Switch\n      id="switch-demo"\n      ${switchProps ? `${switchProps}\n      ` : ''}style={switchStyle}\n    />${iconOverlay}\n  </div>\n  <Label htmlFor="switch-demo" style={switchLabelStyle}>${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
+            return `${declarations ? `${declarations}\n\n` : ''}const switchWrapperStyle = ${wrapperStyleCode};\nconst switchLabelStyle = ${labelStyleCode};\nconst switchStyle = ${switchStyleCode};${thumbContentSnippet}\n\n<div className="${wrapperClassNames}" style={switchWrapperStyle}>\n  <Switch\n    id="switch-demo"\n    ${switchProps ? `${switchProps}\n    ` : ''}${instance.style.switchShowIcon ? 'thumbContent={switchThumbContent}\n    ' : ''}style={{ ...switchStyle${instance.style.switchShowIcon ? `, color: '${instance.style.switchIconColor}'` : ''} }}\n  />\n  <Label htmlFor="switch-demo" style={switchLabelStyle}>${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
         }
         case 'animated-text': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1723,13 +1787,7 @@ export function renderPreview(
         case 'alert':
             return renderWithMotionControls(
                 <AlertPreview
-                    alertVariant={instance.style.alertVariant}
-                    alertDismissible={instance.style.alertDismissible}
-                    alertShowIcon={instance.style.alertShowIcon}
-                    alertCloseHoverEnabled={instance.style.alertCloseHoverEnabled}
-                    alertCloseHoverScale={instance.style.alertCloseHoverScale}
-                    alertCloseTapEnabled={instance.style.alertCloseTapEnabled}
-                    alertCloseTapScale={instance.style.alertCloseTapScale}
+                    styleConfig={instance.style}
                     style={style}
                     motionClassName={motionClassName}
                 />,
@@ -2240,6 +2298,18 @@ export function renderPreview(
                 }
                 : undefined;
             const switchSize = instance.style.size === 'sm' ? 'sm' : 'default';
+            const defaultTrackWidth = switchSize === 'sm' ? 24 : 32;
+            const defaultTrackHeight = switchSize === 'sm' ? 14 : 18;
+            const defaultThumbSize = switchSize === 'sm' ? 12 : 16;
+            const resolvedTrackWidth = instance.style.switchCustomWidth > 0 ? instance.style.switchCustomWidth : defaultTrackWidth;
+            const resolvedTrackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
+            const resolvedThumbWidth = instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize;
+            const resolvedThumbHeight = instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize;
+            const hasCustomSizing =
+                instance.style.switchCustomWidth > 0 ||
+                instance.style.switchCustomHeight > 0 ||
+                instance.style.switchThumbWidth > 0 ||
+                instance.style.switchThumbHeight > 0;
             const CheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconChecked);
             const UncheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconUnchecked);
             const wrapperStyle = buildComponentWrapperStyle(style, 'switch');
@@ -2249,13 +2319,14 @@ export function renderPreview(
                 instance.style.switchGlowEnabled ? 'ui-studio-switch-glow' : undefined,
                 (instance.style.switchTrackRadius > 0 || instance.style.switchThumbRadius > 0) ? 'ui-studio-switch-custom-radius' : undefined,
                 instance.style.switchThumbScale !== 1 ? 'ui-studio-switch-thumb-scale' : undefined,
+                hasCustomSizing ? 'ui-studio-switch-custom-size' : undefined,
             );
             const switchDecorStyle: CSSProperties = {
                 ['--switch-anim-speed' as string]: `${instance.style.switchAnimationSpeed}s`,
+                ['--switch-track-border-width' as string]: `${Math.max(0, instance.style.switchTrackBorderWidth)}px`,
                 ...(instance.style.switchTrackBorderWidth > 0
                     ? {
                         ['--switch-track-border' as string]: instance.style.switchTrackBorderColor || 'rgba(255,255,255,0.2)',
-                        ['--switch-track-border-width' as string]: `${instance.style.switchTrackBorderWidth}px`,
                     }
                     : {}),
                 ...(instance.style.switchGlowEnabled
@@ -2273,11 +2344,21 @@ export function renderPreview(
                 ...(instance.style.switchThumbScale !== 1
                     ? { ['--switch-thumb-scale' as string]: String(instance.style.switchThumbScale) }
                     : {}),
+                ...(hasCustomSizing
+                    ? {
+                        ['--switch-track-width' as string]: `${resolvedTrackWidth}px`,
+                        ['--switch-track-height' as string]: `${resolvedTrackHeight}px`,
+                        ['--switch-thumb-width' as string]: `${resolvedThumbWidth}px`,
+                        ['--switch-thumb-height' as string]: `${resolvedThumbHeight}px`,
+                    }
+                    : {}),
             };
-            const switchInlineStyle: CSSProperties = {
-                ...(instance.style.switchCustomWidth > 0 ? { width: `${instance.style.switchCustomWidth}px` } : {}),
-                ...(instance.style.switchCustomHeight > 0 ? { height: `${instance.style.switchCustomHeight}px` } : {}),
-            };
+            const switchInlineStyle: CSSProperties = hasCustomSizing
+                ? {}
+                : {
+                    ...(instance.style.switchCustomWidth > 0 ? { width: `${instance.style.switchCustomWidth}px` } : {}),
+                    ...(instance.style.switchCustomHeight > 0 ? { height: `${instance.style.switchCustomHeight}px` } : {}),
+                };
             const labelStyle: CSSProperties = {
                 fontSize: `${instance.style.switchLabelSize}px`,
                 fontWeight: instance.style.switchLabelWeight,
@@ -2342,6 +2423,14 @@ export function renderPreview(
                 ...(instance.style.fontUnderline ? { textDecoration: 'underline' } : {}),
                 ...(instance.style.fontBold ? { fontWeight: 700 } : {}),
             };
+            const animTextStyle: React.CSSProperties = {
+                ...(instance.style.fontFamily ? { fontFamily: instance.style.fontFamily } : {}),
+                ...(instance.style.fontItalic ? { fontStyle: 'italic' as const } : {}),
+                ...(instance.style.fontUnderline ? { textDecoration: 'underline' } : {}),
+                ...(instance.style.fontBold ? { fontWeight: 700 } : {}),
+                fontSize: style.fontSize,
+                color: style.color,
+            };
             return (
                 <div style={animWrapperStyle}>
                     <AnimatedText
@@ -2355,6 +2444,7 @@ export function renderPreview(
                         gradientColor2={instance.style.animatedTextGradientColor2 || undefined}
                         trigger={instance.style.animatedTextTrigger}
                         className={cn(motionClassName)}
+                        style={animTextStyle}
                     />
                 </div>
             );

@@ -716,6 +716,9 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
             config.neumorphicDistance,
             config.neumorphicBlur,
             config.neumorphicInset,
+            config.neumorphicDarkOpacity,
+            config.neumorphicLightOpacity,
+            config.neumorphicIntensity,
         ));
     }
 
@@ -1237,52 +1240,68 @@ export function buildNeumorphicShadow(
     distance: number,
     blur: number,
     inset: boolean,
+    darkOpacityPct = 42,
+    lightOpacityPct = 30,
+    intensityPct = 100,
 ): string {
-    const d = Math.max(4, distance);
-    const b = Math.max(8, blur);
+    const d = Math.max(4, Math.min(20, distance));
+    const b = Math.max(8, Math.min(40, blur));
     const base = hexToRgbChannels(fillColor) ?? { r: 100, g: 116, b: 139 };
     const luminance = (0.2126 * base.r + 0.7152 * base.g + 0.0722 * base.b) / 255;
     const darkSurface = luminance < 0.45;
     const normalizedIntensity = clamp01((((d - 4) / 16) + ((b - 8) / 32)) / 2);
+    const minimumProfileBoost = d <= 6 && b <= 12 ? 1.18 : 1;
+    const darkBandBoost = luminance >= 0.1 && luminance <= 0.22 ? 1.22 : 1;
 
-    // Keep neumorphic relief directional and tight (avoid broad glow halos).
-    const offset = Math.max(3, Math.round(d * (0.95 + normalizedIntensity * 0.15)));
-    const blurRadius = Math.max(8, Math.round(b * (0.9 + normalizedIntensity * 0.2)));
-    const spread = -Math.max(1, Math.round(blurRadius * 0.26));
-    const ambientBlur = Math.max(5, Math.round(blurRadius * 0.58));
-    const ambientSpread = -Math.max(1, Math.round(ambientBlur * 0.3));
+    // Keep relief directional and compact (inspired by the reference 2-shadow system).
+    const offset = Math.max(2, Math.round(d));
+    const blurRadius = Math.max(2, Math.round((d + b) * 0.52));
 
     const highlight = {
-        r: mixChannel(base.r, 255, darkSurface ? 0.42 : 0.84),
-        g: mixChannel(base.g, 255, darkSurface ? 0.42 : 0.84),
-        b: mixChannel(base.b, 255, darkSurface ? 0.42 : 0.84),
+        r: mixChannel(base.r, 255, darkSurface ? 0.4 : 0.86),
+        g: mixChannel(base.g, 255, darkSurface ? 0.4 : 0.86),
+        b: mixChannel(base.b, 255, darkSurface ? 0.4 : 0.86),
     };
     const shadow = {
-        r: mixChannel(base.r, 0, darkSurface ? 0.76 : 0.5),
-        g: mixChannel(base.g, 0, darkSurface ? 0.76 : 0.5),
-        b: mixChannel(base.b, 0, darkSurface ? 0.76 : 0.5),
+        r: mixChannel(base.r, 0, darkSurface ? 0.78 : 0.52),
+        g: mixChannel(base.g, 0, darkSurface ? 0.78 : 0.52),
+        b: mixChannel(base.b, 0, darkSurface ? 0.78 : 0.52),
     };
 
-    const highlightAlpha = clamp01((darkSurface ? 0.24 : 0.34) + normalizedIntensity * (darkSurface ? 0.14 : 0.12));
-    const shadowAlpha = clamp01((darkSurface ? 0.46 : 0.24) + normalizedIntensity * (darkSurface ? 0.16 : 0.1));
-    const ambientAlpha = clamp01((darkSurface ? 0.16 : 0.1) + normalizedIntensity * 0.08);
+    const userDarkOpacity = clamp01(darkOpacityPct / 100);
+    const userLightOpacity = clamp01(lightOpacityPct / 100);
+    const intensityMultiplier = Math.max(0, Math.min(2, intensityPct / 100));
+
+    const shadowAlpha = clamp01(
+        userDarkOpacity
+            * (darkSurface ? 1.05 : 0.94)
+            * (0.92 + normalizedIntensity * 0.26)
+            * minimumProfileBoost
+            * darkBandBoost
+            * intensityMultiplier,
+    );
+    const highlightAlpha = clamp01(
+        userLightOpacity
+            * (darkSurface ? 1.18 : 0.9)
+            * (0.9 + normalizedIntensity * 0.2)
+            * minimumProfileBoost
+            * darkBandBoost
+            * intensityMultiplier,
+    );
 
     const highlightShadow = `rgba(${highlight.r}, ${highlight.g}, ${highlight.b}, ${highlightAlpha})`;
     const darkShadow = `rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, ${shadowAlpha})`;
-    const ambientShadow = `rgba(${shadow.r}, ${shadow.g}, ${shadow.b}, ${ambientAlpha})`;
 
     if (inset) {
         return [
-            `inset ${offset}px ${offset}px ${Math.round(blurRadius * 0.95)}px ${spread}px ${darkShadow}`,
-            `inset -${offset}px -${offset}px ${Math.round(blurRadius * 0.95)}px ${spread}px ${highlightShadow}`,
-            `inset 0 0 ${Math.max(4, Math.round(ambientBlur * 0.65))}px ${ambientSpread}px ${ambientShadow}`,
+            `inset ${offset}px ${offset}px ${blurRadius}px ${darkShadow}`,
+            `inset -${offset}px -${offset}px ${blurRadius}px ${highlightShadow}`,
         ].join(', ');
     }
 
     return [
-        `${offset}px ${offset}px ${blurRadius}px ${spread}px ${darkShadow}`,
-        `-${offset}px -${offset}px ${blurRadius}px ${spread}px ${highlightShadow}`,
-        `0 ${Math.max(1, Math.round(offset * 0.45))}px ${ambientBlur}px ${ambientSpread}px ${ambientShadow}`,
+        `${offset}px ${offset}px ${blurRadius}px ${darkShadow}`,
+        `-${offset}px -${offset}px ${blurRadius}px ${highlightShadow}`,
     ].join(', ');
 }
 

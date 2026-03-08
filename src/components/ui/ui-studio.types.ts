@@ -52,7 +52,12 @@ export type CheckboxSelectionIcon = 'tick' | 'cross' | 'solid';
 export type TabsVariant = 'default' | 'line' | 'pill' | 'segment';
 export type AvatarShape = 'circle' | 'rounded';
 export type ProgressVariant = 'linear' | 'circular';
-export type AlertVariant = 'info' | 'success' | 'warning' | 'error';
+export type AlertVariant = 'default' | 'info' | 'success' | 'warning' | 'error' | 'destructive' | 'invert';
+export type AlertDescriptionMode = 'plain' | 'list';
+export type AlertActionMode = 'none' | 'single' | 'double';
+export type AlertActionVariant = 'default' | 'outline' | 'ghost' | 'link';
+export type AlertIconMode = 'variant' | 'shield' | 'database' | 'globe' | 'lightbulb' | 'circle-alert' | 'circle-check' | 'x-circle';
+export type AlertActionIcon = 'none' | 'refresh' | 'x';
 export type DrawerSide = 'left' | 'right' | 'top' | 'bottom';
 export type NavMenuOrientation = 'horizontal' | 'vertical';
 export type BorderStyleOption = 'solid' | 'dashed' | 'dotted';
@@ -472,6 +477,21 @@ export interface ComponentStyleConfig {
   alertCloseHoverScale: number;
   alertCloseTapEnabled: boolean;
   alertCloseTapScale: number;
+  alertTitleText: string;
+  alertDescriptionText: string;
+  alertDescriptionMode: AlertDescriptionMode;
+  alertListItems: string;
+  alertActionMode: AlertActionMode;
+  alertPrimaryActionLabel: string;
+  alertPrimaryActionVariant: AlertActionVariant;
+  alertPrimaryActionIcon: AlertActionIcon;
+  alertSecondaryActionLabel: string;
+  alertSecondaryActionVariant: AlertActionVariant;
+  alertShowInlineLink: boolean;
+  alertInlineLinkLabel: string;
+  alertInlineLinkVariant: AlertActionVariant;
+  alertActionSize: 'xs' | 'sm';
+  alertIconMode: AlertIconMode;
   // Card (shared)
   cardVariant: CardVariant;
   cardShowImage: boolean;
@@ -535,6 +555,8 @@ export interface ComponentStyleConfig {
   switchLabelWeight: number;                // label font weight
   switchCustomWidth: number;                // track width override (px, 0 = auto)
   switchCustomHeight: number;               // track height override (px, 0 = auto)
+  switchThumbWidth: number;                 // thumb width override (px, 0 = auto)
+  switchThumbHeight: number;                // thumb height override (px, 0 = auto)
   switchThumbScale: number;                 // thumb scale on checked (default 1.0, range 0.7–1.3)
   switchAnimationSpeed: number;             // transition speed multiplier (0.5–2.0s)
   switchTrackBorderColor: string;           // border/stroke of the track (unchecked)
@@ -631,7 +653,10 @@ export interface ComponentStyleConfig {
   effectNeumorphic: boolean;
   neumorphicDistance: number;     // 4–20
   neumorphicBlur: number;         // 8–40
+  neumorphicIntensity: number;    // 0–200 (%)
   neumorphicInset: boolean;       // raised vs sunken
+  neumorphicDarkOpacity: number;  // 0–100
+  neumorphicLightOpacity: number; // 0–100
 
   // ─── Phase 4: Motion Refinements ────────────────────────────────
   // Entry scale
