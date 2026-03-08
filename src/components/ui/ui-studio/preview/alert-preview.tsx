@@ -79,9 +79,12 @@ export function AlertPreview({
             ? <X className="size-3" />
             : null;
 
-    const hasPrimaryAction = styleConfig.alertPrimaryActionLabel.trim().length > 0;
-    const hasSecondaryAction = styleConfig.alertActionMode === 'double' && styleConfig.alertSecondaryActionLabel.trim().length > 0;
-    const showActionRow = styleConfig.alertActionMode !== 'none' && (hasPrimaryAction || hasSecondaryAction);
+    const isDismissAction = styleConfig.alertDismissAsAction && styleConfig.alertActionMode !== 'none';
+    const hasPrimaryAction = isDismissAction
+        ? false
+        : styleConfig.alertPrimaryActionLabel.trim().length > 0;
+    const hasSecondaryAction = !isDismissAction && styleConfig.alertActionMode === 'double' && styleConfig.alertSecondaryActionLabel.trim().length > 0;
+    const showActionRow = styleConfig.alertActionMode !== 'none' && (hasPrimaryAction || hasSecondaryAction || isDismissAction);
     const showInlineLink = styleConfig.alertShowInlineLink && styleConfig.alertInlineLinkLabel.trim().length > 0;
 
     if (dismissed) {
@@ -100,7 +103,7 @@ export function AlertPreview({
     return (
         <Alert
             variant={styleConfig.alertVariant}
-            dismissible={styleConfig.alertDismissible}
+            dismissible={styleConfig.alertDismissible && !styleConfig.alertDismissAsAction}
             showIcon={styleConfig.alertShowIcon}
             dismissMotion={{
                 hoverEnabled: styleConfig.alertCloseHoverEnabled,
@@ -111,7 +114,11 @@ export function AlertPreview({
             icon={resolveAlertIcon()}
             onDismiss={() => setDismissed(true)}
             style={style}
-            className={cn('max-w-md', motionClassName)}
+            className={cn(
+                'max-w-md',
+                motionClassName,
+                styleConfig.alertBorderless && 'border-0 bg-transparent shadow-none',
+            )}
         >
             <AlertTitle>{styleConfig.alertTitleText || 'Alert Title'}</AlertTitle>
             <AlertDescription>
@@ -142,25 +149,39 @@ export function AlertPreview({
             </AlertDescription>
             {showActionRow ? (
                 <AlertAction>
-                    {hasSecondaryAction ? (
+                    {isDismissAction ? (
                         <Button
                             type="button"
-                            variant={styleConfig.alertSecondaryActionVariant}
-                            size={styleConfig.alertActionSize}
+                            variant="ghost"
+                            size="xs"
+                            className="text-muted-foreground hover:text-foreground -mt-1 -mr-2 size-7 p-0 hover:bg-transparent"
+                            onClick={() => setDismissed(true)}
                         >
-                            {styleConfig.alertSecondaryActionLabel}
+                            <X className="size-3.5" />
                         </Button>
-                    ) : null}
-                    {hasPrimaryAction ? (
-                        <Button
-                            type="button"
-                            variant={styleConfig.alertPrimaryActionVariant}
-                            size={styleConfig.alertActionSize}
-                        >
-                            {primaryIcon}
-                            {styleConfig.alertPrimaryActionLabel}
-                        </Button>
-                    ) : null}
+                    ) : (
+                        <>
+                            {hasSecondaryAction ? (
+                                <Button
+                                    type="button"
+                                    variant={styleConfig.alertSecondaryActionVariant}
+                                    size={styleConfig.alertActionSize}
+                                >
+                                    {styleConfig.alertSecondaryActionLabel}
+                                </Button>
+                            ) : null}
+                            {hasPrimaryAction ? (
+                                <Button
+                                    type="button"
+                                    variant={styleConfig.alertPrimaryActionVariant}
+                                    size={styleConfig.alertActionSize}
+                                >
+                                    {primaryIcon}
+                                    {styleConfig.alertPrimaryActionLabel}
+                                </Button>
+                            ) : null}
+                        </>
+                    )}
                 </AlertAction>
             ) : null}
         </Alert>

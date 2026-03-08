@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown';
 import { ListBox } from 'react-aria-components';
 import { cn } from '@/lib/utils';
-import type { ComponentInstance, ComponentStyleConfig, UIComponentKind } from '@/components/ui/ui-studio.types';
+import type { ComponentInstance, ComponentStyleConfig, IconOptionId, UIComponentKind } from '@/components/ui/ui-studio.types';
 import type { StudioTokenSet } from '@/components/ui/token-sets';
 import {
     BUTTON_STATE_CLASS_NAME,
@@ -63,6 +63,7 @@ import {
     buildSnippetClassNameVarAttr,
     buildExportClassBinding,
     buildCardDirectStyle,
+    getIconComponent,
     loadGoogleFont,
     hexToRgba,
 } from '../utilities';
@@ -84,47 +85,73 @@ import type { ExportStyleMode } from '../utilities';
 
 const MotionTooltipTrigger = motion.create(TooltipTrigger);
 
-function resolveSwitchIcon(iconName: string) {
-    switch (iconName) {
-        case 'check':
-            return Check;
-        case 'star':
-            return Star;
-        case 'bolt':
-            return Zap;
-        case 'heart':
-            return Heart;
-        case 'minus':
-            return Minus;
-        case 'slash':
-            return Slash;
-        case 'ban':
-            return Ban;
-        case 'x':
-        default:
-            return X;
-    }
+function normalizeLegacySwitchIcon(iconName: string): IconOptionId {
+    if (iconName === 'bolt') return 'lightning';
+    return iconName as IconOptionId;
 }
 
-function resolveSwitchIconName(iconName: string): string {
-    switch (iconName) {
-        case 'check':
-            return 'Check';
-        case 'star':
-            return 'Star';
-        case 'bolt':
-            return 'Zap';
-        case 'heart':
-            return 'Heart';
-        case 'minus':
-            return 'Minus';
-        case 'slash':
-            return 'Slash';
-        case 'ban':
-            return 'Ban';
-        case 'x':
-        default:
-            return 'X';
+function safeComponentName(value: string, fallback: string): string {
+    const cleaned = value.replace(/[^A-Za-z0-9_$]/g, '');
+    if (!cleaned) return fallback;
+    if (!/^[A-Za-z_$]/.test(cleaned)) {
+        return `Icon${cleaned}`;
+    }
+    return cleaned;
+}
+
+function resolveSwitchIcon(iconName: string, iconLibrary: ComponentStyleConfig['switchIconLibrary']) {
+    const normalizedIcon = normalizeLegacySwitchIcon(iconName);
+    if (iconLibrary === 'custom') {
+        return getIconComponent(normalizedIcon, 'lucide') ?? X;
+    }
+    return getIconComponent(normalizedIcon, iconLibrary) ?? getIconComponent(normalizedIcon, 'lucide') ?? X;
+}
+
+function resolveSwitchIconName(
+    iconName: string,
+    iconLibrary: ComponentStyleConfig['switchIconLibrary'],
+    fallbackName: string,
+): string {
+    if (iconLibrary === 'custom') {
+        return safeComponentName(iconName, fallbackName);
+    }
+    const normalizedIcon = normalizeLegacySwitchIcon(iconName);
+    if (iconLibrary === 'studio') {
+        switch (normalizedIcon) {
+            case 'search': return 'Search';
+            case 'lightning': return 'Lightning';
+            case 'heart': return 'HeartCircle';
+            case 'figma': return 'Figma';
+            case 'star': return 'Star';
+            case 'cog': return 'Cog';
+            case 'spinner': return 'LoaderCircle';
+            default: return fallbackName;
+        }
+    }
+    switch (normalizedIcon) {
+        case 'search': return 'Search';
+        case 'lightning': return 'Zap';
+        case 'heart': return 'Heart';
+        case 'star': return 'Star';
+        case 'settings':
+        case 'cog':
+            return 'Settings';
+        case 'bell': return 'Bell';
+        case 'user': return 'User';
+        case 'mail': return 'Mail';
+        case 'bookmark': return 'Bookmark';
+        case 'globe': return 'Globe';
+        case 'shield': return 'Shield';
+        case 'sparkles': return 'Sparkles';
+        case 'home': return 'Home';
+        case 'plus': return 'Plus';
+        case 'minus': return 'Minus';
+        case 'slash': return 'Slash';
+        case 'ban': return 'Ban';
+        case 'check': return 'Check';
+        case 'x': return 'X';
+        case 'spinner': return 'LoaderCircle';
+        default: return fallbackName;
     }
 }
 
@@ -992,8 +1019,22 @@ export function componentSnippet(
             const wrapperStyleCode = styleToCode(wrapperStyle);
             const labelStyleCode = styleToCode(labelStyle);
             const switchStyleCode = styleToCode(switchInlineStyle);
-            const checkedIconName = resolveSwitchIconName(instance.style.switchIconChecked);
-            const uncheckedIconName = resolveSwitchIconName(instance.style.switchIconUnchecked);
+            const checkedIconName = resolveSwitchIconName(
+                instance.style.switchIconChecked,
+                instance.style.switchIconLibrary,
+                'Check',
+            );
+            const uncheckedIconName = resolveSwitchIconName(
+                instance.style.switchIconUnchecked,
+                instance.style.switchIconLibrary,
+                'X',
+            );
+            const customSwitchImportNote =
+                instance.style.switchShowIcon &&
+                instance.style.switchIconLibrary === 'custom' &&
+                instance.style.switchIconImportPath.trim().length > 0
+                    ? `\n// Import custom switch icons from "${instance.style.switchIconImportPath}":\n// import { ${uncheckedIconName}, ${checkedIconName} } from "${instance.style.switchIconImportPath}";`
+                    : '';
             const switchProps = [
                 instance.style.switchChecked ? 'defaultChecked' : '',
                 instance.style.switchDisabled ? 'disabled' : '',
@@ -1006,7 +1047,7 @@ export function componentSnippet(
             const thumbContentSnippet = instance.style.switchShowIcon
                 ? `\nconst switchThumbContent = (\n  <span className="pointer-events-none inline-flex items-center justify-center text-current">\n    <span className="inline-flex items-center justify-center group-data-[state=checked]/switch:hidden">\n      <${uncheckedIconName} size={${instance.style.switchIconSize}} />\n    </span>\n    <span className="hidden items-center justify-center group-data-[state=checked]/switch:inline-flex">\n      <${checkedIconName} size={${instance.style.switchIconSize}} />\n    </span>\n  </span>\n);`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}const switchWrapperStyle = ${wrapperStyleCode};\nconst switchLabelStyle = ${labelStyleCode};\nconst switchStyle = ${switchStyleCode};${thumbContentSnippet}\n\n<div className="${wrapperClassNames}" style={switchWrapperStyle}>\n  <Switch\n    id="switch-demo"\n    ${switchProps ? `${switchProps}\n    ` : ''}${instance.style.switchShowIcon ? 'thumbContent={switchThumbContent}\n    ' : ''}style={{ ...switchStyle${instance.style.switchShowIcon ? `, color: '${instance.style.switchIconColor}'` : ''} }}\n  />\n  <Label htmlFor="switch-demo" style={switchLabelStyle}>${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
+            return `${declarations ? `${declarations}\n\n` : ''}${customSwitchImportNote ? `${customSwitchImportNote}\n` : ''}const switchWrapperStyle = ${wrapperStyleCode};\nconst switchLabelStyle = ${labelStyleCode};\nconst switchStyle = ${switchStyleCode};${thumbContentSnippet}\n\n<div className="${wrapperClassNames}" style={switchWrapperStyle}>\n  <Switch\n    id="switch-demo"\n    ${switchProps ? `${switchProps}\n    ` : ''}${instance.style.switchShowIcon ? 'thumbContent={switchThumbContent}\n    ' : ''}style={{ ...switchStyle${instance.style.switchShowIcon ? `, color: '${instance.style.switchIconColor}'` : ''} }}\n  />\n  <Label htmlFor="switch-demo" style={switchLabelStyle}>${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
         }
         case 'animated-text': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -2340,8 +2381,8 @@ export function renderPreview(
                 instance.style.switchCustomHeight > 0 ||
                 instance.style.switchThumbWidth > 0 ||
                 instance.style.switchThumbHeight > 0;
-            const CheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconChecked);
-            const UncheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconUnchecked);
+            const CheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconChecked, instance.style.switchIconLibrary);
+            const UncheckedThumbIcon = resolveSwitchIcon(instance.style.switchIconUnchecked, instance.style.switchIconLibrary);
             const wrapperStyle = buildComponentWrapperStyle(style, 'switch');
             const switchDecorClassName = cn(
                 'shrink-0',

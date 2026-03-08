@@ -31,7 +31,32 @@ export type AnimatedTextTrigger = 'mount' | 'hover';
 export type FillMode = 'solid' | 'gradient';
 export type FontPosition = 'left' | 'center' | 'right';
 export type MotionPresetId = 'none' | 'rainbow' | 'shimmer';
-export type IconOptionId = 'none' | 'search' | 'lightning' | 'heart' | 'figma' | 'star' | 'cog' | 'spinner';
+export type IconLibrary = 'studio' | 'lucide' | 'custom';
+export type IconOptionId =
+  | 'none'
+  | 'search'
+  | 'lightning'
+  | 'bolt'
+  | 'heart'
+  | 'figma'
+  | 'star'
+  | 'cog'
+  | 'spinner'
+  | 'bell'
+  | 'user'
+  | 'mail'
+  | 'bookmark'
+  | 'globe'
+  | 'shield'
+  | 'sparkles'
+  | 'home'
+  | 'settings'
+  | 'plus'
+  | 'minus'
+  | 'slash'
+  | 'ban'
+  | 'check'
+  | 'x';
 export type PrimitiveSide = 'top' | 'right' | 'bottom' | 'left';
 export type PrimitiveAlign = 'start' | 'center' | 'end';
 export type MotionTransitionType = 'tween' | 'spring';
@@ -134,6 +159,9 @@ export interface ComponentStyleConfig {
   badgeShowText: boolean;
   buttonShowText: boolean;
   icon: IconOptionId;
+  iconLibrary: IconLibrary;
+  iconCustomImportPath: string;
+  iconCustomName: string;
   iconSize: number;
   iconPosition: 'left' | 'right';
   componentPreset: string;
@@ -492,6 +520,8 @@ export interface ComponentStyleConfig {
   alertInlineLinkVariant: AlertActionVariant;
   alertActionSize: 'xs' | 'sm';
   alertIconMode: AlertIconMode;
+  alertBorderless: boolean;
+  alertDismissAsAction: boolean;
   // Card (shared)
   cardVariant: CardVariant;
   cardShowImage: boolean;
@@ -564,8 +594,10 @@ export interface ComponentStyleConfig {
   switchTrackRadius: number;               // track border-radius override (px, 0 = pill)
   switchThumbRadius: number;               // thumb border-radius override (px, 0 = circle)
   switchShowIcon: boolean;                  // show icon inside thumb
-  switchIconChecked: string;               // lucide icon name shown when checked (e.g. 'check')
-  switchIconUnchecked: string;             // lucide icon name shown when unchecked (e.g. 'x')
+  switchIconLibrary: IconLibrary;          // icon set used for switch thumb icons
+  switchIconImportPath: string;            // custom import path for switch icons
+  switchIconChecked: string;               // icon id/name shown when checked
+  switchIconUnchecked: string;             // icon id/name shown when unchecked
   switchIconColor: string;                 // icon colour
   switchIconSize: number;                  // icon size (px)
   switchGlowEnabled: boolean;              // glow effect on checked track

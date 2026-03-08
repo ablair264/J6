@@ -1,6 +1,35 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { AlertTriangle, Check, LoaderCircle, X } from 'lucide-react';
-import { Search, Lightning, HeartCircle, Figma, Star, Cog } from '@mynaui/icons-react';
+import {
+    AlertTriangle,
+    Bell,
+    Bookmark,
+    Check,
+    Globe as LucideGlobe,
+    Heart as LucideHeart,
+    Home,
+    LoaderCircle,
+    Mail,
+    Minus as LucideMinus,
+    Plus,
+    Search as LucideSearch,
+    Settings as LucideSettings,
+    Shield as LucideShield,
+    Slash,
+    Sparkles as LucideSparkles,
+    Star as LucideStar,
+    User,
+    X,
+    Zap as LucideZap,
+    Ban as LucideBan,
+} from 'lucide-react';
+import {
+    Search as StudioSearch,
+    Lightning as StudioLightning,
+    HeartCircle as StudioHeartCircle,
+    Figma as StudioFigma,
+    Star as StudioStar,
+    Cog as StudioCog,
+} from '@mynaui/icons-react';
 import { cn } from '@/lib/utils';
 import { normalizeHexColor } from '@/components/ui/token-sets';
 import type { StudioColorToken, StudioTokenSet } from '@/components/ui/token-sets';
@@ -20,6 +49,7 @@ import type {
     ComponentVisualPreset,
     FillMode,
     FontPosition,
+    IconLibrary,
     IconOptionId,
     MotionPresetId,
     PrimitiveAlign,
@@ -399,32 +429,96 @@ export function buildDropdownMenuPositionStyle(config: ComponentStyleConfig): CS
 
 // ─── Icon Utilities ───────────────────────────────────────────────────────────
 
-export function getIconComponent(icon: IconOptionId) {
-    switch (icon) {
-        case 'search':
-            return Search;
-        case 'lightning':
-            return Lightning;
-        case 'heart':
-            return HeartCircle;
-        case 'figma':
-            return Figma;
-        case 'star':
-            return Star;
-        case 'cog':
-            return Cog;
-        case 'spinner':
-            return LoaderCircle;
-        default:
-            return null;
+export function getIconComponent(icon: IconOptionId, library: IconLibrary = 'studio') {
+    return getIconComponentForLibrary(icon, library);
+}
+
+function getIconComponentForLibrary(icon: IconOptionId, library: IconLibrary) {
+    if (icon === 'none') {
+        return null;
     }
+    if (library === 'studio') {
+        switch (icon) {
+            case 'search':
+                return StudioSearch;
+            case 'lightning':
+            case 'bolt':
+                return StudioLightning;
+            case 'heart':
+                return StudioHeartCircle;
+            case 'figma':
+                return StudioFigma;
+            case 'star':
+                return StudioStar;
+            case 'cog':
+                return StudioCog;
+            case 'spinner':
+                return LoaderCircle;
+            default:
+                return null;
+        }
+    }
+    if (library === 'lucide') {
+        switch (icon) {
+            case 'search':
+                return LucideSearch;
+            case 'lightning':
+            case 'bolt':
+                return LucideZap;
+            case 'heart':
+                return LucideHeart;
+            case 'star':
+                return LucideStar;
+            case 'settings':
+            case 'cog':
+                return LucideSettings;
+            case 'bell':
+                return Bell;
+            case 'user':
+                return User;
+            case 'mail':
+                return Mail;
+            case 'bookmark':
+                return Bookmark;
+            case 'globe':
+                return LucideGlobe;
+            case 'shield':
+                return LucideShield;
+            case 'sparkles':
+                return LucideSparkles;
+            case 'home':
+                return Home;
+            case 'plus':
+                return Plus;
+            case 'minus':
+                return LucideMinus;
+            case 'slash':
+                return Slash;
+            case 'ban':
+                return LucideBan;
+            case 'check':
+                return Check;
+            case 'x':
+                return X;
+            case 'spinner':
+                return LoaderCircle;
+            default:
+                return null;
+        }
+    }
+    return null;
 }
 
 export function renderConfiguredIcon(config: ComponentStyleConfig, className?: string) {
+    const iconLibrary = config.iconLibrary ?? 'studio';
     if (config.icon === 'spinner') {
         return <LoaderCircle size={config.iconSize} className={cn('animate-spin', className)} />;
     }
-    const IconComponent = getIconComponent(config.icon);
+    let IconComponent = getIconComponentForLibrary(config.icon, iconLibrary);
+    if (!IconComponent && iconLibrary === 'custom') {
+        // Custom-library icons are export-only; preview with a fallback icon.
+        IconComponent = getIconComponentForLibrary(config.icon, 'lucide') ?? getIconComponentForLibrary(config.icon, 'studio');
+    }
     if (!IconComponent) {
         return null;
     }
@@ -463,6 +557,62 @@ export function renderCheckboxSelectionIndicator(config: ComponentStyleConfig): 
 }
 
 export function iconSnippet(config: ComponentStyleConfig): string | null {
+    const iconLibrary = config.iconLibrary ?? 'studio';
+    if (iconLibrary === 'custom') {
+        const customIconName = config.iconCustomName.trim();
+        if (!customIconName) {
+            return null;
+        }
+        return `<${customIconName} size={${config.iconSize}} />`;
+    }
+    if (iconLibrary === 'lucide') {
+        switch (config.icon) {
+            case 'search':
+                return `<Search size={${config.iconSize}} />`;
+            case 'lightning':
+            case 'bolt':
+                return `<Zap size={${config.iconSize}} />`;
+            case 'heart':
+                return `<Heart size={${config.iconSize}} />`;
+            case 'star':
+                return `<Star size={${config.iconSize}} />`;
+            case 'settings':
+            case 'cog':
+                return `<Settings size={${config.iconSize}} />`;
+            case 'bell':
+                return `<Bell size={${config.iconSize}} />`;
+            case 'user':
+                return `<User size={${config.iconSize}} />`;
+            case 'mail':
+                return `<Mail size={${config.iconSize}} />`;
+            case 'bookmark':
+                return `<Bookmark size={${config.iconSize}} />`;
+            case 'globe':
+                return `<Globe size={${config.iconSize}} />`;
+            case 'shield':
+                return `<Shield size={${config.iconSize}} />`;
+            case 'sparkles':
+                return `<Sparkles size={${config.iconSize}} />`;
+            case 'home':
+                return `<Home size={${config.iconSize}} />`;
+            case 'plus':
+                return `<Plus size={${config.iconSize}} />`;
+            case 'minus':
+                return `<Minus size={${config.iconSize}} />`;
+            case 'slash':
+                return `<Slash size={${config.iconSize}} />`;
+            case 'ban':
+                return `<Ban size={${config.iconSize}} />`;
+            case 'check':
+                return `<Check size={${config.iconSize}} />`;
+            case 'x':
+                return `<X size={${config.iconSize}} />`;
+            case 'spinner':
+                return `<LoaderCircle size={${config.iconSize}} className="animate-spin" />`;
+            default:
+                return null;
+        }
+    }
     switch (config.icon) {
         case 'search':
             return `<Search size={${config.iconSize}} />`;

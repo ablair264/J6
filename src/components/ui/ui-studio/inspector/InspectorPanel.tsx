@@ -37,11 +37,14 @@ import type {
     ComponentStyleConfig,
     FillMode,
     FontPosition,
+    IconLibrary,
     IconOptionId,
 } from '@/components/ui/ui-studio.types';
 import {
     GOOGLE_FONTS,
-    ICON_OPTIONS,
+    ICON_LIBRARY_OPTIONS,
+    LUCIDE_ICON_OPTIONS,
+    STUDIO_ICON_OPTIONS,
 } from '../constants';
 import {
     buildKindTitle,
@@ -472,9 +475,54 @@ export function InspectorPanel() {
         updateSelectedStyle(field, value as never);
     };
 
+    const getIconOptionsForLibrary = (library: IconLibrary) => {
+        if (library === 'lucide') {
+            return LUCIDE_ICON_OPTIONS;
+        }
+        return STUDIO_ICON_OPTIONS;
+    };
+
+    const getDefaultIconForLibrary = (library: IconLibrary): IconOptionId => {
+        const firstOption = getIconOptionsForLibrary(library).find((option) => option.id !== 'none');
+        return firstOption?.id ?? 'search';
+    };
+
+    const getResolvedIconValue = (
+        library: IconLibrary,
+        currentIcon: IconOptionId,
+        includeNone: boolean,
+    ): IconOptionId => {
+        const options = getIconOptionsForLibrary(library).filter((option) => includeNone || option.id !== 'none');
+        const hasCurrent = options.some((option) => option.id === currentIcon);
+        if (hasCurrent) {
+            return currentIcon;
+        }
+        if (!includeNone && currentIcon === 'none') {
+            return getDefaultIconForLibrary(library);
+        }
+        return includeNone ? 'none' : (options[0]?.id ?? getDefaultIconForLibrary(library));
+    };
+
+    const getSwitchIconOptions = (library: IconLibrary): Array<{ id: IconOptionId; label: string }> =>
+        getIconOptionsForLibrary(library).filter((option) => option.id !== 'none');
+
+    const getDefaultSwitchIconChecked = (library: IconLibrary): IconOptionId =>
+        getSwitchIconOptions(library).find((option) => option.id === 'check')?.id
+        ?? getSwitchIconOptions(library).find((option) => option.id === 'star')?.id
+        ?? getDefaultIconForLibrary(library);
+
+    const getDefaultSwitchIconUnchecked = (library: IconLibrary): IconOptionId =>
+        getSwitchIconOptions(library).find((option) => option.id === 'x')?.id
+        ?? getSwitchIconOptions(library).find((option) => option.id === 'minus')?.id
+        ?? getDefaultIconForLibrary(library);
+
     const updateContentDisplayMode = (mode: 'text' | 'text-icon' | 'icon') => {
         if (!selectedInstance || !supportsTextIconMode) return;
-        const defaultIcon: IconOptionId = selectedStyle?.icon === 'none' ? 'search' : selectedStyle?.icon ?? 'search';
+        const activeLibrary = selectedStyle?.iconLibrary === 'lucide' ? 'lucide' : 'studio';
+        const defaultIcon: IconOptionId =
+            selectedStyle?.icon === 'none'
+                ? getDefaultIconForLibrary(activeLibrary)
+                : selectedStyle?.icon ?? getDefaultIconForLibrary(activeLibrary);
         if (selectedInstance.kind === 'button') {
             updateSelectedStyle('buttonShowText', mode !== 'icon');
             updateSelectedStyle('icon', mode === 'text' ? 'none' : defaultIcon);
@@ -1033,13 +1081,60 @@ export function InspectorPanel() {
                                     ) : null}
 
                                     <AnimatePresence initial={false}>
-                                        {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon') ? (
+                                        {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon' || selectedInstance.kind === 'alert') ? (
                                             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3">
-                                                <FlatField label="Icon">
-                                                    <FlatSelect value={selectedStyle.icon} onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)} ariaLabel="Icon">
-                                                        {ICON_OPTIONS.map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                <FlatField label="Icon Library">
+                                                    <FlatSelect
+                                                        value={selectedStyle.iconLibrary}
+                                                        onValueChange={(value) => {
+                                                            const nextLibrary = value as IconLibrary;
+                                                            updateSelectedStyle('iconLibrary', nextLibrary);
+                                                            if (nextLibrary !== 'custom') {
+                                                                const nextIcon = getResolvedIconValue(nextLibrary, selectedStyle.icon, true);
+                                                                updateSelectedStyle('icon', nextIcon);
+                                                            }
+                                                        }}
+                                                        ariaLabel="Icon library"
+                                                    >
+                                                        {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                            <option key={option.id} value={option.id}>{option.label}</option>
+                                                        ))}
                                                     </FlatSelect>
                                                 </FlatField>
+                                                {selectedStyle.iconLibrary === 'custom' ? (
+                                                    <>
+                                                        <FlatField label="Icon Import Path" stacked>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedStyle.iconCustomImportPath}
+                                                                onChange={(event) => updateSelectedStyle('iconCustomImportPath', event.target.value)}
+                                                                className={studioInputClass}
+                                                                placeholder="@my/icons"
+                                                            />
+                                                        </FlatField>
+                                                        <FlatField label="Icon Name" stacked>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedStyle.iconCustomName}
+                                                                onChange={(event) => updateSelectedStyle('iconCustomName', event.target.value)}
+                                                                className={studioInputClass}
+                                                                placeholder="RocketIcon"
+                                                            />
+                                                        </FlatField>
+                                                    </>
+                                                ) : (
+                                                    <FlatField label="Icon">
+                                                        <FlatSelect
+                                                            value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, true)}
+                                                            onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                            ariaLabel="Icon"
+                                                        >
+                                                            {getIconOptionsForLibrary(selectedStyle.iconLibrary).map((option) => (
+                                                                <option key={option.id} value={option.id}>{option.label}</option>
+                                                            ))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                )}
                                                 <FlatField label="Icon Position">
                                                     <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                         {(['left', 'right'] as const).map((position) => (
@@ -1519,7 +1614,9 @@ export function InspectorPanel() {
                                             <option value="invert">Invert</option>
                                         </FlatSelect>
                                     </FlatField>
+                                    <FlatSwitchRow label="Borderless" checked={selectedStyle.alertBorderless} onCheckedChange={(value) => updateSelectedStyle('alertBorderless', value)} />
                                     <FlatSwitchRow label="Dismissible" checked={selectedStyle.alertDismissible} onCheckedChange={(value) => updateSelectedStyle('alertDismissible', value)} />
+                                    <FlatSwitchRow label="Dismiss as action" checked={selectedStyle.alertDismissAsAction} onCheckedChange={(value) => updateSelectedStyle('alertDismissAsAction', value)} />
                                     <FlatSwitchRow label="Show Icon" checked={selectedStyle.alertShowIcon} onCheckedChange={(value) => updateSelectedStyle('alertShowIcon', value)} />
                                     <FlatField label="Icon Style" stacked>
                                         <FlatSelect value={selectedStyle.alertIconMode} onValueChange={(value) => updateSelectedStyle('alertIconMode', value as ComponentStyleConfig['alertIconMode'])} ariaLabel="Alert icon style">
@@ -1761,16 +1858,63 @@ export function InspectorPanel() {
                                 <FlatSwitchRow label="Show Icon" checked={selectedStyle.inputShowIcon} onCheckedChange={(value) => {
                                     updateSelectedStyle('inputShowIcon', value);
                                     if (value && selectedStyle.icon === 'none') {
-                                        updateSelectedStyle('icon', 'search');
+                                        const fallbackLibrary = selectedStyle.iconLibrary === 'custom' ? 'studio' : selectedStyle.iconLibrary;
+                                        updateSelectedStyle('icon', getDefaultIconForLibrary(fallbackLibrary));
                                     }
                                 }} />
                                 {selectedStyle.inputShowIcon ? (
                                     <>
-                                        <FlatField label="Icon">
-                                            <FlatSelect value={selectedStyle.icon === 'none' ? 'search' : selectedStyle.icon} onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)} ariaLabel="Input icon">
-                                                {ICON_OPTIONS.filter((o) => o.id !== 'none').map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                        <FlatField label="Icon Library">
+                                            <FlatSelect
+                                                value={selectedStyle.iconLibrary}
+                                                onValueChange={(value) => {
+                                                    const nextLibrary = value as IconLibrary;
+                                                    updateSelectedStyle('iconLibrary', nextLibrary);
+                                                    if (nextLibrary !== 'custom') {
+                                                        updateSelectedStyle('icon', getResolvedIconValue(nextLibrary, selectedStyle.icon, false));
+                                                    }
+                                                }}
+                                                ariaLabel="Input icon library"
+                                            >
+                                                {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                    <option key={option.id} value={option.id}>{option.label}</option>
+                                                ))}
                                             </FlatSelect>
                                         </FlatField>
+                                        {selectedStyle.iconLibrary === 'custom' ? (
+                                            <>
+                                                <FlatField label="Icon Import Path" stacked>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedStyle.iconCustomImportPath}
+                                                        onChange={(event) => updateSelectedStyle('iconCustomImportPath', event.target.value)}
+                                                        className={studioInputClass}
+                                                        placeholder="@my/icons"
+                                                    />
+                                                </FlatField>
+                                                <FlatField label="Icon Name" stacked>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedStyle.iconCustomName}
+                                                        onChange={(event) => updateSelectedStyle('iconCustomName', event.target.value)}
+                                                        className={studioInputClass}
+                                                        placeholder="SearchIcon"
+                                                    />
+                                                </FlatField>
+                                            </>
+                                        ) : (
+                                            <FlatField label="Icon">
+                                                <FlatSelect
+                                                    value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, false)}
+                                                    onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                    ariaLabel="Input icon"
+                                                >
+                                                    {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                        .filter((option) => option.id !== 'none')
+                                                        .map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                        )}
                                         <FlatField label="Icon Position">
                                             <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                 {(['left', 'right'] as const).map((pos) => (
@@ -1915,23 +2059,66 @@ export function InspectorPanel() {
                                         onCheckedChange={(value) => {
                                             updateSelectedStyle('tabsShowIcons', value);
                                             if (value && selectedStyle.icon === 'none') {
-                                                updateSelectedStyle('icon', 'search');
+                                                const fallbackLibrary = selectedStyle.iconLibrary === 'custom' ? 'studio' : selectedStyle.iconLibrary;
+                                                updateSelectedStyle('icon', getDefaultIconForLibrary(fallbackLibrary));
                                             }
                                         }}
                                     />
                                     {selectedStyle.tabsShowIcons ? (
                                         <>
-                                            <FlatField label="Tab Icon" stacked>
+                                            <FlatField label="Icon Library" stacked>
                                                 <FlatSelect
-                                                    value={selectedStyle.icon === 'none' ? 'search' : selectedStyle.icon}
-                                                    onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
-                                                    ariaLabel="Tabs icon"
+                                                    value={selectedStyle.iconLibrary}
+                                                    onValueChange={(value) => {
+                                                        const nextLibrary = value as IconLibrary;
+                                                        updateSelectedStyle('iconLibrary', nextLibrary);
+                                                        if (nextLibrary !== 'custom') {
+                                                            updateSelectedStyle('icon', getResolvedIconValue(nextLibrary, selectedStyle.icon, false));
+                                                        }
+                                                    }}
+                                                    ariaLabel="Tabs icon library"
                                                 >
-                                                    {ICON_OPTIONS.filter((option) => option.id !== 'none').map((option) => (
+                                                    {ICON_LIBRARY_OPTIONS.map((option) => (
                                                         <option key={option.id} value={option.id}>{option.label}</option>
                                                     ))}
                                                 </FlatSelect>
                                             </FlatField>
+                                            {selectedStyle.iconLibrary === 'custom' ? (
+                                                <>
+                                                    <FlatField label="Icon Import Path" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.iconCustomImportPath}
+                                                            onChange={(event) => updateSelectedStyle('iconCustomImportPath', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="@my/icons"
+                                                        />
+                                                    </FlatField>
+                                                    <FlatField label="Icon Name" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.iconCustomName}
+                                                            onChange={(event) => updateSelectedStyle('iconCustomName', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="TabIcon"
+                                                        />
+                                                    </FlatField>
+                                                </>
+                                            ) : (
+                                                <FlatField label="Tab Icon" stacked>
+                                                    <FlatSelect
+                                                        value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, false)}
+                                                        onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                        ariaLabel="Tabs icon"
+                                                    >
+                                                        {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                            .filter((option) => option.id !== 'none')
+                                                            .map((option) => (
+                                                                <option key={option.id} value={option.id}>{option.label}</option>
+                                                            ))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                            )}
                                             <FlatField label="Icon Position">
                                                 <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                     {(['left', 'right'] as const).map((value) => (
@@ -2504,22 +2691,84 @@ export function InspectorPanel() {
                                     <FlatSwitchRow label="Thumb Icon" checked={selectedStyle.switchShowIcon} onCheckedChange={(value) => updateSelectedStyle('switchShowIcon', value)} />
                                     {selectedStyle.switchShowIcon ? (
                                         <>
-                                            <FlatField label="Checked Icon" stacked>
-                                                <FlatSelect value={selectedStyle.switchIconChecked} onValueChange={(value) => updateSelectedStyle('switchIconChecked', value)} ariaLabel="Switch checked icon">
-                                                    <option value="check">Check</option>
-                                                    <option value="star">Star</option>
-                                                    <option value="bolt">Bolt</option>
-                                                    <option value="heart">Heart</option>
+                                            <FlatField label="Icon Library" stacked>
+                                                <FlatSelect
+                                                    value={selectedStyle.switchIconLibrary}
+                                                    onValueChange={(value) => {
+                                                        const nextLibrary = value as IconLibrary;
+                                                        updateSelectedStyles({
+                                                            switchIconLibrary: nextLibrary,
+                                                            ...(nextLibrary !== 'custom'
+                                                                ? {
+                                                                    switchIconChecked: getDefaultSwitchIconChecked(nextLibrary),
+                                                                    switchIconUnchecked: getDefaultSwitchIconUnchecked(nextLibrary),
+                                                                }
+                                                                : {}),
+                                                        });
+                                                    }}
+                                                    ariaLabel="Switch icon library"
+                                                >
+                                                    {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                        <option key={option.id} value={option.id}>{option.label}</option>
+                                                    ))}
                                                 </FlatSelect>
                                             </FlatField>
-                                            <FlatField label="Unchecked Icon" stacked>
-                                                <FlatSelect value={selectedStyle.switchIconUnchecked} onValueChange={(value) => updateSelectedStyle('switchIconUnchecked', value)} ariaLabel="Switch unchecked icon">
-                                                    <option value="x">X</option>
-                                                    <option value="minus">Minus</option>
-                                                    <option value="slash">Slash</option>
-                                                    <option value="ban">Ban</option>
-                                                </FlatSelect>
-                                            </FlatField>
+                                            {selectedStyle.switchIconLibrary === 'custom' ? (
+                                                <>
+                                                    <FlatField label="Icon Import Path" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.switchIconImportPath}
+                                                            onChange={(event) => updateSelectedStyle('switchIconImportPath', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="@my/icons"
+                                                        />
+                                                    </FlatField>
+                                                    <FlatField label="Checked Icon Name" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.switchIconChecked}
+                                                            onChange={(event) => updateSelectedStyle('switchIconChecked', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="CheckIcon"
+                                                        />
+                                                    </FlatField>
+                                                    <FlatField label="Unchecked Icon Name" stacked>
+                                                        <input
+                                                            type="text"
+                                                            value={selectedStyle.switchIconUnchecked}
+                                                            onChange={(event) => updateSelectedStyle('switchIconUnchecked', event.target.value)}
+                                                            className={studioInputClass}
+                                                            placeholder="CloseIcon"
+                                                        />
+                                                    </FlatField>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FlatField label="Checked Icon" stacked>
+                                                        <FlatSelect
+                                                            value={getResolvedIconValue(selectedStyle.switchIconLibrary, selectedStyle.switchIconChecked as IconOptionId, false)}
+                                                            onValueChange={(value) => updateSelectedStyle('switchIconChecked', value)}
+                                                            ariaLabel="Switch checked icon"
+                                                        >
+                                                            {getSwitchIconOptions(selectedStyle.switchIconLibrary).map((option) => (
+                                                                <option key={option.id} value={option.id}>{option.label}</option>
+                                                            ))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                    <FlatField label="Unchecked Icon" stacked>
+                                                        <FlatSelect
+                                                            value={getResolvedIconValue(selectedStyle.switchIconLibrary, selectedStyle.switchIconUnchecked as IconOptionId, false)}
+                                                            onValueChange={(value) => updateSelectedStyle('switchIconUnchecked', value)}
+                                                            ariaLabel="Switch unchecked icon"
+                                                        >
+                                                            {getSwitchIconOptions(selectedStyle.switchIconLibrary).map((option) => (
+                                                                <option key={option.id} value={option.id}>{option.label}</option>
+                                                            ))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                </>
+                                            )}
                                             <FlatColorControl label="Icon Color" value={selectedStyle.switchIconColor} onChange={(value) => updateSelectedStyle('switchIconColor', value)} tokens={activeTokenSet.tokens} />
                                             <FlatUnitField label="Icon Size" value={selectedStyle.switchIconSize} min={6} max={16} unit="px" onChange={(value) => updateSelectedStyle('switchIconSize', value)} />
                                         </>
@@ -2855,13 +3104,60 @@ export function InspectorPanel() {
                                     ) : null}
 
                                     <AnimatePresence initial={false}>
-                                        {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon') ? (
+                                        {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon' || selectedInstance.kind === 'alert') ? (
                                             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3">
-                                                <FlatField label="Icon">
-                                                    <FlatSelect value={selectedStyle.icon} onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)} ariaLabel="Icon">
-                                                        {ICON_OPTIONS.map((option) => (<option key={option.id} value={option.id}>{option.label}</option>))}
+                                                <FlatField label="Icon Library">
+                                                    <FlatSelect
+                                                        value={selectedStyle.iconLibrary}
+                                                        onValueChange={(value) => {
+                                                            const nextLibrary = value as IconLibrary;
+                                                            updateSelectedStyle('iconLibrary', nextLibrary);
+                                                            if (nextLibrary !== 'custom') {
+                                                                const nextIcon = getResolvedIconValue(nextLibrary, selectedStyle.icon, true);
+                                                                updateSelectedStyle('icon', nextIcon);
+                                                            }
+                                                        }}
+                                                        ariaLabel="Icon library"
+                                                    >
+                                                        {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                            <option key={option.id} value={option.id}>{option.label}</option>
+                                                        ))}
                                                     </FlatSelect>
                                                 </FlatField>
+                                                {selectedStyle.iconLibrary === 'custom' ? (
+                                                    <>
+                                                        <FlatField label="Icon Import Path" stacked>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedStyle.iconCustomImportPath}
+                                                                onChange={(event) => updateSelectedStyle('iconCustomImportPath', event.target.value)}
+                                                                className={studioInputClass}
+                                                                placeholder="@my/icons"
+                                                            />
+                                                        </FlatField>
+                                                        <FlatField label="Icon Name" stacked>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedStyle.iconCustomName}
+                                                                onChange={(event) => updateSelectedStyle('iconCustomName', event.target.value)}
+                                                                className={studioInputClass}
+                                                                placeholder="RocketIcon"
+                                                            />
+                                                        </FlatField>
+                                                    </>
+                                                ) : (
+                                                    <FlatField label="Icon">
+                                                        <FlatSelect
+                                                            value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, true)}
+                                                            onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                            ariaLabel="Icon"
+                                                        >
+                                                            {getIconOptionsForLibrary(selectedStyle.iconLibrary).map((option) => (
+                                                                <option key={option.id} value={option.id}>{option.label}</option>
+                                                            ))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                )}
                                                 <FlatField label="Icon Position">
                                                     <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                         {(['left', 'right'] as const).map((position) => (

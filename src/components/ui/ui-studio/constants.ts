@@ -13,6 +13,7 @@ import type {
     DrawerSide,
     FillMode,
     FontPosition,
+    IconLibrary,
     IconOptionId,
     MotionEaseOption,
     MotionPresetId,
@@ -248,6 +249,9 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     badgeShowText: true,
     buttonShowText: true,
     icon: 'none',
+    iconLibrary: 'studio',
+    iconCustomImportPath: '',
+    iconCustomName: '',
     iconSize: 18,
     iconPosition: 'left',
     componentPreset: 'default',
@@ -623,6 +627,8 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     alertInlineLinkVariant: 'link',
     alertActionSize: 'xs',
     alertIconMode: 'variant',
+    alertBorderless: false,
+    alertDismissAsAction: false,
     // Card (shared)
     cardVariant: 'default',
     cardShowImage: false,
@@ -694,6 +700,8 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     switchTrackRadius: 0,
     switchThumbRadius: 0,
     switchShowIcon: false,
+    switchIconLibrary: 'lucide',
+    switchIconImportPath: '',
     switchIconChecked: 'check',
     switchIconUnchecked: 'x',
     switchIconColor: '#ffffff',
@@ -3009,14 +3017,8 @@ const ALERT_VISUAL_PRESETS: ComponentVisualPreset[] = [
             alertSecondaryActionVariant: 'outline',
             alertPrimaryActionIcon: 'none',
             alertShowInlineLink: false,
-            fillMode: 'solid',
-            fillColor: '#0b1732',
-            fillOpacity: 100,
-            strokeColor: '#334155',
-            strokeWeight: 1,
-            strokeOpacity: 70,
-            fontColor: '#e2e8f0',
-            fontOpacity: 100,
+            alertBorderless: false,
+            alertDismissAsAction: false,
         },
     },
     {
@@ -3093,13 +3095,8 @@ const ALERT_VISUAL_PRESETS: ComponentVisualPreset[] = [
             alertPrimaryActionVariant: 'outline',
             alertPrimaryActionIcon: 'refresh',
             alertShowInlineLink: false,
-            fillMode: 'solid',
-            fillColor: '#111827',
-            fillOpacity: 40,
-            strokeWeight: 0,
-            strokeOpacity: 0,
-            fontColor: '#dbeafe',
-            fontOpacity: 100,
+            alertBorderless: true,
+            alertDismissAsAction: false,
         },
     },
     {
@@ -3114,19 +3111,16 @@ const ALERT_VISUAL_PRESETS: ComponentVisualPreset[] = [
             alertTitleText: 'New: Advanced Analytics',
             alertDescriptionText: "We've just released a new dashboard for tracking your team's performance.",
             alertDescriptionMode: 'plain',
-            alertActionMode: 'none',
+            alertActionMode: 'single',
+            alertPrimaryActionLabel: '',
+            alertPrimaryActionVariant: 'ghost',
+            alertPrimaryActionIcon: 'x',
             alertShowInlineLink: true,
             alertInlineLinkLabel: 'Explore features',
             alertInlineLinkVariant: 'link',
-            alertDismissible: true,
-            fillMode: 'solid',
-            fillColor: '#0f172a',
-            fillOpacity: 80,
-            strokeColor: '#334155',
-            strokeWeight: 1,
-            strokeOpacity: 55,
-            fontColor: '#dbeafe',
-            fontOpacity: 100,
+            alertDismissible: false,
+            alertBorderless: true,
+            alertDismissAsAction: true,
         },
     },
 ];
@@ -3589,7 +3583,13 @@ export const GOOGLE_FONTS: Array<{ id: string; label: string }> = [
     { id: 'Merriweather', label: 'Merriweather' },
 ];
 
-export const ICON_OPTIONS: Array<{ id: IconOptionId; label: string }> = [
+export const ICON_LIBRARY_OPTIONS: Array<{ id: IconLibrary; label: string }> = [
+    { id: 'studio', label: 'Studio' },
+    { id: 'lucide', label: 'Lucide' },
+    { id: 'custom', label: 'Custom' },
+];
+
+export const STUDIO_ICON_OPTIONS: Array<{ id: IconOptionId; label: string }> = [
     { id: 'none', label: 'None' },
     { id: 'search', label: 'Search' },
     { id: 'lightning', label: 'Lightning' },
@@ -3599,6 +3599,34 @@ export const ICON_OPTIONS: Array<{ id: IconOptionId; label: string }> = [
     { id: 'cog', label: 'Cog' },
     { id: 'spinner', label: 'Spinner' },
 ];
+
+export const LUCIDE_ICON_OPTIONS: Array<{ id: IconOptionId; label: string }> = [
+    { id: 'none', label: 'None' },
+    { id: 'search', label: 'Search' },
+    { id: 'settings', label: 'Settings' },
+    { id: 'star', label: 'Star' },
+    { id: 'heart', label: 'Heart' },
+    { id: 'bell', label: 'Bell' },
+    { id: 'user', label: 'User' },
+    { id: 'mail', label: 'Mail' },
+    { id: 'bookmark', label: 'Bookmark' },
+    { id: 'globe', label: 'Globe' },
+    { id: 'shield', label: 'Shield' },
+    { id: 'sparkles', label: 'Sparkles' },
+    { id: 'home', label: 'Home' },
+    { id: 'lightning', label: 'Zap' },
+    { id: 'bolt', label: 'Bolt (Legacy)' },
+    { id: 'plus', label: 'Plus' },
+    { id: 'minus', label: 'Minus' },
+    { id: 'slash', label: 'Slash' },
+    { id: 'ban', label: 'Ban' },
+    { id: 'check', label: 'Check' },
+    { id: 'x', label: 'X' },
+    { id: 'spinner', label: 'Spinner' },
+];
+
+// Backwards-compatible alias used in existing inspector blocks.
+export const ICON_OPTIONS = STUDIO_ICON_OPTIONS;
 
 export const PRESET_CHECKBOX_INDICATOR_SIZE: Record<SizeOption, string> = {
     sm: 'size-3',
