@@ -85,6 +85,29 @@ const inspectorChoiceButtonIdle = 'text-[#7f8ca3] hover:bg-white/[0.03] hover:te
 const inspectorIconChoiceButtonBase = 'inline-flex h-7 flex-1 items-center justify-center rounded-lg transition-colors';
 const cardWeightOptions = [300, 400, 500, 600, 700] as const;
 const cardKinds = ['card', 'product-card', 'listing-card'] as const;
+const switchTrackPadding = 1;
+const switchThumbInputMax = 40;
+
+function getSwitchDefaults(size: ComponentStyleConfig['size']) {
+    if (size === 'sm') {
+        return { trackWidth: 24, trackHeight: 14 };
+    }
+    return { trackWidth: 32, trackHeight: 18 };
+}
+
+function getSwitchThumbLimits(style: ComponentStyleConfig) {
+    const defaults = getSwitchDefaults(style.size);
+    const trackWidth = style.switchCustomWidth > 0 ? style.switchCustomWidth : defaults.trackWidth;
+    const trackHeight = style.switchCustomHeight > 0 ? style.switchCustomHeight : defaults.trackHeight;
+    const borderWidth = Math.max(0, style.switchTrackBorderWidth);
+    const maxWidth = Math.max(0, trackWidth - (switchTrackPadding * 2) - (borderWidth * 2));
+    const maxHeight = Math.max(0, trackHeight - (switchTrackPadding * 2) - (borderWidth * 2));
+
+    return {
+        maxWidth: Math.min(switchThumbInputMax, maxWidth),
+        maxHeight: Math.min(switchThumbInputMax, maxHeight),
+    };
+}
 
 function CardConfigSubsection({
     title,
@@ -297,6 +320,49 @@ export function InspectorPanel() {
     const activeComponentPreset = selectedInstance && selectedStyle?.componentPreset
         ? getComponentVisualPreset(selectedInstance.kind, selectedStyle.componentPreset)
         : undefined;
+    const switchThumbLimits = selectedInstance?.kind === 'switch' && selectedStyle
+        ? getSwitchThumbLimits(selectedStyle)
+        : { maxWidth: switchThumbInputMax, maxHeight: switchThumbInputMax };
+
+    const updateSwitchSizingWithClamp = (updates: Partial<ComponentStyleConfig>) => {
+        if (!selectedStyle || selectedInstance?.kind !== 'switch') {
+            updateSelectedStyles(updates);
+            return;
+        }
+        const merged = { ...selectedStyle, ...updates };
+        const limits = getSwitchThumbLimits(merged);
+        const nextUpdates: Partial<ComponentStyleConfig> = { ...updates };
+
+        if (merged.switchThumbWidth > 0) {
+            nextUpdates.switchThumbWidth = Math.min(merged.switchThumbWidth, limits.maxWidth);
+        }
+        if (merged.switchThumbHeight > 0) {
+            nextUpdates.switchThumbHeight = Math.min(merged.switchThumbHeight, limits.maxHeight);
+        }
+
+        updateSelectedStyles(nextUpdates);
+    };
+
+    useEffect(() => {
+        if (!selectedStyle || selectedInstance?.kind !== 'switch') return;
+        const limits = getSwitchThumbLimits(selectedStyle);
+        const updates: Partial<ComponentStyleConfig> = {};
+
+        if (selectedStyle.switchThumbWidth > 0 && selectedStyle.switchThumbWidth > limits.maxWidth) {
+            updates.switchThumbWidth = limits.maxWidth;
+        }
+        if (selectedStyle.switchThumbHeight > 0 && selectedStyle.switchThumbHeight > limits.maxHeight) {
+            updates.switchThumbHeight = limits.maxHeight;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            updateSelectedStyles(updates);
+        }
+    }, [
+        selectedInstance?.kind,
+        selectedStyle,
+        updateSelectedStyles,
+    ]);
 
     // ─── Effect options ───────────────────────────────────────────────────
 
@@ -2411,10 +2477,10 @@ export function InspectorPanel() {
                                     <FlatColorControl label="Thumb (Off)" value={selectedStyle.switchThumbColor} onChange={(value) => updateSelectedStyle('switchThumbColor', value)} tokens={activeTokenSet.tokens} />
                                     <FlatColorControl label="Thumb (On)" value={selectedStyle.switchThumbActiveColor} onChange={(value) => updateSelectedStyle('switchThumbActiveColor', value)} tokens={activeTokenSet.tokens} />
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatUnitField label="Track Width" value={selectedStyle.switchCustomWidth} min={0} max={80} unit="px" onChange={(value) => updateSelectedStyle('switchCustomWidth', value)} zeroLabel="auto" />
-                                        <FlatUnitField label="Track Height" value={selectedStyle.switchCustomHeight} min={0} max={40} unit="px" onChange={(value) => updateSelectedStyle('switchCustomHeight', value)} zeroLabel="auto" />
-                                        <FlatUnitField label="Thumb Width" value={selectedStyle.switchThumbWidth} min={0} max={40} unit="px" onChange={(value) => updateSelectedStyle('switchThumbWidth', value)} zeroLabel="auto" />
-                                        <FlatUnitField label="Thumb Height" value={selectedStyle.switchThumbHeight} min={0} max={40} unit="px" onChange={(value) => updateSelectedStyle('switchThumbHeight', value)} zeroLabel="auto" />
+                                        <FlatUnitField label="Track Width" value={selectedStyle.switchCustomWidth} min={0} max={80} unit="px" onChange={(value) => updateSwitchSizingWithClamp({ switchCustomWidth: value })} zeroLabel="auto" />
+                                        <FlatUnitField label="Track Height" value={selectedStyle.switchCustomHeight} min={0} max={40} unit="px" onChange={(value) => updateSwitchSizingWithClamp({ switchCustomHeight: value })} zeroLabel="auto" />
+                                        <FlatUnitField label="Thumb Width" value={selectedStyle.switchThumbWidth} min={0} max={switchThumbLimits.maxWidth} unit="px" onChange={(value) => updateSelectedStyle('switchThumbWidth', value === 0 ? 0 : Math.min(value, switchThumbLimits.maxWidth))} zeroLabel="auto" />
+                                        <FlatUnitField label="Thumb Height" value={selectedStyle.switchThumbHeight} min={0} max={switchThumbLimits.maxHeight} unit="px" onChange={(value) => updateSelectedStyle('switchThumbHeight', value === 0 ? 0 : Math.min(value, switchThumbLimits.maxHeight))} zeroLabel="auto" />
                                     </div>
                                     <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
                                         <FlatColorControl
@@ -2425,7 +2491,7 @@ export function InspectorPanel() {
                                             stacked
                                             compact
                                         />
-                                        <FlatUnitField label="Width" value={selectedStyle.switchTrackBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchTrackBorderWidth', value)} />
+                                        <FlatUnitField label="Width" value={selectedStyle.switchTrackBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSwitchSizingWithClamp({ switchTrackBorderWidth: value })} />
                                     </div>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Track Radius" value={selectedStyle.switchTrackRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchTrackRadius', value)} />

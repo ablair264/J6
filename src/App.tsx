@@ -5,11 +5,12 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Projects from '@/pages/Projects';
 import Profile from '@/pages/Profile';
+import LandingPage from '@/pages/LandingPage';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/projects" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
@@ -36,7 +37,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/projects" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

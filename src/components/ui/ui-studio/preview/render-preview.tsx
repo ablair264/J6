@@ -913,10 +913,18 @@ export function componentSnippet(
             const defaultThumbSize = switchSize === 'sm' ? 12 : 16;
             const resolvedTrackWidth = instance.style.switchCustomWidth > 0 ? instance.style.switchCustomWidth : defaultTrackWidth;
             const resolvedTrackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
-            const resolvedThumbWidth = instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize;
-            const resolvedThumbHeight = instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize;
             const trackPadding = 1;
             const trackBorderWidth = Math.max(0, instance.style.switchTrackBorderWidth);
+            const maxThumbWidth = Math.max(0, resolvedTrackWidth - (trackPadding * 2) - (trackBorderWidth * 2));
+            const maxThumbHeight = Math.max(0, resolvedTrackHeight - (trackPadding * 2) - (trackBorderWidth * 2));
+            const resolvedThumbWidth = Math.min(
+                instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize,
+                maxThumbWidth,
+            );
+            const resolvedThumbHeight = Math.min(
+                instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize,
+                maxThumbHeight,
+            );
             const thumbTravel = Math.max(
                 0,
                 resolvedTrackWidth - resolvedThumbWidth - (trackPadding * 2) - (trackBorderWidth * 2),
@@ -2311,10 +2319,18 @@ export function renderPreview(
             const defaultThumbSize = switchSize === 'sm' ? 12 : 16;
             const resolvedTrackWidth = instance.style.switchCustomWidth > 0 ? instance.style.switchCustomWidth : defaultTrackWidth;
             const resolvedTrackHeight = instance.style.switchCustomHeight > 0 ? instance.style.switchCustomHeight : defaultTrackHeight;
-            const resolvedThumbWidth = instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize;
-            const resolvedThumbHeight = instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize;
             const trackPadding = 1;
             const trackBorderWidth = Math.max(0, instance.style.switchTrackBorderWidth);
+            const maxThumbWidth = Math.max(0, resolvedTrackWidth - (trackPadding * 2) - (trackBorderWidth * 2));
+            const maxThumbHeight = Math.max(0, resolvedTrackHeight - (trackPadding * 2) - (trackBorderWidth * 2));
+            const resolvedThumbWidth = Math.min(
+                instance.style.switchThumbWidth > 0 ? instance.style.switchThumbWidth : defaultThumbSize,
+                maxThumbWidth,
+            );
+            const resolvedThumbHeight = Math.min(
+                instance.style.switchThumbHeight > 0 ? instance.style.switchThumbHeight : defaultThumbSize,
+                maxThumbHeight,
+            );
             const thumbTravel = Math.max(
                 0,
                 resolvedTrackWidth - resolvedThumbWidth - (trackPadding * 2) - (trackBorderWidth * 2),
