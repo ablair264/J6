@@ -55,6 +55,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       data-variant={variant}
+      data-full-width={fullWidth ? "true" : "false"}
       className={cn(tabsListVariants({ variant }), listBg && "!bg-transparent", fullWidth && "w-full", className)}
       style={listBg ? { ...style, backgroundColor: listBg } : style}
       {...props}
@@ -91,7 +92,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         // base
-        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 border border-transparent px-3 py-1.5 whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative inline-flex h-[calc(100%-1px)] flex-none items-center justify-center gap-1.5 border border-transparent px-3 py-1.5 whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 group-data-[full-width=true]/tabs-list:flex-1 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         // vertical orientation
         "group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start",
         // inactive text color

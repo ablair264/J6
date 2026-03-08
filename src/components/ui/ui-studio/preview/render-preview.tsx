@@ -744,7 +744,10 @@ export function componentSnippet(
         case 'tabs': {
             const tabDeclarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const tabLabels = ['Style', 'Effects', 'Layout', 'Preview', 'Settings', 'Export'].slice(0, Math.max(2, Math.min(6, instance.style.tabsCount)));
-            const activeIndicatorColor = instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor;
+            const activeIndicatorColor = instance.style.tabsVariant === 'line'
+                ? (instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor)
+                : '';
+            const activeBg = instance.style.tabsVariant === 'line' ? '' : instance.style.tabsActiveBg;
 
             const listStyle: CSSProperties = {
                 borderRadius: `${instance.style.tabsListRadius}px`,
@@ -783,7 +786,7 @@ export function componentSnippet(
             ].filter(Boolean).join(' ');
             const listAttr = listProps ? ` ${listProps}` : '';
             const triggerProps = [
-                instance.style.tabsActiveBg ? `activeBg="${instance.style.tabsActiveBg}"` : '',
+                activeBg ? `activeBg="${activeBg}"` : '',
                 activeIndicatorColor ? `indicatorColor="${activeIndicatorColor}"` : '',
                 instance.style.tabsActiveTextColor ? `activeTextColor="${instance.style.tabsActiveTextColor}"` : '',
                 instance.style.tabsInactiveTextColor ? `inactiveTextColor="${instance.style.tabsInactiveTextColor}"` : '',
@@ -793,12 +796,13 @@ export function componentSnippet(
                 instance.style.tabsFullWidth ? 'w-full' : '',
                 (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : '',
                 instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : '',
+                'overflow-x-auto',
             ].filter(Boolean).join(' ');
             const triggerClassName = instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : '';
             const tabPrefixIcon = instance.style.tabsShowIcons && instance.style.icon !== 'none' && instance.style.tabsIconPosition === 'left' ? iconLeft : '';
             const tabSuffixIcon = instance.style.tabsShowIcons && instance.style.icon !== 'none' && instance.style.tabsIconPosition === 'right' ? iconRight : '';
             const triggerLines = tabLabels
-                .map((label, index) => `    <TabsTrigger value="tab-${index}"${triggerAttr}${triggerClassName ? ` className="${triggerClassName}"` : ''} style={tabsTriggerStyle}><span className="inline-flex items-center gap-1.5">${tabPrefixIcon}${label}${tabSuffixIcon}</span></TabsTrigger>`)
+                .map((label, index) => `    <TabsTrigger value="tab-${index}"${triggerAttr}${triggerClassName ? ` className="${triggerClassName}"` : ''} style={tabsTriggerStyle}><span className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap">${tabPrefixIcon}${label}${tabSuffixIcon}</span></TabsTrigger>`)
                 .join('\n');
             const contentLines = tabLabels
                 .map((label, index) => `  <TabsContent value="tab-${index}">${label} tab body</TabsContent>`)
@@ -1647,7 +1651,12 @@ export function renderPreview(
         case 'tabs': {
             const tabTextStyle = extractTextStyle(style);
             delete tabTextStyle.color;
-            const activeIndicatorColor = instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor || undefined;
+            const activeIndicatorColor = instance.style.tabsVariant === 'line'
+                ? (instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor || undefined)
+                : undefined;
+            const activeTabBackground = instance.style.tabsVariant === 'line'
+                ? undefined
+                : (instance.style.tabsActiveBg || undefined);
             const tabCount = Math.max(2, Math.min(6, instance.style.tabsCount));
             const tabLabels = ['Style', 'Effects', 'Layout', 'Preview', 'Settings', 'Export'].slice(0, tabCount);
             const showTabIcons = instance.style.tabsShowIcons && instance.style.icon !== 'none';
@@ -1693,6 +1702,7 @@ export function renderPreview(
                 instance.style.tabsFullWidth ? 'w-full' : undefined,
                 (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : undefined,
                 instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : undefined,
+                'overflow-x-auto',
             );
 
             const hasHoverOrTap = instance.style.motionHoverEnabled || instance.style.motionTapEnabled;
@@ -1741,6 +1751,7 @@ export function renderPreview(
                     <TabsList
                         variant={instance.style.tabsVariant}
                         listBg={instance.style.tabsListBg || undefined}
+                        fullWidth={instance.style.tabsFullWidth}
                         className={listClassName}
                         style={listStyle}
                     >
@@ -1749,24 +1760,24 @@ export function renderPreview(
                                 key={i}
                                 value={`tab-${i}`}
                                 style={triggerStyle}
-                                activeBg={instance.style.tabsActiveBg || undefined}
+                                activeBg={activeTabBackground}
                                 indicatorColor={activeIndicatorColor}
                                 activeTextColor={instance.style.tabsActiveTextColor || fallbackTextColor}
                                 inactiveTextColor={instance.style.tabsInactiveTextColor || fallbackTextColor}
                                 className={cn(
-                                    'max-w-full overflow-hidden',
+                                    'min-w-0',
                                     instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : undefined,
                                 )}
                                 asChild={hasHoverOrTap}
                             >
                                 {hasHoverOrTap ? (
-                                    <motion.button className="inline-flex max-w-full items-center justify-center overflow-hidden" whileHover={tabHover} whileTap={tabTap}>
-                                        <span className="inline-flex max-w-full items-center gap-1.5 overflow-hidden">
+                                    <motion.button className="inline-flex w-full min-w-0 items-center justify-center" whileHover={tabHover} whileTap={tabTap}>
+                                        <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
                                             {renderTabLabel(label)}
                                         </span>
                                     </motion.button>
                                 ) : (
-                                    <span className="inline-flex max-w-full items-center gap-1.5 overflow-hidden">
+                                    <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
                                         {renderTabLabel(label)}
                                     </span>
                                 )}

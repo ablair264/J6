@@ -1795,8 +1795,23 @@ export function InspectorPanel() {
                                             placeholder="Heading copy"
                                         />
                                     </FlatField>
-                                    <FlatColorControl label="Color" value={selectedStyle.dialogTitleColor} onChange={(value) => updateSelectedStyle('dialogTitleColor', value)} tokens={activeTokenSet.tokens} />
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
+                                        <FlatColorControl
+                                            label="Color"
+                                            value={selectedStyle.dialogTitleColor}
+                                            onChange={(value) => updateSelectedStyle('dialogTitleColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                        <FlatField label="Alignment" stacked>
+                                            <FlatSelect value={selectedStyle.dialogTitleAlign} onValueChange={(value) => updateSelectedStyle('dialogTitleAlign', value as FontPosition)} ariaLabel="Dialog title alignment">
+                                                <option value="left">Left</option>
+                                                <option value="center">Center</option>
+                                                <option value="right">Right</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
                                         <FlatUnitField label="Size" value={selectedStyle.dialogTitleSize} min={16} max={32} unit="px" onChange={(value) => updateSelectedStyle('dialogTitleSize', value)} />
                                         <FlatField label="Weight" stacked>
                                             <FlatSelect value={selectedStyle.dialogTitleWeight} onValueChange={(value) => updateSelectedStyle('dialogTitleWeight', Number(value))} ariaLabel="Dialog title weight">
@@ -1806,13 +1821,6 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                    <FlatField label="Alignment" stacked>
-                                        <FlatSelect value={selectedStyle.dialogTitleAlign} onValueChange={(value) => updateSelectedStyle('dialogTitleAlign', value as FontPosition)} ariaLabel="Dialog title alignment">
-                                            <option value="left">Left</option>
-                                            <option value="center">Center</option>
-                                            <option value="right">Right</option>
-                                        </FlatSelect>
-                                    </FlatField>
                                 </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Body Typography" defaultOpen={false}>
@@ -1825,8 +1833,23 @@ export function InspectorPanel() {
                                             placeholder="Body copy"
                                         />
                                     </FlatField>
-                                    <FlatColorControl label="Color" value={selectedStyle.dialogBodyColor} onChange={(value) => updateSelectedStyle('dialogBodyColor', value)} tokens={activeTokenSet.tokens} />
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
+                                        <FlatColorControl
+                                            label="Color"
+                                            value={selectedStyle.dialogBodyColor}
+                                            onChange={(value) => updateSelectedStyle('dialogBodyColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                        <FlatField label="Alignment" stacked>
+                                            <FlatSelect value={selectedStyle.dialogBodyAlign} onValueChange={(value) => updateSelectedStyle('dialogBodyAlign', value as FontPosition)} ariaLabel="Dialog body alignment">
+                                                <option value="left">Left</option>
+                                                <option value="center">Center</option>
+                                                <option value="right">Right</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
                                         <FlatUnitField label="Size" value={selectedStyle.dialogBodySize} min={12} max={20} unit="px" onChange={(value) => updateSelectedStyle('dialogBodySize', value)} />
                                         <FlatField label="Weight" stacked>
                                             <FlatSelect value={selectedStyle.dialogBodyWeight} onValueChange={(value) => updateSelectedStyle('dialogBodyWeight', Number(value))} ariaLabel="Dialog body weight">
@@ -1836,13 +1859,6 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                    <FlatField label="Alignment" stacked>
-                                        <FlatSelect value={selectedStyle.dialogBodyAlign} onValueChange={(value) => updateSelectedStyle('dialogBodyAlign', value as FontPosition)} ariaLabel="Dialog body alignment">
-                                            <option value="left">Left</option>
-                                            <option value="center">Center</option>
-                                            <option value="right">Right</option>
-                                        </FlatSelect>
-                                    </FlatField>
                                 </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Actions" defaultOpen={false}>
@@ -2034,16 +2050,53 @@ export function InspectorPanel() {
                                     <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                    <FlatColorControl label="List Background" value={selectedStyle.tabsListBg} onChange={(value) => updateSelectedStyle('tabsListBg', value)} tokens={activeTokenSet.tokens} />
-                                    {selectedStyle.tabsVariant !== 'line' ? (
-                                        <FlatColorControl label="Active Tab Bg" value={selectedStyle.tabsActiveBg} onChange={(value) => updateSelectedStyle('tabsActiveBg', value)} tokens={activeTokenSet.tokens} />
-                                    ) : null}
-                                    <FlatColorControl label="Active Text" value={selectedStyle.tabsActiveTextColor} onChange={(value) => updateSelectedStyle('tabsActiveTextColor', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatColorControl label="Inactive Text" value={selectedStyle.tabsInactiveTextColor} onChange={(value) => updateSelectedStyle('tabsInactiveTextColor', value)} tokens={activeTokenSet.tokens} />
-                                </div>
+                                <FlatElementSubsection title="Primary Colors" defaultOpen>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatColorControl
+                                            label="List Background"
+                                            value={selectedStyle.tabsListBg}
+                                            onChange={(value) => updateSelectedStyle('tabsListBg', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                        {selectedStyle.tabsVariant === 'line' ? (
+                                            <FlatColorControl
+                                                label="Indicator Color"
+                                                value={selectedStyle.tabsActiveBorderColor || selectedStyle.tabsIndicatorColor}
+                                                onChange={(value) => updateSelectedStyles({
+                                                    tabsIndicatorColor: value,
+                                                    tabsActiveBorderColor: value,
+                                                })}
+                                                tokens={activeTokenSet.tokens}
+                                                compact
+                                            />
+                                        ) : (
+                                            <FlatColorControl
+                                                label="Active Tab Bg"
+                                                value={selectedStyle.tabsActiveBg}
+                                                onChange={(value) => updateSelectedStyle('tabsActiveBg', value)}
+                                                tokens={activeTokenSet.tokens}
+                                                compact
+                                            />
+                                        )}
+                                        <FlatColorControl
+                                            label="Active Text"
+                                            value={selectedStyle.tabsActiveTextColor}
+                                            onChange={(value) => updateSelectedStyle('tabsActiveTextColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                        <FlatColorControl
+                                            label="Inactive Text"
+                                            value={selectedStyle.tabsInactiveTextColor}
+                                            onChange={(value) => updateSelectedStyle('tabsInactiveTextColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                    </div>
+                                </FlatElementSubsection>
 
-                                <FlatElementSubsection title="Layout & Shape" defaultOpen>
+                                <FlatElementSubsection title="Layout & Shape" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Tab Gap" value={selectedStyle.tabsGap} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsGap', value)} />
                                         <FlatUnitField label="List Padding H" value={selectedStyle.tabsListPaddingX} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingX', value)} />
@@ -2054,7 +2107,7 @@ export function InspectorPanel() {
                                     </div>
                                 </FlatElementSubsection>
 
-                                <FlatElementSubsection title="Typography & Colors" defaultOpen={false}>
+                                <FlatElementSubsection title="Typography" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
                                         <FlatField label="Weight">
@@ -2065,6 +2118,9 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
+                                </FlatElementSubsection>
+
+                                <FlatElementSubsection title="Advanced Colors" defaultOpen={false}>
                                     <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
                                         <FlatColorControl
                                             label="List Border"
@@ -2076,13 +2132,29 @@ export function InspectorPanel() {
                                         />
                                         <FlatUnitField label="Width" value={selectedStyle.tabsListBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSelectedStyle('tabsListBorderWidth', value)} />
                                     </div>
-                                    <FlatColorControl label="Indicator Color" value={selectedStyle.tabsIndicatorColor} onChange={(value) => updateSelectedStyle('tabsIndicatorColor', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatColorControl label="Inactive Bg" value={selectedStyle.tabsInactiveBg} onChange={(value) => updateSelectedStyle('tabsInactiveBg', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatColorControl label="Hover Bg" value={selectedStyle.tabsHoverBg} onChange={(value) => updateSelectedStyle('tabsHoverBg', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatColorControl label="Hover Text" value={selectedStyle.tabsHoverTextColor} onChange={(value) => updateSelectedStyle('tabsHoverTextColor', value)} tokens={activeTokenSet.tokens} />
-                                    {selectedStyle.tabsVariant === 'line' ? (
-                                        <FlatColorControl label="Active Indicator Color" value={selectedStyle.tabsActiveBorderColor} onChange={(value) => updateSelectedStyle('tabsActiveBorderColor', value)} tokens={activeTokenSet.tokens} />
-                                    ) : null}
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatColorControl
+                                            label="Inactive Bg"
+                                            value={selectedStyle.tabsInactiveBg}
+                                            onChange={(value) => updateSelectedStyle('tabsInactiveBg', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                        <FlatColorControl
+                                            label="Hover Bg"
+                                            value={selectedStyle.tabsHoverBg}
+                                            onChange={(value) => updateSelectedStyle('tabsHoverBg', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                        <FlatColorControl
+                                            label="Hover Text"
+                                            value={selectedStyle.tabsHoverTextColor}
+                                            onChange={(value) => updateSelectedStyle('tabsHoverTextColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            compact
+                                        />
+                                    </div>
                                 </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Icons" defaultOpen={false}>
