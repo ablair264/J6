@@ -53,6 +53,14 @@ const MOTION_CONTROL_TUNING_BY_KIND: Partial<Record<UIComponentKind, Partial<Mot
         tapScaleMax: 104,
         tapOffset: 14,
     },
+    'stage-button': {
+        hoverScaleMin: 92,
+        hoverScaleMax: 118,
+        hoverOffset: 24,
+        tapScaleMin: 85,
+        tapScaleMax: 104,
+        tapOffset: 14,
+    },
     badge: {
         hoverScaleMin: 92,
         hoverScaleMax: 116,

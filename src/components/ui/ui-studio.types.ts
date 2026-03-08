@@ -21,6 +21,7 @@ export type UIComponentKind =
   | 'product-card'
   | 'listing-card'
   | 'switch'
+  | 'stage-button'
   | 'tooltip';
 
 export type SizeOption = 'sm' | 'md' | 'lg';

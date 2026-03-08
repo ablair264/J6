@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Check, ChevronDown, Play, Pipette, RotateCcw } from 'lucide-react';
 import { Grid, Moon, Sun } from '@mynaui/icons-react';
@@ -103,6 +103,43 @@ export function UIStudioIndexPage() {
 const studioActionButtonClass =
     'inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-[#b7c8df] transition hover:bg-white/[0.1] hover:text-[#eef5ff]';
 
+function parseCanvasColorToRgb(color: string): { r: number; g: number; b: number } | null {
+    const value = color.trim();
+    const hex = value.startsWith('#') ? value.slice(1) : value;
+    if (/^[0-9a-fA-F]{3}$/.test(hex)) {
+        return {
+            r: Number.parseInt(`${hex[0]}${hex[0]}`, 16),
+            g: Number.parseInt(`${hex[1]}${hex[1]}`, 16),
+            b: Number.parseInt(`${hex[2]}${hex[2]}`, 16),
+        };
+    }
+    if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+        return {
+            r: Number.parseInt(hex.slice(0, 2), 16),
+            g: Number.parseInt(hex.slice(2, 4), 16),
+            b: Number.parseInt(hex.slice(4, 6), 16),
+        };
+    }
+    const rgbMatch = value.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i);
+    if (!rgbMatch) {
+        return null;
+    }
+    return {
+        r: Math.max(0, Math.min(255, Number.parseInt(rgbMatch[1], 10))),
+        g: Math.max(0, Math.min(255, Number.parseInt(rgbMatch[2], 10))),
+        b: Math.max(0, Math.min(255, Number.parseInt(rgbMatch[3], 10))),
+    };
+}
+
+function isDarkCanvasColor(color: string): boolean {
+    const rgb = parseCanvasColorToRgb(color);
+    if (!rgb) {
+        return true;
+    }
+    const luminance = ((0.2126 * rgb.r) + (0.7152 * rgb.g) + (0.0722 * rgb.b)) / 255;
+    return luminance < 0.56;
+}
+
 export function UIStudioComponentPage() {
     const { id: projectId } = useParams<{ id: string }>();
     const activeKind: UIComponentKind = 'button'; // Default — sidebar switches kinds via addInstance
@@ -135,6 +172,7 @@ export function UIStudioComponentPage() {
 
     const hydrateForKind = useStudioStore((s) => s.hydrateForKind);
     const hydrateFromNeon = useStudioStore((s) => s.hydrateFromNeon);
+    const hydrateSettingsFromNeon = useStudioStore((s) => s.hydrateSettingsFromNeon);
     const setActiveProjectId = useStudioStore((s) => s.setActiveProjectId);
     const persistComponentState = useStudioStore((s) => s.persistComponentState);
     const updateSelectedStyle = useStudioStore((s) => s.updateSelectedStyle);
@@ -156,8 +194,11 @@ export function UIStudioComponentPage() {
         if (projectId) setActiveProjectId(projectId);
         hydrateForKind(activeKind);
         // After fast localStorage hydration, async-load from Neon (overwrites if newer)
-        if (projectId) hydrateFromNeon(activeKind);
-    }, [activeKind, projectId, setActiveProjectId, hydrateForKind, hydrateFromNeon]);
+        if (projectId) {
+            hydrateFromNeon(activeKind);
+            hydrateSettingsFromNeon();
+        }
+    }, [activeKind, projectId, setActiveProjectId, hydrateForKind, hydrateFromNeon, hydrateSettingsFromNeon]);
 
     // ─── Persist component state ──────────────────────────────────
     useEffect(() => {
@@ -307,6 +348,16 @@ export function UIStudioComponentPage() {
     const defaultCanvasBg = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
     const resolvedCanvasBg = canvasBackground || defaultCanvasBg;
     const canvasDotColor = studioTheme === 'dark' ? 'rgba(126, 255, 237, 0.09)' : 'rgba(31, 56, 94, 0.16)';
+    const canvasDark = isDarkCanvasColor(resolvedCanvasBg);
+    const stateSnapshotVars = useMemo(() => ({
+        ['--ui-canvas-state-heading' as string]: canvasDark ? 'rgba(127,149,180,0.92)' : 'rgba(56,80,110,0.86)',
+        ['--ui-canvas-state-label' as string]: canvasDark ? '#dbe8fb' : '#1a3656',
+        ['--ui-canvas-state-label-selected' as string]: canvasDark ? '#eafcff' : '#0f304d',
+        ['--ui-canvas-state-meta' as string]: canvasDark ? '#9bb0cc' : '#3f6087',
+        ['--ui-canvas-state-selected-bg' as string]: canvasDark ? 'rgba(99,232,218,0.06)' : 'rgba(19,96,151,0.10)',
+        ['--ui-canvas-state-selected-ring' as string]: canvasDark ? 'rgba(126,254,240,0.16)' : 'rgba(19,96,151,0.24)',
+        ['--ui-canvas-state-hover-bg' as string]: canvasDark ? 'rgba(255,255,255,0.03)' : 'rgba(13,42,74,0.08)',
+    } satisfies CSSProperties), [canvasDark]);
 
     // ─── Render ───────────────────────────────────────────────────
     return (
@@ -492,12 +543,12 @@ export function UIStudioComponentPage() {
                                         )}
                                     </div>
                                     {statePreviewItems.length > 0 ? (
-                                        <div className="flex min-h-0 flex-[2_1_0%] flex-col border-t border-white/8 px-4 py-3">
+                                        <div className="flex min-h-0 flex-[2_1_0%] flex-col border-t border-white/8 px-4 py-3" style={stateSnapshotVars}>
                                             <div className="mb-2 flex items-center justify-between">
-                                                <p className="ui-studio-heading text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7f95b4]">
+                                                <p className="ui-studio-heading text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--ui-canvas-state-heading)]">
                                                     State Snapshots
                                                 </p>
-                                                <p className="text-[11px] text-[#9bb0cc]">
+                                                <p className="text-[11px] text-[color:var(--ui-canvas-state-meta)]">
                                                     Editing {selectedStyle?.buttonPreviewState}
                                                 </p>
                                             </div>
@@ -508,7 +559,7 @@ export function UIStudioComponentPage() {
                                                         return (
                                                             <div key={state.value} className="flex min-w-0 flex-col">
                                                                 <div className="mb-1 flex items-center justify-between gap-2">
-                                                                    <span className={cn('text-[11px] font-semibold transition', isSelected ? 'text-[#eafcff]' : 'text-[#dbe8fb]')}>
+                                                                    <span className={cn('text-[11px] font-semibold transition', isSelected ? 'text-[color:var(--ui-canvas-state-label-selected)]' : 'text-[color:var(--ui-canvas-state-label)]')}>
                                                                         {state.label}
                                                                     </span>
                                                                     {isSelected ? <Check className="size-3.5 text-[#86fff1]" /> : null}
@@ -519,8 +570,8 @@ export function UIStudioComponentPage() {
                                                                     className={cn(
                                                                         'inline-flex h-full min-h-[88px] w-full items-center justify-center rounded-lg text-left transition',
                                                                         isSelected
-                                                                            ? 'bg-[#63e8da]/6 shadow-[inset_0_0_0_1px_rgba(126,254,240,0.16)]'
-                                                                            : 'hover:bg-white/[0.03]',
+                                                                            ? 'bg-[color:var(--ui-canvas-state-selected-bg)] shadow-[inset_0_0_0_1px_var(--ui-canvas-state-selected-ring)]'
+                                                                            : 'hover:bg-[color:var(--ui-canvas-state-hover-bg)]',
                                                                     )}
                                                                 >
                                                                     <div className="pointer-events-none scale-[0.88] select-none [&_*]:pointer-events-none">

@@ -74,6 +74,12 @@ export const COMPONENTS: ComponentInfo[] = [
         summary: 'Action triggers and key call-to-actions.',
     },
     {
+        kind: 'stage-button',
+        label: 'Stage Button',
+        file: 'src/components/ui/stateful-button.tsx',
+        summary: 'Stateful action button with loading and success states.',
+    },
+    {
         kind: 'card',
         label: 'Card',
         file: 'src/components/ui/card.tsx',
@@ -1195,7 +1201,7 @@ export const MOTION_COMPONENT_PRESETS: Array<{
         id: 'tap-scale',
         label: 'Tap Scale',
         description: 'Press feedback micro-interaction',
-        kinds: ['button', 'badge', 'checkbox', 'tabs', 'input'],
+        kinds: ['button', 'stage-button', 'badge', 'checkbox', 'tabs', 'input'],
         values: {
             motionComponentEnabled: true,
             motionEntryEnabled: false,
@@ -1228,7 +1234,7 @@ export const MOTION_COMPONENT_PRESETS: Array<{
         id: 'hover-lift',
         label: 'Hover Lift',
         description: 'Subtle elevation on hover',
-        kinds: ['button', 'badge', 'card', 'input', 'tabs', 'popover', 'tooltip'],
+        kinds: ['button', 'stage-button', 'badge', 'card', 'input', 'tabs', 'popover', 'tooltip'],
         values: {
             motionComponentEnabled: true,
             motionEntryEnabled: false,
@@ -1253,7 +1259,7 @@ export const MOTION_COMPONENT_PRESETS: Array<{
         id: 'hover-nudge-right',
         label: 'Hover Nudge Right',
         description: 'A subtle rightward nudge on hover',
-        kinds: ['button', 'badge', 'tabs', 'popover', 'tooltip', 'input'],
+        kinds: ['button', 'stage-button', 'badge', 'tabs', 'popover', 'tooltip', 'input'],
         values: {
             motionComponentEnabled: true,
             motionEntryEnabled: false,
@@ -1280,7 +1286,7 @@ export const MOTION_COMPONENT_PRESETS: Array<{
         id: 'button-press',
         label: 'Button Press',
         description: 'Hover and tap interaction for actions',
-        kinds: ['button', 'badge'],
+        kinds: ['button', 'stage-button', 'badge'],
         values: {
             motionComponentEnabled: true,
             motionEntryEnabled: false,
@@ -1314,7 +1320,7 @@ export const MOTION_COMPONENT_PRESETS: Array<{
         id: 'card-hover',
         label: 'Card Hover',
         description: 'More pronounced hover emphasis',
-        kinds: ['badge', 'button', 'card', 'tabs', 'popover', 'tooltip', 'input'],
+        kinds: ['badge', 'button', 'stage-button', 'card', 'tabs', 'popover', 'tooltip', 'input'],
         values: {
             motionComponentEnabled: true,
             motionEntryEnabled: false,
@@ -1339,7 +1345,7 @@ export const MOTION_COMPONENT_PRESETS: Array<{
         id: 'tap-nudge-down',
         label: 'Tap Nudge Down',
         description: 'A short downward press response',
-        kinds: ['button', 'badge', 'checkbox', 'tabs', 'input'],
+        kinds: ['button', 'stage-button', 'badge', 'checkbox', 'tabs', 'input'],
         values: {
             motionComponentEnabled: true,
             motionEntryEnabled: false,
@@ -1895,6 +1901,14 @@ export function buildVisualPresetsForKind(
 
 export const BUTTON_VISUAL_PRESETS: ComponentVisualPreset[] = [
     ...buildVisualPresetsForKind('button', {
+        brand: { className: 'font-semibold' },
+        contrast: { autoMotionPreset: 'shimmer' },
+        sunset: { autoMotionPreset: 'rainbow' },
+    }),
+];
+
+export const STAGE_BUTTON_VISUAL_PRESETS: ComponentVisualPreset[] = [
+    ...buildVisualPresetsForKind('stage-button', {
         brand: { className: 'font-semibold' },
         contrast: { autoMotionPreset: 'shimmer' },
         sunset: { autoMotionPreset: 'rainbow' },
@@ -3497,6 +3511,7 @@ export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPr
     ],
     badge: BADGE_VISUAL_PRESETS,
     button: BUTTON_VISUAL_PRESETS,
+    'stage-button': STAGE_BUTTON_VISUAL_PRESETS,
     card: CARD_VISUAL_PRESETS,
     'product-card': PRODUCT_CARD_VISUAL_PRESETS,
     'listing-card': LISTING_CARD_VISUAL_PRESETS,

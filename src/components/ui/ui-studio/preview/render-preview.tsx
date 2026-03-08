@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { StatefulButton } from '@/components/ui/stateful-button';
 import { Switch } from '@/components/ui/switch';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { Input } from '@/components/ui/input';
@@ -708,6 +709,10 @@ export function componentSnippet(
             const declarations = [previewBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
             return `${declarations ? `${declarations}\n\n` : ''}<Button intent="primary" size="md"${buttonClassNameSnippet}${previewStyleSnippet}>\n  ${instance.style.iconPosition === 'left' ? `${iconLeft}` : ''}${buttonText}${instance.style.iconPosition === 'right' ? `${iconRight}` : ''}\n</Button>`;
         }
+        case 'stage-button': {
+            const declarations = [previewBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<StatefulButton${buttonClassNameSnippet}${previewStyleSnippet}>${buttonText}</StatefulButton>`;
+        }
         case 'checkbox': {
             const cbLabel = instance.style.checkboxLabel || 'Enable notifications';
             const declarations = [previewBindings.declarations, checkboxClassBinding.declarations].filter(Boolean).join('\n');
@@ -1316,6 +1321,19 @@ export function renderPreview(
                 >
                     {withIcon(buttonText, previewIcon, instance.style.iconPosition)}
                 </Button>
+            );
+        }
+
+        case 'stage-button': {
+            const overflowClass = instance.style.effectPulseRingEnabled ? 'overflow-visible' : 'overflow-hidden';
+            return (
+                <StatefulButton
+                    disabled={instance.style.buttonPreviewState === 'disabled'}
+                    style={style}
+                    className={cn('max-w-full', overflowClass, BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass, motionClassName)}
+                >
+                    {buttonText}
+                </StatefulButton>
             );
         }
 

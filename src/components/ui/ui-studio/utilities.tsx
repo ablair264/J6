@@ -120,6 +120,60 @@ function clamp01(value: number): number {
     return Math.max(0, Math.min(1, value));
 }
 
+function toLinearChannel(channel: number): number {
+    const value = channel / 255;
+    return value <= 0.04045
+        ? value / 12.92
+        : ((value + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(rgb: { r: number; g: number; b: number }): number {
+    const r = toLinearChannel(rgb.r);
+    const g = toLinearChannel(rgb.g);
+    const b = toLinearChannel(rgb.b);
+    return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+}
+
+function contrastRatio(first: { r: number; g: number; b: number }, second: { r: number; g: number; b: number }): number {
+    const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
+    const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
+    return (lighter + 0.05) / (darker + 0.05);
+}
+
+function averageRgb(
+    first: { r: number; g: number; b: number },
+    second: { r: number; g: number; b: number },
+): { r: number; g: number; b: number } {
+    return {
+        r: Math.round((first.r + second.r) / 2),
+        g: Math.round((first.g + second.g) / 2),
+        b: Math.round((first.b + second.b) / 2),
+    };
+}
+
+function resolveReadableFontColor(config: ComponentStyleConfig): string {
+    const textRgb = hexToRgbChannels(config.fontColor);
+    const fillRgb = hexToRgbChannels(config.fillColor);
+    if (!textRgb || !fillRgb) {
+        return config.fontColor;
+    }
+
+    // For mostly transparent fills, the canvas/background can dominate, so keep the user-selected color.
+    if (!config.effectGlass && !config.effectGlassmorphism && config.fillOpacity < 55) {
+        return config.fontColor;
+    }
+
+    const fillToRgb = config.fillMode === 'gradient' ? hexToRgbChannels(config.fillColorTo) : null;
+    const effectiveFill = fillToRgb ? averageRgb(fillRgb, fillToRgb) : fillRgb;
+    if (contrastRatio(textRgb, effectiveFill) >= 3.2) {
+        return config.fontColor;
+    }
+
+    const white = { r: 255, g: 255, b: 255 };
+    const black = { r: 0, g: 0, b: 0 };
+    return contrastRatio(white, effectiveFill) >= contrastRatio(black, effectiveFill) ? '#ffffff' : '#000000';
+}
+
 export function rgbStringToHex(value: string): string | null {
     const match = value.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i);
     if (!match) {
@@ -526,16 +580,12 @@ export function renderConfiguredIcon(config: ComponentStyleConfig, className?: s
 }
 
 export function renderLoadingStateIcon(config: ComponentStyleConfig, kind: UIComponentKind): ReactNode {
-    if (!config.effectLoadingActiveEnabled) {
+    if (!config.effectLoadingActiveEnabled || kind === 'button' || kind === 'badge') {
         return null;
     }
     const isActivePreview = config.buttonPreviewState === 'active';
-    const isBadgeDefaultPreview = kind === 'badge' && config.effectLoadingBadgeDefaultEnabled && config.buttonPreviewState === 'default';
-    if (!isActivePreview && !isBadgeDefaultPreview) {
-        return null;
-    }
     if (!isActivePreview) {
-        return <LoaderCircle size={config.iconSize} className="animate-spin shrink-0 text-current" />;
+        return null;
     }
     if (config.effectLoadingOutcome === 'failure') {
         return <X size={config.iconSize} className="shrink-0 text-current ui-studio-loading-icon-failure" />;
@@ -841,7 +891,7 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
 
     const background = config.fillMode === 'gradient' ? gradientFill : solidFill;
     const borderColor = hexToRgba(config.strokeColor, config.strokeOpacity / 100);
-    const fontColor = hexToRgba(config.fontColor, config.fontOpacity / 100);
+    const fontColor = hexToRgba(resolveReadableFontColor(config), config.fontOpacity / 100);
 
     const shadowParts: string[] = [];
     if (config.effectDropShadow) {
@@ -2151,7 +2201,7 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
 
     // State override CSS vars — derived from stateOverrides map
     const hasStateStyles = !forExport || supportsStateStyles(instance.kind);
-    if (hasStateStyles && instance.stateOverrides) {
+    if (hasStateStyles) {
         const base = instance.style;
         const stateVarMap: Array<{ state: string; prefix: string }> = [
             { state: 'hover', prefix: '--ui-btn-hover' },
@@ -2159,12 +2209,11 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
             { state: 'disabled', prefix: '--ui-btn-disabled' },
         ];
         for (const { state, prefix } of stateVarMap) {
-            const overrides = instance.stateOverrides[state as keyof typeof instance.stateOverrides];
-            if (!overrides) continue;
+            const overrides = instance.stateOverrides?.[state as keyof NonNullable<typeof instance.stateOverrides>];
             const s = { ...base, ...overrides };
             const stateUsesReplacement = usesStrokeReplacementEffect(s);
             contextVars[`${prefix}-bg`] = buildStateFill(s.fillMode, s.fillColor, s.fillColorTo, s.fillWeight, s.fillOpacity);
-            contextVars[`${prefix}-fg`] = hexToRgba(s.fontColor, s.fontOpacity / 100);
+            contextVars[`${prefix}-fg`] = hexToRgba(resolveReadableFontColor(s), s.fontOpacity / 100);
             contextVars[`${prefix}-border`] = stateUsesReplacement ? 'transparent' : hexToRgba(s.strokeColor, s.strokeOpacity / 100);
             contextVars[`${prefix}-border-width`] = `${stateUsesReplacement ? 0 : s.strokeWeight}px`;
             contextVars[`${prefix}-font-size`] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;

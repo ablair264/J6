@@ -62,6 +62,14 @@ function scheduleNeonSync(projectId: string, kind: UIComponentKind, payload: Per
     }, NEON_SYNC_DELAY_MS);
 }
 
+// ─── Project settings persistence (constants defined after STUDIO_STORAGE_PREFIX below) ──
+
+const PROJECT_SETTINGS_KIND = '_settings';
+
+interface ProjectSettings {
+    canvasBackground: string;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────
 
 export type InspectorTab = 'style' | 'interaction' | 'behavior';
@@ -98,6 +106,41 @@ function getInspectorTabStorageKey(kind: UIComponentKind): string {
 
 function isInspectorTab(value: string | null): value is InspectorTab {
     return value === 'style' || value === 'interaction' || value === 'behavior';
+}
+
+// ─── Project settings helpers ─────────────────────────────────────────────
+
+const PROJECT_SETTINGS_STORAGE_PREFIX = `${STUDIO_STORAGE_PREFIX}proj-settings:`;
+
+let settingsSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleSettingsSync(projectId: string, settings: ProjectSettings) {
+    if (settingsSyncTimer) clearTimeout(settingsSyncTimer);
+    settingsSyncTimer = setTimeout(() => {
+        settingsSyncTimer = null;
+        saveProjectComponentKind(projectId, PROJECT_SETTINGS_KIND, settings).catch((err) => {
+            console.warn('[ui-studio] Settings sync failed:', err);
+        });
+    }, NEON_SYNC_DELAY_MS);
+}
+
+function persistProjectSettings(projectId: string | null, settings: ProjectSettings) {
+    if (typeof window === 'undefined') return;
+    if (projectId) {
+        window.localStorage.setItem(`${PROJECT_SETTINGS_STORAGE_PREFIX}${projectId}`, JSON.stringify(settings));
+        scheduleSettingsSync(projectId, settings);
+    }
+}
+
+function hydrateProjectSettings(projectId?: string): ProjectSettings {
+    const defaults: ProjectSettings = { canvasBackground: '' };
+    if (typeof window === 'undefined' || !projectId) return defaults;
+    try {
+        const raw = window.localStorage.getItem(`${PROJECT_SETTINGS_STORAGE_PREFIX}${projectId}`);
+        if (!raw) return defaults;
+        const parsed = JSON.parse(raw) as Partial<ProjectSettings>;
+        return { ...defaults, ...parsed };
+    } catch { return defaults; }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -402,6 +445,7 @@ interface StudioState {
     persistComponentState: () => void;
     hydrateForKind: (kind: UIComponentKind) => void;
     hydrateFromNeon: (kind: UIComponentKind) => Promise<void>;
+    hydrateSettingsFromNeon: () => Promise<void>;
 }
 
 // ─── Hydrate helpers ──────────────────────────────────────────────────────
@@ -521,7 +565,11 @@ export const useStudioStore = create<StudioState>()(
             setCopiedCode: (v) => set({ copiedCode: v }),
             setExportedCode: (v) => set({ exportedCode: v }),
             setShowCanvasGrid: (v) => set({ showCanvasGrid: v }),
-            setCanvasBackground: (color) => set({ canvasBackground: color }),
+            setCanvasBackground: (color) => {
+                set({ canvasBackground: color });
+                const { activeProjectId } = get();
+                persistProjectSettings(activeProjectId, { canvasBackground: color });
+            },
             setInspectorTab: (tab) => {
                 set({ inspectorTab: tab });
                 const { activeKind } = get();
@@ -839,7 +887,10 @@ export const useStudioStore = create<StudioState>()(
 
             // ─── Persistence ──────────────────────────────────────
 
-            setActiveProjectId: (projectId) => set({ activeProjectId: projectId }),
+            setActiveProjectId: (projectId) => {
+                const settings = hydrateProjectSettings(projectId ?? undefined);
+                set({ activeProjectId: projectId, canvasBackground: settings.canvasBackground });
+            },
 
             persistComponentState: () => {
                 if (typeof window === 'undefined') return;
@@ -902,6 +953,28 @@ export const useStudioStore = create<StudioState>()(
                     }
                 } catch (err) {
                     console.warn('[ui-studio] Neon hydration failed, using localStorage:', err);
+                }
+            },
+
+            hydrateSettingsFromNeon: async () => {
+                const { activeProjectId } = get();
+                if (!activeProjectId) return;
+                try {
+                    const remote = await fetchProjectComponentKind(activeProjectId, PROJECT_SETTINGS_KIND);
+                    if (!remote) return;
+                    const settings = remote as Partial<ProjectSettings>;
+                    const merged: ProjectSettings = { canvasBackground: settings.canvasBackground ?? '' };
+                    // Cache in localStorage
+                    window.localStorage.setItem(
+                        `${PROJECT_SETTINGS_STORAGE_PREFIX}${activeProjectId}`,
+                        JSON.stringify(merged),
+                    );
+                    // Update store if still on same project
+                    if (get().activeProjectId === activeProjectId) {
+                        set({ canvasBackground: merged.canvasBackground });
+                    }
+                } catch (err) {
+                    console.warn('[ui-studio] Settings hydration failed, using localStorage:', err);
                 }
             },
         }),

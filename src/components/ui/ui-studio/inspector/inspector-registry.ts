@@ -108,10 +108,17 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
     // ── Interactive primitives ──────────────────────────────────────────────
     button: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
-        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true },
+        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true, loading: false },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
         iconSelection: true, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: false, motionPreset: true,
+    },
+    'stage-button': {
+        sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
+        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true, loading: false },
+        motion: FULL_MOTION,
+        wrapperStyle: 'full',
+        iconSelection: false, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: false, motionPreset: true,
     },
     badge: {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
