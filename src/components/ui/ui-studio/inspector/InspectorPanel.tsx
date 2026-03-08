@@ -1209,17 +1209,21 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'drawer' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Drawer Config" icon={Table} defaultOpen>
-                                <FlatField label="Side">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {(['left', 'right', 'top', 'bottom'] as const).map((side) => (
-                                            <button key={side} type="button" onClick={() => updateSelectedStyle('drawerSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.drawerSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                {side.charAt(0).toUpperCase() + side.slice(1)}
-                                            </button>
-                                        ))}
+                                <FlatElementSubsection title="Placement" defaultOpen>
+                                    <FlatField label="Side">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['left', 'right', 'top', 'bottom'] as const).map((side) => (
+                                                <button key={side} type="button" onClick={() => updateSelectedStyle('drawerSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.drawerSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {side.charAt(0).toUpperCase() + side.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Width" value={selectedStyle.drawerWidth} min={200} max={600} unit="px" onChange={(value) => updateSelectedStyle('drawerWidth', value)} />
+                                        <FlatUnitField label="Overlay Blur" value={selectedStyle.drawerOverlayBlur} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('drawerOverlayBlur', value)} />
                                     </div>
-                                </FlatField>
-                                <FlatUnitField label="Width" value={selectedStyle.drawerWidth} min={200} max={600} unit="px" onChange={(value) => updateSelectedStyle('drawerWidth', value)} />
-                                <FlatUnitField label="Overlay Blur" value={selectedStyle.drawerOverlayBlur} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('drawerOverlayBlur', value)} />
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -1249,24 +1253,26 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'popover' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Popover Config" icon={Table} defaultOpen>
-                                <FlatField label="Side">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
-                                            <button key={side} type="button" onClick={() => updateSelectedStyle('popoverSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                {side.charAt(0).toUpperCase() + side.slice(1)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </FlatField>
-                                <FlatField label="Align">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {(['start', 'center', 'end'] as const).map((align) => (
-                                            <button key={align} type="button" onClick={() => updateSelectedStyle('popoverAlign', align)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverAlign === align ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                {align.charAt(0).toUpperCase() + align.slice(1)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </FlatField>
+                                <FlatElementSubsection title="Placement" defaultOpen>
+                                    <FlatField label="Side">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
+                                                <button key={side} type="button" onClick={() => updateSelectedStyle('popoverSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {side.charAt(0).toUpperCase() + side.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <FlatField label="Align">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['start', 'center', 'end'] as const).map((align) => (
+                                                <button key={align} type="button" onClick={() => updateSelectedStyle('popoverAlign', align)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverAlign === align ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {align.charAt(0).toUpperCase() + align.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -1615,7 +1621,7 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'alert' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Alert Config" icon={Table} defaultOpen>
-                                <div className="space-y-1.5">
+                                <FlatElementSubsection title="Structure" defaultOpen>
                                     <FlatField label="Variant" stacked>
                                         <FlatSelect value={selectedStyle.alertVariant} onValueChange={(value) => updateSelectedStyle('alertVariant', value as ComponentStyleConfig['alertVariant'])} ariaLabel="Alert variant">
                                             <option value="default">Default</option>
@@ -1627,22 +1633,31 @@ export function InspectorPanel() {
                                             <option value="invert">Invert</option>
                                         </FlatSelect>
                                     </FlatField>
-                                    <FlatSwitchRow label="Borderless" checked={selectedStyle.alertBorderless} onCheckedChange={(value) => updateSelectedStyle('alertBorderless', value)} />
-                                    <FlatSwitchRow label="Dismissible" checked={selectedStyle.alertDismissible} onCheckedChange={(value) => updateSelectedStyle('alertDismissible', value)} />
-                                    <FlatSwitchRow label="Dismiss as action" checked={selectedStyle.alertDismissAsAction} onCheckedChange={(value) => updateSelectedStyle('alertDismissAsAction', value)} />
-                                    <FlatSwitchRow label="Show Icon" checked={selectedStyle.alertShowIcon} onCheckedChange={(value) => updateSelectedStyle('alertShowIcon', value)} />
-                                    <FlatField label="Icon Style" stacked>
-                                        <FlatSelect value={selectedStyle.alertIconMode} onValueChange={(value) => updateSelectedStyle('alertIconMode', value as ComponentStyleConfig['alertIconMode'])} ariaLabel="Alert icon style">
-                                            <option value="variant">By Variant</option>
-                                            <option value="shield">Shield</option>
-                                            <option value="database">Database</option>
-                                            <option value="globe">Globe</option>
-                                            <option value="lightbulb">Lightbulb</option>
-                                            <option value="circle-alert">Circle Alert</option>
-                                            <option value="circle-check">Circle Check</option>
-                                            <option value="x-circle">Circle X</option>
-                                        </FlatSelect>
-                                    </FlatField>
+                                    <div className="space-y-1.5">
+                                        <FlatSwitchRow label="Borderless" checked={selectedStyle.alertBorderless} onCheckedChange={(value) => updateSelectedStyle('alertBorderless', value)} />
+                                        <FlatSwitchRow label="Dismissible" checked={selectedStyle.alertDismissible} onCheckedChange={(value) => updateSelectedStyle('alertDismissible', value)} />
+                                        {selectedStyle.alertDismissible ? (
+                                            <FlatSwitchRow label="Dismiss as action" checked={selectedStyle.alertDismissAsAction} onCheckedChange={(value) => updateSelectedStyle('alertDismissAsAction', value)} />
+                                        ) : null}
+                                        <FlatSwitchRow label="Show Icon" checked={selectedStyle.alertShowIcon} onCheckedChange={(value) => updateSelectedStyle('alertShowIcon', value)} />
+                                    </div>
+                                    {selectedStyle.alertShowIcon ? (
+                                        <FlatField label="Icon Style" stacked>
+                                            <FlatSelect value={selectedStyle.alertIconMode} onValueChange={(value) => updateSelectedStyle('alertIconMode', value as ComponentStyleConfig['alertIconMode'])} ariaLabel="Alert icon style">
+                                                <option value="variant">By Variant</option>
+                                                <option value="shield">Shield</option>
+                                                <option value="database">Database</option>
+                                                <option value="globe">Globe</option>
+                                                <option value="lightbulb">Lightbulb</option>
+                                                <option value="circle-alert">Circle Alert</option>
+                                                <option value="circle-check">Circle Check</option>
+                                                <option value="x-circle">Circle X</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                    ) : null}
+                                </FlatElementSubsection>
+
+                                <FlatElementSubsection title="Content" defaultOpen={false}>
                                     <FlatField label="Title" stacked>
                                         <input
                                             type="text"
@@ -1676,24 +1691,30 @@ export function InspectorPanel() {
                                             />
                                         </FlatField>
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Actions" defaultOpen={false}>
-                                    <FlatField label="Action Mode" stacked>
-                                        <FlatSelect value={selectedStyle.alertActionMode} onValueChange={(value) => updateSelectedStyle('alertActionMode', value as ComponentStyleConfig['alertActionMode'])} ariaLabel="Alert action mode">
-                                            <option value="none">None</option>
-                                            <option value="single">Single</option>
-                                            <option value="double">Double</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    {selectedStyle.alertActionMode !== 'none' ? (
-                                        <>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatField label="Action Mode" stacked>
+                                            <FlatSelect value={selectedStyle.alertActionMode} onValueChange={(value) => updateSelectedStyle('alertActionMode', value as ComponentStyleConfig['alertActionMode'])} ariaLabel="Alert action mode">
+                                                <option value="none">None</option>
+                                                <option value="single">Single</option>
+                                                <option value="double">Double</option>
+                                            </FlatSelect>
+                                        </FlatField>
+                                        {selectedStyle.alertActionMode !== 'none' ? (
                                             <FlatField label="Action Size" stacked>
                                                 <FlatSelect value={selectedStyle.alertActionSize} onValueChange={(value) => updateSelectedStyle('alertActionSize', value as ComponentStyleConfig['alertActionSize'])} ariaLabel="Alert action size">
                                                     <option value="xs">XS</option>
                                                     <option value="sm">SM</option>
                                                 </FlatSelect>
                                             </FlatField>
+                                        ) : (
+                                            <span />
+                                        )}
+                                    </div>
+                                    {selectedStyle.alertActionMode !== 'none' ? (
+                                        <>
                                             <FlatField label="Primary Label" stacked>
                                                 <input
                                                     type="text"
@@ -1721,7 +1742,7 @@ export function InspectorPanel() {
                                                 </FlatField>
                                             </div>
                                             {selectedStyle.alertActionMode === 'double' ? (
-                                                <>
+                                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                                     <FlatField label="Secondary Label" stacked>
                                                         <input
                                                             type="text"
@@ -1737,9 +1758,9 @@ export function InspectorPanel() {
                                                             <option value="outline">Outline</option>
                                                             <option value="ghost">Ghost</option>
                                                             <option value="link">Link</option>
-                                                        </FlatSelect>
-                                                    </FlatField>
-                                                </>
+                                                            </FlatSelect>
+                                                        </FlatField>
+                                                </div>
                                             ) : null}
                                     </>
                                     ) : null}
