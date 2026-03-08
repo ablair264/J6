@@ -295,6 +295,7 @@ interface StudioState {
     copiedCode: boolean;
     exportedCode: boolean;
     showCanvasGrid: boolean;
+    canvasBackground: string;
     inspectorTab: InspectorTab;
     codePanelTab: CodePanelTab;
     exportStyleMode: ExportStyleMode;
@@ -340,6 +341,7 @@ interface StudioState {
     setCopiedCode: (v: boolean) => void;
     setExportedCode: (v: boolean) => void;
     setShowCanvasGrid: (v: boolean) => void;
+    setCanvasBackground: (color: string) => void;
     setInspectorTab: (tab: InspectorTab) => void;
     setCodePanelTab: (tab: CodePanelTab) => void;
     setExportStyleMode: (mode: ExportStyleMode) => void;
@@ -467,6 +469,7 @@ export const useStudioStore = create<StudioState>()(
             copiedCode: false,
             exportedCode: false,
             showCanvasGrid: true,
+            canvasBackground: '',
             inspectorTab: hydrateInspectorTab(initialKind),
             codePanelTab: 'snippet' as CodePanelTab,
             exportStyleMode: 'inline' as ExportStyleMode,
@@ -518,6 +521,7 @@ export const useStudioStore = create<StudioState>()(
             setCopiedCode: (v) => set({ copiedCode: v }),
             setExportedCode: (v) => set({ exportedCode: v }),
             setShowCanvasGrid: (v) => set({ showCanvasGrid: v }),
+            setCanvasBackground: (color) => set({ canvasBackground: color }),
             setInspectorTab: (tab) => {
                 set({ inspectorTab: tab });
                 const { activeKind } = get();

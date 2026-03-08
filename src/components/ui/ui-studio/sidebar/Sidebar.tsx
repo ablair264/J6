@@ -60,6 +60,7 @@ export function Sidebar() {
     const instanceContextMenu = useStudioStore((s) => s.instanceContextMenu);
     const setInstanceContextMenu = useStudioStore((s) => s.setInstanceContextMenu);
     const showCanvasGrid = useStudioStore((s) => s.showCanvasGrid);
+    const canvasBackgroundStore = useStudioStore((s) => s.canvasBackground);
     const studioTheme = useStudioStore((s) => s.studioTheme);
     const addInstance = useStudioStore((s) => s.addInstance);
     const deleteInstance = useStudioStore((s) => s.deleteInstance);
@@ -80,7 +81,8 @@ export function Sidebar() {
     const hoverPreviewTimerRef = useRef<number | null>(null);
     const contextMenuRef = useRef<HTMLDivElement | null>(null);
 
-    const canvasBackground = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
+    const defaultCanvasBg = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
+    const canvasBackground = canvasBackgroundStore || defaultCanvasBg;
     const canvasDotColor = studioTheme === 'dark' ? 'rgba(126, 255, 237, 0.09)' : 'rgba(31, 56, 94, 0.16)';
 
     const componentUsage = useMemo(() => {

@@ -296,6 +296,7 @@ export function InspectorPanel() {
 
     const supportsTextIconMode =
         selectedInstance?.kind === 'button' || selectedInstance?.kind === 'badge';
+    const isBadgeKind = selectedInstance?.kind === 'badge';
 
     const showWidthControl =
         selectedInstance?.kind === 'slider' ||
@@ -1256,7 +1257,7 @@ export function InspectorPanel() {
                                             ))}
                                         </div>
                                     </FlatField>
-                                    <div className="space-y-1.5">
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatSwitchRow label="Show Item Icons" checked={selectedStyle.dropdownShowItemIcons} onCheckedChange={(value) => updateSelectedStyle('dropdownShowItemIcons', value)} />
                                         <FlatSwitchRow label="Show Submenu" checked={selectedStyle.dropdownShowSubmenu} onCheckedChange={(value) => updateSelectedStyle('dropdownShowSubmenu', value)} />
                                     </div>
@@ -1270,24 +1271,26 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Popover Config" icon={Table} defaultOpen>
                                 <FlatElementSubsection title="Placement" defaultOpen>
-                                    <FlatField label="Side">
-                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
-                                                <button key={side} type="button" onClick={() => updateSelectedStyle('popoverSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    {side.charAt(0).toUpperCase() + side.slice(1)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </FlatField>
-                                    <FlatField label="Align">
-                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            {(['start', 'center', 'end'] as const).map((align) => (
-                                                <button key={align} type="button" onClick={() => updateSelectedStyle('popoverAlign', align)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverAlign === align ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    {align.charAt(0).toUpperCase() + align.slice(1)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </FlatField>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatField label="Side">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
+                                                    <button key={side} type="button" onClick={() => updateSelectedStyle('popoverSide', side)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverSide === side ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        {side.charAt(0).toUpperCase() + side.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FlatField>
+                                        <FlatField label="Align">
+                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                {(['start', 'center', 'end'] as const).map((align) => (
+                                                    <button key={align} type="button" onClick={() => updateSelectedStyle('popoverAlign', align)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverAlign === align ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        {align.charAt(0).toUpperCase() + align.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FlatField>
+                                    </div>
                                 </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
@@ -1820,8 +1823,8 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'dialog' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Dialog Config" icon={Sparkles} defaultOpen>
-                                <FlatElementSubsection title="Title Typography" defaultOpen={false}>
-                                    <FlatField label="Text" stacked>
+                                <FlatElementSubsection title="Content" defaultOpen>
+                                    <FlatField label="Title Text" stacked>
                                         <input
                                             type="text"
                                             value={selectedStyle.dialogTitleText}
@@ -1830,15 +1833,23 @@ export function InspectorPanel() {
                                             placeholder="Heading copy"
                                         />
                                     </FlatField>
-                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatColorControl
-                                            label="Color"
+                                            label="Title Color"
                                             value={selectedStyle.dialogTitleColor}
                                             onChange={(value) => updateSelectedStyle('dialogTitleColor', value)}
                                             tokens={activeTokenSet.tokens}
                                             compact
                                         />
-                                        <FlatField label="Alignment" stacked>
+                                        <FlatUnitField label="Title Size" value={selectedStyle.dialogTitleSize} min={16} max={32} unit="px" onChange={(value) => updateSelectedStyle('dialogTitleSize', value)} />
+                                        <FlatField label="Title Weight" stacked>
+                                            <FlatSelect value={selectedStyle.dialogTitleWeight} onValueChange={(value) => updateSelectedStyle('dialogTitleWeight', Number(value))} ariaLabel="Dialog title weight">
+                                                {cardWeightOptions.map((option) => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                        <FlatField label="Title Align" stacked>
                                             <FlatSelect value={selectedStyle.dialogTitleAlign} onValueChange={(value) => updateSelectedStyle('dialogTitleAlign', value as FontPosition)} ariaLabel="Dialog title alignment">
                                                 <option value="left">Left</option>
                                                 <option value="center">Center</option>
@@ -1846,20 +1857,8 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
-                                        <FlatUnitField label="Size" value={selectedStyle.dialogTitleSize} min={16} max={32} unit="px" onChange={(value) => updateSelectedStyle('dialogTitleSize', value)} />
-                                        <FlatField label="Weight" stacked>
-                                            <FlatSelect value={selectedStyle.dialogTitleWeight} onValueChange={(value) => updateSelectedStyle('dialogTitleWeight', Number(value))} ariaLabel="Dialog title weight">
-                                                {cardWeightOptions.map((option) => (
-                                                    <option key={option} value={option}>{option}</option>
-                                                ))}
-                                            </FlatSelect>
-                                        </FlatField>
-                                    </div>
-                                </FlatElementSubsection>
 
-                                <FlatElementSubsection title="Body Typography" defaultOpen={false}>
-                                    <FlatField label="Text" stacked>
+                                    <FlatField label="Body Text" stacked>
                                         <input
                                             type="text"
                                             value={selectedStyle.dialogBodyText}
@@ -1868,15 +1867,23 @@ export function InspectorPanel() {
                                             placeholder="Body copy"
                                         />
                                     </FlatField>
-                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatColorControl
-                                            label="Color"
+                                            label="Body Color"
                                             value={selectedStyle.dialogBodyColor}
                                             onChange={(value) => updateSelectedStyle('dialogBodyColor', value)}
                                             tokens={activeTokenSet.tokens}
                                             compact
                                         />
-                                        <FlatField label="Alignment" stacked>
+                                        <FlatUnitField label="Body Size" value={selectedStyle.dialogBodySize} min={12} max={20} unit="px" onChange={(value) => updateSelectedStyle('dialogBodySize', value)} />
+                                        <FlatField label="Body Weight" stacked>
+                                            <FlatSelect value={selectedStyle.dialogBodyWeight} onValueChange={(value) => updateSelectedStyle('dialogBodyWeight', Number(value))} ariaLabel="Dialog body weight">
+                                                {cardWeightOptions.map((option) => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                        <FlatField label="Body Align" stacked>
                                             <FlatSelect value={selectedStyle.dialogBodyAlign} onValueChange={(value) => updateSelectedStyle('dialogBodyAlign', value as FontPosition)} ariaLabel="Dialog body alignment">
                                                 <option value="left">Left</option>
                                                 <option value="center">Center</option>
@@ -1884,29 +1891,21 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
-                                        <FlatUnitField label="Size" value={selectedStyle.dialogBodySize} min={12} max={20} unit="px" onChange={(value) => updateSelectedStyle('dialogBodySize', value)} />
-                                        <FlatField label="Weight" stacked>
-                                            <FlatSelect value={selectedStyle.dialogBodyWeight} onValueChange={(value) => updateSelectedStyle('dialogBodyWeight', Number(value))} ariaLabel="Dialog body weight">
-                                                {cardWeightOptions.map((option) => (
-                                                    <option key={option} value={option}>{option}</option>
-                                                ))}
-                                            </FlatSelect>
-                                        </FlatField>
-                                    </div>
                                 </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Actions" defaultOpen={false}>
-                                    <FlatSwitchRow
-                                        label="Show close icon"
-                                        checked={selectedStyle.dialogShowCloseIcon}
-                                        onCheckedChange={(value) => updateSelectedStyle('dialogShowCloseIcon', value)}
-                                    />
-                                    <FlatSwitchRow
-                                        label="Show action button"
-                                        checked={selectedStyle.dialogShowActionButton}
-                                        onCheckedChange={(value) => updateSelectedStyle('dialogShowActionButton', value)}
-                                    />
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatSwitchRow
+                                            label="Show close icon"
+                                            checked={selectedStyle.dialogShowCloseIcon}
+                                            onCheckedChange={(value) => updateSelectedStyle('dialogShowCloseIcon', value)}
+                                        />
+                                        <FlatSwitchRow
+                                            label="Show action button"
+                                            checked={selectedStyle.dialogShowActionButton}
+                                            onCheckedChange={(value) => updateSelectedStyle('dialogShowActionButton', value)}
+                                        />
+                                    </div>
                                     {selectedStyle.dialogShowActionButton ? (
                                         <FlatField label="Action button text" stacked>
                                             <input
@@ -2081,21 +2080,31 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'tabs' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Tabs Config" icon={Table} defaultOpen>
-                                <FlatField label="Variant">
-                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                        {(['default', 'line', 'pill', 'segment'] as const).map((v) => (
-                                            <button key={v} type="button" onClick={() => updateSelectedStyle('tabsVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.tabsVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                {v === 'default' ? 'Default' : v === 'line' ? 'Line' : v === 'pill' ? 'Pill' : 'Segment'}
-                                            </button>
-                                        ))}
+                                <FlatElementSubsection title="Core" defaultOpen>
+                                    <FlatField label="Variant">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['default', 'line', 'pill', 'segment'] as const).map((v) => (
+                                                <button key={v} type="button" onClick={() => updateSelectedStyle('tabsVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.tabsVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {v === 'default' ? 'Default' : v === 'line' ? 'Line' : v === 'pill' ? 'Pill' : 'Segment'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                        <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
+                                        <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
+                                        <FlatField label="Weight">
+                                            <FlatSelect value={selectedStyle.tabsListFontWeight} onValueChange={(value) => updateSelectedStyle('tabsListFontWeight', Number(value))} ariaLabel="Tabs list font weight">
+                                                {[400, 500, 600, 700].map((weight) => (
+                                                    <option key={weight} value={weight}>{weight}</option>
+                                                ))}
+                                            </FlatSelect>
+                                        </FlatField>
                                     </div>
-                                </FlatField>
-                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                    <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
-                                    <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
-                                </div>
+                                </FlatElementSubsection>
 
-                                <FlatElementSubsection title="Primary Colors" defaultOpen>
+                                <FlatElementSubsection title="Colors" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatColorControl
                                             label="List Background"
@@ -2138,46 +2147,6 @@ export function InspectorPanel() {
                                             tokens={activeTokenSet.tokens}
                                             compact
                                         />
-                                    </div>
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Layout & Shape" defaultOpen={false}>
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatUnitField label="Tab Gap" value={selectedStyle.tabsGap} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsGap', value)} />
-                                        <FlatUnitField label="List Padding H" value={selectedStyle.tabsListPaddingX} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingX', value)} />
-                                        <FlatUnitField label="List Padding V" value={selectedStyle.tabsListPaddingY} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingY', value)} />
-                                        <FlatUnitField label="Tab Padding H" value={selectedStyle.tabsTabPaddingX} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('tabsTabPaddingX', value)} />
-                                        <FlatUnitField label="List Radius" value={selectedStyle.tabsListRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListRadius', value)} />
-                                        <FlatUnitField label="Tab Radius" value={selectedStyle.tabsTabRadius} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsTabRadius', value)} />
-                                    </div>
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Typography" defaultOpen={false}>
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
-                                        <FlatField label="Weight">
-                                            <FlatSelect value={selectedStyle.tabsListFontWeight} onValueChange={(value) => updateSelectedStyle('tabsListFontWeight', Number(value))} ariaLabel="Tabs list font weight">
-                                                {[400, 500, 600, 700].map((weight) => (
-                                                    <option key={weight} value={weight}>{weight}</option>
-                                                ))}
-                                            </FlatSelect>
-                                        </FlatField>
-                                    </div>
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Advanced Colors" defaultOpen={false}>
-                                    <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
-                                        <FlatColorControl
-                                            label="List Border"
-                                            value={selectedStyle.tabsListBorderColor}
-                                            onChange={(value) => updateSelectedStyle('tabsListBorderColor', value)}
-                                            tokens={activeTokenSet.tokens}
-                                            stacked
-                                            compact
-                                        />
-                                        <FlatUnitField label="Width" value={selectedStyle.tabsListBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSelectedStyle('tabsListBorderWidth', value)} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatColorControl
                                             label="Inactive Bg"
                                             value={selectedStyle.tabsInactiveBg}
@@ -2200,6 +2169,28 @@ export function InspectorPanel() {
                                             compact
                                         />
                                     </div>
+                                    <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
+                                        <FlatColorControl
+                                            label="List Border"
+                                            value={selectedStyle.tabsListBorderColor}
+                                            onChange={(value) => updateSelectedStyle('tabsListBorderColor', value)}
+                                            tokens={activeTokenSet.tokens}
+                                            stacked
+                                            compact
+                                        />
+                                        <FlatUnitField label="Width" value={selectedStyle.tabsListBorderWidth} min={0} max={6} step={1} unit="px" onChange={(value) => updateSelectedStyle('tabsListBorderWidth', value)} />
+                                    </div>
+                                </FlatElementSubsection>
+
+                                <FlatElementSubsection title="Spacing & Shape" defaultOpen={false}>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Tab Gap" value={selectedStyle.tabsGap} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsGap', value)} />
+                                        <FlatUnitField label="List Padding H" value={selectedStyle.tabsListPaddingX} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingX', value)} />
+                                        <FlatUnitField label="List Padding V" value={selectedStyle.tabsListPaddingY} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingY', value)} />
+                                        <FlatUnitField label="Tab Padding H" value={selectedStyle.tabsTabPaddingX} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('tabsTabPaddingX', value)} />
+                                        <FlatUnitField label="List Radius" value={selectedStyle.tabsListRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListRadius', value)} />
+                                        <FlatUnitField label="Tab Radius" value={selectedStyle.tabsTabRadius} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsTabRadius', value)} />
+                                    </div>
                                 </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Icons" defaultOpen={false}>
@@ -2216,23 +2207,40 @@ export function InspectorPanel() {
                                     />
                                     {selectedStyle.tabsShowIcons ? (
                                         <>
-                                            <FlatField label="Icon Library" stacked>
-                                                <FlatSelect
-                                                    value={selectedStyle.iconLibrary}
-                                                    onValueChange={(value) => {
-                                                        const nextLibrary = value as IconLibrary;
-                                                        updateSelectedStyle('iconLibrary', nextLibrary);
-                                                        if (nextLibrary !== 'custom') {
-                                                            updateSelectedStyle('icon', getResolvedIconValue(nextLibrary, selectedStyle.icon, false));
-                                                        }
-                                                    }}
-                                                    ariaLabel="Tabs icon library"
-                                                >
-                                                    {ICON_LIBRARY_OPTIONS.map((option) => (
-                                                        <option key={option.id} value={option.id}>{option.label}</option>
-                                                    ))}
-                                                </FlatSelect>
-                                            </FlatField>
+                                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                                <FlatField label="Icon Library" stacked>
+                                                    <FlatSelect
+                                                        value={selectedStyle.iconLibrary}
+                                                        onValueChange={(value) => {
+                                                            const nextLibrary = value as IconLibrary;
+                                                            updateSelectedStyle('iconLibrary', nextLibrary);
+                                                            if (nextLibrary !== 'custom') {
+                                                                updateSelectedStyle('icon', getResolvedIconValue(nextLibrary, selectedStyle.icon, false));
+                                                            }
+                                                        }}
+                                                        ariaLabel="Tabs icon library"
+                                                    >
+                                                        {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                            <option key={option.id} value={option.id}>{option.label}</option>
+                                                        ))}
+                                                    </FlatSelect>
+                                                </FlatField>
+                                                {selectedStyle.iconLibrary === 'custom' ? <span /> : (
+                                                    <FlatField label="Tab Icon" stacked>
+                                                        <FlatSelect
+                                                            value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, false)}
+                                                            onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                            ariaLabel="Tabs icon"
+                                                        >
+                                                            {getIconOptionsForLibrary(selectedStyle.iconLibrary)
+                                                                .filter((option) => option.id !== 'none')
+                                                                .map((option) => (
+                                                                    <option key={option.id} value={option.id}>{option.label}</option>
+                                                                ))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                )}
+                                            </div>
                                             {selectedStyle.iconLibrary === 'custom' ? (
                                                 <>
                                                     <FlatField label="Icon Import Path" stacked>
@@ -2254,21 +2262,7 @@ export function InspectorPanel() {
                                                         />
                                                     </FlatField>
                                                 </>
-                                            ) : (
-                                                <FlatField label="Tab Icon" stacked>
-                                                    <FlatSelect
-                                                        value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, false)}
-                                                        onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
-                                                        ariaLabel="Tabs icon"
-                                                    >
-                                                        {getIconOptionsForLibrary(selectedStyle.iconLibrary)
-                                                            .filter((option) => option.id !== 'none')
-                                                            .map((option) => (
-                                                                <option key={option.id} value={option.id}>{option.label}</option>
-                                                            ))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            )}
+                                            ) : null}
                                             <FlatField label="Icon Position">
                                                 <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                     {(['left', 'right'] as const).map((value) => (
@@ -3747,9 +3741,23 @@ export function InspectorPanel() {
                                 <>
                                     {currentAppearanceValues && layout?.sections.appearance ? (
                                         <>
-                                            <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} />
-                                            <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} />
-                                            <FlatUnitField label="Stroke Width" value={currentAppearanceValues.strokeWeight} min={0} max={8} unit="px" onChange={(value) => updateAppearanceField('strokeWeight', value)} />
+                                            {isBadgeKind ? (
+                                                <div className="flex items-end gap-1.5">
+                                                    <div className="min-w-0 flex-1">
+                                                        <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} compact />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} compact />
+                                                    </div>
+                                                    <FlatUnitField label="Width" value={currentAppearanceValues.strokeWeight} min={0} max={8} unit="px" onChange={(value) => updateAppearanceField('strokeWeight', value)} />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <FlatColorControl label="Fill" value={currentAppearanceValues.fillColor} opacity={currentAppearanceValues.fillOpacity} onOpacityChange={(value) => updateAppearanceField('fillOpacity', value)} onChange={(value) => updateAppearanceField('fillColor', value)} tokens={activeTokenSet.tokens} allowGradient mode={currentAppearanceValues.fillMode} onModeChange={(mode) => updateAppearanceField('fillMode', mode)} secondaryValue={currentAppearanceValues.fillColorTo} onSecondaryChange={(value) => updateAppearanceField('fillColorTo', value)} mix={currentAppearanceValues.fillWeight} onMixChange={(value) => updateAppearanceField('fillWeight', value)} />
+                                                    <FlatColorControl label="Stroke" value={currentAppearanceValues.strokeColor} opacity={currentAppearanceValues.strokeOpacity} onOpacityChange={(value) => updateAppearanceField('strokeOpacity', value)} onChange={(value) => updateAppearanceField('strokeColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatUnitField label="Stroke Width" value={currentAppearanceValues.strokeWeight} min={0} max={8} unit="px" onChange={(value) => updateAppearanceField('strokeWeight', value)} />
+                                                </>
+                                            )}
                                         </>
                                     ) : null}
 
@@ -3760,49 +3768,106 @@ export function InspectorPanel() {
                                                     {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
                                                 </FlatSelect>
                                             </FlatField>
-                                            <FlatField label="Typography" stacked>
-                                                <div className="flex gap-2 [&>*]:min-w-0 [&>*]:flex-1">
-                                                    <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={72} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
-                                                    <FlatField label="Weight">
-                                                        <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
-                                                            {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
-                                                        </FlatSelect>
+                                            {isBadgeKind ? (
+                                                <>
+                                                    <FlatField label="Typography" stacked>
+                                                        <div className="flex items-end gap-1.5">
+                                                            <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={72} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
+                                                            <div className="w-[92px] shrink-0">
+                                                                <FlatField label="Weight">
+                                                                    <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
+                                                                        {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                                    </FlatSelect>
+                                                                </FlatField>
+                                                            </div>
+                                                            <div className="min-w-[110px] shrink-0 space-y-1.5">
+                                                                <span className="block text-[12px] font-medium text-[var(--inspector-muted-text)]">Style</span>
+                                                                <div className="flex h-6 items-center gap-0.5 rounded-sm bg-[var(--inspector-input)] p-0.5">
+                                                                    <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                        <TypeBold className="size-4" />
+                                                                    </button>
+                                                                    <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                        <TypeItalic className="size-4" />
+                                                                    </button>
+                                                                    <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                        <TypeUnderline className="size-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </FlatField>
-                                                </div>
-                                            </FlatField>
-                                            <FlatField label="Style">
-                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                    <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                        <TypeBold className="size-4" />
-                                                    </button>
-                                                    <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                        <TypeItalic className="size-4" />
-                                                    </button>
-                                                    <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                        <TypeUnderline className="size-4" />
-                                                    </button>
-                                                </div>
-                                            </FlatField>
-                                            {selectedInstance.kind !== 'animated-text' && (
-                                                <FlatField label="Align">
-                                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                        {[
-                                                            { value: 'left' as const, icon: TextAlignLeft },
-                                                            { value: 'center' as const, icon: TextAlignCenter },
-                                                            { value: 'right' as const, icon: TextAlignRight },
-                                                        ].map((item) => {
-                                                            const Icon = item.icon;
-                                                            return (
-                                                                <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                                    <Icon className="size-4" />
-                                                                </button>
-                                                            );
-                                                        })}
+                                                    <div className="flex items-end gap-1.5">
+                                                        <div className="w-[130px] shrink-0 space-y-1.5">
+                                                            <span className="block text-[12px] font-medium text-[var(--inspector-muted-text)]">Align</span>
+                                                            <div className="flex h-6 items-center gap-0.5 rounded-sm bg-[var(--inspector-input)] p-0.5">
+                                                                {[
+                                                                    { value: 'left' as const, icon: TextAlignLeft },
+                                                                    { value: 'center' as const, icon: TextAlignCenter },
+                                                                    { value: 'right' as const, icon: TextAlignRight },
+                                                                ].map((item) => {
+                                                                    const Icon = item.icon;
+                                                                    return (
+                                                                        <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                            <Icon className="size-4" />
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                        {!(selectedInstance.kind === 'animated-text' && selectedStyle && (selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text')) && (
+                                                            <div className="min-w-0 flex-1">
+                                                                <FlatColorControl label="Text" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} compact />
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </FlatField>
-                                            )}
-                                            {!(selectedInstance.kind === 'animated-text' && selectedStyle && (selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text')) && (
-                                                <FlatColorControl label="Text" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FlatField label="Typography" stacked>
+                                                        <div className="flex gap-2 [&>*]:min-w-0 [&>*]:flex-1">
+                                                            <FlatUnitField label="Size" value={currentAppearanceValues.fontSize} min={10} max={72} unit="px" onChange={(value) => updateAppearanceField('fontSize', value)} />
+                                                            <FlatField label="Weight">
+                                                                <FlatSelect value={currentAppearanceValues.fontWeight} onValueChange={(value) => updateAppearanceField('fontWeight', Number(value))} ariaLabel="Typography weight">
+                                                                    {[300, 400, 500, 600, 700].map((weight) => (<option key={weight} value={weight}>{weight}</option>))}
+                                                                </FlatSelect>
+                                                            </FlatField>
+                                                        </div>
+                                                    </FlatField>
+                                                    <FlatField label="Style">
+                                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                            <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                <TypeBold className="size-4" />
+                                                            </button>
+                                                            <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                <TypeItalic className="size-4" />
+                                                            </button>
+                                                            <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                <TypeUnderline className="size-4" />
+                                                            </button>
+                                                        </div>
+                                                    </FlatField>
+                                                    {selectedInstance.kind !== 'animated-text' && (
+                                                        <FlatField label="Align">
+                                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                                {[
+                                                                    { value: 'left' as const, icon: TextAlignLeft },
+                                                                    { value: 'center' as const, icon: TextAlignCenter },
+                                                                    { value: 'right' as const, icon: TextAlignRight },
+                                                                ].map((item) => {
+                                                                    const Icon = item.icon;
+                                                                    return (
+                                                                        <button key={item.value} type="button" onClick={() => updateAppearanceField('fontPosition', item.value as FontPosition)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontPosition === item.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                            <Icon className="size-4" />
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </FlatField>
+                                                    )}
+                                                    {!(selectedInstance.kind === 'animated-text' && selectedStyle && (selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text')) && (
+                                                        <FlatColorControl label="Text" value={currentAppearanceValues.fontColor} opacity={currentAppearanceValues.fontOpacity} onOpacityChange={(value) => updateAppearanceField('fontOpacity', value)} onChange={(value) => updateAppearanceField('fontColor', value)} tokens={activeTokenSet.tokens} />
+                                                    )}
+                                                </>
                                             )}
                                         </>
                                     ) : null}
@@ -3819,25 +3884,63 @@ export function InspectorPanel() {
 
                                     <AnimatePresence initial={false}>
                                         {supportsIconSelection(selectedInstance.kind) && (contentDisplayMode === 'text-icon' || contentDisplayMode === 'icon' || selectedInstance.kind === 'alert') ? (
-                                            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3">
-                                                <FlatField label="Icon Library">
-                                                    <FlatSelect
-                                                        value={selectedStyle.iconLibrary}
-                                                        onValueChange={(value) => {
-                                                            const nextLibrary = value as IconLibrary;
-                                                            updateSelectedStyle('iconLibrary', nextLibrary);
-                                                            if (nextLibrary !== 'custom') {
-                                                                const nextIcon = getResolvedIconValue(nextLibrary, selectedStyle.icon, true);
-                                                                updateSelectedStyle('icon', nextIcon);
-                                                            }
-                                                        }}
-                                                        ariaLabel="Icon library"
-                                                    >
-                                                        {ICON_LIBRARY_OPTIONS.map((option) => (
-                                                            <option key={option.id} value={option.id}>{option.label}</option>
-                                                        ))}
-                                                    </FlatSelect>
-                                                </FlatField>
+                                            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }} className={cn('space-y-3', isBadgeKind && 'space-y-2')}>
+                                                {isBadgeKind ? (
+                                                    <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+                                                        <FlatField label="Library">
+                                                            <FlatSelect
+                                                                value={selectedStyle.iconLibrary}
+                                                                onValueChange={(value) => {
+                                                                    const nextLibrary = value as IconLibrary;
+                                                                    updateSelectedStyle('iconLibrary', nextLibrary);
+                                                                    if (nextLibrary !== 'custom') {
+                                                                        const nextIcon = getResolvedIconValue(nextLibrary, selectedStyle.icon, true);
+                                                                        updateSelectedStyle('icon', nextIcon);
+                                                                    }
+                                                                }}
+                                                                ariaLabel="Icon library"
+                                                            >
+                                                                {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                                    <option key={option.id} value={option.id}>{option.label}</option>
+                                                                ))}
+                                                            </FlatSelect>
+                                                        </FlatField>
+                                                        {selectedStyle.iconLibrary !== 'custom' ? (
+                                                            <FlatField label="Icon">
+                                                                <FlatSelect
+                                                                    value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, true)}
+                                                                    onValueChange={(value) => updateSelectedStyle('icon', value as IconOptionId)}
+                                                                    ariaLabel="Icon"
+                                                                >
+                                                                    {getIconOptionsForLibrary(selectedStyle.iconLibrary).map((option) => (
+                                                                        <option key={option.id} value={option.id}>{option.label}</option>
+                                                                    ))}
+                                                                </FlatSelect>
+                                                            </FlatField>
+                                                        ) : (
+                                                            <span />
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <FlatField label="Icon Library">
+                                                        <FlatSelect
+                                                            value={selectedStyle.iconLibrary}
+                                                            onValueChange={(value) => {
+                                                                const nextLibrary = value as IconLibrary;
+                                                                updateSelectedStyle('iconLibrary', nextLibrary);
+                                                                if (nextLibrary !== 'custom') {
+                                                                    const nextIcon = getResolvedIconValue(nextLibrary, selectedStyle.icon, true);
+                                                                    updateSelectedStyle('icon', nextIcon);
+                                                                }
+                                                            }}
+                                                            ariaLabel="Icon library"
+                                                        >
+                                                            {ICON_LIBRARY_OPTIONS.map((option) => (
+                                                                <option key={option.id} value={option.id}>{option.label}</option>
+                                                            ))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                )}
                                                 {selectedStyle.iconLibrary === 'custom' ? (
                                                     <>
                                                         <FlatField label="Icon Import Path" stacked>
@@ -3859,7 +3962,7 @@ export function InspectorPanel() {
                                                             />
                                                         </FlatField>
                                                     </>
-                                                ) : (
+                                                ) : !isBadgeKind ? (
                                                     <FlatField label="Icon">
                                                         <FlatSelect
                                                             value={getResolvedIconValue(selectedStyle.iconLibrary, selectedStyle.icon, true)}
@@ -3871,17 +3974,41 @@ export function InspectorPanel() {
                                                             ))}
                                                         </FlatSelect>
                                                     </FlatField>
-                                                )}
-                                                <FlatField label="Icon Position">
-                                                    <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                        {(['left', 'right'] as const).map((position) => (
-                                                            <button key={position} type="button" onClick={() => updateSelectedStyle('iconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.iconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                                {position}
-                                                            </button>
-                                                        ))}
+                                                ) : null}
+                                                {isBadgeKind ? (
+                                                    <div className="flex items-end gap-1.5">
+                                                        <div className="min-w-0 flex-1 space-y-1.5">
+                                                            <span className="block text-[12px] font-medium text-[var(--inspector-muted-text)]">Position</span>
+                                                            <div className="flex h-6 w-full items-center gap-0.5 rounded-sm bg-[var(--inspector-input)] p-0.5">
+                                                                {([
+                                                                    { value: 'left' as const, icon: TextAlignLeft },
+                                                                    { value: 'right' as const, icon: TextAlignRight },
+                                                                ]).map((position) => {
+                                                                    const Icon = position.icon;
+                                                                    return (
+                                                                        <button key={position.value} type="button" onClick={() => updateSelectedStyle('iconPosition', position.value)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.iconPosition === position.value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                            <Icon className="size-3.5" />
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                        <FlatUnitField label="Size" value={selectedStyle.iconSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('iconSize', value)} />
                                                     </div>
-                                                </FlatField>
-                                                <FlatUnitField label="Icon Size" value={selectedStyle.iconSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('iconSize', value)} />
+                                                ) : (
+                                                    <>
+                                                        <FlatField label="Icon Position">
+                                                            <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                                {(['left', 'right'] as const).map((position) => (
+                                                                    <button key={position} type="button" onClick={() => updateSelectedStyle('iconPosition', position)} className={cn(inspectorChoiceButtonBase, selectedStyle.iconPosition === position ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                        {position}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </FlatField>
+                                                        <FlatUnitField label="Icon Size" value={selectedStyle.iconSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('iconSize', value)} />
+                                                    </>
+                                                )}
                                             </motion.div>
                                         ) : null}
                                     </AnimatePresence>

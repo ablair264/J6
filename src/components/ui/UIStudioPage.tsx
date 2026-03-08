@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Check, ChevronDown, Play } from 'lucide-react';
+import { Check, ChevronDown, Play, Pipette, RotateCcw } from 'lucide-react';
 import { Grid, Moon, Sun } from '@mynaui/icons-react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -115,6 +116,8 @@ export function UIStudioComponentPage() {
     const nextInstanceIndex = useStudioStore((s) => s.nextInstanceIndex);
     const showCanvasGrid = useStudioStore((s) => s.showCanvasGrid);
     const setShowCanvasGrid = useStudioStore((s) => s.setShowCanvasGrid);
+    const canvasBackground = useStudioStore((s) => s.canvasBackground);
+    const setCanvasBackground = useStudioStore((s) => s.setCanvasBackground);
     const studioTheme = useStudioStore((s) => s.studioTheme);
     const setStudioTheme = useStudioStore((s) => s.setStudioTheme);
     const rightSidebarTab = useStudioStore((s) => s.rightSidebarTab);
@@ -301,7 +304,8 @@ export function UIStudioComponentPage() {
         [motionComponentPresets],
     );
 
-    const canvasBackground = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
+    const defaultCanvasBg = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
+    const resolvedCanvasBg = canvasBackground || defaultCanvasBg;
     const canvasDotColor = studioTheme === 'dark' ? 'rgba(126, 255, 237, 0.09)' : 'rgba(31, 56, 94, 0.16)';
 
     // ─── Render ───────────────────────────────────────────────────
@@ -368,6 +372,73 @@ export function UIStudioComponentPage() {
                                         >
                                             <Grid className="size-4" />
                                         </button>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    type="button"
+                                                    className={cn(
+                                                        'inline-flex size-8 items-center justify-center rounded-sm transition',
+                                                        canvasBackground
+                                                            ? 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.15)]'
+                                                            : 'bg-white/[0.04] text-[#94aac8] hover:bg-white/[0.08] hover:text-[#eaf2ff]',
+                                                    )}
+                                                    aria-label="Canvas background"
+                                                >
+                                                    {canvasBackground ? (
+                                                        <span className="size-4 rounded-sm border border-white/20" style={{ backgroundColor: canvasBackground }} />
+                                                    ) : (
+                                                        <Pipette className="size-4" />
+                                                    )}
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="end"
+                                                className="w-[200px] border-white/10 bg-[#0f1828] p-3 shadow-[0_12px_32px_rgba(2,6,15,0.5)]"
+                                            >
+                                                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#7f95b4]">Stage Background</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {activeTokenSet.tokens.filter((t) => t.value).map((token) => (
+                                                        <button
+                                                            key={token.id}
+                                                            type="button"
+                                                            onClick={() => setCanvasBackground(token.value!)}
+                                                            className={cn(
+                                                                'relative size-7 rounded-md border transition hover:scale-110',
+                                                                canvasBackground === token.value
+                                                                    ? 'border-[#63e8da] ring-1 ring-[#63e8da]/40'
+                                                                    : 'border-white/15 hover:border-white/30',
+                                                            )}
+                                                            style={{ backgroundColor: token.value }}
+                                                            title={token.label}
+                                                        >
+                                                            {canvasBackground === token.value ? (
+                                                                <Check className="absolute inset-0 m-auto size-3 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+                                                            ) : null}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="mt-2.5 flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={canvasBackground}
+                                                        onChange={(e) => setCanvasBackground(e.target.value)}
+                                                        placeholder={defaultCanvasBg}
+                                                        className="h-7 flex-1 rounded-md border border-white/10 bg-white/[0.04] px-2 text-[11px] text-[#e6f0ff] placeholder:text-[#5a6f8a] outline-none focus:border-white/20"
+                                                    />
+                                                    {canvasBackground ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCanvasBackground('')}
+                                                            className="inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-white/10 text-[#94aac8] transition hover:border-white/20 hover:text-[#eaf2ff]"
+                                                            title="Reset to default"
+                                                        >
+                                                            <RotateCcw className="size-3" />
+                                                        </button>
+                                                    ) : null}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
                                         <button
                                             type="button"
                                             onClick={() => setStudioTheme(studioTheme === 'dark' ? 'light' : 'dark')}
@@ -384,7 +455,7 @@ export function UIStudioComponentPage() {
                                 <div
                                     className="flex min-h-0 flex-1 flex-col"
                                     style={{
-                                        backgroundColor: canvasBackground,
+                                        backgroundColor: resolvedCanvasBg,
                                         backgroundImage: showCanvasGrid
                                             ? `radial-gradient(circle, ${canvasDotColor} 1px, transparent 1px)`
                                             : 'none',

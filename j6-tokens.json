@@ -1,0 +1,172 @@
+{
+  "$description": "J6 Design Token System — Light + Dark mode",
+  "$version": "1.0.0",
+
+  "primitive": {
+    "neutral": {
+      "0":   { "light": "#FFFFFF",  "dark": "#FFFFFF" },
+      "50":  { "light": "#FAFAF9",  "dark": "#F0EDE8" },
+      "100": { "light": "#F0EDE8",  "dark": "#D4D0CA" },
+      "200": { "light": "#C8C4BC",  "dark": "#9A9AA3" },
+      "300": { "light": "#8A8A94",  "dark": "#6B6B72" },
+      "400": { "light": "#5A5A64",  "dark": "#3A3A3F" },
+      "500": { "light": "#3A3A3F",  "dark": "#2A2A2E" },
+      "600": { "light": "#2A2A2E",  "dark": "#1A1A1D" },
+      "700": { "light": "#1A1A1D",  "dark": "#141416" },
+      "800": { "light": "#141416",  "dark": "#111113" },
+      "900": { "light": "#F4F2EE",  "dark": "#0A0A0B" },
+      "950": { "light": "#E8E5E0",  "dark": "#050506" }
+    },
+    "amber": {
+      "200": { "light": "#FFF0C8",  "dark": "#FFF0C8" },
+      "300": { "light": "#FFDA80",  "dark": "#FFDA80" },
+      "400": { "light": "#FFBA4A",  "dark": "#FFBA4A" },
+      "500": { "light": "#D4890A",  "dark": "#F5A623" },
+      "600": { "light": "#B07008",  "dark": "#C4800A" },
+      "700": { "light": "#8A5800",  "dark": "#8A5800" }
+    },
+    "violet": {
+      "200": { "light": "#E8DDFF",  "dark": "#E8DDFF" },
+      "300": { "light": "#C4A8FF",  "dark": "#C4A8FF" },
+      "400": { "light": "#9F72FF",  "dark": "#9F72FF" },
+      "500": { "light": "#6D28D9",  "dark": "#7C3AED" },
+      "600": { "light": "#5B21B6",  "dark": "#5B21B6" },
+      "700": { "light": "#3B0E87",  "dark": "#3B0E87" }
+    },
+    "cyan": {
+      "400": { "light": "#0891B2",  "dark": "#22D3EE" },
+      "500": { "light": "#0E7490",  "dark": "#06B6D4" }
+    },
+    "rose": {
+      "400": { "light": "#E11D48",  "dark": "#FB7185" },
+      "500": { "light": "#BE123C",  "dark": "#F43F5E" }
+    },
+    "emerald": {
+      "400": { "light": "#059669",  "dark": "#34D399" },
+      "500": { "light": "#047857",  "dark": "#10B981" }
+    },
+    "orange": {
+      "400": { "light": "#EA580C",  "dark": "#FB923C" },
+      "500": { "light": "#C2410C",  "dark": "#F97316" }
+    },
+    "pink": {
+      "400": { "light": "#DB2777",  "dark": "#F472B6" },
+      "500": { "light": "#BE185D",  "dark": "#EC4899" }
+    },
+    "sky": {
+      "400": { "light": "#0284C7",  "dark": "#38BDF8" },
+      "500": { "light": "#0369A1",  "dark": "#0EA5E9" }
+    },
+    "lime": {
+      "400": { "light": "#65A30D",  "dark": "#A3E635" },
+      "500": { "light": "#4D7C0F",  "dark": "#84CC16" }
+    },
+    "yellow": {
+      "400": { "light": "#CA8A04",  "dark": "#FACC15" },
+      "500": { "light": "#A16207",  "dark": "#EAB308" }
+    },
+    "indigo": {
+      "400": { "light": "#4338CA",  "dark": "#818CF8" },
+      "500": { "light": "#3730A3",  "dark": "#6366F1" }
+    }
+  },
+
+  "semantic": {
+    "background": {
+      "bg-base":     { "light": "#F4F2EE",           "dark": "#0A0A0B",           "description": "Page background" },
+      "bg-subtle":   { "light": "#E8E5E0",           "dark": "#111113",           "description": "Slightly raised surface" },
+      "bg-surface":  { "light": "#FAFAF9",           "dark": "#141416",           "description": "Card / panel background" },
+      "bg-elevated": { "light": "#FFFFFF",           "dark": "#1A1A1D",           "description": "Elevated modal / popover" },
+      "bg-overlay":  { "light": "rgba(0,0,0,0.48)",  "dark": "rgba(0,0,0,0.72)",  "description": "Dialog overlay" }
+    },
+    "border": {
+      "border-subtle":  { "light": "rgba(0,0,0,0.07)",    "dark": "rgba(255,255,255,0.06)", "description": "Faintest dividers" },
+      "border-default": { "light": "rgba(0,0,0,0.12)",    "dark": "rgba(255,255,255,0.10)", "description": "Standard borders" },
+      "border-strong":  { "light": "rgba(0,0,0,0.22)",    "dark": "rgba(255,255,255,0.18)", "description": "Emphasis borders" },
+      "border-focus":   { "light": "#D4890A",              "dark": "#F5A623",               "description": "Focus ring" }
+    },
+    "text": {
+      "text-primary":   { "light": "#1A1A1D",  "dark": "#F0EDE8",  "description": "Primary body text" },
+      "text-secondary": { "light": "#5A5A64",  "dark": "#9A9AA3",  "description": "Supporting text" },
+      "text-muted":     { "light": "#8A8A94",  "dark": "#6B6B72",  "description": "Placeholder, disabled" },
+      "text-inverse":   { "light": "#F0EDE8",  "dark": "#0A0A0B",  "description": "Text on dark / accent bg" },
+      "text-link":      { "light": "#D4890A",  "dark": "#F5A623",  "description": "Links & inline CTAs" }
+    },
+    "brand": {
+      "brand-default": { "light": "#D4890A",                   "dark": "#F5A623",                   "description": "Primary CTA, brand mark" },
+      "brand-hover":   { "light": "#F5A623",                   "dark": "#FFBA4A",                   "description": "CTA hover state" },
+      "brand-subtle":  { "light": "rgba(212,137,10,0.10)",     "dark": "rgba(245,166,35,0.12)",     "description": "Tinted bg for brand context" },
+      "brand-glow":    { "light": "rgba(212,137,10,0.20)",     "dark": "rgba(245,166,35,0.25)",     "description": "Glow / shadow for brand elements" }
+    },
+    "interactive": {
+      "interactive-default": { "light": "#6D28D9",               "dark": "#7C3AED",               "description": "Links, selected states" },
+      "interactive-hover":   { "light": "#7C3AED",               "dark": "#9F72FF",               "description": "Hover on interactive element" },
+      "interactive-subtle":  { "light": "rgba(109,40,217,0.10)", "dark": "rgba(124,58,237,0.15)", "description": "Tinted background" }
+    },
+    "status": {
+      "status-success": { "light": "#059669",  "dark": "#34D399",  "description": "Success states" },
+      "status-warning": { "light": "#CA8A04",  "dark": "#FACC15",  "description": "Warning states" },
+      "status-error":   { "light": "#E11D48",  "dark": "#FB7185",  "description": "Error / destructive" },
+      "status-info":    { "light": "#0284C7",  "dark": "#38BDF8",  "description": "Informational" }
+    }
+  },
+
+  "showcase": {
+    "Electric": {
+      "base": "#22D3EE",
+      "glow": "rgba(34,211,238,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(34,211,238,0.10)",
+      "description": "Cyan — high energy, data, tech"
+    },
+    "Bloom": {
+      "base": "#F472B6",
+      "glow": "rgba(244,114,182,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(244,114,182,0.10)",
+      "description": "Pink — expressive, creative, bold"
+    },
+    "Acid": {
+      "base": "#A3E635",
+      "glow": "rgba(163,230,53,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(163,230,53,0.10)",
+      "description": "Lime — sharp, modern, high contrast"
+    },
+    "Plasma": {
+      "base": "#818CF8",
+      "glow": "rgba(129,140,248,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(129,140,248,0.10)",
+      "description": "Indigo — cool, trustworthy, premium"
+    },
+    "Inferno": {
+      "base": "#FB923C",
+      "glow": "rgba(251,146,60,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(251,146,60,0.10)",
+      "description": "Orange — warm, energetic, playful"
+    },
+    "Crimson": {
+      "base": "#F43F5E",
+      "glow": "rgba(244,63,94,0.35)",
+      "text": "#FFFFFF",
+      "bg":   "rgba(244,63,94,0.10)",
+      "description": "Red — urgent, powerful, destructive"
+    },
+    "Spearmint": {
+      "base": "#10B981",
+      "glow": "rgba(16,185,129,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(16,185,129,0.10)",
+      "description": "Emerald — success, health, positive"
+    },
+    "Solar": {
+      "base": "#FACC15",
+      "glow": "rgba(250,204,21,0.35)",
+      "text": "#0A0A0B",
+      "bg":   "rgba(250,204,21,0.10)",
+      "description": "Yellow — attention, warmth, optimism"
+    }
+  }
+}
