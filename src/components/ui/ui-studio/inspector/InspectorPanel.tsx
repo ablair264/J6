@@ -1,6 +1,6 @@
 import { useEffect, useMemo, type ChangeEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, ChevronDown, Minus, SlidersHorizontal } from 'lucide-react';
+import { Check, ChevronDown, Minus, SlidersHorizontal, X } from 'lucide-react';
 import {
     Config,
     Delete,
@@ -39,6 +39,7 @@ import type {
     FontPosition,
     IconLibrary,
     IconOptionId,
+    CardFeatureItem,
 } from '@/components/ui/ui-studio.types';
 import {
     GOOGLE_FONTS,
@@ -1467,137 +1468,134 @@ export function InspectorPanel() {
                                 )}
                             </FlatInspectorSection>
 
-                            {/* Background — hidden when image is used */}
-                            {!selectedStyle.avatarSrc && (
-                                <FlatInspectorSection title="Background" icon={Swatches} defaultOpen>
-                                    <FlatField label="Mode">
-                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            {(['solid', 'gradient'] as const).map((mode) => (
-                                                <button key={mode} type="button" onClick={() => updateSelectedStyle('avatarBgMode', mode)} className={cn(inspectorChoiceButtonBase, selectedStyle.avatarBgMode === mode ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    {mode === 'solid' ? 'Solid' : 'Gradient'}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </FlatField>
-                                    <FlatColorControl label="Color" value={selectedStyle.avatarBgColor} onChange={(value) => updateSelectedStyle('avatarBgColor', value)} tokens={activeTokenSet.tokens} />
-                                    {selectedStyle.avatarBgMode === 'gradient' && (
-                                        <FlatColorControl label="Color To" value={selectedStyle.avatarBgColorTo} onChange={(value) => updateSelectedStyle('avatarBgColorTo', value)} tokens={activeTokenSet.tokens} />
-                                    )}
-                                    <FlatUnitField label="Opacity" value={selectedStyle.avatarBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarBgOpacity', value)} />
-                                </FlatInspectorSection>
-                            )}
-
-                            {/* Image settings — shown when image is used */}
-                            {selectedStyle.avatarSrc && (
-                                <FlatInspectorSection title="Image" icon={Swatches} defaultOpen>
-                                    <FlatUnitField label="Opacity" value={selectedStyle.avatarImageOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarImageOpacity', value)} />
-                                    <FlatColorControl label="Overlay Color" value={selectedStyle.avatarOverlayColor} onChange={(value) => updateSelectedStyle('avatarOverlayColor', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatUnitField label="Overlay Opacity" value={selectedStyle.avatarOverlayOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarOverlayOpacity', value)} />
-                                </FlatInspectorSection>
-                            )}
-
-                            <FlatInspectorSection title="Stroke" icon={Ruler} defaultOpen={false}>
-                                <FlatUnitField label="Weight" value={selectedStyle.avatarStrokeWeight} min={0} max={8} unit="px" onChange={(value) => updateSelectedStyle('avatarStrokeWeight', value)} />
-                                {selectedStyle.avatarStrokeWeight > 0 && (
-                                    <>
-                                        <FlatColorControl label="Color" value={selectedStyle.avatarStrokeColor} onChange={(value) => updateSelectedStyle('avatarStrokeColor', value)} tokens={activeTokenSet.tokens} />
-                                        <FlatUnitField label="Opacity" value={selectedStyle.avatarStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarStrokeOpacity', value)} />
-                                    </>
-                                )}
-                            </FlatInspectorSection>
-
-                            {/* Typography — hidden when image is used */}
-                            {!selectedStyle.avatarSrc && (
-                                <FlatInspectorSection title="Typography" icon={Sparkles} defaultOpen={false}>
-                                    <FlatField label="Font" stacked>
-                                        <FlatSelect value={selectedStyle.avatarFontFamily} onValueChange={(value) => updateSelectedStyle('avatarFontFamily', value)} ariaLabel="Font family">
-                                            {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
-                                        </FlatSelect>
-                                    </FlatField>
-                                    <FlatUnitField label="Size" value={selectedStyle.avatarFontSize} min={8} max={72} unit="px" onChange={(value) => updateSelectedStyle('avatarFontSize', value)} />
-                                    <FlatColorControl label="Color" value={selectedStyle.avatarFontColor} onChange={(value) => updateSelectedStyle('avatarFontColor', value)} tokens={activeTokenSet.tokens} />
-                                    <FlatField label="Style">
-                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            <button type="button" onClick={() => updateSelectedStyle('avatarFontBold', !selectedStyle.avatarFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                <TypeBold className="size-4" />
-                                            </button>
-                                            <button type="button" onClick={() => updateSelectedStyle('avatarFontItalic', !selectedStyle.avatarFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                <TypeItalic className="size-4" />
-                                            </button>
-                                            <button type="button" onClick={() => updateSelectedStyle('avatarFontUnderline', !selectedStyle.avatarFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                <TypeUnderline className="size-4" />
-                                            </button>
-                                        </div>
-                                    </FlatField>
-                                </FlatInspectorSection>
-                            )}
-
-                            <FlatInspectorSection title="Hover Popover" icon={Sparkles} defaultOpen={false}>
-                                <FlatSwitchRow label="Enable Popover" checked={selectedStyle.avatarPopoverEnabled} onCheckedChange={(value) => updateSelectedStyle('avatarPopoverEnabled', value)} />
-                                {selectedStyle.avatarPopoverEnabled && (
-                                    <>
-                                        <FlatUnitField label="Delay (ms)" value={selectedStyle.avatarPopoverDelay} min={0} max={2000} step={10} unit="ms" onChange={(value) => updateSelectedStyle('avatarPopoverDelay', value)} />
-                                        <div className="flex flex-wrap items-start gap-3">
-                                            <FlatUnitField label="Width" value={selectedStyle.avatarPopoverWidth} min={120} max={320} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverWidth', value)} />
-                                            <FlatUnitField label="Padding" value={selectedStyle.avatarPopoverPadding} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverPadding', value)} />
-                                            <FlatUnitField label="Radius" value={selectedStyle.avatarPopoverRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverRadius', value)} />
-                                        </div>
-                                        <FlatField label="BG Mode">
+                            <FlatInspectorSection title="Avatar Appearance" icon={Swatches} defaultOpen={false}>
+                                {!selectedStyle.avatarSrc ? (
+                                    <FlatElementSubsection title="Background" defaultOpen>
+                                        <FlatField label="Mode">
                                             <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                 {(['solid', 'gradient'] as const).map((mode) => (
-                                                    <button key={mode} type="button" onClick={() => updateSelectedStyle('avatarPopoverBgMode', mode)} className={cn(inspectorChoiceButtonBase, selectedStyle.avatarPopoverBgMode === mode ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <button key={mode} type="button" onClick={() => updateSelectedStyle('avatarBgMode', mode)} className={cn(inspectorChoiceButtonBase, selectedStyle.avatarBgMode === mode ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                         {mode === 'solid' ? 'Solid' : 'Gradient'}
                                                     </button>
                                                 ))}
                                             </div>
                                         </FlatField>
-                                        <FlatColorControl label="BG Color" value={selectedStyle.avatarPopoverBgColor} onChange={(value) => updateSelectedStyle('avatarPopoverBgColor', value)} tokens={activeTokenSet.tokens} />
-                                        {selectedStyle.avatarPopoverBgMode === 'gradient' && (
-                                            <FlatColorControl label="BG Color To" value={selectedStyle.avatarPopoverBgColorTo} onChange={(value) => updateSelectedStyle('avatarPopoverBgColorTo', value)} tokens={activeTokenSet.tokens} />
-                                        )}
-                                        <FlatUnitField label="BG Opacity" value={selectedStyle.avatarPopoverBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverBgOpacity', value)} />
-                                        <FlatUnitField label="Stroke Weight" value={selectedStyle.avatarPopoverStrokeWeight} min={0} max={4} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeWeight', value)} />
-                                        {selectedStyle.avatarPopoverStrokeWeight > 0 && (
-                                            <>
-                                                <FlatColorControl label="Stroke Color" value={selectedStyle.avatarPopoverStrokeColor} onChange={(value) => updateSelectedStyle('avatarPopoverStrokeColor', value)} tokens={activeTokenSet.tokens} />
-                                                <FlatUnitField label="Stroke Opacity" value={selectedStyle.avatarPopoverStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeOpacity', value)} />
-                                            </>
-                                        )}
+                                        <FlatColorControl label="Color" value={selectedStyle.avatarBgColor} onChange={(value) => updateSelectedStyle('avatarBgColor', value)} tokens={activeTokenSet.tokens} />
+                                        {selectedStyle.avatarBgMode === 'gradient' ? (
+                                            <FlatColorControl label="Color To" value={selectedStyle.avatarBgColorTo} onChange={(value) => updateSelectedStyle('avatarBgColorTo', value)} tokens={activeTokenSet.tokens} />
+                                        ) : null}
+                                        <FlatUnitField label="Opacity" value={selectedStyle.avatarBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarBgOpacity', value)} />
+                                    </FlatElementSubsection>
+                                ) : (
+                                    <FlatElementSubsection title="Image" defaultOpen>
+                                        <FlatUnitField label="Opacity" value={selectedStyle.avatarImageOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarImageOpacity', value)} />
+                                        <FlatColorControl label="Overlay Color" value={selectedStyle.avatarOverlayColor} onChange={(value) => updateSelectedStyle('avatarOverlayColor', value)} tokens={activeTokenSet.tokens} />
+                                        <FlatUnitField label="Overlay Opacity" value={selectedStyle.avatarOverlayOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarOverlayOpacity', value)} />
+                                    </FlatElementSubsection>
+                                )}
+
+                                <FlatElementSubsection title="Stroke" defaultOpen={false}>
+                                    <FlatUnitField label="Weight" value={selectedStyle.avatarStrokeWeight} min={0} max={8} unit="px" onChange={(value) => updateSelectedStyle('avatarStrokeWeight', value)} />
+                                    {selectedStyle.avatarStrokeWeight > 0 ? (
+                                        <>
+                                            <FlatColorControl label="Color" value={selectedStyle.avatarStrokeColor} onChange={(value) => updateSelectedStyle('avatarStrokeColor', value)} tokens={activeTokenSet.tokens} />
+                                            <FlatUnitField label="Opacity" value={selectedStyle.avatarStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarStrokeOpacity', value)} />
+                                        </>
+                                    ) : null}
+                                </FlatElementSubsection>
+
+                                {!selectedStyle.avatarSrc ? (
+                                    <FlatElementSubsection title="Typography" defaultOpen={false}>
                                         <FlatField label="Font" stacked>
-                                            <FlatSelect value={selectedStyle.avatarPopoverFontFamily} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontFamily', value)} ariaLabel="Popover font">
+                                            <FlatSelect value={selectedStyle.avatarFontFamily} onValueChange={(value) => updateSelectedStyle('avatarFontFamily', value)} ariaLabel="Font family">
                                                 {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
                                             </FlatSelect>
                                         </FlatField>
-                                        <div className="flex flex-wrap items-end gap-3">
-                                            <FlatUnitField label="Font Size" value={selectedStyle.avatarPopoverFontSize} min={8} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverFontSize', value)} />
-                                            <div className="w-[92px] shrink-0">
-                                                <FlatField label="Weight" stacked>
-                                                    <FlatSelect value={selectedStyle.avatarPopoverFontWeight} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontWeight', Number(value))} ariaLabel="Popover font weight">
-                                                        {[300, 400, 500, 600, 700].map((w) => (<option key={w} value={w}>{w}</option>))}
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                        </div>
+                                        <FlatUnitField label="Size" value={selectedStyle.avatarFontSize} min={8} max={72} unit="px" onChange={(value) => updateSelectedStyle('avatarFontSize', value)} />
+                                        <FlatColorControl label="Color" value={selectedStyle.avatarFontColor} onChange={(value) => updateSelectedStyle('avatarFontColor', value)} tokens={activeTokenSet.tokens} />
                                         <FlatField label="Style">
                                             <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontBold', !selectedStyle.avatarPopoverFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <button type="button" onClick={() => updateSelectedStyle('avatarFontBold', !selectedStyle.avatarFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                     <TypeBold className="size-4" />
                                                 </button>
-                                                <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontItalic', !selectedStyle.avatarPopoverFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <button type="button" onClick={() => updateSelectedStyle('avatarFontItalic', !selectedStyle.avatarFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                     <TypeItalic className="size-4" />
                                                 </button>
-                                                <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontUnderline', !selectedStyle.avatarPopoverFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                <button type="button" onClick={() => updateSelectedStyle('avatarFontUnderline', !selectedStyle.avatarFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                     <TypeUnderline className="size-4" />
                                                 </button>
                                             </div>
                                         </FlatField>
-                                        <FlatColorControl label="Font Color" value={selectedStyle.avatarPopoverFontColor} onChange={(value) => updateSelectedStyle('avatarPopoverFontColor', value)} tokens={activeTokenSet.tokens} />
-                                        <div className="flex flex-wrap items-start gap-3">
-                                            <FlatUnitField label="Icon Size" value={selectedStyle.avatarPopoverIconSize} min={8} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverIconSize', value)} />
-                                        </div>
-                                        <FlatColorControl label="Icon Color" value={selectedStyle.avatarPopoverIconColor} onChange={(value) => updateSelectedStyle('avatarPopoverIconColor', value)} tokens={activeTokenSet.tokens} />
-                                    </>
-                                )}
+                                    </FlatElementSubsection>
+                                ) : null}
+
+                                <FlatElementSubsection title="Hover Popover" defaultOpen={false}>
+                                    <FlatSwitchRow label="Enable Popover" checked={selectedStyle.avatarPopoverEnabled} onCheckedChange={(value) => updateSelectedStyle('avatarPopoverEnabled', value)} />
+                                    {selectedStyle.avatarPopoverEnabled ? (
+                                        <>
+                                            <FlatUnitField label="Delay (ms)" value={selectedStyle.avatarPopoverDelay} min={0} max={2000} step={10} unit="ms" onChange={(value) => updateSelectedStyle('avatarPopoverDelay', value)} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Width" value={selectedStyle.avatarPopoverWidth} min={120} max={320} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverWidth', value)} />
+                                                <FlatUnitField label="Padding" value={selectedStyle.avatarPopoverPadding} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverPadding', value)} />
+                                                <FlatUnitField label="Radius" value={selectedStyle.avatarPopoverRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverRadius', value)} />
+                                            </div>
+                                            <FlatField label="BG Mode">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    {(['solid', 'gradient'] as const).map((mode) => (
+                                                        <button key={mode} type="button" onClick={() => updateSelectedStyle('avatarPopoverBgMode', mode)} className={cn(inspectorChoiceButtonBase, selectedStyle.avatarPopoverBgMode === mode ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                            {mode === 'solid' ? 'Solid' : 'Gradient'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </FlatField>
+                                            <FlatColorControl label="BG Color" value={selectedStyle.avatarPopoverBgColor} onChange={(value) => updateSelectedStyle('avatarPopoverBgColor', value)} tokens={activeTokenSet.tokens} />
+                                            {selectedStyle.avatarPopoverBgMode === 'gradient' ? (
+                                                <FlatColorControl label="BG Color To" value={selectedStyle.avatarPopoverBgColorTo} onChange={(value) => updateSelectedStyle('avatarPopoverBgColorTo', value)} tokens={activeTokenSet.tokens} />
+                                            ) : null}
+                                            <FlatUnitField label="BG Opacity" value={selectedStyle.avatarPopoverBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverBgOpacity', value)} />
+                                            <FlatUnitField label="Stroke Weight" value={selectedStyle.avatarPopoverStrokeWeight} min={0} max={4} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeWeight', value)} />
+                                            {selectedStyle.avatarPopoverStrokeWeight > 0 ? (
+                                                <>
+                                                    <FlatColorControl label="Stroke Color" value={selectedStyle.avatarPopoverStrokeColor} onChange={(value) => updateSelectedStyle('avatarPopoverStrokeColor', value)} tokens={activeTokenSet.tokens} />
+                                                    <FlatUnitField label="Stroke Opacity" value={selectedStyle.avatarPopoverStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeOpacity', value)} />
+                                                </>
+                                            ) : null}
+                                            <FlatField label="Font" stacked>
+                                                <FlatSelect value={selectedStyle.avatarPopoverFontFamily} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontFamily', value)} ariaLabel="Popover font">
+                                                    {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                                                </FlatSelect>
+                                            </FlatField>
+                                            <div className="flex flex-wrap items-end gap-3">
+                                                <FlatUnitField label="Font Size" value={selectedStyle.avatarPopoverFontSize} min={8} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverFontSize', value)} />
+                                                <div className="w-[92px] shrink-0">
+                                                    <FlatField label="Weight" stacked>
+                                                        <FlatSelect value={selectedStyle.avatarPopoverFontWeight} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontWeight', Number(value))} ariaLabel="Popover font weight">
+                                                            {[300, 400, 500, 600, 700].map((w) => (<option key={w} value={w}>{w}</option>))}
+                                                        </FlatSelect>
+                                                    </FlatField>
+                                                </div>
+                                            </div>
+                                            <FlatField label="Style">
+                                                <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                                    <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontBold', !selectedStyle.avatarPopoverFontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeBold className="size-4" />
+                                                    </button>
+                                                    <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontItalic', !selectedStyle.avatarPopoverFontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeItalic className="size-4" />
+                                                    </button>
+                                                    <button type="button" onClick={() => updateSelectedStyle('avatarPopoverFontUnderline', !selectedStyle.avatarPopoverFontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.avatarPopoverFontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                        <TypeUnderline className="size-4" />
+                                                    </button>
+                                                </div>
+                                            </FlatField>
+                                            <FlatColorControl label="Font Color" value={selectedStyle.avatarPopoverFontColor} onChange={(value) => updateSelectedStyle('avatarPopoverFontColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatUnitField label="Icon Size" value={selectedStyle.avatarPopoverIconSize} min={8} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverIconSize', value)} />
+                                            </div>
+                                            <FlatColorControl label="Icon Color" value={selectedStyle.avatarPopoverIconColor} onChange={(value) => updateSelectedStyle('avatarPopoverIconColor', value)} tokens={activeTokenSet.tokens} />
+                                        </>
+                                    ) : null}
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -2219,6 +2217,52 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
+                                    <CardConfigSubsection title="Feature Tags" defaultOpen={selectedStyle.cardFeatureItems.length > 0}>
+                                        <div className="space-y-2">
+                                            {selectedStyle.cardFeatureItems.map((item, index) => (
+                                                <div key={item.id} className="flex items-center gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        value={item.label}
+                                                        onChange={(event) => {
+                                                            const updated = [...selectedStyle.cardFeatureItems];
+                                                            updated[index] = { ...item, label: event.target.value };
+                                                            updateSelectedStyle('cardFeatureItems', updated);
+                                                        }}
+                                                        className={cn(studioInputClass, 'flex-1')}
+                                                        placeholder="Tag label"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const updated = selectedStyle.cardFeatureItems.filter((_, i) => i !== index);
+                                                            updateSelectedStyle('cardFeatureItems', updated);
+                                                        }}
+                                                        className="inline-flex size-7 shrink-0 items-center justify-center rounded-sm border border-white/10 text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                                    >
+                                                        <X className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newItem = { id: crypto.randomUUID().slice(0, 8), label: 'New tag' };
+                                                    updateSelectedStyle('cardFeatureItems', [...selectedStyle.cardFeatureItems, newItem]);
+                                                }}
+                                                className="inline-flex h-7 w-full items-center justify-center rounded-sm border border-dashed border-white/10 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                            >
+                                                + Add tag
+                                            </button>
+                                        </div>
+                                        {selectedStyle.cardFeatureItems.length > 0 ? (
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatColorControl label="Tag Background" value={selectedStyle.cardFeatureItemBgColor} onChange={(value) => updateSelectedStyle('cardFeatureItemBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatColorControl label="Tag Text" value={selectedStyle.cardFeatureItemTextColor} onChange={(value) => updateSelectedStyle('cardFeatureItemTextColor', value)} tokens={activeTokenSet.tokens} />
+                                            </div>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
                                     <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-card-image`}
@@ -2442,6 +2486,52 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
+                                    <CardConfigSubsection title="Feature Tags" defaultOpen={selectedStyle.cardFeatureItems.length > 0}>
+                                        <div className="space-y-2">
+                                            {selectedStyle.cardFeatureItems.map((item, index) => (
+                                                <div key={item.id} className="flex items-center gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        value={item.label}
+                                                        onChange={(event) => {
+                                                            const updated = [...selectedStyle.cardFeatureItems];
+                                                            updated[index] = { ...item, label: event.target.value };
+                                                            updateSelectedStyle('cardFeatureItems', updated);
+                                                        }}
+                                                        className={cn(studioInputClass, 'flex-1')}
+                                                        placeholder="Tag label"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const updated = selectedStyle.cardFeatureItems.filter((_, i) => i !== index);
+                                                            updateSelectedStyle('cardFeatureItems', updated);
+                                                        }}
+                                                        className="inline-flex size-7 shrink-0 items-center justify-center rounded-sm border border-white/10 text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                                    >
+                                                        <X className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newItem = { id: crypto.randomUUID().slice(0, 8), label: 'New tag' };
+                                                    updateSelectedStyle('cardFeatureItems', [...selectedStyle.cardFeatureItems, newItem]);
+                                                }}
+                                                className="inline-flex h-7 w-full items-center justify-center rounded-sm border border-dashed border-white/10 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                            >
+                                                + Add tag
+                                            </button>
+                                        </div>
+                                        {selectedStyle.cardFeatureItems.length > 0 ? (
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatColorControl label="Tag Background" value={selectedStyle.cardFeatureItemBgColor} onChange={(value) => updateSelectedStyle('cardFeatureItemBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatColorControl label="Tag Text" value={selectedStyle.cardFeatureItemTextColor} onChange={(value) => updateSelectedStyle('cardFeatureItemTextColor', value)} tokens={activeTokenSet.tokens} />
+                                            </div>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
                                     <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-product-card-image`}
@@ -2658,6 +2748,52 @@ export function InspectorPanel() {
                                                     </FlatSelect>
                                                 </FlatField>
                                             </>
+                                        ) : null}
+                                    </CardConfigSubsection>
+
+                                    <CardConfigSubsection title="Feature Tags" defaultOpen={selectedStyle.cardFeatureItems.length > 0}>
+                                        <div className="space-y-2">
+                                            {selectedStyle.cardFeatureItems.map((item, index) => (
+                                                <div key={item.id} className="flex items-center gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        value={item.label}
+                                                        onChange={(event) => {
+                                                            const updated = [...selectedStyle.cardFeatureItems];
+                                                            updated[index] = { ...item, label: event.target.value };
+                                                            updateSelectedStyle('cardFeatureItems', updated);
+                                                        }}
+                                                        className={cn(studioInputClass, 'flex-1')}
+                                                        placeholder="Tag label"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const updated = selectedStyle.cardFeatureItems.filter((_, i) => i !== index);
+                                                            updateSelectedStyle('cardFeatureItems', updated);
+                                                        }}
+                                                        className="inline-flex size-7 shrink-0 items-center justify-center rounded-sm border border-white/10 text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                                    >
+                                                        <X className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newItem = { id: crypto.randomUUID().slice(0, 8), label: 'New tag' };
+                                                    updateSelectedStyle('cardFeatureItems', [...selectedStyle.cardFeatureItems, newItem]);
+                                                }}
+                                                className="inline-flex h-7 w-full items-center justify-center rounded-sm border border-dashed border-white/10 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)]"
+                                            >
+                                                + Add tag
+                                            </button>
+                                        </div>
+                                        {selectedStyle.cardFeatureItems.length > 0 ? (
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatColorControl label="Tag Background" value={selectedStyle.cardFeatureItemBgColor} onChange={(value) => updateSelectedStyle('cardFeatureItemBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatColorControl label="Tag Text" value={selectedStyle.cardFeatureItemTextColor} onChange={(value) => updateSelectedStyle('cardFeatureItemTextColor', value)} tokens={activeTokenSet.tokens} />
+                                            </div>
                                         ) : null}
                                     </CardConfigSubsection>
 
