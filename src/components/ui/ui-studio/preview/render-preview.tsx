@@ -485,6 +485,15 @@ function hasCardContent(value: string | undefined): boolean {
     return Boolean(value?.trim());
 }
 
+// Group map for divider logic — dividers only appear between different groups
+const CARD_SECTION_GROUP: Record<string, string> = {
+    'icon': 'visual', 'badge-standalone': 'visual', 'image-top': 'visual', 'image-bottom': 'visual',
+    'title': 'text', 'subtitle': 'text', 'header': 'text',
+    'features': 'content', 'body': 'content',
+    'price': 'commerce',
+    'actions': 'actions', 'footer-top': 'actions', 'footer-bottom': 'actions',
+};
+
 function buildCardSectionStack(
     sections: CardSection[],
     showDividers: boolean,
@@ -495,16 +504,21 @@ function buildCardSectionStack(
     return visibleSections.flatMap((section, index) => {
         const nodes: ReactNode[] = [];
         if (index > 0 && showDividers) {
-            nodes.push(
-                <div
-                    key={`divider-${section.key}`}
-                    className="w-full rounded-full"
-                    style={{
-                        height: `${Math.max(1, dividerWidth)}px`,
-                        backgroundColor: dividerColor,
-                    }}
-                />,
-            );
+            const prevGroup = CARD_SECTION_GROUP[visibleSections[index - 1].key] ?? '';
+            const curGroup = CARD_SECTION_GROUP[section.key] ?? '';
+            // Only add divider when crossing group boundaries
+            if (prevGroup !== curGroup || !prevGroup) {
+                nodes.push(
+                    <div
+                        key={`divider-${section.key}`}
+                        className="w-full rounded-full"
+                        style={{
+                            height: `${Math.max(1, dividerWidth)}px`,
+                            backgroundColor: dividerColor,
+                        }}
+                    />,
+                );
+            }
         }
         nodes.push(
             <React.Fragment key={section.key}>
@@ -910,8 +924,9 @@ export function componentSnippet(
                 : '';
 
             // Standalone badge (when no image)
+            const standaloneBadgeAlignExport = s.cardBadgePosition.includes('right') ? 'self-end' : s.cardBadgePosition.includes('left') ? 'self-start' : 'self-center';
             const standaloneBadgeSnippet = hasCardContent(s.cardBadgeText) && !hasCardContent(s.cardImageSrc)
-                ? `    <span className="inline-block self-start rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide" style={{ color: '${s.cardBadgeColor}', backgroundColor: '${s.cardBadgeBgColor}' }}>${s.cardBadgeText}</span>`
+                ? `    <span className="inline-block ${standaloneBadgeAlignExport} rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide" style={{ color: '${s.cardBadgeColor}', backgroundColor: '${s.cardBadgeBgColor}' }}>${s.cardBadgeText}</span>`
                 : '';
 
             // Feature items
@@ -2182,8 +2197,9 @@ export function renderPreview(
             })() : null;
 
             // Standalone badge (renders when no image present)
+            const standaloneBadgeAlign = s.cardBadgePosition.includes('right') ? 'self-end' : s.cardBadgePosition.includes('left') ? 'self-start' : 'self-center';
             const standaloneBadgeBlock = hasCardContent(s.cardBadgeText) && !showImage ? (
-                <span className="inline-block self-start rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide"
+                <span className={cn('inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide', standaloneBadgeAlign)}
                     style={{ color: s.cardBadgeColor, backgroundColor: s.cardBadgeBgColor }}>
                     {s.cardBadgeText}
                 </span>

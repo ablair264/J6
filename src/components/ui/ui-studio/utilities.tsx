@@ -800,6 +800,10 @@ export function fontPositionToJustify(position: FontPosition): CSSProperties['ju
     return position === 'left' ? 'flex-start' : position === 'right' ? 'flex-end' : 'center';
 }
 
+function usesStrokeReplacementEffect(config: ComponentStyleConfig): boolean {
+    return config.effectBorderBeamEnabled || config.effectShineBorderEnabled || config.effectPulseRingEnabled;
+}
+
 export function buildPanelStyle(config: ComponentStyleConfig): CSSProperties {
     const shadow = config.panelEffectDropShadow
         ? `${config.panelDropShadowX}px ${config.panelDropShadowY}px ${config.panelDropShadowBlur}px ${config.panelDropShadowSpread}px ${hexToRgba('#000000', 0.28)}`
@@ -888,6 +892,9 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
                   blurValue,
               )}px) saturate(${config.effectGlass || glassmorphismActive ? 160 : 100}%)`
             : undefined;
+    const strokeReplacedByEffect = usesStrokeReplacementEffect(config);
+    const effectiveBorderWidth = strokeReplacedByEffect ? 0 : config.strokeWeight;
+    const effectiveBorderColor = strokeReplacedByEffect ? 'transparent' : borderColor;
 
     // Glass: use fill color at glassOpacity rather than hard-coding white.
     // This makes the blur visible over any canvas background.
@@ -930,9 +937,9 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
     const result: CSSProperties = {
         background: resolvedBackground,
         borderStyle: glassmorphismActive ? undefined : config.borderStyle,
-        borderWidth: glassmorphismActive ? undefined : `${config.strokeWeight}px`,
+        borderWidth: glassmorphismActive ? undefined : `${effectiveBorderWidth}px`,
         border: glassmorphismActive ? `1px solid rgba(255,255,255,${(config.glassmorphismBorderOpacity / 100).toFixed(3)})` : undefined,
-        borderColor: glassmorphismActive ? undefined : borderColor,
+        borderColor: glassmorphismActive ? undefined : effectiveBorderColor,
         borderRadius: `${config.cornerRadius}px`,
         color: fontColor,
         fontFamily: config.fontFamily || undefined,
@@ -2155,10 +2162,11 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
             const overrides = instance.stateOverrides[state as keyof typeof instance.stateOverrides];
             if (!overrides) continue;
             const s = { ...base, ...overrides };
+            const stateUsesReplacement = usesStrokeReplacementEffect(s);
             contextVars[`${prefix}-bg`] = buildStateFill(s.fillMode, s.fillColor, s.fillColorTo, s.fillWeight, s.fillOpacity);
             contextVars[`${prefix}-fg`] = hexToRgba(s.fontColor, s.fontOpacity / 100);
-            contextVars[`${prefix}-border`] = hexToRgba(s.strokeColor, s.strokeOpacity / 100);
-            contextVars[`${prefix}-border-width`] = `${s.strokeWeight}px`;
+            contextVars[`${prefix}-border`] = stateUsesReplacement ? 'transparent' : hexToRgba(s.strokeColor, s.strokeOpacity / 100);
+            contextVars[`${prefix}-border-width`] = `${stateUsesReplacement ? 0 : s.strokeWeight}px`;
             contextVars[`${prefix}-font-size`] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;
             contextVars[`${prefix}-font-weight`] = `${s.fontWeight}`;
             contextVars[`${prefix}-justify`] = fontPositionToJustify(s.fontPosition);

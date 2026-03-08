@@ -911,6 +911,8 @@
   position: relative;
   border-radius: inherit;
   isolation: isolate;
+  border-color: transparent !important;
+  border-width: 0 !important;
 }
 
 .ui-studio-effect-border-beam::before {
@@ -940,6 +942,8 @@
   position: relative;
   border-radius: inherit;
   isolation: isolate;
+  border-color: transparent !important;
+  border-width: 0 !important;
 }
 
 .ui-studio-effect-shine-border::before {
@@ -970,6 +974,9 @@
 /* ─── Pulse Ring (Animate UI — ::after ring scales out + fades) ─── */
 .ui-studio-effect-pulse-ring {
   position: relative;
+  overflow: visible !important;
+  border-color: transparent !important;
+  border-width: 0 !important;
 }
 
 .ui-studio-effect-pulse-ring::after {

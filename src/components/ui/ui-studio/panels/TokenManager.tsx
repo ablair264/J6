@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ChangeEvent } from 'react';
 import { Minus, RotateCcw } from 'lucide-react';
 import { Delete, Plus, Sparkles } from '@mynaui/icons-react';
 import { cn } from '@/lib/utils';
 import {
+    parseImportedTokenSet,
     SYSTEM_TOKEN_SET_ID,
     createTokenSetId,
     ensureTokenSetsWithSystem,
@@ -39,6 +40,7 @@ export function TokenManager() {
     const suggestingPalette = useStudioStore((s) => s.suggestingPalette);
     const setSuggestingPalette = useStudioStore((s) => s.setSuggestingPalette);
     const activeTokenSet = useStudioStore(selectActiveTokenSet);
+    const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
     // ─── Auto-save to Neon (debounced) ────────────────────────────────────
     const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -224,6 +226,35 @@ export function TokenManager() {
         }
     };
 
+    const importTokenFile = async (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.currentTarget.files?.[0];
+        if (!file) return;
+        setTokensLoading(true);
+        setTokenSyncMessage('Importing token set…');
+        try {
+            const content = await file.text();
+            const parsed = parseImportedTokenSet(content, file.name);
+            if (!parsed) {
+                setTokenSyncMessage('Could not parse token file. Use CSS variables or JSON token maps.');
+                return;
+            }
+            const nextSet = parsed.tokenSet;
+            setTokenSets((current) =>
+                ensureTokenSetsWithSystem([
+                    ...current.filter((set) => set.id !== nextSet.id),
+                    nextSet,
+                ]),
+            );
+            setActiveTokenSetId(nextSet.id);
+            setTokenSyncMessage(`Imported ${nextSet.tokens.length} tokens from ${parsed.format.toUpperCase()}.`);
+        } catch {
+            setTokenSyncMessage('Could not read selected file.');
+        } finally {
+            setTokensLoading(false);
+            event.currentTarget.value = '';
+        }
+    };
+
     // ─── Render ──────────────────────────────────────────────────────────
 
     return (
@@ -289,14 +320,31 @@ export function TokenManager() {
                             </div>
                         </form>
                     ) : (
-                        <button
-                            type="button"
-                            onClick={() => setShowNewSetInput(true)}
-                            className="mt-1 flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-[#7188a8] transition hover:bg-white/[0.05] hover:text-[#9bb0cc]"
-                        >
-                            <Plus className="size-3" />
-                            New set
-                        </button>
+                        <div className="mt-1 flex flex-col gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setShowNewSetInput(true)}
+                                className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-[#7188a8] transition hover:bg-white/[0.05] hover:text-[#9bb0cc]"
+                            >
+                                <Plus className="size-3" />
+                                New set
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => importFileInputRef.current?.click()}
+                                className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-[#7188a8] transition hover:bg-white/[0.05] hover:text-[#9bb0cc]"
+                            >
+                                <Plus className="size-3" />
+                                Import CSS/JSON
+                            </button>
+                            <input
+                                ref={importFileInputRef}
+                                type="file"
+                                accept=".css,.json,text/css,application/json"
+                                className="hidden"
+                                onChange={(event) => void importTokenFile(event)}
+                            />
+                        </div>
                     )}
 
                     {/* Set actions */}

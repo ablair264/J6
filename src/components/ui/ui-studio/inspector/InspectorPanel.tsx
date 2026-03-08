@@ -897,7 +897,7 @@ export function InspectorPanel() {
     return (
         <ScrollArea className="ui-studio-inspector-scroll min-h-0 h-full min-w-0 flex-1 overflow-x-hidden">
             <div className="min-w-0 overflow-x-hidden px-2 pb-6 pt-2">
-                <div className="mx-1 mb-1.5 flex items-center justify-between border-b border-white/8 px-2 pb-2 pt-1">
+                <div className="mx-1 mb-1.5 flex items-center justify-between border-b border-[var(--inspector-border-soft)] px-2 pb-2 pt-1">
                     {editingVariantId === selectedInstance.id ? (
                         <input
                             value={editingVariantName}
@@ -912,11 +912,11 @@ export function InspectorPanel() {
                         />
                     ) : (
                         <div className="inline-flex items-center gap-2">
-                            <h2 className="truncate text-sm font-semibold text-[#edf5ff]">{selectedInstance.name}</h2>
+                            <h2 className="truncate text-sm font-semibold text-[var(--inspector-text)]">{selectedInstance.name}</h2>
                             <button
                                 type="button"
                                 onClick={() => startRenameVariant(selectedInstance)}
-                                className="rounded-md p-1 text-[#8fa6c7] transition hover:bg-white/[0.06] hover:text-[#eaf2ff]"
+                                className="rounded-md p-1 text-[var(--inspector-muted-text)] transition hover:bg-[var(--inspector-input)] hover:text-[var(--inspector-text)]"
                                 aria-label="Rename component"
                             >
                                 <EditOne className="size-4" />
@@ -925,7 +925,7 @@ export function InspectorPanel() {
                     )}
                     <Tooltip delay={800}>
                         <TooltipTrigger
-                            className="inline-flex size-8 items-center justify-center rounded-md text-[#8fa6c7] transition hover:bg-white/[0.06] hover:text-[#ff9ca4]"
+                            className="inline-flex size-8 items-center justify-center rounded-md text-[var(--inspector-muted-text)] transition hover:bg-[var(--inspector-input)] hover:text-[#ff9ca4]"
                             onPress={() => deleteInstance(selectedInstance.id)}
                             aria-label="Clear selected component"
                         >
@@ -1156,6 +1156,7 @@ export function InspectorPanel() {
                                                         ))}
                                                     </div>
                                                 </FlatField>
+                                                <FlatUnitField label="Icon Size" value={selectedStyle.iconSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('iconSize', value)} />
                                             </motion.div>
                                         ) : null}
                                     </AnimatePresence>
@@ -2297,7 +2298,7 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
-                                    <CardConfigSubsection title="Icon" defaultOpen={selectedStyle.cardShowIcon}>
+                                    <CardConfigSubsection title="Icon" defaultOpen={false}>
                                         <FlatSwitchRow label="Show icon" checked={selectedStyle.cardShowIcon} onCheckedChange={(value) => updateSelectedStyle('cardShowIcon', value)} />
                                         {selectedStyle.cardShowIcon ? (
                                             <>
@@ -2338,7 +2339,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText?.trim())}>
+                                    <CardConfigSubsection title="Badge" defaultOpen={false}>
                                         <FlatField label="Badge Text" stacked>
                                             <input
                                                 type="text"
@@ -2369,7 +2370,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Feature Tags" defaultOpen={selectedStyle.cardFeatureItems.length > 0}>
+                                    <CardConfigSubsection title="Feature Tags" defaultOpen={false}>
                                         <div className="space-y-2">
                                             {selectedStyle.cardFeatureItems.map((item, index) => (
                                                 <div key={item.id} className="flex items-center gap-1.5">
@@ -2415,7 +2416,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
+                                    <CardConfigSubsection title="Image" defaultOpen={false}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-card-image`}
                                             value={selectedStyle.cardImageSrc}
@@ -2432,7 +2433,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Dividers" defaultOpen={selectedStyle.cardShowDividers}>
+                                    <CardConfigSubsection title="Dividers" defaultOpen={false}>
                                         <FlatSwitchRow label="Show dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
                                         {selectedStyle.cardShowDividers ? (
                                             <>
@@ -2442,7 +2443,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Actions" defaultOpen={Boolean(selectedStyle.cardToggleText.trim()) || Boolean(selectedStyle.cardButtonText.trim())}>
+                                    <CardConfigSubsection title="Actions" defaultOpen={false}>
                                         <FlatField label="Toggle Label" stacked>
                                             <input
                                                 type="text"
@@ -2509,7 +2510,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={40}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the title"
                                         fontFamily={selectedStyle.cardTitleFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardTitleFontFamily', value)}
@@ -2529,7 +2530,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the subtitle"
                                         fontFamily={selectedStyle.cardSubtitleFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardSubtitleFontFamily', value)}
@@ -2549,7 +2550,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the body copy"
                                         fontFamily={selectedStyle.cardBodyFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardBodyFontFamily', value)}
@@ -2569,7 +2570,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={48}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the price"
                                         fontFamily={selectedStyle.cardPriceFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardPriceFontFamily', value)}
@@ -2635,7 +2636,7 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Product Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
-                                    <CardConfigSubsection title="Icon" defaultOpen={selectedStyle.cardShowIcon}>
+                                    <CardConfigSubsection title="Icon" defaultOpen={false}>
                                         <FlatSwitchRow label="Show icon" checked={selectedStyle.cardShowIcon} onCheckedChange={(value) => updateSelectedStyle('cardShowIcon', value)} />
                                         {selectedStyle.cardShowIcon ? (
                                             <>
@@ -2676,7 +2677,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText?.trim())}>
+                                    <CardConfigSubsection title="Badge" defaultOpen={false}>
                                         <FlatField label="Badge Text" stacked>
                                             <input
                                                 type="text"
@@ -2707,7 +2708,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Feature Tags" defaultOpen={selectedStyle.cardFeatureItems.length > 0}>
+                                    <CardConfigSubsection title="Feature Tags" defaultOpen={false}>
                                         <div className="space-y-2">
                                             {selectedStyle.cardFeatureItems.map((item, index) => (
                                                 <div key={item.id} className="flex items-center gap-1.5">
@@ -2753,7 +2754,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
+                                    <CardConfigSubsection title="Image" defaultOpen={false}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-product-card-image`}
                                             value={selectedStyle.cardImageSrc}
@@ -2770,7 +2771,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Dividers" defaultOpen={selectedStyle.cardShowDividers}>
+                                    <CardConfigSubsection title="Dividers" defaultOpen={false}>
                                         <FlatSwitchRow label="Show dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
                                         {selectedStyle.cardShowDividers ? (
                                             <>
@@ -2780,7 +2781,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Footer" defaultOpen={Boolean(selectedStyle.cardButtonText.trim())}>
+                                    <CardConfigSubsection title="Footer" defaultOpen={false}>
                                         <FlatField label="Button Text" stacked>
                                             <input
                                                 type="text"
@@ -2835,7 +2836,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={40}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the title"
                                         fontFamily={selectedStyle.cardTitleFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardTitleFontFamily', value)}
@@ -2858,7 +2859,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the subtitle"
                                         fontFamily={selectedStyle.cardSubtitleFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardSubtitleFontFamily', value)}
@@ -2882,7 +2883,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the body copy"
                                         fontFamily={selectedStyle.cardBodyFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardBodyFontFamily', value)}
@@ -2903,7 +2904,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={48}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the price"
                                         fontFamily={selectedStyle.cardPriceFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardPriceFontFamily', value)}
@@ -2969,7 +2970,7 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Listing Card Config" icon={Table} defaultOpen>
                                 <div className="space-y-3">
-                                    <CardConfigSubsection title="Icon" defaultOpen={selectedStyle.cardShowIcon}>
+                                    <CardConfigSubsection title="Icon" defaultOpen={false}>
                                         <FlatSwitchRow label="Show icon" checked={selectedStyle.cardShowIcon} onCheckedChange={(value) => updateSelectedStyle('cardShowIcon', value)} />
                                         {selectedStyle.cardShowIcon ? (
                                             <>
@@ -3010,7 +3011,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Badge" defaultOpen={Boolean(selectedStyle.cardBadgeText?.trim())}>
+                                    <CardConfigSubsection title="Badge" defaultOpen={false}>
                                         <FlatField label="Badge Text" stacked>
                                             <input
                                                 type="text"
@@ -3041,7 +3042,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Feature Tags" defaultOpen={selectedStyle.cardFeatureItems.length > 0}>
+                                    <CardConfigSubsection title="Feature Tags" defaultOpen={false}>
                                         <div className="space-y-2">
                                             {selectedStyle.cardFeatureItems.map((item, index) => (
                                                 <div key={item.id} className="flex items-center gap-1.5">
@@ -3087,7 +3088,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Image" defaultOpen={Boolean(selectedStyle.cardImageSrc)}>
+                                    <CardConfigSubsection title="Image" defaultOpen={false}>
                                         <CardImageDropzone
                                             inputId={`${selectedInstance.id}-listing-card-image`}
                                             value={selectedStyle.cardImageSrc}
@@ -3104,7 +3105,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Dividers" defaultOpen={selectedStyle.cardShowDividers}>
+                                    <CardConfigSubsection title="Dividers" defaultOpen={false}>
                                         <FlatSwitchRow label="Show dividers" checked={selectedStyle.cardShowDividers} onCheckedChange={(value) => updateSelectedStyle('cardShowDividers', value)} />
                                         {selectedStyle.cardShowDividers ? (
                                             <>
@@ -3114,7 +3115,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="Details" defaultOpen={selectedStyle.cardShowSpecs || Boolean(selectedStyle.cardPriceText.trim()) || Boolean(selectedStyle.cardBodyText.trim())}>
+                                    <CardConfigSubsection title="Details" defaultOpen={false}>
                                         <FlatSwitchRow label="Specs" checked={selectedStyle.cardShowSpecs} onCheckedChange={(value) => updateSelectedStyle('cardShowSpecs', value)} />
                                         {selectedStyle.cardPriceText.trim() || selectedStyle.cardBodyText.trim() ? (
                                             <FlatField label="Pricing Placement" stacked>
@@ -3126,7 +3127,7 @@ export function InspectorPanel() {
                                         ) : null}
                                     </CardConfigSubsection>
 
-                                    <CardConfigSubsection title="CTA" defaultOpen={Boolean(selectedStyle.cardCtaText.trim())}>
+                                    <CardConfigSubsection title="CTA" defaultOpen={false}>
                                         <FlatField label="CTA Text" stacked>
                                             <input
                                                 type="text"
@@ -3181,7 +3182,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={40}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the title"
                                         fontFamily={selectedStyle.cardTitleFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardTitleFontFamily', value)}
@@ -3202,7 +3203,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the subtitle"
                                         fontFamily={selectedStyle.cardSubtitleFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardSubtitleFontFamily', value)}
@@ -3223,7 +3224,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={32}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the body copy"
                                         fontFamily={selectedStyle.cardBodyFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardBodyFontFamily', value)}
@@ -3248,7 +3249,7 @@ export function InspectorPanel() {
                                         sizeMin={10}
                                         sizeMax={48}
                                         tokens={activeTokenSet.tokens}
-                                        defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
+                                        defaultOpen={false}
                                         textPlaceholder="Leave empty to hide the price"
                                         fontFamily={selectedStyle.cardPriceFontFamily}
                                         onFontFamilyChange={(value) => updateSelectedStyle('cardPriceFontFamily', value)}
@@ -3880,6 +3881,7 @@ export function InspectorPanel() {
                                                         ))}
                                                     </div>
                                                 </FlatField>
+                                                <FlatUnitField label="Icon Size" value={selectedStyle.iconSize} min={10} max={32} unit="px" onChange={(value) => updateSelectedStyle('iconSize', value)} />
                                             </motion.div>
                                         ) : null}
                                     </AnimatePresence>

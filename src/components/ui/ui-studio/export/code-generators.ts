@@ -437,6 +437,8 @@ export function buildTailwindThemeStyles(
     position: relative;
     overflow: hidden;
     border-radius: inherit;
+    border-color: transparent !important;
+    border-width: 0 !important;
   }
 
   .ui-studio-effect-border-beam::before {
@@ -466,6 +468,8 @@ export function buildTailwindThemeStyles(
     position: relative;
     overflow: hidden;
     border-radius: inherit;
+    border-color: transparent !important;
+    border-width: 0 !important;
   }
 
   .ui-studio-effect-shine-border::before {
@@ -498,6 +502,9 @@ export function buildTailwindThemeStyles(
     if (usesPulseRingEffect) {
         motionUtilityBlocks.push(`  .ui-studio-effect-pulse-ring {
     position: relative;
+    overflow: visible !important;
+    border-color: transparent !important;
+    border-width: 0 !important;
   }
 
   .ui-studio-effect-pulse-ring::after {
@@ -505,7 +512,7 @@ export function buildTailwindThemeStyles(
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    border: 2px solid var(--ui-effect-pulse-color, #22d3ee);
+    border: var(--ui-effect-pulse-width, 2px) solid var(--ui-effect-pulse-color, #22d3ee);
     pointer-events: none;
     animation: ui-studio-effect-pulse-expand var(--ui-effect-pulse-speed, 1.5s) ease-out infinite;
   }`);
