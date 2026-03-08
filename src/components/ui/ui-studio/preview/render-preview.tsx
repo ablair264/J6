@@ -2144,137 +2144,214 @@ export function renderPreview(
         }
 
         case 'product-card': {
-            const showImage = hasCardContent(instance.style.cardImageSrc);
-            const showTitle = hasCardContent(instance.style.cardTitleText);
-            const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
-            const showBody = hasCardContent(instance.style.cardBodyText);
-            const showPrice = hasCardContent(instance.style.cardPriceText);
-            const showFooter = hasCardContent(instance.style.cardButtonText);
+            const s = instance.style;
+            const showImage = hasCardContent(s.cardImageSrc);
+            const showTitle = hasCardContent(s.cardTitleText);
+            const showSubtitle = hasCardContent(s.cardSubtitleText);
+            const showBody = hasCardContent(s.cardBodyText);
+            const showPrice = hasCardContent(s.cardPriceText);
+            const showFooter = hasCardContent(s.cardButtonText) || (s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText));
             const pcWrapperStyle = buildComponentWrapperStyle(style, 'product-card');
-            const pcMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
-            const pcDirectStyle = buildCardDirectStyle(style, instance.style);
+            const pcMaxWidth = s.customWidth > 0 ? `${s.customWidth}px` : undefined;
+            const pcDirectStyle = buildCardDirectStyle(style, s);
+
+            // Load per-section Google Fonts
+            if (s.cardTitleFontFamily) loadGoogleFont(s.cardTitleFontFamily);
+            if (s.cardSubtitleFontFamily) loadGoogleFont(s.cardSubtitleFontFamily);
+            if (s.cardBodyFontFamily) loadGoogleFont(s.cardBodyFontFamily);
+            if (s.cardPriceFontFamily) loadGoogleFont(s.cardPriceFontFamily);
+
             const buildCardTextStyle = (
                 color: string,
                 size: number,
                 weight: number,
                 align: ComponentStyleConfig['fontPosition'],
+                fontFamily?: string,
             ) => ({
                 color,
                 fontSize: `${size}px`,
                 fontWeight: weight,
                 textAlign: align,
                 width: '100%',
+                ...(fontFamily ? { fontFamily } : {}),
             } satisfies CSSProperties);
             const titleStyle = buildCardTextStyle(
-                instance.style.cardTitleColor,
-                instance.style.cardTitleSize,
-                instance.style.cardTitleWeight,
-                instance.style.cardTitleAlign,
+                s.cardTitleColor,
+                s.cardTitleSize,
+                s.cardTitleWeight,
+                s.cardTitleAlign,
+                s.cardTitleFontFamily,
             );
             const subtitleStyle = buildCardTextStyle(
-                instance.style.cardSubtitleColor,
-                instance.style.cardSubtitleSize,
-                instance.style.cardSubtitleWeight,
-                instance.style.cardSubtitleAlign,
+                s.cardSubtitleColor,
+                s.cardSubtitleSize,
+                s.cardSubtitleWeight,
+                s.cardSubtitleAlign,
+                s.cardSubtitleFontFamily,
             );
             const bodyStyle = buildCardTextStyle(
-                instance.style.cardBodyColor,
-                instance.style.cardBodySize,
-                instance.style.cardBodyWeight,
-                instance.style.cardBodyAlign,
+                s.cardBodyColor,
+                s.cardBodySize,
+                s.cardBodyWeight,
+                s.cardBodyAlign,
+                s.cardBodyFontFamily,
             );
             const priceStyle = buildCardTextStyle(
-                instance.style.cardPriceColor,
-                instance.style.cardPriceSize,
-                instance.style.cardPriceWeight,
-                instance.style.cardPriceAlign,
+                s.cardPriceColor,
+                s.cardPriceSize,
+                s.cardPriceWeight,
+                s.cardPriceAlign,
+                s.cardPriceFontFamily,
             );
-            const footerAlignment = instance.style.cardActionsPosition === 'top' ? 'order-first' : 'order-last';
+            const footerAlignment = s.cardActionsPosition === 'top' ? 'order-first' : 'order-last';
+
+            // Icon block
+            const iconBlock = s.cardShowIcon ? (() => {
+                const IconComp = getIconComponent(s.cardIconName, s.iconLibrary);
+                if (!IconComp) return null;
+                const iconEl = <IconComp style={{ width: s.cardIconSize, height: s.cardIconSize, color: s.cardIconColor }} />;
+                if (s.cardIconBgEnabled) {
+                    return (
+                        <div className="flex items-center justify-center"
+                            style={{
+                                width: s.cardIconSize + 20, height: s.cardIconSize + 20,
+                                backgroundColor: hexToRgba(s.cardIconBgColor, 0.1),
+                                borderRadius: s.cardIconBgRadius,
+                            }}>
+                            {iconEl}
+                        </div>
+                    );
+                }
+                return iconEl;
+            })() : null;
+
+            // Feature items
+            const featureItemsBlock = s.cardFeatureItems.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                    {s.cardFeatureItems.map((item) => (
+                        <span key={item.id} className="rounded-md px-2 py-0.5 text-[11px] font-medium"
+                            style={{ backgroundColor: s.cardFeatureItemBgColor, color: s.cardFeatureItemTextColor }}>
+                            {item.label}
+                        </span>
+                    ))}
+                </div>
+            ) : null;
+
+            // Badge position for image overlay
+            const badgePositionClass = {
+                'top-left': 'top-3 left-3',
+                'top-right': 'top-3 right-3',
+                'bottom-left': 'bottom-3 left-3',
+                'bottom-right': 'bottom-3 right-3',
+            }[s.cardBadgePosition];
+
             const imageBlock = showImage ? (
                 <div className="relative aspect-[16/10] w-full overflow-hidden">
-                    <img src={instance.style.cardImageSrc} alt="Product" className="h-full w-full object-cover" />
+                    <img src={s.cardImageSrc} alt="Product" className="h-full w-full object-cover" />
+                    {hasCardContent(s.cardBadgeText) && (
+                        <span className={cn('absolute rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide shadow-sm', badgePositionClass)}
+                            style={{ color: s.cardBadgeColor, backgroundColor: s.cardBadgeBgColor }}>
+                            {s.cardBadgeText}
+                        </span>
+                    )}
                 </div>
             ) : null;
             const priceBlock = showPrice ? (
                 <div className="flex w-full flex-col gap-1">
-                    <span style={priceStyle}>{instance.style.cardPriceText}</span>
+                    <span style={priceStyle}>{s.cardPriceText}</span>
                 </div>
             ) : null;
-            const innerSections: CardSection[] = [
-                {
-                    key: 'footer-top',
-                    node: instance.style.cardActionsPosition === 'top' && showFooter ? (
-                        <CardFooter className={cn('justify-between gap-2', footerAlignment)}>
-                            <span className="text-xs text-muted-foreground">In stock</span>
-                            <Button size="sm">{instance.style.cardButtonText}</Button>
-                        </CardFooter>
-                    ) : null,
-                },
-                {
+
+            // Footer block with secondary button support
+            const footerBlock = showFooter ? (
+                <CardFooter className={cn('justify-between gap-2', footerAlignment)}>
+                    <span className="text-xs text-muted-foreground">In stock</span>
+                    <div className="flex gap-2">
+                        {hasCardContent(s.cardButtonText) ? <Button size="sm">{s.cardButtonText}</Button> : null}
+                        {s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText) ? (
+                            <Button size="sm" variant={s.cardSecondaryButtonVariant}>{s.cardSecondaryButtonText}</Button>
+                        ) : null}
+                    </div>
+                </CardFooter>
+            ) : null;
+
+            // Order-driven content sections
+            const sectionMap: Record<string, CardSection> = {
+                'icon': { key: 'icon', node: iconBlock },
+                'header': {
                     key: 'header',
                     node: showTitle || showSubtitle ? (
                         <CardHeader>
-                            {showTitle ? <CardTitle style={titleStyle}>{instance.style.cardTitleText}</CardTitle> : null}
-                            {showSubtitle ? <CardDescription style={subtitleStyle}>{instance.style.cardSubtitleText}</CardDescription> : null}
+                            {showTitle ? <CardTitle style={titleStyle}>{s.cardTitleText}</CardTitle> : null}
+                            {showSubtitle ? <CardDescription style={subtitleStyle}>{s.cardSubtitleText}</CardDescription> : null}
                         </CardHeader>
                     ) : null,
                 },
+                'features': { key: 'features', node: featureItemsBlock },
+                'body': { key: 'body', node: showBody ? <p style={bodyStyle}>{s.cardBodyText}</p> : null },
+                'price': { key: 'price', node: priceBlock },
+            };
+
+            const order = s.cardSectionOrder.length > 0
+                ? s.cardSectionOrder
+                : ['icon', 'header', 'features', 'body', 'price'];
+
+            const orderedContentSections: CardSection[] = order
+                .map((key) => sectionMap[key])
+                .filter((section): section is CardSection => section !== undefined);
+
+            const innerSections: CardSection[] = [
+                {
+                    key: 'footer-top',
+                    node: s.cardActionsPosition === 'top' ? footerBlock : null,
+                },
                 {
                     key: 'content',
-                    node: showPrice || showBody ? (
+                    node: orderedContentSections.some((sec) => sec.node !== null) ? (
                         <CardContent className="space-y-3">
                             {buildCardSectionStack(
-                                [
-                                    { key: 'price-top', node: instance.style.cardPricePosition === 'top' ? priceBlock : null },
-                                    { key: 'body', node: showBody ? <p style={bodyStyle}>{instance.style.cardBodyText}</p> : null },
-                                    { key: 'price-bottom', node: instance.style.cardPricePosition === 'bottom' ? priceBlock : null },
-                                ],
-                                instance.style.cardShowDividers,
-                                instance.style.cardDividerColor,
-                                instance.style.cardDividerWidth,
+                                orderedContentSections,
+                                s.cardShowDividers,
+                                s.cardDividerColor,
+                                s.cardDividerWidth,
                             )}
                         </CardContent>
                     ) : null,
                 },
                 {
                     key: 'footer-bottom',
-                    node: instance.style.cardActionsPosition === 'bottom' && showFooter ? (
-                        <CardFooter className={cn('justify-between gap-2', footerAlignment)}>
-                            <span className="text-xs text-muted-foreground">In stock</span>
-                            <Button size="sm">{instance.style.cardButtonText}</Button>
-                        </CardFooter>
-                    ) : null,
+                    node: s.cardActionsPosition === 'bottom' ? footerBlock : null,
                 },
             ];
             const hasInnerSections = innerSections.some((section) => section.node !== null);
             return (
                 <div className="w-full" style={{ ...pcWrapperStyle, maxWidth: pcMaxWidth || '24rem' }}>
                     <Card
-                        variant={instance.style.cardVariant}
+                        variant={s.cardVariant}
                         className={cn(motionClassName, 'overflow-hidden')}
                         style={pcDirectStyle}
                     >
                         {buildCardSectionStack(
                             [
-                                { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
+                                { key: 'image-top', node: s.cardImagePosition === 'top' ? imageBlock : null },
                                 {
                                     key: 'body-stack',
                                     node: hasInnerSections ? (
                                         <div className="flex flex-col">
                                             {buildCardSectionStack(
                                                 innerSections,
-                                                instance.style.cardShowDividers,
-                                                instance.style.cardDividerColor,
-                                                instance.style.cardDividerWidth,
+                                                s.cardShowDividers,
+                                                s.cardDividerColor,
+                                                s.cardDividerWidth,
                                             )}
                                         </div>
                                     ) : null,
                                 },
-                                { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
+                                { key: 'image-bottom', node: s.cardImagePosition === 'bottom' ? imageBlock : null },
                             ],
-                            instance.style.cardShowDividers,
-                            instance.style.cardDividerColor,
-                            instance.style.cardDividerWidth,
+                            s.cardShowDividers,
+                            s.cardDividerColor,
+                            s.cardDividerWidth,
                         )}
                     </Card>
                 </div>
@@ -2282,140 +2359,205 @@ export function renderPreview(
         }
 
         case 'listing-card': {
-            const showImage = hasCardContent(instance.style.cardImageSrc);
-            const showBadge = hasCardContent(instance.style.cardBadgeText);
-            const showTitle = hasCardContent(instance.style.cardTitleText);
-            const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
-            const showBody = hasCardContent(instance.style.cardBodyText);
-            const showPrice = hasCardContent(instance.style.cardPriceText);
-            const showCta = hasCardContent(instance.style.cardCtaText);
+            const s = instance.style;
+            const showImage = hasCardContent(s.cardImageSrc);
+            const showBadge = hasCardContent(s.cardBadgeText);
+            const showTitle = hasCardContent(s.cardTitleText);
+            const showSubtitle = hasCardContent(s.cardSubtitleText);
+            const showBody = hasCardContent(s.cardBodyText);
+            const showPrice = hasCardContent(s.cardPriceText);
+            const showCta = hasCardContent(s.cardCtaText);
             const lcWrapperStyle = buildComponentWrapperStyle(style, 'listing-card');
-            const lcMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
-            const lcDirectStyle = buildCardDirectStyle(style, instance.style);
+            const lcMaxWidth = s.customWidth > 0 ? `${s.customWidth}px` : undefined;
+            const lcDirectStyle = buildCardDirectStyle(style, s);
+
+            // Load per-section Google Fonts
+            if (s.cardTitleFontFamily) loadGoogleFont(s.cardTitleFontFamily);
+            if (s.cardSubtitleFontFamily) loadGoogleFont(s.cardSubtitleFontFamily);
+            if (s.cardBodyFontFamily) loadGoogleFont(s.cardBodyFontFamily);
+            if (s.cardPriceFontFamily) loadGoogleFont(s.cardPriceFontFamily);
+
             const buildCardTextStyle = (
                 color: string,
                 size: number,
                 weight: number,
                 align: ComponentStyleConfig['fontPosition'],
+                fontFamily?: string,
             ) => ({
                 color,
                 fontSize: `${size}px`,
                 fontWeight: weight,
                 textAlign: align,
                 width: '100%',
+                ...(fontFamily ? { fontFamily } : {}),
             } satisfies CSSProperties);
             const titleStyle = buildCardTextStyle(
-                instance.style.cardTitleColor,
-                instance.style.cardTitleSize,
-                instance.style.cardTitleWeight,
-                instance.style.cardTitleAlign,
+                s.cardTitleColor,
+                s.cardTitleSize,
+                s.cardTitleWeight,
+                s.cardTitleAlign,
+                s.cardTitleFontFamily,
             );
             const subtitleStyle = buildCardTextStyle(
-                instance.style.cardSubtitleColor,
-                instance.style.cardSubtitleSize,
-                instance.style.cardSubtitleWeight,
-                instance.style.cardSubtitleAlign,
+                s.cardSubtitleColor,
+                s.cardSubtitleSize,
+                s.cardSubtitleWeight,
+                s.cardSubtitleAlign,
+                s.cardSubtitleFontFamily,
             );
             const bodyStyle = buildCardTextStyle(
-                instance.style.cardBodyColor,
-                instance.style.cardBodySize,
-                instance.style.cardBodyWeight,
-                instance.style.cardBodyAlign,
+                s.cardBodyColor,
+                s.cardBodySize,
+                s.cardBodyWeight,
+                s.cardBodyAlign,
+                s.cardBodyFontFamily,
             );
             const priceStyle = buildCardTextStyle(
-                instance.style.cardPriceColor,
-                instance.style.cardPriceSize,
-                instance.style.cardPriceWeight,
-                instance.style.cardPriceAlign,
+                s.cardPriceColor,
+                s.cardPriceSize,
+                s.cardPriceWeight,
+                s.cardPriceAlign,
+                s.cardPriceFontFamily,
             );
-            const ctaAlignment = instance.style.cardActionsPosition === 'top'
+            const ctaAlignment = s.cardActionsPosition === 'top'
                 ? 'order-first'
                 : 'order-last';
+
+            // Icon block
+            const iconBlock = s.cardShowIcon ? (() => {
+                const IconComp = getIconComponent(s.cardIconName, s.iconLibrary);
+                if (!IconComp) return null;
+                const iconEl = <IconComp style={{ width: s.cardIconSize, height: s.cardIconSize, color: s.cardIconColor }} />;
+                if (s.cardIconBgEnabled) {
+                    return (
+                        <div className="flex items-center justify-center"
+                            style={{
+                                width: s.cardIconSize + 20, height: s.cardIconSize + 20,
+                                backgroundColor: hexToRgba(s.cardIconBgColor, 0.1),
+                                borderRadius: s.cardIconBgRadius,
+                            }}>
+                            {iconEl}
+                        </div>
+                    );
+                }
+                return iconEl;
+            })() : null;
+
+            // Feature items (replaces specs when present)
+            const featureItemsBlock = s.cardFeatureItems.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                    {s.cardFeatureItems.map((item) => (
+                        <span key={item.id} className="rounded-md px-2 py-0.5 text-[11px] font-medium"
+                            style={{ backgroundColor: s.cardFeatureItemBgColor, color: s.cardFeatureItemTextColor }}>
+                            {item.label}
+                        </span>
+                    ))}
+                </div>
+            ) : null;
+
+            // Badge position for image overlay
+            const badgePositionClass = {
+                'top-left': 'top-3 left-3',
+                'top-right': 'top-3 right-3',
+                'bottom-left': 'bottom-3 left-3',
+                'bottom-right': 'bottom-3 right-3',
+            }[s.cardBadgePosition];
+
             const imageBlock = showImage ? (
                 <div className="relative aspect-[16/10] w-full overflow-hidden">
-                    <img src={instance.style.cardImageSrc} alt="Listing" className="h-full w-full object-cover" />
+                    <img src={s.cardImageSrc} alt="Listing" className="h-full w-full object-cover" />
                     {showBadge && (
-                        <span className="absolute top-3 right-3 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white shadow-sm">
-                            {instance.style.cardBadgeText}
+                        <span className={cn('absolute rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide shadow-sm', badgePositionClass)}
+                            style={{ color: s.cardBadgeColor, backgroundColor: s.cardBadgeBgColor }}>
+                            {s.cardBadgeText}
                         </span>
                     )}
                 </div>
             ) : null;
-            const contentSections: CardSection[] = [
-                {
-                    key: 'cta-top',
-                    node: instance.style.cardActionsPosition === 'top' && showCta ? (
-                        <Button className={cn('w-full', ctaAlignment)} size="sm">
-                            {instance.style.cardCtaText}
-                        </Button>
-                    ) : null,
-                },
-                {
+
+            // CTA block with secondary button support
+            const ctaBlock = showCta || (s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText)) ? (
+                s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText) ? (
+                    <div className="flex w-full gap-2">
+                        {showCta ? <Button className="flex-1" size="sm">{s.cardCtaText}</Button> : null}
+                        <Button size="sm" variant={s.cardSecondaryButtonVariant}>{s.cardSecondaryButtonText}</Button>
+                    </div>
+                ) : (
+                    <Button className="w-full" size="sm">{s.cardCtaText}</Button>
+                )
+            ) : null;
+
+            // Specs fallback (when no feature items configured)
+            const specsBlock = featureItemsBlock ?? (s.cardShowSpecs ? (
+                <div className="flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>
+                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>
+                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>
+                </div>
+            ) : null);
+
+            // Order-driven content sections
+            const sectionMap: Record<string, CardSection> = {
+                'icon': { key: 'icon', node: iconBlock },
+                'heading': {
                     key: 'heading',
                     node: showTitle || showSubtitle ? (
                         <div>
-                            {showTitle ? <h3 style={titleStyle}>{instance.style.cardTitleText}</h3> : null}
-                            {showSubtitle ? <p style={subtitleStyle}>{instance.style.cardSubtitleText}</p> : null}
+                            {showTitle ? <h3 style={titleStyle}>{s.cardTitleText}</h3> : null}
+                            {showSubtitle ? <p style={subtitleStyle}>{s.cardSubtitleText}</p> : null}
                         </div>
                     ) : null,
                 },
-                {
-                    key: 'specs',
-                    node: instance.style.cardShowSpecs ? (
-                        <div className="flex flex-wrap gap-1.5">
-                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Category</span>
-                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Type</span>
-                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Detail</span>
-                        </div>
-                    ) : null,
-                },
-                {
+                'features': { key: 'features', node: specsBlock },
+                'pricing': {
                     key: 'pricing',
                     node: showPrice || showBody ? (
                         <div>
-                            {showPrice ? <div style={priceStyle}>{instance.style.cardPriceText}</div> : null}
-                            {showBody ? <p style={bodyStyle}>{instance.style.cardBodyText}</p> : null}
+                            {showPrice ? <div style={priceStyle}>{s.cardPriceText}</div> : null}
+                            {showBody ? <p style={bodyStyle}>{s.cardBodyText}</p> : null}
                         </div>
                     ) : null,
                 },
-                {
-                    key: 'cta-bottom',
-                    node: instance.style.cardActionsPosition === 'bottom' && showCta ? (
-                        <Button className={cn('w-full', ctaAlignment)} size="sm">
-                            {instance.style.cardCtaText}
-                        </Button>
-                    ) : null,
-                },
-            ];
-            const hasListingContent = contentSections.some((section) => section.node !== null);
+                'cta': { key: 'cta', node: ctaBlock },
+            };
+
+            const order = s.cardSectionOrder.length > 0
+                ? s.cardSectionOrder
+                : ['icon', 'heading', 'features', 'pricing', 'cta'];
+
+            const orderedContentSections: CardSection[] = order
+                .map((key) => sectionMap[key])
+                .filter((section): section is CardSection => section !== undefined);
+
+            const hasListingContent = orderedContentSections.some((section) => section.node !== null);
             return (
                 <div className="w-full" style={{ ...lcWrapperStyle, maxWidth: lcMaxWidth || '25rem' }}>
                     <Card
-                        variant={instance.style.cardVariant}
+                        variant={s.cardVariant}
                         className={cn(motionClassName, 'overflow-hidden')}
                         style={lcDirectStyle}
                     >
                         {buildCardSectionStack(
                             [
-                                { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
+                                { key: 'image-top', node: s.cardImagePosition === 'top' ? imageBlock : null },
                                 {
                                     key: 'content',
                                     node: hasListingContent ? (
                                         <CardContent className="space-y-3 pt-4">
                                             {buildCardSectionStack(
-                                                contentSections,
-                                                instance.style.cardShowDividers,
-                                                instance.style.cardDividerColor,
-                                                instance.style.cardDividerWidth,
+                                                orderedContentSections,
+                                                s.cardShowDividers,
+                                                s.cardDividerColor,
+                                                s.cardDividerWidth,
                                             )}
                                         </CardContent>
                                     ) : null,
                                 },
-                                { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
+                                { key: 'image-bottom', node: s.cardImagePosition === 'bottom' ? imageBlock : null },
                             ],
-                            instance.style.cardShowDividers,
-                            instance.style.cardDividerColor,
-                            instance.style.cardDividerWidth,
+                            s.cardShowDividers,
+                            s.cardDividerColor,
+                            s.cardDividerWidth,
                         )}
                     </Card>
                 </div>
