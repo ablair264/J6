@@ -1444,7 +1444,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--inspector-border-soft) 72%, transparent);
   border-radius: 0;
   background: transparent;
-  padding: 0.5rem 0 0.8rem;
+  padding: 0.35rem 0 0.55rem;
 }
 
 .ui-studio-shell .ui-studio-inspector .ui-studio-inspector-panel:last-child {

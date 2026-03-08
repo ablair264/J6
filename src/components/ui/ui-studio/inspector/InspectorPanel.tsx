@@ -81,8 +81,8 @@ import {
 } from './index';
 
 const studioInputClass =
-    'h-8 w-full rounded-lg bg-[#0e182a] px-2.5 text-[11px] text-[#e6f0ff] outline-none ring-1 ring-inset ring-white/12 transition placeholder:text-[#5f7597] focus:ring-[#63e8da]/45';
-const inspectorChoiceButtonBase = 'h-6 flex-1 rounded-sm px-2.5 text-[13px] font-medium transition-colors';
+    'ui-studio-inspector-input h-7 w-full rounded-md border-[var(--inspector-border-soft)] bg-[var(--inspector-input)] px-2 text-[12px] text-[var(--inspector-text)] outline-none transition placeholder:text-[color:var(--inspector-muted-text)]/80 focus-visible:border-[var(--inspector-border-strong)]';
+const inspectorChoiceButtonBase = 'h-6 flex-1 rounded-sm px-2 text-[12px] font-medium transition-colors';
 const inspectorChoiceButtonActive = 'bg-white/[0.10] text-[#eef5ff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]';
 const inspectorChoiceButtonIdle = 'text-[#7f8ca3] hover:bg-white/[0.03] hover:text-[#dfe7f5]';
 const inspectorIconChoiceButtonBase = 'inline-flex h-7 flex-1 items-center justify-center rounded-lg transition-colors';
@@ -1665,8 +1665,7 @@ export function InspectorPanel() {
                                     ) : null}
                                 </div>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Actions</p>
+                                <FlatElementSubsection title="Actions" defaultOpen={false}>
                                     <FlatField label="Action Mode" stacked>
                                         <FlatSelect value={selectedStyle.alertActionMode} onValueChange={(value) => updateSelectedStyle('alertActionMode', value as ComponentStyleConfig['alertActionMode'])} ariaLabel="Alert action mode">
                                             <option value="none">None</option>
@@ -1753,7 +1752,7 @@ export function InspectorPanel() {
                                             </FlatField>
                                         </div>
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -1990,7 +1989,10 @@ export function InspectorPanel() {
                                         ))}
                                     </div>
                                 </FlatField>
-                                <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                    <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                    <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                     <FlatColorControl label="List Background" value={selectedStyle.tabsListBg} onChange={(value) => updateSelectedStyle('tabsListBg', value)} tokens={activeTokenSet.tokens} />
@@ -2001,24 +2003,18 @@ export function InspectorPanel() {
                                     <FlatColorControl label="Inactive Text" value={selectedStyle.tabsInactiveTextColor} onChange={(value) => updateSelectedStyle('tabsInactiveTextColor', value)} tokens={activeTokenSet.tokens} />
                                 </div>
 
-                                <FlatElementSubsection title="Layout" defaultOpen>
-                                    <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
+                                <FlatElementSubsection title="Layout & Shape" defaultOpen>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Tab Gap" value={selectedStyle.tabsGap} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsGap', value)} />
                                         <FlatUnitField label="List Padding H" value={selectedStyle.tabsListPaddingX} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingX', value)} />
                                         <FlatUnitField label="List Padding V" value={selectedStyle.tabsListPaddingY} min={0} max={16} unit="px" onChange={(value) => updateSelectedStyle('tabsListPaddingY', value)} />
                                         <FlatUnitField label="Tab Padding H" value={selectedStyle.tabsTabPaddingX} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('tabsTabPaddingX', value)} />
-                                    </div>
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Shape" defaultOpen={false}>
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="List Radius" value={selectedStyle.tabsListRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('tabsListRadius', value)} />
                                         <FlatUnitField label="Tab Radius" value={selectedStyle.tabsTabRadius} min={0} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsTabRadius', value)} />
                                     </div>
                                 </FlatElementSubsection>
 
-                                <FlatElementSubsection title="Typography" defaultOpen={false}>
+                                <FlatElementSubsection title="Typography & Colors" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
                                         <FlatField label="Weight">
@@ -2029,9 +2025,6 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Advanced Colors" defaultOpen={false}>
                                     <div className="grid grid-cols-[1fr_110px] gap-2 items-end">
                                         <FlatColorControl
                                             label="List Border"
@@ -2625,8 +2618,7 @@ export function InspectorPanel() {
                                     />
                                 </FlatField>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Label</p>
+                                <FlatElementSubsection title="Label" defaultOpen={false}>
                                     <FlatField label="Label Position">
                                         <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                             {(['left', 'right'] as const).map((value) => (
@@ -2655,10 +2647,9 @@ export function InspectorPanel() {
                                         </FlatField>
                                     </div>
                                     <FlatColorControl label="Label Color" value={selectedStyle.switchLabelColor} onChange={(value) => updateSelectedStyle('switchLabelColor', value)} tokens={activeTokenSet.tokens} />
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Track &amp; Thumb</p>
+                                <FlatElementSubsection title="Track &amp; Thumb" defaultOpen>
                                     <FlatColorControl label="Track (Off)" value={selectedStyle.switchTrackColor} onChange={(value) => updateSelectedStyle('switchTrackColor', value)} tokens={activeTokenSet.tokens} />
                                     <FlatColorControl label="Track (On)" value={selectedStyle.switchTrackActiveColor} onChange={(value) => updateSelectedStyle('switchTrackActiveColor', value)} tokens={activeTokenSet.tokens} />
                                     <FlatColorControl label="Thumb (Off)" value={selectedStyle.switchThumbColor} onChange={(value) => updateSelectedStyle('switchThumbColor', value)} tokens={activeTokenSet.tokens} />
@@ -2684,10 +2675,9 @@ export function InspectorPanel() {
                                         <FlatUnitField label="Track Radius" value={selectedStyle.switchTrackRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchTrackRadius', value)} />
                                         <FlatUnitField label="Thumb Radius" value={selectedStyle.switchThumbRadius} min={0} max={20} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchThumbRadius', value)} />
                                     </div>
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Icons</p>
+                                <FlatElementSubsection title="Icons" defaultOpen={false}>
                                     <FlatSwitchRow label="Thumb Icon" checked={selectedStyle.switchShowIcon} onCheckedChange={(value) => updateSelectedStyle('switchShowIcon', value)} />
                                     {selectedStyle.switchShowIcon ? (
                                         <>
@@ -2773,10 +2763,9 @@ export function InspectorPanel() {
                                             <FlatUnitField label="Icon Size" value={selectedStyle.switchIconSize} min={6} max={16} unit="px" onChange={(value) => updateSelectedStyle('switchIconSize', value)} />
                                         </>
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
 
-                                <div className="space-y-2 border-t border-[var(--inspector-border)]/50 pt-2">
-                                    <p className="text-[11px] font-medium text-[var(--inspector-muted-text)]">Glow</p>
+                                <FlatElementSubsection title="Glow" defaultOpen={false}>
                                     <FlatSwitchRow label="Glow (On)" checked={selectedStyle.switchGlowEnabled} onCheckedChange={(value) => updateSelectedStyle('switchGlowEnabled', value)} />
                                     {selectedStyle.switchGlowEnabled ? (
                                         <>
@@ -2784,7 +2773,7 @@ export function InspectorPanel() {
                                             <FlatUnitField label="Glow Size" value={selectedStyle.switchGlowSize} min={2} max={24} step={1} unit="px" onChange={(value) => updateSelectedStyle('switchGlowSize', value)} />
                                         </>
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
