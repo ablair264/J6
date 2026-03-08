@@ -1934,119 +1934,209 @@ export function renderPreview(
             );
 
         case 'card': {
-            const showImage = hasCardContent(instance.style.cardImageSrc);
-            const showTitle = hasCardContent(instance.style.cardTitleText);
-            const showSubtitle = hasCardContent(instance.style.cardSubtitleText);
-            const showBody = hasCardContent(instance.style.cardBodyText);
-            const showPrice = hasCardContent(instance.style.cardPriceText);
-            const showToggle = hasCardContent(instance.style.cardToggleText);
-            const showButton = hasCardContent(instance.style.cardButtonText);
-            const hasAnyContent = showTitle || showSubtitle || showBody || showPrice || showToggle || showButton;
+            const s = instance.style;
+            const showImage = hasCardContent(s.cardImageSrc);
+            const showTitle = hasCardContent(s.cardTitleText);
+            const showSubtitle = hasCardContent(s.cardSubtitleText);
+            const showBody = hasCardContent(s.cardBodyText);
+            const showPrice = hasCardContent(s.cardPriceText);
+            const showToggle = hasCardContent(s.cardToggleText);
+            const showButton = hasCardContent(s.cardButtonText);
+            const hasAnyContent = showTitle || showSubtitle || showBody || showPrice || showToggle || showButton || s.cardShowIcon || s.cardFeatureItems.length > 0 || (s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText)) || hasCardContent(s.cardBadgeText);
             const cardWrapperStyle = buildComponentWrapperStyle(style, 'card');
-            const cardMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : undefined;
-            const cardDirectStyle = buildCardDirectStyle(style, instance.style);
+            const cardMaxWidth = s.customWidth > 0 ? `${s.customWidth}px` : undefined;
+            const cardDirectStyle = buildCardDirectStyle(style, s);
+
+            // Load per-section Google Fonts
+            if (s.cardTitleFontFamily) loadGoogleFont(s.cardTitleFontFamily);
+            if (s.cardSubtitleFontFamily) loadGoogleFont(s.cardSubtitleFontFamily);
+            if (s.cardBodyFontFamily) loadGoogleFont(s.cardBodyFontFamily);
+            if (s.cardPriceFontFamily) loadGoogleFont(s.cardPriceFontFamily);
+
             const buildCardTextStyle = (
                 color: string,
                 size: number,
                 weight: number,
                 align: ComponentStyleConfig['fontPosition'],
+                fontFamily?: string,
             ) => ({
                 color,
                 fontSize: `${size}px`,
                 fontWeight: weight,
                 textAlign: align,
                 width: '100%',
+                ...(fontFamily ? { fontFamily } : {}),
             } satisfies CSSProperties);
             const titleStyle = buildCardTextStyle(
-                instance.style.cardTitleColor,
-                instance.style.cardTitleSize,
-                instance.style.cardTitleWeight,
-                instance.style.cardTitleAlign,
+                s.cardTitleColor,
+                s.cardTitleSize,
+                s.cardTitleWeight,
+                s.cardTitleAlign,
+                s.cardTitleFontFamily,
             );
             const subtitleStyle = buildCardTextStyle(
-                instance.style.cardSubtitleColor,
-                instance.style.cardSubtitleSize,
-                instance.style.cardSubtitleWeight,
-                instance.style.cardSubtitleAlign,
+                s.cardSubtitleColor,
+                s.cardSubtitleSize,
+                s.cardSubtitleWeight,
+                s.cardSubtitleAlign,
+                s.cardSubtitleFontFamily,
             );
             const bodyStyle = buildCardTextStyle(
-                instance.style.cardBodyColor,
-                instance.style.cardBodySize,
-                instance.style.cardBodyWeight,
-                instance.style.cardBodyAlign,
+                s.cardBodyColor,
+                s.cardBodySize,
+                s.cardBodyWeight,
+                s.cardBodyAlign,
+                s.cardBodyFontFamily,
             );
             const priceStyle = buildCardTextStyle(
-                instance.style.cardPriceColor,
-                instance.style.cardPriceSize,
-                instance.style.cardPriceWeight,
-                instance.style.cardPriceAlign,
+                s.cardPriceColor,
+                s.cardPriceSize,
+                s.cardPriceWeight,
+                s.cardPriceAlign,
+                s.cardPriceFontFamily,
             );
-            const actionAlignment = instance.style.cardBodyAlign === 'center'
+            const actionAlignment = s.cardBodyAlign === 'center'
                 ? 'items-center'
-                : instance.style.cardBodyAlign === 'right'
+                : s.cardBodyAlign === 'right'
                     ? 'items-end'
                     : 'items-start';
+
+            // Icon block
+            const iconBlock = s.cardShowIcon ? (() => {
+                const IconComp = getIconComponent(s.cardIconName, s.iconLibrary);
+                if (!IconComp) return null;
+                const iconEl = <IconComp style={{ width: s.cardIconSize, height: s.cardIconSize, color: s.cardIconColor }} />;
+                if (s.cardIconBgEnabled) {
+                    return (
+                        <div className="flex items-center justify-center"
+                            style={{
+                                width: s.cardIconSize + 20, height: s.cardIconSize + 20,
+                                backgroundColor: hexToRgba(s.cardIconBgColor, 0.1),
+                                borderRadius: s.cardIconBgRadius,
+                            }}>
+                            {iconEl}
+                        </div>
+                    );
+                }
+                return iconEl;
+            })() : null;
+
+            // Standalone badge (renders when no image present)
+            const standaloneBadgeBlock = hasCardContent(s.cardBadgeText) && !showImage ? (
+                <span className="inline-block self-start rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide"
+                    style={{ color: s.cardBadgeColor, backgroundColor: s.cardBadgeBgColor }}>
+                    {s.cardBadgeText}
+                </span>
+            ) : null;
+
+            // Feature items
+            const featureItemsBlock = s.cardFeatureItems.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                    {s.cardFeatureItems.map((item) => (
+                        <span key={item.id} className="rounded-md px-2 py-0.5 text-[11px] font-medium"
+                            style={{ backgroundColor: s.cardFeatureItemBgColor, color: s.cardFeatureItemTextColor }}>
+                            {item.label}
+                        </span>
+                    ))}
+                </div>
+            ) : null;
+
+            // Badge position for image overlay
+            const badgePositionClass = {
+                'top-left': 'top-3 left-3',
+                'top-right': 'top-3 right-3',
+                'bottom-left': 'bottom-3 left-3',
+                'bottom-right': 'bottom-3 right-3',
+            }[s.cardBadgePosition];
+
             const imageBlock = showImage ? (
                 <div className="relative aspect-[16/10] w-full overflow-hidden">
-                    <img src={instance.style.cardImageSrc} alt="Card" className="h-full w-full object-cover" />
+                    <img src={s.cardImageSrc} alt="Card" className="h-full w-full object-cover" />
+                    {hasCardContent(s.cardBadgeText) && (
+                        <span className={cn('absolute rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide shadow-sm', badgePositionClass)}
+                            style={{ color: s.cardBadgeColor, backgroundColor: s.cardBadgeBgColor }}>
+                            {s.cardBadgeText}
+                        </span>
+                    )}
                 </div>
             ) : null;
+
             const priceBlock = showPrice ? (
                 <div className={cn('flex w-full flex-col gap-1', actionAlignment)}>
-                    <span style={priceStyle}>{instance.style.cardPriceText}</span>
+                    <span style={priceStyle}>{s.cardPriceText}</span>
                 </div>
             ) : null;
-            const actionBlock = (showToggle || showButton) ? (
+
+            const actionBlock = (showToggle || showButton || (s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText))) ? (
                 <div className={cn('flex w-full flex-col gap-3', actionAlignment)}>
                     {showToggle ? (
                         <div className="flex w-full items-center justify-between gap-3">
-                            <span style={bodyStyle}>{instance.style.cardToggleText}</span>
+                            <span style={bodyStyle}>{s.cardToggleText}</span>
                             <Switch defaultChecked />
                         </div>
                     ) : null}
-                    {showButton ? (
-                        <Button size="sm" className="w-full">{instance.style.cardButtonText}</Button>
+                    {(showButton || (s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText))) ? (
+                        <div className="flex w-full gap-2">
+                            {showButton ? <Button size="sm" className="flex-1">{s.cardButtonText}</Button> : null}
+                            {s.cardShowSecondaryButton && hasCardContent(s.cardSecondaryButtonText) ? (
+                                <Button size="sm" variant={s.cardSecondaryButtonVariant} className={showButton ? '' : 'flex-1'}>
+                                    {s.cardSecondaryButtonText}
+                                </Button>
+                            ) : null}
+                        </div>
                     ) : null}
                 </div>
             ) : null;
-            const contentSections: CardSection[] = [
-                { key: 'price-top', node: instance.style.cardPricePosition === 'top' ? priceBlock : null },
-                { key: 'actions-top', node: instance.style.cardActionsPosition === 'top' ? actionBlock : null },
-                { key: 'title', node: showTitle ? <h3 style={titleStyle}>{instance.style.cardTitleText}</h3> : null },
-                { key: 'subtitle', node: showSubtitle ? <p style={subtitleStyle}>{instance.style.cardSubtitleText}</p> : null },
-                { key: 'body', node: showBody ? <p style={bodyStyle}>{instance.style.cardBodyText}</p> : null },
-                { key: 'price-bottom', node: instance.style.cardPricePosition === 'bottom' ? priceBlock : null },
-                { key: 'actions-bottom', node: instance.style.cardActionsPosition === 'bottom' ? actionBlock : null },
-            ];
+
+            // Order-driven content sections
+            const sectionMap: Record<string, CardSection> = {
+                'icon': { key: 'icon', node: iconBlock },
+                'badge-standalone': { key: 'badge-standalone', node: standaloneBadgeBlock },
+                'title': { key: 'title', node: showTitle ? <h3 style={titleStyle}>{s.cardTitleText}</h3> : null },
+                'subtitle': { key: 'subtitle', node: showSubtitle ? <p style={subtitleStyle}>{s.cardSubtitleText}</p> : null },
+                'features': { key: 'features', node: featureItemsBlock },
+                'body': { key: 'body', node: showBody ? <p style={bodyStyle}>{s.cardBodyText}</p> : null },
+                'price': { key: 'price', node: priceBlock },
+                'actions': { key: 'actions', node: actionBlock },
+            };
+
+            const order = s.cardSectionOrder.length > 0
+                ? s.cardSectionOrder
+                : ['icon', 'badge-standalone', 'title', 'subtitle', 'features', 'body', 'price', 'actions'];
+
+            const contentSections: CardSection[] = order
+                .map((key) => sectionMap[key])
+                .filter((section): section is CardSection => section !== undefined);
+
             const cardSections: CardSection[] = [
-                { key: 'image-top', node: instance.style.cardImagePosition === 'top' ? imageBlock : null },
+                { key: 'image-top', node: s.cardImagePosition === 'top' ? imageBlock : null },
                 {
                     key: 'content',
                     node: hasAnyContent ? (
                         <CardContent className="space-y-3">
                             {buildCardSectionStack(
                                 contentSections,
-                                instance.style.cardShowDividers,
-                                instance.style.cardDividerColor,
-                                instance.style.cardDividerWidth,
+                                s.cardShowDividers,
+                                s.cardDividerColor,
+                                s.cardDividerWidth,
                             )}
                         </CardContent>
                     ) : null,
                 },
-                { key: 'image-bottom', node: instance.style.cardImagePosition === 'bottom' ? imageBlock : null },
+                { key: 'image-bottom', node: s.cardImagePosition === 'bottom' ? imageBlock : null },
             ];
             return (
                 <div className="w-full" style={{ ...cardWrapperStyle, maxWidth: cardMaxWidth || '24rem' }}>
                     <Card
-                        variant={instance.style.cardVariant}
+                        variant={s.cardVariant}
                         className={cn(motionClassName, 'overflow-hidden')}
                         style={cardDirectStyle}
                     >
                         {buildCardSectionStack(
                             cardSections,
-                            instance.style.cardShowDividers,
-                            instance.style.cardDividerColor,
-                            instance.style.cardDividerWidth,
+                            s.cardShowDividers,
+                            s.cardDividerColor,
+                            s.cardDividerWidth,
                         )}
                     </Card>
                 </div>
