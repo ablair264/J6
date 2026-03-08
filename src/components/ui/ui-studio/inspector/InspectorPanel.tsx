@@ -1,6 +1,6 @@
 import { useEffect, useMemo, type ChangeEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, ChevronDown, Minus, SlidersHorizontal, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Minus, SlidersHorizontal, X } from 'lucide-react';
 import {
     Config,
     Delete,
@@ -198,11 +198,13 @@ function CardTypographyControls({
     defaultOpen = false,
     textPlaceholder,
     children,
+    fontFamily,
     onTextChange,
     onColorChange,
     onSizeChange,
     onWeightChange,
     onAlignChange,
+    onFontFamilyChange,
 }: {
     title: string;
     textValue: string;
@@ -216,11 +218,13 @@ function CardTypographyControls({
     defaultOpen?: boolean;
     textPlaceholder: string;
     children?: ReactNode;
+    fontFamily?: string;
     onTextChange: (value: string) => void;
     onColorChange: (value: string) => void;
     onSizeChange: (value: number) => void;
     onWeightChange: (value: number) => void;
     onAlignChange: (value: FontPosition) => void;
+    onFontFamilyChange?: (value: string) => void;
 }) {
     return (
         <CardConfigSubsection title={`${title} Typography`} defaultOpen={defaultOpen}>
@@ -234,6 +238,13 @@ function CardTypographyControls({
                 />
             </FlatField>
             <FlatColorControl label="Color" value={color} onChange={onColorChange} tokens={tokens} />
+            {onFontFamilyChange ? (
+                <FlatField label="Font" stacked>
+                    <FlatSelect value={fontFamily ?? ''} onValueChange={onFontFamilyChange} ariaLabel={`${title} font family`}>
+                        {GOOGLE_FONTS.map((font) => (<option key={font.id} value={font.id}>{font.label}</option>))}
+                    </FlatSelect>
+                </FlatField>
+            ) : null}
             <FlatUnitField label="Size" value={size} min={sizeMin} max={sizeMax} unit="px" onChange={onSizeChange} />
             <FlatField label="Weight" stacked>
                 <FlatSelect value={weight} onValueChange={(value) => onWeightChange(Number(value))} ariaLabel={`${title} weight`}>
@@ -1774,42 +1785,67 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'dialog' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Dialog Config" icon={Sparkles} defaultOpen>
-                                <CardTypographyControls
-                                    title="Dialog Title"
-                                    textValue={selectedStyle.dialogTitleText}
-                                    color={selectedStyle.dialogTitleColor}
-                                    size={selectedStyle.dialogTitleSize}
-                                    weight={selectedStyle.dialogTitleWeight}
-                                    align={selectedStyle.dialogTitleAlign}
-                                    sizeMin={16}
-                                    sizeMax={32}
-                                    tokens={activeTokenSet.tokens}
-                                    textPlaceholder="Heading copy"
-                                    onTextChange={(value) => updateSelectedStyle('dialogTitleText', value)}
-                                    onColorChange={(value) => updateSelectedStyle('dialogTitleColor', value)}
-                                    onSizeChange={(value) => updateSelectedStyle('dialogTitleSize', value)}
-                                    onWeightChange={(value) => updateSelectedStyle('dialogTitleWeight', value)}
-                                    onAlignChange={(value) => updateSelectedStyle('dialogTitleAlign', value)}
-                                />
-                                <CardTypographyControls
-                                    title="Dialog Body"
-                                    textValue={selectedStyle.dialogBodyText}
-                                    color={selectedStyle.dialogBodyColor}
-                                    size={selectedStyle.dialogBodySize}
-                                    weight={selectedStyle.dialogBodyWeight}
-                                    align={selectedStyle.dialogBodyAlign}
-                                    sizeMin={12}
-                                    sizeMax={20}
-                                    tokens={activeTokenSet.tokens}
-                                    textPlaceholder="Body copy"
-                                    defaultOpen
-                                    onTextChange={(value) => updateSelectedStyle('dialogBodyText', value)}
-                                    onColorChange={(value) => updateSelectedStyle('dialogBodyColor', value)}
-                                    onSizeChange={(value) => updateSelectedStyle('dialogBodySize', value)}
-                                    onWeightChange={(value) => updateSelectedStyle('dialogBodyWeight', value)}
-                                    onAlignChange={(value) => updateSelectedStyle('dialogBodyAlign', value)}
-                                />
-                                <div className="space-y-2">
+                                <FlatElementSubsection title="Title Typography" defaultOpen={false}>
+                                    <FlatField label="Text" stacked>
+                                        <input
+                                            type="text"
+                                            value={selectedStyle.dialogTitleText}
+                                            onChange={(event) => updateSelectedStyle('dialogTitleText', event.target.value)}
+                                            className={studioInputClass}
+                                            placeholder="Heading copy"
+                                        />
+                                    </FlatField>
+                                    <FlatColorControl label="Color" value={selectedStyle.dialogTitleColor} onChange={(value) => updateSelectedStyle('dialogTitleColor', value)} tokens={activeTokenSet.tokens} />
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Size" value={selectedStyle.dialogTitleSize} min={16} max={32} unit="px" onChange={(value) => updateSelectedStyle('dialogTitleSize', value)} />
+                                        <FlatField label="Weight" stacked>
+                                            <FlatSelect value={selectedStyle.dialogTitleWeight} onValueChange={(value) => updateSelectedStyle('dialogTitleWeight', Number(value))} ariaLabel="Dialog title weight">
+                                                {cardWeightOptions.map((option) => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                    <FlatField label="Alignment" stacked>
+                                        <FlatSelect value={selectedStyle.dialogTitleAlign} onValueChange={(value) => updateSelectedStyle('dialogTitleAlign', value as FontPosition)} ariaLabel="Dialog title alignment">
+                                            <option value="left">Left</option>
+                                            <option value="center">Center</option>
+                                            <option value="right">Right</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                </FlatElementSubsection>
+
+                                <FlatElementSubsection title="Body Typography" defaultOpen={false}>
+                                    <FlatField label="Text" stacked>
+                                        <input
+                                            type="text"
+                                            value={selectedStyle.dialogBodyText}
+                                            onChange={(event) => updateSelectedStyle('dialogBodyText', event.target.value)}
+                                            className={studioInputClass}
+                                            placeholder="Body copy"
+                                        />
+                                    </FlatField>
+                                    <FlatColorControl label="Color" value={selectedStyle.dialogBodyColor} onChange={(value) => updateSelectedStyle('dialogBodyColor', value)} tokens={activeTokenSet.tokens} />
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                        <FlatUnitField label="Size" value={selectedStyle.dialogBodySize} min={12} max={20} unit="px" onChange={(value) => updateSelectedStyle('dialogBodySize', value)} />
+                                        <FlatField label="Weight" stacked>
+                                            <FlatSelect value={selectedStyle.dialogBodyWeight} onValueChange={(value) => updateSelectedStyle('dialogBodyWeight', Number(value))} ariaLabel="Dialog body weight">
+                                                {cardWeightOptions.map((option) => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </FlatSelect>
+                                        </FlatField>
+                                    </div>
+                                    <FlatField label="Alignment" stacked>
+                                        <FlatSelect value={selectedStyle.dialogBodyAlign} onValueChange={(value) => updateSelectedStyle('dialogBodyAlign', value as FontPosition)} ariaLabel="Dialog body alignment">
+                                            <option value="left">Left</option>
+                                            <option value="center">Center</option>
+                                            <option value="right">Right</option>
+                                        </FlatSelect>
+                                    </FlatField>
+                                </FlatElementSubsection>
+
+                                <FlatElementSubsection title="Actions" defaultOpen={false}>
                                     <FlatSwitchRow
                                         label="Show close icon"
                                         checked={selectedStyle.dialogShowCloseIcon}
@@ -1830,7 +1866,7 @@ export function InspectorPanel() {
                                             />
                                         </FlatField>
                                     ) : null}
-                                </div>
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
@@ -2359,6 +2395,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
                                         textPlaceholder="Leave empty to hide the title"
+                                        fontFamily={selectedStyle.cardTitleFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardTitleFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardTitleText', 'cardShowTitle', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
@@ -2377,6 +2415,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
                                         textPlaceholder="Leave empty to hide the subtitle"
+                                        fontFamily={selectedStyle.cardSubtitleFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardSubtitleFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardSubtitleText', 'cardShowSubtitle', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
@@ -2395,6 +2435,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
                                         textPlaceholder="Leave empty to hide the body copy"
+                                        fontFamily={selectedStyle.cardBodyFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardBodyFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardBodyText', 'cardShowBody', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
@@ -2413,6 +2455,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
                                         textPlaceholder="Leave empty to hide the price"
+                                        fontFamily={selectedStyle.cardPriceFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardPriceFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardPriceText', 'cardShowPrice', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
@@ -2426,6 +2470,45 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </CardTypographyControls>
+
+                                    <CardConfigSubsection title="Section Order" defaultOpen={false}>
+                                        <div className="space-y-1">
+                                            {selectedStyle.cardSectionOrder.map((sectionKey, index) => (
+                                                <div key={sectionKey} className="flex items-center gap-1">
+                                                    <span className="flex-1 truncate text-[11px] text-[var(--inspector-text)] capitalize">
+                                                        {sectionKey.replace(/-/g, ' ')}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === 0}
+                                                        onClick={() => {
+                                                            const order = [...selectedStyle.cardSectionOrder];
+                                                            [order[index - 1], order[index]] = [order[index], order[index - 1]];
+                                                            updateSelectedStyle('cardSectionOrder', order);
+                                                        }}
+                                                        className="inline-flex size-6 items-center justify-center rounded-sm text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:opacity-30"
+                                                    >
+                                                        <ChevronUp className="size-3.5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === selectedStyle.cardSectionOrder.length - 1}
+                                                        onClick={() => {
+                                                            const order = [...selectedStyle.cardSectionOrder];
+                                                            [order[index], order[index + 1]] = [order[index + 1], order[index]];
+                                                            updateSelectedStyle('cardSectionOrder', order);
+                                                        }}
+                                                        className="inline-flex size-6 items-center justify-center rounded-sm text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:opacity-30"
+                                                    >
+                                                        <ChevronDown className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-[var(--inspector-muted-text)]">
+                                            Reorder content sections within the card. Image position is controlled separately.
+                                        </p>
+                                    </CardConfigSubsection>
                                 </div>
                             </FlatInspectorSection>
                         </div>
@@ -2638,6 +2721,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
                                         textPlaceholder="Leave empty to hide the title"
+                                        fontFamily={selectedStyle.cardTitleFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardTitleFontFamily', value)}
                                         onTextChange={(value) => {
                                             updateCardTextField('cardTitleText', 'cardShowTitle', value);
                                             updateSelectedStyle('cardShowHeader', value.trim().length > 0 || selectedStyle.cardSubtitleText.trim().length > 0);
@@ -2659,6 +2744,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
                                         textPlaceholder="Leave empty to hide the subtitle"
+                                        fontFamily={selectedStyle.cardSubtitleFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardSubtitleFontFamily', value)}
                                         onTextChange={(value) => {
                                             updateCardTextField('cardSubtitleText', 'cardShowSubtitle', value);
                                             updateSelectedStyle('cardShowHeader', value.trim().length > 0 || selectedStyle.cardTitleText.trim().length > 0);
@@ -2681,6 +2768,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
                                         textPlaceholder="Leave empty to hide the body copy"
+                                        fontFamily={selectedStyle.cardBodyFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardBodyFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardBodyText', 'cardShowBody', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardBodyColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardBodySize', value)}
@@ -2700,6 +2789,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
                                         textPlaceholder="Leave empty to hide the price"
+                                        fontFamily={selectedStyle.cardPriceFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardPriceFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardPriceText', 'cardShowPrice', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardPriceColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardPriceSize', value)}
@@ -2713,6 +2804,45 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </CardTypographyControls>
+
+                                    <CardConfigSubsection title="Section Order" defaultOpen={false}>
+                                        <div className="space-y-1">
+                                            {selectedStyle.cardSectionOrder.map((sectionKey, index) => (
+                                                <div key={sectionKey} className="flex items-center gap-1">
+                                                    <span className="flex-1 truncate text-[11px] text-[var(--inspector-text)] capitalize">
+                                                        {sectionKey.replace(/-/g, ' ')}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === 0}
+                                                        onClick={() => {
+                                                            const order = [...selectedStyle.cardSectionOrder];
+                                                            [order[index - 1], order[index]] = [order[index], order[index - 1]];
+                                                            updateSelectedStyle('cardSectionOrder', order);
+                                                        }}
+                                                        className="inline-flex size-6 items-center justify-center rounded-sm text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:opacity-30"
+                                                    >
+                                                        <ChevronUp className="size-3.5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === selectedStyle.cardSectionOrder.length - 1}
+                                                        onClick={() => {
+                                                            const order = [...selectedStyle.cardSectionOrder];
+                                                            [order[index], order[index + 1]] = [order[index + 1], order[index]];
+                                                            updateSelectedStyle('cardSectionOrder', order);
+                                                        }}
+                                                        className="inline-flex size-6 items-center justify-center rounded-sm text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:opacity-30"
+                                                    >
+                                                        <ChevronDown className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-[var(--inspector-muted-text)]">
+                                            Reorder content sections within the card. Image position is controlled separately.
+                                        </p>
+                                    </CardConfigSubsection>
                                 </div>
                             </FlatInspectorSection>
                         </div>
@@ -2937,6 +3067,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardTitleText.trim())}
                                         textPlaceholder="Leave empty to hide the title"
+                                        fontFamily={selectedStyle.cardTitleFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardTitleFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardTitleText', 'cardShowTitle', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardTitleColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardTitleSize', value)}
@@ -2956,6 +3088,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardSubtitleText.trim())}
                                         textPlaceholder="Leave empty to hide the subtitle"
+                                        fontFamily={selectedStyle.cardSubtitleFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardSubtitleFontFamily', value)}
                                         onTextChange={(value) => updateCardTextField('cardSubtitleText', 'cardShowSubtitle', value)}
                                         onColorChange={(value) => updateSelectedStyle('cardSubtitleColor', value)}
                                         onSizeChange={(value) => updateSelectedStyle('cardSubtitleSize', value)}
@@ -2975,6 +3109,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardBodyText.trim())}
                                         textPlaceholder="Leave empty to hide the body copy"
+                                        fontFamily={selectedStyle.cardBodyFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardBodyFontFamily', value)}
                                         onTextChange={(value) => updateSelectedStyles({
                                             cardBodyText: value,
                                             cardShowBody: value.trim().length > 0,
@@ -2998,6 +3134,8 @@ export function InspectorPanel() {
                                         tokens={activeTokenSet.tokens}
                                         defaultOpen={Boolean(selectedStyle.cardPriceText.trim())}
                                         textPlaceholder="Leave empty to hide the price"
+                                        fontFamily={selectedStyle.cardPriceFontFamily}
+                                        onFontFamilyChange={(value) => updateSelectedStyle('cardPriceFontFamily', value)}
                                         onTextChange={(value) => updateSelectedStyles({
                                             cardPriceText: value,
                                             cardShowPrice: value.trim().length > 0,
@@ -3008,6 +3146,45 @@ export function InspectorPanel() {
                                         onWeightChange={(value) => updateSelectedStyle('cardPriceWeight', value)}
                                         onAlignChange={(value) => updateSelectedStyle('cardPriceAlign', value)}
                                     />
+
+                                    <CardConfigSubsection title="Section Order" defaultOpen={false}>
+                                        <div className="space-y-1">
+                                            {selectedStyle.cardSectionOrder.map((sectionKey, index) => (
+                                                <div key={sectionKey} className="flex items-center gap-1">
+                                                    <span className="flex-1 truncate text-[11px] text-[var(--inspector-text)] capitalize">
+                                                        {sectionKey.replace(/-/g, ' ')}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === 0}
+                                                        onClick={() => {
+                                                            const order = [...selectedStyle.cardSectionOrder];
+                                                            [order[index - 1], order[index]] = [order[index], order[index - 1]];
+                                                            updateSelectedStyle('cardSectionOrder', order);
+                                                        }}
+                                                        className="inline-flex size-6 items-center justify-center rounded-sm text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:opacity-30"
+                                                    >
+                                                        <ChevronUp className="size-3.5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === selectedStyle.cardSectionOrder.length - 1}
+                                                        onClick={() => {
+                                                            const order = [...selectedStyle.cardSectionOrder];
+                                                            [order[index], order[index + 1]] = [order[index + 1], order[index]];
+                                                            updateSelectedStyle('cardSectionOrder', order);
+                                                        }}
+                                                        className="inline-flex size-6 items-center justify-center rounded-sm text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:opacity-30"
+                                                    >
+                                                        <ChevronDown className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-[var(--inspector-muted-text)]">
+                                            Reorder content sections within the card. Image position is controlled separately.
+                                        </p>
+                                    </CardConfigSubsection>
                                 </div>
                             </FlatInspectorSection>
                         </div>
