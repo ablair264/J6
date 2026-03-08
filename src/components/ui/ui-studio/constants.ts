@@ -6,6 +6,7 @@ import type {
     AvatarShape,
     BorderStyleOption,
     ButtonPreviewState,
+    CardFeatureItem,
     CardVariant,
     ComponentInfo,
     ComponentStyleConfig,
@@ -677,6 +678,33 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     cardShowCta: true,
     cardBadgeText: 'FEATURED',
     cardCtaText: 'View Details',
+    // Card — icon slot
+    cardShowIcon: false,
+    cardIconName: 'lightning' as IconOptionId,
+    cardIconColor: '#3b82f6',
+    cardIconSize: 24,
+    cardIconBgColor: '#3b82f6',
+    cardIconBgEnabled: true,
+    cardIconBgRadius: 12,
+    // Card — badge
+    cardBadgeColor: '#ffffff',
+    cardBadgeBgColor: '#ef4444',
+    cardBadgePosition: 'top-right' as const,
+    // Card — feature items
+    cardFeatureItems: [] as CardFeatureItem[],
+    cardFeatureItemBgColor: '#1e293b',
+    cardFeatureItemTextColor: '#94a3b8',
+    // Card — secondary button
+    cardShowSecondaryButton: false,
+    cardSecondaryButtonText: '',
+    cardSecondaryButtonVariant: 'outline' as const,
+    // Card — section ordering
+    cardSectionOrder: ['icon', 'image', 'badge-standalone', 'title', 'subtitle', 'features', 'body', 'price', 'actions'] as string[],
+    // Card — per-section font family
+    cardTitleFontFamily: '',
+    cardSubtitleFontFamily: '',
+    cardBodyFontFamily: '',
+    cardPriceFontFamily: '',
     // Switch
     switchChecked: true,
     switchDisabled: false,

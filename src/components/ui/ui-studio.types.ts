@@ -89,6 +89,11 @@ export type BorderStyleOption = 'solid' | 'dashed' | 'dotted';
 export type TextTransformOption = 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 export type StaggerDirection = 'forward' | 'reverse';
 
+export interface CardFeatureItem {
+  id: string;
+  label: string;
+}
+
 export interface ComponentInfo {
   kind: UIComponentKind;
   label: string;
@@ -570,6 +575,33 @@ export interface ComponentStyleConfig {
   cardShowCta: boolean;
   cardBadgeText: string;
   cardCtaText: string;
+  // Card — icon slot
+  cardShowIcon: boolean;
+  cardIconName: IconOptionId;
+  cardIconColor: string;
+  cardIconSize: number;
+  cardIconBgColor: string;
+  cardIconBgEnabled: boolean;
+  cardIconBgRadius: number;
+  // Card — badge (all card types)
+  cardBadgeColor: string;
+  cardBadgeBgColor: string;
+  cardBadgePosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  // Card — feature items
+  cardFeatureItems: CardFeatureItem[];
+  cardFeatureItemBgColor: string;
+  cardFeatureItemTextColor: string;
+  // Card — secondary button
+  cardShowSecondaryButton: boolean;
+  cardSecondaryButtonText: string;
+  cardSecondaryButtonVariant: 'default' | 'outline' | 'ghost' | 'secondary';
+  // Card — section ordering
+  cardSectionOrder: string[];
+  // Card — per-section font family
+  cardTitleFontFamily: string;
+  cardSubtitleFontFamily: string;
+  cardBodyFontFamily: string;
+  cardPriceFontFamily: string;
   // Switch
   switchChecked: boolean;
   switchDisabled: boolean;
