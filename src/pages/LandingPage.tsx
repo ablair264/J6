@@ -137,17 +137,17 @@ const CSS = `
   .j6-badge .pulse { width: 6px; height: 6px; border-radius: 50%; animation: badge-pulse 2s ease-in-out infinite; }
   @keyframes badge-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }
 
-  /* ── Preview Card (hero right) ─────────────────────────────────── */
-  .pcard { position: relative; z-index: 5; width: 320px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 12px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
-  .pcard-hdr { display: flex; align-items: center; gap: 6px; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); }
+  /* ── Hero screenshot ─────────────────────────────────── */
+  .hero-screenshot {
+    position: relative; z-index: 5; width: 85%; max-width: 520px;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .hero-screenshot img { width: 100%; display: block; }
+  .pcard-hdr { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
   .pcard-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: auto; }
-  .pcard-body { padding: 24px; }
-  .pbtn { width: 100%; padding: 12px; border: none; cursor: pointer; font-family: var(--sans); font-size: 14px; font-weight: 600; margin-bottom: 16px; }
-  .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .pctrl { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; }
-  .pctrl-l { font-family: var(--mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
-  .pctrl-v { font-family: var(--mono); font-size: 11px; font-weight: 500; }
 
   /* ── Marquee Strip ─────────────────────────────────── */
   .strip { border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 16px 0; background: var(--bg-surface); overflow: hidden; white-space: nowrap; }
@@ -188,7 +188,7 @@ const CSS = `
   .bc-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; max-width: 380px; margin-bottom: 32px; }
   .bc-media { width: 100%; position: relative; }
   .bc-media-inner { width: 100%; border-radius: 8px 8px 0 0; overflow: hidden; background: var(--bg-surface); border: 1px solid var(--border-strong); border-bottom: none; position: relative; }
-  .bc-media-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bc-media-inner img, .bc-media-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bc-media-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--border-strong); border-top: 1px solid var(--border-subtle); }
   .bc-media-dot { width: 7px; height: 7px; border-radius: 50%; }
   .bc-media-title { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: 8px; letter-spacing: 0.06em; }
@@ -692,9 +692,9 @@ function EffectsShowcaseCard() {
   );
 }
 
-/* ── Bento media helper ─────────────────────── */
+/* ── Bento media helper (video) ─────────────────────── */
 function BentoMedia({ src, alt, title, gradient, aspect = "16/9" }: {
-  src: string; alt: string; title: string; gradient: string; aspect?: string;
+  src: string; alt?: string; title: string; gradient: string; aspect?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -702,15 +702,19 @@ function BentoMedia({ src, alt, title, gradient, aspect = "16/9" }: {
     <div className="bc-media">
       <div className="bc-media-inner" style={{ aspectRatio: aspect }}>
         {!error && (
-          <img
+          <video
             src={src}
-            alt={alt}
-            loading="lazy"
+            aria-label={alt ?? title}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
             style={{
               width: "100%", height: "100%", objectFit: "cover",
               opacity: loaded ? 1 : 0, transition: "opacity 0.4s",
             }}
-            onLoad={() => setLoaded(true)}
+            onLoadedData={() => setLoaded(true)}
             onError={() => setError(true)}
           />
         )}
@@ -733,21 +737,11 @@ function BentoMedia({ src, alt, title, gradient, aspect = "16/9" }: {
    ================================================================ */
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
-  const [pColor, setPColor] = useState("#F5A623");
-  const [pRadius, setPRadius] = useState("8px");
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", h);
     return () => window.removeEventListener("scroll", h);
-  }, []);
-
-  useEffect(() => {
-    const C = ["#F5A623", "#7C3AED", "#22D3EE", "#F43F5E", "#10B981"];
-    const R = ["8px", "24px", "4px", "16px", "50px"];
-    let i = 0;
-    const t = setInterval(() => { i = (i + 1) % C.length; setPColor(C[i]); setPRadius(R[i]); }, 2000);
-    return () => clearInterval(t);
   }, []);
 
   const components: [string, boolean][] = [
@@ -898,30 +892,15 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Preview card — center */}
-            <div className="pcard">
+            {/* Screenshot — center */}
+            <div className="hero-screenshot">
               <div className="pcard-hdr">
                 <div className="dot" style={{ background: "#FF5F57" }} />
                 <div className="dot" style={{ background: "#FFBD2E" }} />
                 <div className="dot" style={{ background: "#28C840" }} />
-                <span className="pcard-lbl">Button.jsx</span>
+                <span className="pcard-lbl">j6.app — Component Studio</span>
               </div>
-              <div className="pcard-body">
-                <button
-                  className="pbtn"
-                  style={{
-                    background: pColor, borderRadius: pRadius, color: "#0A0A0B",
-                    boxShadow: `0 0 28px ${pColor}60`,
-                    transition: "all 0.8s cubic-bezier(0.34,1.56,0.64,1)",
-                  }}
-                >Click me</button>
-                <div className="pgrid">
-                  <div className="pctrl"><div className="pctrl-l">Effect</div><div className="pctrl-v" style={{ color: "var(--brand-default)" }}>Glow</div></div>
-                  <div className="pctrl"><div className="pctrl-l">Motion</div><div className="pctrl-v" style={{ color: "var(--brand-default)" }}>spring</div></div>
-                  <div className="pctrl"><div className="pctrl-l">Color</div><div className="pctrl-v" style={{ color: pColor, transition: "color 0.8s" }}>{pColor}</div></div>
-                  <div className="pctrl"><div className="pctrl-l">Radius</div><div className="pctrl-v" style={{ color: "var(--brand-default)" }}>{pRadius}</div></div>
-                </div>
-              </div>
+              <img src="/screenshot.png" alt="J6 Component Studio" />
             </div>
           </div>
         </div>
@@ -948,7 +927,7 @@ export default function LandingPage() {
               <div className="bc-title">Live Visual Editor & Preview</div>
               <div className="bc-desc">Design components in real-time on a configurable stage. Set your background to match your app, toggle grids, and see every change instantly.</div>
               <BentoMedia
-                src="/edit-component.gif" alt="Live editor preview" title="j6.app — Component Studio"
+                src="/edit-component.mp4" alt="Live editor preview" title="j6.app — Component Studio"
                 gradient="linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-subtle) 60%, rgba(245,166,35,0.06) 100%)"
                 aspect="16/9"
               />
@@ -958,7 +937,7 @@ export default function LandingPage() {
               <div className="bc-title">Premium Motion & Effects</div>
               <div className="bc-desc">Border beam, neon glow, tilt 3D, glare, spotlight — effects that take hours to hand-code, applied in one click.</div>
               <BentoMedia
-                src="/motion-control.gif" alt="Motion controls" title="Effects Panel"
+                src="/motion-control.mp4" alt="Motion controls" title="Effects Panel"
                 gradient="linear-gradient(160deg, var(--bg-subtle) 0%, var(--bg-elevated) 50%, rgba(124,58,237,0.08) 100%)"
                 aspect="4/5"
               />
@@ -968,7 +947,7 @@ export default function LandingPage() {
               <div className="bc-title">Multi-Format Code Export</div>
               <div className="bc-desc">Export as inline CSS, Tailwind utilities, or clean React with named props. Every animation keyframe and CSS variable is included.</div>
               <BentoMedia
-                src="/export.gif" alt="Code export" title="Export Panel"
+                src="/export.mp4" alt="Code export" title="Export Panel"
                 gradient="linear-gradient(135deg, var(--bg-base) 0%, var(--bg-subtle) 100%)"
                 aspect="4/3"
               />
@@ -978,7 +957,7 @@ export default function LandingPage() {
               <div className="bc-title">Design Token System</div>
               <div className="bc-desc">Create colour palettes, apply them across 22+ components, and keep your design consistent. Tokens persist per-project and appear in every colour picker.</div>
               <BentoMedia
-                src="/token-system.gif" alt="Token system" title="Token Studio"
+                src="/token-system.mp4" alt="Token system" title="Token Studio"
                 gradient="linear-gradient(135deg, var(--bg-subtle) 0%, rgba(245,166,35,0.04) 100%)"
                 aspect="4/3"
               />
