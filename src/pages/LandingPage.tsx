@@ -116,13 +116,13 @@ const CSS = `
   @keyframes shine-spin { to { transform: rotate(360deg); } }
   .j6-popover-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,58,237,0.45); }
   .j6-popover-content {
-    position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%) translateY(8px);
+    position: absolute; top: calc(100% + 10px); right: 0; transform: translateY(8px);
     z-index: 30; width: 320px; padding: 20px;
     background: rgba(91,33,182,0.95); border: 1px solid var(--showcase-plasma);
     border-radius: 10px; opacity: 0; pointer-events: none;
     transition: all 0.25s ease; backdrop-filter: blur(16px);
   }
-  .j6-popover-content.open { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .j6-popover-content.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
   .j6-popover-content h4 { font-family: var(--serif); font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
   .j6-popover-content p { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.6; margin-bottom: 12px; }
   .j6-popover-feat { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; color: rgba(255,255,255,0.7); font-family: var(--mono); }
@@ -215,67 +215,76 @@ const CSS = `
   /* ── Effects Showcase ─────────────────────────────────── */
   .fx-layout { display: grid; grid-template-columns: 340px 1fr; gap: 80px; align-items: start; }
   .fx-card {
-    max-width: 480px; width: 100%; margin: 0 auto; border-radius: 16px;
+    max-width: 520px; width: 100%; margin: 0 auto; border-radius: 16px;
     border: 1px solid var(--border-default);
-    background: rgba(40,40,40,0.70);
-    box-shadow: 2px 4px 16px 0px rgba(248,248,248,0.06) inset;
-    overflow: hidden; transition: border-color 0.6s, box-shadow 0.6s;
+    background: var(--bg-subtle);
+    overflow: hidden; transition: border-color 0.8s, box-shadow 0.8s;
   }
   .fx-card-stage {
-    height: 280px; position: relative; overflow: hidden;
-    background: rgba(40,40,40,0.70);
-    mask-image: radial-gradient(50% 50% at 50% 50%, white 0%, transparent 100%);
-    -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, white 0%, transparent 100%);
+    height: 320px; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+    background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.03) 0%, transparent 70%);
+  }
+  /* The main demo element */
+  .fx-demo {
+    width: 200px; height: 72px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
+    font-family: var(--sans); font-size: 15px; font-weight: 600;
+    transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative; z-index: 2;
   }
-  .fx-orb-row { display: flex; gap: 12px; align-items: center; position: relative; z-index: 2; }
-  .fx-orb {
-    width: 56px; height: 56px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(248,248,248,0.01);
-    box-shadow: 0px 0px 8px 0px rgba(248,248,248,0.25) inset, 0px 32px 24px -16px rgba(0,0,0,0.40);
-    transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1);
-    font-size: 18px;
+  /* Ambient glow behind demo element */
+  .fx-ambient {
+    position: absolute; width: 260px; height: 120px; border-radius: 50%;
+    filter: blur(60px); opacity: 0.4; z-index: 1;
+    transition: all 0.8s ease;
   }
-  .fx-orb.sm { width: 36px; height: 36px; font-size: 13px; }
-  .fx-orb.lg { width: 72px; height: 72px; font-size: 24px; }
-  .fx-orb.active {
-    transform: translateY(-6px) scale(1.15);
-  }
+  /* Scanning beam */
   .fx-beam {
-    position: absolute; width: 2px; height: 200px; top: 10%;
-    background: linear-gradient(to bottom, transparent, var(--showcase-electric), transparent);
-    z-index: 3; opacity: 0.7;
-    animation: fx-beam-move 4s ease-in-out infinite;
+    position: absolute; width: 1px; height: 100%; top: 0;
+    z-index: 3; opacity: 0;
+    animation: fx-beam-move 5s ease-in-out infinite;
   }
   @keyframes fx-beam-move {
-    0% { left: 10%; opacity: 0; }
-    10% { opacity: 0.7; }
-    90% { opacity: 0.7; }
-    100% { left: 90%; opacity: 0; }
+    0% { left: 15%; opacity: 0; }
+    5% { opacity: 0.6; }
+    95% { opacity: 0.6; }
+    100% { left: 85%; opacity: 0; }
   }
+  /* Sparkle particles */
   .fx-sparkle {
     position: absolute; width: 2px; height: 2px; border-radius: 50%;
-    background: white; z-index: 4;
+    background: white; z-index: 4; pointer-events: none;
   }
+  @keyframes fx-sparkle-anim {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    50% { opacity: 0.8; transform: scale(1.5); }
+  }
+  /* Effect indicator strip */
+  .fx-indicators {
+    display: flex; gap: 3px; position: absolute; bottom: 24px; z-index: 5;
+  }
+  .fx-ind {
+    width: 28px; height: 3px; border-radius: 2px; background: var(--border-strong);
+    transition: all 0.4s; cursor: pointer;
+  }
+  .fx-ind.active { background: var(--text-primary); width: 40px; }
+  /* Info section */
   .fx-card-info {
-    padding: 24px; border-top: 1px solid var(--border-subtle);
+    padding: 24px 28px; border-top: 1px solid var(--border-subtle);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
   }
   .fx-card-info-name {
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--brand-default); margin-bottom: 6px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 6px; transition: color 0.4s;
   }
   .fx-card-info-desc {
-    font-size: 14px; color: var(--text-secondary); line-height: 1.6;
+    font-size: 13px; color: var(--text-secondary); line-height: 1.6; max-width: 340px;
   }
-  .fx-card-dots {
-    display: flex; gap: 6px; margin-top: 16px;
+  .fx-card-count {
+    font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+    letter-spacing: 0.06em; white-space: nowrap; padding-top: 2px;
   }
-  .fx-card-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong);
-    transition: all 0.3s; cursor: pointer;
-  }
-  .fx-card-dot.active { background: var(--brand-default); transform: scale(1.5); }
 
   /* ── Components Section ─────────────────────────────────── */
   .comp-bg { background: var(--bg-subtle); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
@@ -507,7 +516,7 @@ function LiveDemo() {
         </div>
         <div className="dcg">
           <div className="dcl">Effect</div>
-          {([["glow", "Glow"], ["shadow", "Drop Shadow"], ["neu", "Neumorphism"]] as const).map(([v, l]) => (
+          {([["glow", "Glow"], ["shadow", "Drop Shadow"]] as const).map(([v, l]) => (
             <div key={v} className="eopt" style={{
               color: effect === v ? "var(--brand-default)" : "var(--text-muted)",
               borderLeft: `2px solid ${effect === v ? "var(--brand-default)" : "transparent"}`,
@@ -523,39 +532,99 @@ function LiveDemo() {
   );
 }
 
-/* ── Effects Showcase Card (inspired by cards-demo-3) ─────────────────────── */
-const EFFECTS = [
-  { sym: "◈", name: "Drop Shadow", desc: "Multi-layer directional shadows with full x/y/blur/spread control", color: "#F5A623",
-    orbShadow: "8px 8px 24px rgba(245,166,35,0.5), 0 0 0 1px rgba(245,166,35,0.15)" },
-  { sym: "✦", name: "Neon Glow", desc: "Ambient colour glow with intensity, colour and spread control", color: "#22D3EE",
-    orbShadow: "0 0 20px rgba(34,211,238,0.7), 0 0 60px rgba(34,211,238,0.25), inset 0 0 12px rgba(34,211,238,0.3)" },
-  { sym: "◬", name: "Neumorphism", desc: "Soft-UI depth with dual highlight and shadow layers", color: "#9A9AA3",
-    orbShadow: "6px 6px 16px rgba(0,0,0,0.6), -4px -4px 12px rgba(255,255,255,0.06), inset 2px 2px 4px rgba(255,255,255,0.04)" },
-  { sym: "▨", name: "Gradient", desc: "Linear, radial, conic and mesh gradient editor", color: "#818CF8",
-    orbShadow: "0 0 24px rgba(129,140,248,0.5), 0 8px 32px rgba(244,114,182,0.2)" },
-  { sym: "⊙", name: "Spotlight", desc: "Directional light source simulated on components", color: "#F0EDE8",
-    orbShadow: "0 0 40px rgba(240,237,232,0.2), inset 4px 4px 8px rgba(255,255,255,0.1)" },
-  { sym: "◫", name: "Animated Border", desc: "CSS-powered rotating, pulsing and drawing borders", color: "#10B981",
-    orbShadow: "0 0 0 2px #10B981, 0 0 20px rgba(16,185,129,0.3)" },
-  { sym: "◉", name: "Inner Shadow", desc: "Inset shadow effects for pressed or embossed component states", color: "#FB923C",
-    orbShadow: "inset 4px 4px 12px rgba(0,0,0,0.6), inset -3px -3px 8px rgba(251,146,60,0.15)" },
-  { sym: "▣", name: "Stroke", desc: "Borders with gradient and animated sweep variants", color: "#F43F5E",
-    orbShadow: "0 0 0 2px #F43F5E, 0 0 16px rgba(244,63,94,0.25)" },
+/* ── Effects Showcase Card ─────────────────────── */
+const EFFECTS: {
+  name: string; desc: string; color: string;
+  demoStyle: CSSProperties; ambient: string;
+}[] = [
+  {
+    name: "Drop Shadow", color: "#F5A623",
+    desc: "Multi-layer directional shadows with full x/y/blur/spread control",
+    demoStyle: {
+      background: "#F5A623", color: "#0A0A0B",
+      boxShadow: "0 6px 12px rgba(245,166,35,0.3), 0 20px 40px rgba(245,166,35,0.2), 8px 8px 0 rgba(245,166,35,0.15)",
+      border: "none",
+    },
+    ambient: "rgba(245,166,35,0.35)",
+  },
+  {
+    name: "Neon Glow", color: "#22D3EE",
+    desc: "Ambient colour glow with intensity, colour and spread control",
+    demoStyle: {
+      background: "#22D3EE", color: "#0A0A0B",
+      boxShadow: "0 0 15px rgba(34,211,238,0.8), 0 0 45px rgba(34,211,238,0.4), 0 0 90px rgba(34,211,238,0.15)",
+      border: "none",
+    },
+    ambient: "rgba(34,211,238,0.5)",
+  },
+  {
+    name: "Gradient", color: "#818CF8",
+    desc: "Linear, radial, conic and mesh gradient editor",
+    demoStyle: {
+      background: "linear-gradient(135deg, #818CF8, #F472B6, #FB923C)",
+      color: "#fff",
+      boxShadow: "0 8px 32px rgba(129,140,248,0.3), 0 4px 12px rgba(244,114,182,0.2)",
+      border: "none",
+    },
+    ambient: "rgba(129,140,248,0.4)",
+  },
+  {
+    name: "Spotlight", color: "#F0EDE8",
+    desc: "Directional light source simulated on components",
+    demoStyle: {
+      background: "radial-gradient(ellipse at 25% 25%, rgba(255,255,255,0.2) 0%, transparent 50%), var(--bg-elevated)",
+      color: "var(--text-primary)",
+      boxShadow: "0 2px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)",
+      border: "1px solid rgba(255,255,255,0.1)",
+    },
+    ambient: "rgba(240,237,232,0.15)",
+  },
+  {
+    name: "Animated Border", color: "#10B981",
+    desc: "CSS-powered rotating, pulsing and drawing borders",
+    demoStyle: {
+      background: "var(--bg-elevated)", color: "#10B981",
+      boxShadow: "0 0 0 2px #10B981, 0 0 20px rgba(16,185,129,0.25)",
+      border: "none",
+      animation: "fx-border-pulse 2s ease-in-out infinite",
+    },
+    ambient: "rgba(16,185,129,0.3)",
+  },
+  {
+    name: "Inner Shadow", color: "#FB923C",
+    desc: "Inset shadow effects for pressed or embossed component states",
+    demoStyle: {
+      background: "var(--bg-surface)", color: "var(--text-secondary)",
+      boxShadow: "inset 4px 4px 16px rgba(0,0,0,0.6), inset -3px -3px 10px rgba(251,146,60,0.08), 0 1px 0 rgba(255,255,255,0.04)",
+      border: "1px solid rgba(255,255,255,0.04)",
+    },
+    ambient: "rgba(251,146,60,0.2)",
+  },
+  {
+    name: "Stroke", color: "#F43F5E",
+    desc: "Borders with gradient and animated sweep variants",
+    demoStyle: {
+      background: "transparent", color: "#F43F5E",
+      boxShadow: "0 0 16px rgba(244,63,94,0.15)",
+      border: "2px solid #F43F5E",
+    },
+    ambient: "rgba(244,63,94,0.25)",
+  },
 ];
 
 function EffectsShowcaseCard() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [sparkles] = useState(() =>
-    Array.from({ length: 14 }, () => ({
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      delay: Math.random() * 4,
+    Array.from({ length: 16 }, () => ({
+      top: `${10 + Math.random() * 80}%`,
+      left: `${10 + Math.random() * 80}%`,
+      delay: Math.random() * 5,
       duration: Math.random() * 2 + 3,
     }))
   );
 
   useEffect(() => {
-    const t = setInterval(() => setActiveIdx((i) => (i + 1) % EFFECTS.length), 3000);
+    const t = setInterval(() => setActiveIdx((i) => (i + 1) % EFFECTS.length), 3500);
     return () => clearInterval(t);
   }, []);
 
@@ -565,76 +634,59 @@ function EffectsShowcaseCard() {
     <div
       className="fx-card"
       style={{
-        borderColor: `${fx.color}30`,
-        boxShadow: `0 0 40px ${fx.color}10, 2px 4px 16px 0px rgba(248,248,248,0.06) inset`,
+        borderColor: `${fx.color}25`,
+        boxShadow: `0 0 60px ${fx.color}08, 0 24px 48px rgba(0,0,0,0.4)`,
       }}
     >
+      <style>{`
+        @keyframes fx-border-pulse {
+          0%, 100% { box-shadow: 0 0 0 2px #10B981, 0 0 20px rgba(16,185,129,0.25); }
+          50% { box-shadow: 0 0 0 3px #10B981, 0 0 30px rgba(16,185,129,0.4); }
+        }
+      `}</style>
+
       <div className="fx-card-stage">
-        {/* Sparkle particles */}
+        {/* Sparkles */}
         {sparkles.map((s, i) => (
-          <div
-            key={i}
-            className="fx-sparkle"
-            style={{
-              top: s.top,
-              left: s.left,
-              opacity: 0,
-              animation: `fx-sparkle-anim ${s.duration}s ${s.delay}s ease-in-out infinite`,
-            }}
-          />
+          <div key={i} className="fx-sparkle" style={{
+            top: s.top, left: s.left, opacity: 0,
+            animation: `fx-sparkle-anim ${s.duration}s ${s.delay}s ease-in-out infinite`,
+          }} />
         ))}
-        <style>{`
-          @keyframes fx-sparkle-anim {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1.5); }
-          }
-        `}</style>
 
         {/* Scanning beam */}
-        <div className="fx-beam" style={{ background: `linear-gradient(to bottom, transparent, ${fx.color}, transparent)` }} />
+        <div className="fx-beam" style={{
+          background: `linear-gradient(to bottom, transparent, ${fx.color}90, transparent)`,
+        }} />
 
-        {/* Effect orbs */}
-        <div className="fx-orb-row">
-          {EFFECTS.map((e, i) => {
-            const isActive = i === activeIdx;
-            const dist = Math.abs(i - activeIdx);
-            const isAdj = dist === 1 || dist === EFFECTS.length - 1;
-            const size = isActive ? "lg" : isAdj ? "" : "sm";
-            return (
-              <div
-                key={i}
-                className={`fx-orb ${size} ${isActive ? "active" : ""}`}
-                style={{
-                  boxShadow: isActive
-                    ? e.orbShadow
-                    : "0px 0px 8px 0px rgba(248,248,248,0.25) inset, 0px 32px 24px -16px rgba(0,0,0,0.40)",
-                  opacity: isActive ? 1 : isAdj ? 0.7 : 0.35,
-                  color: isActive ? e.color : "var(--text-muted)",
-                  cursor: "pointer",
-                }}
-                onClick={() => setActiveIdx(i)}
-              >
-                {e.sym}
-              </div>
-            );
-          })}
+        {/* Ambient glow */}
+        <div className="fx-ambient" style={{ background: fx.ambient }} />
+
+        {/* Demo element */}
+        <div className="fx-demo" style={fx.demoStyle}>
+          Get Started
         </div>
-      </div>
 
-      {/* Info section */}
-      <div className="fx-card-info">
-        <div className="fx-card-info-name" style={{ color: fx.color }}>{fx.name}</div>
-        <div className="fx-card-info-desc">{fx.desc}</div>
-        <div className="fx-card-dots">
+        {/* Indicator strip */}
+        <div className="fx-indicators">
           {EFFECTS.map((_, i) => (
             <div
               key={i}
-              className={`fx-card-dot ${i === activeIdx ? "active" : ""}`}
+              className={`fx-ind ${i === activeIdx ? "active" : ""}`}
               style={i === activeIdx ? { background: fx.color } : undefined}
               onClick={() => setActiveIdx(i)}
             />
           ))}
         </div>
+      </div>
+
+      {/* Info */}
+      <div className="fx-card-info">
+        <div>
+          <div className="fx-card-info-name" style={{ color: fx.color }}>{fx.name}</div>
+          <div className="fx-card-info-desc">{fx.desc}</div>
+        </div>
+        <div className="fx-card-count">{activeIdx + 1}/{EFFECTS.length}</div>
       </div>
     </div>
   );
@@ -717,7 +769,7 @@ export default function LandingPage() {
   ];
 
   const strip = [
-    "Drop Shadow", "Inner Shadow", "Glow Effects", "Spotlight", "Neumorphism",
+    "Drop Shadow", "Inner Shadow", "Glow Effects", "Spotlight",
     "Animated Borders", "Gradient Mesh", "Token System", "Tailwind Export", "CSS Export",
     "React Motion", "Entry & Exit", "Hover States", "Tap Interactions", "Typography Control", "Free to Start",
   ];
@@ -755,7 +807,7 @@ export default function LandingPage() {
           </div>
           <div className="stats">
             <div><div className="stat-n">22</div><div className="stat-l">Components</div></div>
-            <div><div className="stat-n">8</div><div className="stat-l">Effect Types</div></div>
+            <div><div className="stat-n">7</div><div className="stat-l">Effect Types</div></div>
             <div><div className="stat-n">&infin;</div><div className="stat-l">Token Combos</div></div>
           </div>
         </div>
@@ -793,17 +845,56 @@ export default function LandingPage() {
 
             {/* Floating badge — bottom right */}
             <div className="hero-float" style={{ bottom: "26%", right: "5%", animationDelay: "0.6s" }}>
-              <span
-                className="j6-badge"
-                style={{
-                  background: "rgba(34,211,238,0.12)",
-                  color: "var(--showcase-electric)",
-                  border: "1px solid rgba(34,211,238,0.25)",
-                  boxShadow: "0 4px 16px rgba(34,211,238,0.15)",
-                }}
-              >
+              <span className="j6-badge" style={{
+                background: "rgba(34,211,238,0.12)", color: "var(--showcase-electric)",
+                border: "1px solid rgba(34,211,238,0.25)", boxShadow: "0 4px 16px rgba(34,211,238,0.15)",
+              }}>
                 <span className="pulse" style={{ background: "var(--showcase-electric)" }} />
                 Tailwind export
+              </span>
+            </div>
+
+            {/* Floating badge — mid left */}
+            <div className="hero-float" style={{ top: "42%", left: "4%", animationDelay: "2.4s" }}>
+              <span className="j6-badge" style={{
+                background: "rgba(244,114,182,0.12)", color: "var(--showcase-bloom)",
+                border: "1px solid rgba(244,114,182,0.25)", boxShadow: "0 4px 16px rgba(244,114,182,0.15)",
+              }}>
+                <span className="pulse" style={{ background: "var(--showcase-bloom)" }} />
+                React Motion
+              </span>
+            </div>
+
+            {/* Floating badge — mid right */}
+            <div className="hero-float" style={{ top: "46%", right: "3%", animationDelay: "3.0s" }}>
+              <span className="j6-badge" style={{
+                background: "rgba(251,146,60,0.12)", color: "var(--showcase-inferno)",
+                border: "1px solid rgba(251,146,60,0.25)", boxShadow: "0 4px 16px rgba(251,146,60,0.15)",
+              }}>
+                <span className="pulse" style={{ background: "var(--showcase-inferno)" }} />
+                Token system
+              </span>
+            </div>
+
+            {/* Floating badge — lower mid */}
+            <div className="hero-float" style={{ bottom: "12%", left: "30%", animationDelay: "0.3s" }}>
+              <span className="j6-badge" style={{
+                background: "rgba(129,140,248,0.12)", color: "var(--showcase-plasma)",
+                border: "1px solid rgba(129,140,248,0.25)", boxShadow: "0 4px 16px rgba(129,140,248,0.15)",
+              }}>
+                <span className="pulse" style={{ background: "var(--showcase-plasma)" }} />
+                22 components
+              </span>
+            </div>
+
+            {/* Floating badge — lower right */}
+            <div className="hero-float" style={{ bottom: "8%", right: "15%", animationDelay: "2.0s" }}>
+              <span className="j6-badge" style={{
+                background: "rgba(245,166,35,0.12)", color: "var(--brand-default)",
+                border: "1px solid rgba(245,166,35,0.25)", boxShadow: "0 4px 16px rgba(245,166,35,0.15)",
+              }}>
+                <span className="pulse" style={{ background: "var(--brand-default)" }} />
+                CSS export
               </span>
             </div>
 
@@ -910,7 +1001,7 @@ export default function LandingPage() {
           <div className="fx-layout">
             <div>
               <div className="ol">Visual Effects</div>
-              <h2 className="h2">Eight ways to<br />make it <em>yours.</em></h2>
+              <h2 className="h2">Seven ways to<br />make it <em>yours.</em></h2>
               <p className="lead">Every effect has full numeric control. Not a preset — a proper design tool.</p>
             </div>
             <EffectsShowcaseCard />
@@ -976,7 +1067,7 @@ export default function LandingPage() {
               <div className="pamt"><sup>$</sup>12<sub>/mo</sub></div>
               <p className="pdesc">The full toolkit. Pro components, all effects, Tailwind export, and the complete token architecture system.</p>
               <ul className="pfeats">
-                {["Everything in Free", "6 Pro components incl. Datatable", "All 8 effect types", "Neumorphism & spotlight", "Animated border effects", "Full token system creator", "Tailwind CSS export", "Entry & exit animations", "Priority support"].map((f) => <li key={f}>{f}</li>)}
+                {["Everything in Free", "6 Pro components incl. Datatable", "All 7 effect types", "Spotlight & animated borders", "Animated border effects", "Full token system creator", "Tailwind CSS export", "Entry & exit animations", "Priority support"].map((f) => <li key={f}>{f}</li>)}
               </ul>
               <button className="pcta pcta-p">Start Pro Trial</button>
             </div>
