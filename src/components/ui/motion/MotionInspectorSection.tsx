@@ -623,13 +623,13 @@ export function MotionInspectorSection({
     applyVisualMotionPreset: (id: string) => void;
     clearVisualMotionPreset: () => void;
 }) {
-    const [activeTab, setActiveTab] = useState<MotionTriggerTab>(supportsEntryMotion ? 'overlay' : 'hover');
-    const tuning = getMotionControlTuning(componentKind);
     const hasSplitOverlayMotion =
         componentKind === 'tooltip' ||
         componentKind === 'dialog' ||
         componentKind === 'popover' ||
         componentKind === 'dropdown';
+    const [activeTab, setActiveTab] = useState<MotionTriggerTab>(supportsEntryMotion || hasSplitOverlayMotion ? 'overlay' : 'hover');
+    const tuning = getMotionControlTuning(componentKind);
     const showTriggerTabs = componentKind !== 'checkbox' && componentKind !== 'slider';
     const entryTabLabel = isOverlayComponent ? 'Overlay' : 'Entry';
     const entryHelperText = isOverlayComponent ? 'Runs when the overlay opens.' : 'Runs when the component appears.';
@@ -637,6 +637,12 @@ export function MotionInspectorSection({
     const tabs: Array<{ id: MotionTriggerTab; icon: string; label: string }> = showTriggerTabs && supportsEntryMotion && !hasSplitOverlayMotion
         ? [
             { id: 'overlay', icon: '▣', label: entryTabLabel },
+            { id: 'hover', icon: '✦', label: 'Hover' },
+            { id: 'tap', icon: '◉', label: 'Tap' },
+        ]
+        : showTriggerTabs && hasSplitOverlayMotion
+            ? [
+            { id: 'overlay', icon: '▣', label: 'Overlay' },
             { id: 'hover', icon: '✦', label: 'Hover' },
             { id: 'tap', icon: '◉', label: 'Tap' },
         ]
@@ -785,7 +791,10 @@ export function MotionInspectorSection({
         selectedStyle.motionHoverGlareEnabled ||
         selectedStyle.motionHoverSpotlightEnabled;
     useEffect(() => {
-        if ((!supportsEntryMotion || hasSplitOverlayMotion || !showTriggerTabs) && activeTab === 'overlay') {
+        if (!supportsEntryMotion && !hasSplitOverlayMotion && activeTab === 'overlay') {
+            setActiveTab('hover');
+        }
+        if (!showTriggerTabs && activeTab === 'overlay') {
             setActiveTab('hover');
         }
     }, [activeTab, supportsEntryMotion, hasSplitOverlayMotion, showTriggerTabs]);
@@ -937,6 +946,170 @@ export function MotionInspectorSection({
                                 </motion.div>
                             ) : null}
                         </AnimatePresence>
+                    </motion.div>
+                ) : null}
+
+                {activeTab === 'overlay' && hasSplitOverlayMotion ? (
+                    <motion.div
+                        key="split-overlay"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.14, ease: 'easeOut' }}
+                        className="space-y-2.5"
+                    >
+                        <p className="text-[11px] text-[#8fa6c7]">Controls how the overlay body and text animate in.</p>
+
+                        {overlayTextPresetKey ? (
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[11px] text-[#8fa6c7]">{`${componentKind[0].toUpperCase()}${componentKind.slice(1)} Text Motion`}</span>
+                                    <Switch.Root
+                                        checked={String(selectedStyle[overlayTextPresetKey]) !== 'none'}
+                                        onCheckedChange={(checked) => {
+                                            if (!checked) {
+                                                updateSelectedStyle(overlayTextPresetKey, 'none' as never);
+                                                return;
+                                            }
+                                            updateSelectedStyle(overlayTextPresetKey, 'custom' as never);
+                                        }}
+                                        aria-label={`Enable ${componentKind} text motion`}
+                                        className={cn(
+                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                            String(selectedStyle[overlayTextPresetKey]) !== 'none'
+                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                : 'border-white/[0.12] bg-[#13161b]',
+                                        )}
+                                    >
+                                        <Switch.Thumb
+                                            className={cn(
+                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                String(selectedStyle[overlayTextPresetKey]) !== 'none'
+                                                    ? 'translate-x-[18px] bg-[#2dd4bf]'
+                                                    : 'translate-x-[2px] bg-[#64748b]',
+                                            )}
+                                        />
+                                    </Switch.Root>
+                                </div>
+                                <FlatSelect
+                                    value={String(selectedStyle[overlayTextPresetKey])}
+                                    onValueChange={(value) => updateSelectedStyle(overlayTextPresetKey, value as never)}
+                                    ariaLabel={`${componentKind} text motion preset`}
+                                >
+                                    {splitOverlayMotionOptions.map((preset) => (
+                                        <option key={preset.id} value={preset.id}>
+                                            {preset.label}
+                                        </option>
+                                    ))}
+                                </FlatSelect>
+                                <p className="text-[10px] leading-relaxed text-[#64748b]">
+                                    {splitOverlayMotionOptions.find((preset) => preset.id === String(selectedStyle[overlayTextPresetKey]))?.description ?? 'Select a motion preset.'}
+                                </p>
+                                {String(selectedStyle[overlayTextPresetKey]) === 'custom' ? renderSplitOverlayCustomControls() : null}
+                            </div>
+                        ) : null}
+                        {overlayBodyPresetKey ? (
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[11px] text-[#8fa6c7]">
+                                    {componentKind === 'dropdown' ? 'Dropdown Body Motion' : `${componentKind[0].toUpperCase()}${componentKind.slice(1)} Body Motion`}
+                                    </span>
+                                    <Switch.Root
+                                        checked={String(selectedStyle[overlayBodyPresetKey]) !== 'none'}
+                                        onCheckedChange={(checked) => {
+                                            if (!checked) {
+                                                updateSelectedStyle(overlayBodyPresetKey, 'none' as never);
+                                                return;
+                                            }
+                                            updateSelectedStyle(overlayBodyPresetKey, 'custom' as never);
+                                        }}
+                                        aria-label={`Enable ${componentKind} body motion`}
+                                        className={cn(
+                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
+                                            String(selectedStyle[overlayBodyPresetKey]) !== 'none'
+                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                : 'border-white/[0.12] bg-[#13161b]',
+                                        )}
+                                    >
+                                        <Switch.Thumb
+                                            className={cn(
+                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
+                                                String(selectedStyle[overlayBodyPresetKey]) !== 'none'
+                                                    ? 'translate-x-[18px] bg-[#2dd4bf]'
+                                                    : 'translate-x-[2px] bg-[#64748b]',
+                                            )}
+                                        />
+                                    </Switch.Root>
+                                </div>
+                                <FlatSelect
+                                    value={String(selectedStyle[overlayBodyPresetKey])}
+                                    onValueChange={(value) => updateSelectedStyle(overlayBodyPresetKey, value as never)}
+                                    ariaLabel={`${componentKind} body motion preset`}
+                                >
+                                    {splitOverlayMotionOptions.map((preset) => (
+                                        <option key={preset.id} value={preset.id}>
+                                            {preset.label}
+                                        </option>
+                                    ))}
+                                </FlatSelect>
+                                <p className="text-[10px] leading-relaxed text-[#64748b]">
+                                    {splitOverlayMotionOptions.find((preset) => preset.id === String(selectedStyle[overlayBodyPresetKey]))?.description ?? 'Select a motion preset.'}
+                                </p>
+                                {String(selectedStyle[overlayBodyPresetKey]) === 'custom' ? renderSplitOverlayCustomControls() : null}
+                            </div>
+                        ) : null}
+
+                        {componentKind === 'dropdown' ? (
+                            <div className="space-y-2 rounded-md border border-white/[0.08] bg-[#0b1220]/50 p-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] text-[#8fa6c7]">Dropdown Option Hover</span>
+                                    <Switch.Root
+                                        checked={selectedStyle.dropdownOptionHoverEnabled}
+                                        onCheckedChange={(checked) => updateSelectedStyle('dropdownOptionHoverEnabled', checked)}
+                                        aria-label="Enable dropdown option hover motion"
+                                        className={cn(
+                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                            selectedStyle.dropdownOptionHoverEnabled
+                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                : 'border-white/[0.12] bg-[#13161b]',
+                                        )}
+                                    >
+                                        <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.dropdownOptionHoverEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
+                                    </Switch.Root>
+                                </div>
+                                {selectedStyle.dropdownOptionHoverEnabled ? (
+                                    <>
+                                        <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionHoverScale} min={90} max={115} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionHoverScale', v)} />
+                                        <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionHoverY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionHoverY', v)} />
+                                    </>
+                                ) : null}
+                                <div className="h-px bg-white/[0.08]" />
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] text-[#8fa6c7]">Dropdown Option Tap</span>
+                                    <Switch.Root
+                                        checked={selectedStyle.dropdownOptionTapEnabled}
+                                        onCheckedChange={(checked) => updateSelectedStyle('dropdownOptionTapEnabled', checked)}
+                                        aria-label="Enable dropdown option tap motion"
+                                        className={cn(
+                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                            selectedStyle.dropdownOptionTapEnabled
+                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
+                                                : 'border-white/[0.12] bg-[#13161b]',
+                                        )}
+                                    >
+                                        <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.dropdownOptionTapEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
+                                    </Switch.Root>
+                                </div>
+                                {selectedStyle.dropdownOptionTapEnabled ? (
+                                    <>
+                                        <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionTapScale} min={85} max={110} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionTapScale', v)} />
+                                        <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionTapY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionTapY', v)} />
+                                    </>
+                                ) : null}
+                            </div>
+                        ) : null}
                     </motion.div>
                 ) : null}
 
@@ -1252,171 +1425,6 @@ export function MotionInspectorSection({
                     </motion.div>
                 ) : null}
                 </AnimatePresence>
-            ) : null}
-
-            {hasSplitOverlayMotion ? (
-                <Collapsible defaultOpen>
-                    <div className="space-y-1.5 border-t border-white/[0.08] pt-2">
-                        <CollapsibleTrigger className="group/split flex w-full items-center justify-between text-left">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">
-                                {componentKind === 'dropdown' ? 'Dropdown Motion FX' : `${componentKind[0].toUpperCase()}${componentKind.slice(1)} Motion FX`}
-                            </p>
-                            <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/split:rotate-180" />
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                            {overlayTextPresetKey ? (
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[11px] text-[#8fa6c7]">{`${componentKind[0].toUpperCase()}${componentKind.slice(1)} Text Motion`}</span>
-                                        <Switch.Root
-                                            checked={String(selectedStyle[overlayTextPresetKey]) !== 'none'}
-                                            onCheckedChange={(checked) => {
-                                                if (!checked) {
-                                                    updateSelectedStyle(overlayTextPresetKey, 'none' as never);
-                                                    return;
-                                                }
-                                                updateSelectedStyle(overlayTextPresetKey, 'custom' as never);
-                                            }}
-                                            aria-label={`Enable ${componentKind} text motion`}
-                                            className={cn(
-                                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                                String(selectedStyle[overlayTextPresetKey]) !== 'none'
-                                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                    : 'border-white/[0.12] bg-[#13161b]',
-                                            )}
-                                        >
-                                            <Switch.Thumb
-                                                className={cn(
-                                                    'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                    String(selectedStyle[overlayTextPresetKey]) !== 'none'
-                                                        ? 'translate-x-[18px] bg-[#2dd4bf]'
-                                                        : 'translate-x-[2px] bg-[#64748b]',
-                                                )}
-                                            />
-                                        </Switch.Root>
-                                    </div>
-                                    <FlatSelect
-                                        value={String(selectedStyle[overlayTextPresetKey])}
-                                        onValueChange={(value) => updateSelectedStyle(overlayTextPresetKey, value as never)}
-                                        ariaLabel={`${componentKind} text motion preset`}
-                                    >
-                                        {splitOverlayMotionOptions.map((preset) => (
-                                            <option key={preset.id} value={preset.id}>
-                                                {preset.label}
-                                            </option>
-                                        ))}
-                                    </FlatSelect>
-                                    <p className="text-[10px] leading-relaxed text-[#64748b]">
-                                        {splitOverlayMotionOptions.find((preset) => preset.id === String(selectedStyle[overlayTextPresetKey]))?.description ?? 'Select a motion preset.'}
-                                    </p>
-                                    {String(selectedStyle[overlayTextPresetKey]) === 'custom' ? renderSplitOverlayCustomControls() : null}
-                                </div>
-                            ) : null}
-                            {overlayBodyPresetKey ? (
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[11px] text-[#8fa6c7]">
-                                        {componentKind === 'dropdown' ? 'Dropdown Body Motion' : `${componentKind[0].toUpperCase()}${componentKind.slice(1)} Body Motion`}
-                                        </span>
-                                        <Switch.Root
-                                            checked={String(selectedStyle[overlayBodyPresetKey]) !== 'none'}
-                                            onCheckedChange={(checked) => {
-                                                if (!checked) {
-                                                    updateSelectedStyle(overlayBodyPresetKey, 'none' as never);
-                                                    return;
-                                                }
-                                                updateSelectedStyle(overlayBodyPresetKey, 'custom' as never);
-                                            }}
-                                            aria-label={`Enable ${componentKind} body motion`}
-                                            className={cn(
-                                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                                String(selectedStyle[overlayBodyPresetKey]) !== 'none'
-                                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                    : 'border-white/[0.12] bg-[#13161b]',
-                                            )}
-                                        >
-                                            <Switch.Thumb
-                                                className={cn(
-                                                    'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                    String(selectedStyle[overlayBodyPresetKey]) !== 'none'
-                                                        ? 'translate-x-[18px] bg-[#2dd4bf]'
-                                                        : 'translate-x-[2px] bg-[#64748b]',
-                                                )}
-                                            />
-                                        </Switch.Root>
-                                    </div>
-                                    <FlatSelect
-                                        value={String(selectedStyle[overlayBodyPresetKey])}
-                                        onValueChange={(value) => updateSelectedStyle(overlayBodyPresetKey, value as never)}
-                                        ariaLabel={`${componentKind} body motion preset`}
-                                    >
-                                        {splitOverlayMotionOptions.map((preset) => (
-                                            <option key={preset.id} value={preset.id}>
-                                                {preset.label}
-                                            </option>
-                                        ))}
-                                    </FlatSelect>
-                                    <p className="text-[10px] leading-relaxed text-[#64748b]">
-                                        {splitOverlayMotionOptions.find((preset) => preset.id === String(selectedStyle[overlayBodyPresetKey]))?.description ?? 'Select a motion preset.'}
-                                    </p>
-                                    {String(selectedStyle[overlayBodyPresetKey]) === 'custom' ? renderSplitOverlayCustomControls() : null}
-                                </div>
-                            ) : null}
-
-                            {componentKind === 'dropdown' ? (
-                                <div className="space-y-2 rounded-md border border-white/[0.08] bg-[#0b1220]/50 p-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[11px] text-[#8fa6c7]">Dropdown Option Hover</span>
-                                        <Switch.Root
-                                            checked={selectedStyle.dropdownOptionHoverEnabled}
-                                            onCheckedChange={(checked) => updateSelectedStyle('dropdownOptionHoverEnabled', checked)}
-                                            aria-label="Enable dropdown option hover motion"
-                                            className={cn(
-                                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                selectedStyle.dropdownOptionHoverEnabled
-                                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                    : 'border-white/[0.12] bg-[#13161b]',
-                                            )}
-                                        >
-                                            <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.dropdownOptionHoverEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                                        </Switch.Root>
-                                    </div>
-                                    {selectedStyle.dropdownOptionHoverEnabled ? (
-                                        <>
-                                            <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionHoverScale} min={90} max={115} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionHoverScale', v)} />
-                                            <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionHoverY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionHoverY', v)} />
-                                        </>
-                                    ) : null}
-                                    <div className="h-px bg-white/[0.08]" />
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[11px] text-[#8fa6c7]">Dropdown Option Tap</span>
-                                        <Switch.Root
-                                            checked={selectedStyle.dropdownOptionTapEnabled}
-                                            onCheckedChange={(checked) => updateSelectedStyle('dropdownOptionTapEnabled', checked)}
-                                            aria-label="Enable dropdown option tap motion"
-                                            className={cn(
-                                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                selectedStyle.dropdownOptionTapEnabled
-                                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                    : 'border-white/[0.12] bg-[#13161b]',
-                                            )}
-                                        >
-                                            <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.dropdownOptionTapEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                                        </Switch.Root>
-                                    </div>
-                                    {selectedStyle.dropdownOptionTapEnabled ? (
-                                        <>
-                                            <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionTapScale} min={85} max={110} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionTapScale', v)} />
-                                            <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionTapY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionTapY', v)} />
-                                        </>
-                                    ) : null}
-                                </div>
-                            ) : null}
-                        </CollapsibleContent>
-                    </div>
-                </Collapsible>
             ) : null}
 
             {componentKind === 'alert' && selectedStyle.alertDismissible ? (

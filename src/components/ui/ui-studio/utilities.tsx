@@ -891,7 +891,7 @@ export function buildPreviewStyle(config: ComponentStyleConfig): CSSProperties {
 
     const background = config.fillMode === 'gradient' ? gradientFill : solidFill;
     const borderColor = hexToRgba(config.strokeColor, config.strokeOpacity / 100);
-    const fontColor = hexToRgba(resolveReadableFontColor(config), config.fontOpacity / 100);
+    const fontColor = hexToRgba(config.fontColor, config.fontOpacity / 100);
 
     const shadowParts: string[] = [];
     if (config.effectDropShadow) {
@@ -2213,7 +2213,7 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
             const s = { ...base, ...overrides };
             const stateUsesReplacement = usesStrokeReplacementEffect(s);
             contextVars[`${prefix}-bg`] = buildStateFill(s.fillMode, s.fillColor, s.fillColorTo, s.fillWeight, s.fillOpacity);
-            contextVars[`${prefix}-fg`] = hexToRgba(resolveReadableFontColor(s), s.fontOpacity / 100);
+            contextVars[`${prefix}-fg`] = hexToRgba(s.fontColor, s.fontOpacity / 100);
             contextVars[`${prefix}-border`] = stateUsesReplacement ? 'transparent' : hexToRgba(s.strokeColor, s.strokeOpacity / 100);
             contextVars[`${prefix}-border-width`] = `${stateUsesReplacement ? 0 : s.strokeWeight}px`;
             contextVars[`${prefix}-font-size`] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;

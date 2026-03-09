@@ -1221,7 +1221,17 @@ export function componentSnippet(
             return `${declarations ? `${declarations}\n\n` : ''}${customSwitchImportNote ? `${customSwitchImportNote}\n` : ''}const switchWrapperStyle = ${wrapperStyleCode};\nconst switchLabelStyle = ${labelStyleCode};\nconst switchStyle = ${switchStyleCode};${thumbContentSnippet}\n\n<div className="${wrapperClassNames}" style={switchWrapperStyle}>\n  <Switch\n    id="switch-demo"\n    ${switchProps ? `${switchProps}\n    ` : ''}${instance.style.switchShowIcon ? 'thumbContent={switchThumbContent}\n    ' : ''}style={{ ...switchStyle${instance.style.switchShowIcon ? `, color: '${instance.style.switchIconColor}'` : ''} }}\n  />\n  <Label htmlFor="switch-demo" style={switchLabelStyle}>${instance.style.switchLabel || 'Toggle'}</Label>\n</div>`;
         }
         case 'animated-text': {
-            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const textPreviewStyle = buildComponentWrapperStyle(previewStyle, 'animated-text');
+            const textPreviewBindings = buildSnippetStyleBindings(textPreviewStyle, styleMode, 'animatedTextPreview', tokenSet);
+            const textPreviewClassVar = styleMode === 'tailwind' ? textPreviewBindings.classVarName : undefined;
+            const textRootClassBinding = buildExportClassBinding('animatedTextRoot', {
+                componentClassName,
+                effectClassName,
+                styleClassVarName: textPreviewClassVar,
+            });
+            const textClassNameSnippet = buildSnippetClassNameVarAttr(textRootClassBinding.classNameVar);
+            const textStyleSnippet = buildSnippetStyleAttr(textPreviewBindings.styleVarName);
+            const declarations = [textPreviewBindings.declarations, textRootClassBinding.declarations].filter(Boolean).join('\n');
             const s = instance.style;
             const animTextContent = s.animatedTextVariant === 'counting-number'
                 ? String(s.animatedTextNumberValue ?? 0)
@@ -1236,9 +1246,9 @@ export function componentSnippet(
                 (s.animatedTextVariant === 'gradient-sweep' || s.animatedTextVariant === 'shiny-text') && s.animatedTextGradientColor1 ? `gradientColor1="${s.animatedTextGradientColor1}"` : '',
                 (s.animatedTextVariant === 'gradient-sweep' || s.animatedTextVariant === 'shiny-text') && s.animatedTextGradientColor2 ? `gradientColor2="${s.animatedTextGradientColor2}"` : '',
                 s.animatedTextTrigger !== 'mount' ? `trigger="${s.animatedTextTrigger}"` : '',
-                classNameSnippet.trim(),
+                textClassNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            return `${declarations ? `${declarations}\n\n` : ''}<AnimatedText\n  ${textProps}${previewStyleSnippet}\n/>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<AnimatedText\n  ${textProps}${textStyleSnippet}\n/>`;
         }
         default:
             return '';

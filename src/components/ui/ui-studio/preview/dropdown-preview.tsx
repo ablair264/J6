@@ -132,7 +132,9 @@ export function InteractiveDropdownPreview({
         }
     }, [submenuOpen]);
 
-    const iconSize = 'size-4 text-muted-foreground';
+    const panelFontColor = panelStyle.color as string | undefined;
+    const iconColorStyle: CSSProperties | undefined = panelFontColor ? { color: panelFontColor } : undefined;
+    const iconSize = 'size-4';
 
     const renderItemContent = (label: string, icon?: React.ReactNode, keyboard?: string) => {
         const content = showIcons && icon ? (
@@ -259,10 +261,10 @@ export function InteractiveDropdownPreview({
                                     style={panelStyle}
                                 >
                                     <DropdownItem id={`${instanceId}-edit`} className={dropdownHoverClass} onAction={() => !pinnedOpen && setIsOpen(false)}>
-                                        {renderItemContent('Edit component', <Pencil className={iconSize} />, '⌘E')}
+                                        {renderItemContent('Edit component', <Pencil className={iconSize} style={iconColorStyle} />, '⌘E')}
                                     </DropdownItem>
                                     <DropdownItem id={`${instanceId}-duplicate`} className={dropdownHoverClass} onAction={() => !pinnedOpen && setIsOpen(false)}>
-                                        {renderItemContent('Duplicate', <Copy className={iconSize} />)}
+                                        {renderItemContent('Duplicate', <Copy className={iconSize} style={iconColorStyle} />)}
                                     </DropdownItem>
                                     {showSubmenu ? (
                                         <DropdownItem
@@ -278,10 +280,10 @@ export function InteractiveDropdownPreview({
                                                         className="inline-flex w-full items-center justify-between gap-2"
                                                     >
                                                         <span className="inline-flex items-center gap-2">
-                                                            {showIcons ? <Share className={iconSize} /> : null}
+                                                            {showIcons ? <Share className={iconSize} style={iconColorStyle} /> : null}
                                                             <span style={itemLabelStyle}>Share</span>
                                                         </span>
-                                                        <ChevronRight className="size-3.5 text-muted-foreground" />
+                                                        <ChevronRight className="size-3.5" style={iconColorStyle} />
                                                     </span>,
                                                     dropdownOptionMotionConfig,
                                                     false,
@@ -297,7 +299,7 @@ export function InteractiveDropdownPreview({
                                         className={dropdownHoverClass}
                                         onAction={() => !pinnedOpen && setIsOpen(false)}
                                     >
-                                        {renderItemContent('Delete', <Trash2 className={iconSize} />)}
+                                        {renderItemContent('Delete', <Trash2 className={iconSize} style={iconColorStyle} />)}
                                     </DropdownItem>
                                 </ListBox>
                             </motion.div>
@@ -331,7 +333,7 @@ export function InteractiveDropdownPreview({
                                     )}
                                     onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
                                 >
-                                    {showIcons ? <Users className={iconSize} /> : null}
+                                    {showIcons ? <Users className={iconSize} style={iconColorStyle} /> : null}
                                     <span style={itemLabelStyle}>Team</span>
                                 </button>
                                 <button
@@ -342,7 +344,7 @@ export function InteractiveDropdownPreview({
                                     )}
                                     onClick={() => { if (!pinnedOpen) { setSubmenuOpen(false); setIsOpen(false); } }}
                                 >
-                                    {showIcons ? <Mail className={iconSize} /> : null}
+                                    {showIcons ? <Mail className={iconSize} style={iconColorStyle} /> : null}
                                     <span style={itemLabelStyle}>Email</span>
                                 </button>
                             </div>

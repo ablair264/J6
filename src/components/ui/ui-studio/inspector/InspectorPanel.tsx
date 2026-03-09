@@ -3523,7 +3523,6 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'animated-text' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Text Animation" icon={Sparkles} defaultOpen>
-                                <FlatElementSubsection title="Content" defaultOpen>
                                     <FlatField label="Animation" stacked>
                                         <FlatSelect value={selectedStyle.animatedTextVariant} onValueChange={(value) => updateSelectedStyle('animatedTextVariant', value as AnimatedTextVariant)} ariaLabel="Animation variant">
                                             <option value="typewriter">Typewriter</option>
@@ -3591,25 +3590,17 @@ export function InspectorPanel() {
                                                     <option value="line">Line</option>
                                                 </FlatSelect>
                                             </FlatField>
-                                        ) : (
-                                            <span />
-                                        )}
+                                        ) : null}
                                     </div>
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Timing" defaultOpen={false}>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Speed" value={selectedStyle.animatedTextSpeed} min={0.01} max={5} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('animatedTextSpeed', value)} />
                                         {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance' || selectedStyle.animatedTextVariant === 'gradual-spacing' || selectedStyle.animatedTextVariant === 'letters-pull-up') ? (
                                             <FlatUnitField label="Stagger" value={selectedStyle.animatedTextStaggerDelay} min={0.01} max={0.5} step={0.01} unit="s" onChange={(value) => updateSelectedStyle('animatedTextStaggerDelay', value)} />
-                                        ) : (
-                                            <span />
-                                        )}
+                                        ) : null}
                                     </div>
-                                </FlatElementSubsection>
 
                                 {(selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text') ? (
-                                    <FlatElementSubsection title="Gradient Colors" defaultOpen={false}>
+                                    <FlatElementSubsection title="Gradient Colors" defaultOpen>
                                         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                             <FlatColorControl label="Color 1" value={selectedStyle.animatedTextGradientColor1} onChange={(value) => updateSelectedStyle('animatedTextGradientColor1', value)} tokens={activeTokenSet.tokens} compact />
                                             <FlatColorControl label="Color 2" value={selectedStyle.animatedTextGradientColor2} onChange={(value) => updateSelectedStyle('animatedTextGradientColor2', value)} tokens={activeTokenSet.tokens} compact />
