@@ -2,14 +2,12 @@ import { useState, useEffect, useRef, type CSSProperties } from "react";
 
 /* ================================================================
    J6 TOKENS + PAGE STYLES
-   Embeds the full token system from j6-tokens.css and page layout
    ================================================================ */
 const CSS = `
   @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── Token System ─────────────────────────────────── */
   :root {
     --bg-base: #0A0A0B; --bg-subtle: #111113; --bg-surface: #141416; --bg-elevated: #1A1A1D;
     --bg-overlay: rgba(0,0,0,0.72);
@@ -22,11 +20,9 @@ const CSS = `
     --interactive-default: #7C3AED; --interactive-hover: #9F72FF;
     --interactive-subtle: rgba(124,58,237,0.15);
     --status-success: #34D399; --status-warning: #FACC15; --status-error: #FB7185; --status-info: #38BDF8;
-    /* Showcase palette */
     --showcase-electric: #22D3EE; --showcase-bloom: #F472B6; --showcase-acid: #A3E635;
     --showcase-plasma: #818CF8; --showcase-inferno: #FB923C; --showcase-crimson: #F43F5E;
     --showcase-spearmint: #10B981; --showcase-solar: #FACC15;
-    /* Fonts */
     --serif: 'Cabinet Grotesk', system-ui, sans-serif;
     --mono: 'Space Mono', 'Courier New', monospace;
     --sans: 'Space Grotesk', system-ui, sans-serif;
@@ -63,8 +59,11 @@ const CSS = `
   .hcanvas { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); }
   .grid-bg { position: absolute; inset: 0; background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 48px 48px; opacity: 0.6; }
 
-  /* ── Hero showcase components ─────────────────────────────────── */
-  .hero-showcase { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; align-items: center; }
+  /* ── Floating hero components ─────────────────────────────────── */
+  .hero-float {
+    position: absolute; z-index: 10; animation: fl 4s ease-in-out infinite;
+  }
+  @keyframes fl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 
   /* Dropdown */
   .j6-dropdown { position: relative; }
@@ -74,16 +73,16 @@ const CSS = `
     display: flex; align-items: center; gap: 8px;
     background: var(--showcase-spearmint); color: var(--text-inverse);
     border: 1.5px solid rgba(52,211,153,0.4);
+    box-shadow: 0 4px 20px rgba(16,185,129,0.25);
   }
-  .j6-dropdown-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(16,185,129,0.3); }
+  .j6-dropdown-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(16,185,129,0.4); }
   .j6-dropdown-trigger svg { transition: transform 0.2s; }
   .j6-dropdown-trigger.open svg { transform: rotate(180deg); }
   .j6-dropdown-menu {
-    position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; min-width: 220px;
+    position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 220px;
     background: rgba(4,120,87,0.95); border: 1px solid rgba(16,185,129,0.65);
     border-radius: 8px; padding: 6px; opacity: 0; transform: translateY(8px);
-    transition: all 0.2s ease; pointer-events: none;
-    backdrop-filter: blur(16px);
+    transition: all 0.2s ease; pointer-events: none; backdrop-filter: blur(16px);
   }
   .j6-dropdown-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
   .j6-dropdown-item {
@@ -103,6 +102,7 @@ const CSS = `
     display: flex; align-items: center; gap: 8px;
     background: var(--interactive-default); color: #fff;
     border: none; position: relative; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.3);
   }
   .j6-popover-trigger::before {
     content: ''; position: absolute; inset: -1px; border-radius: 7px;
@@ -114,10 +114,10 @@ const CSS = `
     background: var(--interactive-default); z-index: -1;
   }
   @keyframes shine-spin { to { transform: rotate(360deg); } }
-  .j6-popover-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,58,237,0.35); }
+  .j6-popover-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,58,237,0.45); }
   .j6-popover-content {
     position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%) translateY(8px);
-    z-index: 20; width: 320px; padding: 20px;
+    z-index: 30; width: 320px; padding: 20px;
     background: rgba(91,33,182,0.95); border: 1px solid var(--showcase-plasma);
     border-radius: 10px; opacity: 0; pointer-events: none;
     transition: all 0.25s ease; backdrop-filter: blur(16px);
@@ -128,57 +128,17 @@ const CSS = `
   .j6-popover-feat { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; color: rgba(255,255,255,0.7); font-family: var(--mono); }
   .j6-popover-feat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--showcase-plasma); flex-shrink: 0; }
 
-  /* Mini Switch */
-  .j6-switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-  .j6-switch-track {
-    width: 40px; height: 22px; border-radius: 11px; position: relative; transition: background 0.25s;
-    background: var(--bg-elevated); border: 1px solid var(--border-strong);
-  }
-  .j6-switch-track.on { background: var(--showcase-electric); border-color: rgba(34,211,238,0.5); }
-  .j6-switch-thumb {
-    width: 16px; height: 16px; border-radius: 50%; background: var(--text-primary);
-    position: absolute; top: 2px; left: 2px; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .j6-switch-track.on .j6-switch-thumb { left: 20px; background: var(--text-inverse); }
-  .j6-switch-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-
-  /* Mini Badge */
+  /* Hero badges */
   .j6-badge {
     font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 5px 12px; border-radius: 100px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 100px; display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
   }
   .j6-badge .pulse { width: 6px; height: 6px; border-radius: 50%; animation: badge-pulse 2s ease-in-out infinite; }
   @keyframes badge-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }
 
-  /* Mini Tooltip */
-  .j6-tooltip-wrap { position: relative; display: inline-flex; }
-  .j6-tooltip-trigger {
-    font-family: var(--mono); font-size: 11px; padding: 6px 14px; border-radius: 4px;
-    cursor: pointer; transition: all 0.2s;
-    background: var(--bg-elevated); border: 1px solid var(--border-strong); color: var(--text-secondary);
-  }
-  .j6-tooltip-trigger:hover { color: var(--text-primary); border-color: var(--showcase-inferno); }
-  .j6-tooltip-bubble {
-    position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px);
-    padding: 8px 14px; border-radius: 6px; white-space: nowrap;
-    background: var(--showcase-inferno); color: var(--text-inverse);
-    font-family: var(--mono); font-size: 11px; font-weight: 500;
-    opacity: 0; pointer-events: none; transition: all 0.2s;
-  }
-  .j6-tooltip-bubble.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .j6-tooltip-bubble::after {
-    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-    border: 5px solid transparent; border-top-color: var(--showcase-inferno);
-  }
-
-  /* Mini Progress */
-  .j6-progress { display: flex; align-items: center; gap: 10px; }
-  .j6-progress-track { width: 80px; height: 4px; border-radius: 2px; background: var(--bg-elevated); overflow: hidden; }
-  .j6-progress-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
-  .j6-progress-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em; }
-
   /* ── Preview Card (hero right) ─────────────────────────────────── */
-  .pcard { position: relative; z-index: 2; width: 320px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 12px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+  .pcard { position: relative; z-index: 5; width: 320px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 12px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
   .pcard-hdr { display: flex; align-items: center; gap: 6px; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
   .pcard-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: auto; }
@@ -188,8 +148,6 @@ const CSS = `
   .pctrl { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; }
   .pctrl-l { font-family: var(--mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
   .pctrl-v { font-family: var(--mono); font-size: 11px; font-weight: 500; }
-  .ftag { position: absolute; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px; background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: 20px; color: var(--text-muted); white-space: nowrap; animation: fl 4s ease-in-out infinite; }
-  @keyframes fl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 
   /* ── Marquee Strip ─────────────────────────────────── */
   .strip { border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 16px 0; background: var(--bg-surface); overflow: hidden; white-space: nowrap; }
@@ -230,10 +188,14 @@ const CSS = `
   .bc-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; max-width: 380px; margin-bottom: 32px; }
   .bc-media { width: 100%; position: relative; }
   .bc-media-inner { width: 100%; border-radius: 8px 8px 0 0; overflow: hidden; background: var(--bg-surface); border: 1px solid var(--border-strong); border-bottom: none; position: relative; }
-  .bc-media-inner img { width: 100%; display: block; }
+  .bc-media-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bc-media-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--border-strong); border-top: 1px solid var(--border-subtle); }
   .bc-media-dot { width: 7px; height: 7px; border-radius: 50%; }
   .bc-media-title { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: 8px; letter-spacing: 0.06em; }
+  .bc-placeholder {
+    width: 100%; height: 100%; min-height: 200px;
+    display: flex; align-items: center; justify-content: center;
+  }
 
   /* ── Live Demo ─────────────────────────────────── */
   .demo-bg { background: var(--bg-subtle); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
@@ -250,33 +212,70 @@ const CSS = `
   .dcanvas { display: flex; align-items: center; justify-content: center; padding: 48px; position: relative; background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 32px 32px; }
   .clabel { position: absolute; bottom: 20px; right: 20px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
 
-  /* ── Effects Section ─────────────────────────────────── */
+  /* ── Effects Showcase ─────────────────────────────────── */
   .fx-layout { display: grid; grid-template-columns: 340px 1fr; gap: 80px; align-items: start; }
-
-  /* Effects showcase card */
-  .fx-showcase { position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
-  .fx-card-inner {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: var(--bg-subtle); padding: 40px; position: relative; transition: all 0.6s ease;
+  .fx-card {
+    max-width: 480px; width: 100%; margin: 0 auto; border-radius: 16px;
+    border: 1px solid var(--border-default);
+    background: rgba(40,40,40,0.70);
+    box-shadow: 2px 4px 16px 0px rgba(248,248,248,0.06) inset;
+    overflow: hidden; transition: border-color 0.6s, box-shadow 0.6s;
   }
-  .fx-card-demo {
-    width: 140px; height: 56px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    font-family: var(--sans); font-size: 14px; font-weight: 600; transition: all 0.6s ease;
-    margin-bottom: 24px;
+  .fx-card-stage {
+    height: 280px; position: relative; overflow: hidden;
+    background: rgba(40,40,40,0.70);
+    mask-image: radial-gradient(50% 50% at 50% 50%, white 0%, transparent 100%);
+    -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, white 0%, transparent 100%);
+    display: flex; align-items: center; justify-content: center;
   }
-  .fx-card-name {
+  .fx-orb-row { display: flex; gap: 12px; align-items: center; position: relative; z-index: 2; }
+  .fx-orb {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(248,248,248,0.01);
+    box-shadow: 0px 0px 8px 0px rgba(248,248,248,0.25) inset, 0px 32px 24px -16px rgba(0,0,0,0.40);
+    transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    font-size: 18px;
+  }
+  .fx-orb.sm { width: 36px; height: 36px; font-size: 13px; }
+  .fx-orb.lg { width: 72px; height: 72px; font-size: 24px; }
+  .fx-orb.active {
+    transform: translateY(-6px) scale(1.15);
+  }
+  .fx-beam {
+    position: absolute; width: 2px; height: 200px; top: 10%;
+    background: linear-gradient(to bottom, transparent, var(--showcase-electric), transparent);
+    z-index: 3; opacity: 0.7;
+    animation: fx-beam-move 4s ease-in-out infinite;
+  }
+  @keyframes fx-beam-move {
+    0% { left: 10%; opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.7; }
+    100% { left: 90%; opacity: 0; }
+  }
+  .fx-sparkle {
+    position: absolute; width: 2px; height: 2px; border-radius: 50%;
+    background: white; z-index: 4;
+  }
+  .fx-card-info {
+    padding: 24px; border-top: 1px solid var(--border-subtle);
+  }
+  .fx-card-info-name {
     font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--brand-default); margin-bottom: 8px; transition: all 0.3s;
+    color: var(--brand-default); margin-bottom: 6px;
   }
-  .fx-card-desc {
-    font-size: 13px; color: var(--text-secondary); text-align: center; max-width: 280px; line-height: 1.6;
+  .fx-card-info-desc {
+    font-size: 14px; color: var(--text-secondary); line-height: 1.6;
   }
-  .fx-card-dots { display: flex; gap: 6px; position: absolute; bottom: 20px; }
+  .fx-card-dots {
+    display: flex; gap: 6px; margin-top: 16px;
+  }
   .fx-card-dot {
     width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong);
     transition: all 0.3s; cursor: pointer;
   }
-  .fx-card-dot.active { background: var(--brand-default); transform: scale(1.4); }
+  .fx-card-dot.active { background: var(--brand-default); transform: scale(1.5); }
 
   /* ── Components Section ─────────────────────────────────── */
   .comp-bg { background: var(--bg-subtle); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
@@ -348,9 +347,7 @@ const CSS = `
     .footer { flex-direction: column; gap: 20px; text-align: center; }
     .faction { flex-direction: column; align-items: center; }
     .comp-hdr { flex-direction: column; align-items: flex-start; gap: 20px; }
-    .stats { gap: 24px; } .hero-showcase { flex-direction: column; align-items: flex-start; }
-    .j6-popover-content { left: 0; transform: translateX(0) translateY(8px); }
-    .j6-popover-content.open { transform: translateX(0) translateY(0); }
+    .stats { gap: 24px; }
   }
 `;
 
@@ -370,7 +367,7 @@ const ChevronDown = () => (
   </svg>
 );
 
-/* ── Hero Dropdown ─────────────────────── */
+/* ── Hero Dropdown (floating in hero-r) ─────────────────────── */
 function HeroDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -400,12 +397,7 @@ function HeroDropdown() {
       </button>
       <div className={`j6-dropdown-menu ${open ? "open" : ""}`}>
         {sections.map((s) => (
-          <a
-            key={s.href}
-            className="j6-dropdown-item"
-            href={s.href}
-            onClick={() => setOpen(false)}
-          >
+          <a key={s.href} className="j6-dropdown-item" href={s.href} onClick={() => setOpen(false)}>
             <span className="icon">{s.icon}</span>
             {s.label}
           </a>
@@ -420,7 +412,7 @@ function HeroDropdown() {
   );
 }
 
-/* ── Hero Popover ─────────────────────── */
+/* ── Hero Popover (floating in hero-r) ─────────────────────── */
 function HeroPopover() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -435,10 +427,7 @@ function HeroPopover() {
 
   return (
     <div className="j6-popover" ref={ref}>
-      <button
-        className="j6-popover-trigger"
-        onClick={() => setOpen(!open)}
-      >
+      <button className="j6-popover-trigger" onClick={() => setOpen(!open)}>
         Visual Effects
       </button>
       <div className={`j6-popover-content ${open ? "open" : ""}`}>
@@ -464,61 +453,6 @@ function HeroPopover() {
   );
 }
 
-/* ── Mini Switch ─────────────────────── */
-function MiniSwitch() {
-  const [on, setOn] = useState(true);
-  return (
-    <div className="j6-switch" onClick={() => setOn(!on)}>
-      <div className={`j6-switch-track ${on ? "on" : ""}`}>
-        <div className="j6-switch-thumb" />
-      </div>
-      <span className="j6-switch-label">{on ? "Motion" : "Static"}</span>
-    </div>
-  );
-}
-
-/* ── Mini Tooltip ─────────────────────── */
-function MiniTooltip() {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="j6-tooltip-wrap">
-      <button
-        className="j6-tooltip-trigger"
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-      >
-        ⌘K
-      </button>
-      <div className={`j6-tooltip-bubble ${show ? "show" : ""}`}>
-        Command palette
-      </div>
-    </div>
-  );
-}
-
-/* ── Animated Progress ─────────────────────── */
-function MiniProgress() {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setVal((v) => (v >= 100 ? 0 : v + 1)), 60);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="j6-progress">
-      <div className="j6-progress-track">
-        <div
-          className="j6-progress-fill"
-          style={{
-            width: `${val}%`,
-            background: `var(--showcase-bloom)`,
-          }}
-        />
-      </div>
-      <span className="j6-progress-label">{val}%</span>
-    </div>
-  );
-}
-
 /* ── Live Demo ─────────────────────── */
 function LiveDemo() {
   const [color, setColor] = useState("#F5A623");
@@ -530,28 +464,20 @@ function LiveDemo() {
 
   const btnStyle = (): CSSProperties => {
     const s: CSSProperties = {
-      padding: "14px 36px",
-      borderRadius: `${radius}px`,
-      border: "none",
-      cursor: "pointer",
-      fontFamily: "var(--sans)",
-      fontWeight: 700,
-      fontSize: "16px",
+      padding: "14px 36px", borderRadius: `${radius}px`, border: "none",
+      cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 700, fontSize: "16px",
       transition: "all 0.3s ease",
     };
     if (effect === "glow") {
-      s.background = color;
-      s.color = "#0A0A0B";
+      s.background = color; s.color = "#0A0A0B";
       s.boxShadow = hovered
         ? `0 0 ${intensity * 2}px ${color}80, 0 0 ${intensity * 4}px ${color}30`
         : `0 0 ${intensity}px ${color}50`;
     } else if (effect === "shadow") {
-      s.background = color;
-      s.color = "#0A0A0B";
+      s.background = color; s.color = "#0A0A0B";
       s.boxShadow = `${intensity / 4}px ${intensity / 4}px ${intensity}px rgba(0,0,0,0.6)`;
     } else {
-      s.background = "var(--bg-elevated)";
-      s.color = color;
+      s.background = "var(--bg-elevated)"; s.color = color;
       s.border = "1px solid rgba(255,255,255,0.06)";
       s.boxShadow = `${intensity / 4}px ${intensity / 4}px ${intensity}px rgba(0,0,0,0.5), -${intensity / 8}px -${intensity / 8}px ${intensity / 2}px rgba(255,255,255,0.03)`;
     }
@@ -567,12 +493,7 @@ function LiveDemo() {
           <div className="dcl">Accent Color</div>
           <div className="sws">
             {swatches.map((c) => (
-              <div
-                key={c}
-                className={`sw ${color === c ? "on" : ""}`}
-                style={{ background: c }}
-                onClick={() => setColor(c)}
-              />
+              <div key={c} className={`sw ${color === c ? "on" : ""}`} style={{ background: c }} onClick={() => setColor(c)} />
             ))}
           </div>
         </div>
@@ -587,175 +508,169 @@ function LiveDemo() {
         <div className="dcg">
           <div className="dcl">Effect</div>
           {([["glow", "Glow"], ["shadow", "Drop Shadow"], ["neu", "Neumorphism"]] as const).map(([v, l]) => (
-            <div
-              key={v}
-              className="eopt"
-              style={{
-                color: effect === v ? "var(--brand-default)" : "var(--text-muted)",
-                borderLeft: `2px solid ${effect === v ? "var(--brand-default)" : "transparent"}`,
-              }}
-              onClick={() => setEffect(v)}
-            >
-              {l}
-            </div>
+            <div key={v} className="eopt" style={{
+              color: effect === v ? "var(--brand-default)" : "var(--text-muted)",
+              borderLeft: `2px solid ${effect === v ? "var(--brand-default)" : "transparent"}`,
+            }} onClick={() => setEffect(v)}>{l}</div>
           ))}
         </div>
       </div>
       <div className="dcanvas">
-        <button
-          style={btnStyle()}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-        >
-          Get Started
-        </button>
+        <button style={btnStyle()} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>Get Started</button>
         <div className="clabel">Hover to preview interaction</div>
       </div>
     </div>
   );
 }
 
-/* ── Effects Showcase Card ─────────────────────── */
+/* ── Effects Showcase Card (inspired by cards-demo-3) ─────────────────────── */
+const EFFECTS = [
+  { sym: "◈", name: "Drop Shadow", desc: "Multi-layer directional shadows with full x/y/blur/spread control", color: "#F5A623",
+    orbShadow: "8px 8px 24px rgba(245,166,35,0.5), 0 0 0 1px rgba(245,166,35,0.15)" },
+  { sym: "✦", name: "Neon Glow", desc: "Ambient colour glow with intensity, colour and spread control", color: "#22D3EE",
+    orbShadow: "0 0 20px rgba(34,211,238,0.7), 0 0 60px rgba(34,211,238,0.25), inset 0 0 12px rgba(34,211,238,0.3)" },
+  { sym: "◬", name: "Neumorphism", desc: "Soft-UI depth with dual highlight and shadow layers", color: "#9A9AA3",
+    orbShadow: "6px 6px 16px rgba(0,0,0,0.6), -4px -4px 12px rgba(255,255,255,0.06), inset 2px 2px 4px rgba(255,255,255,0.04)" },
+  { sym: "▨", name: "Gradient", desc: "Linear, radial, conic and mesh gradient editor", color: "#818CF8",
+    orbShadow: "0 0 24px rgba(129,140,248,0.5), 0 8px 32px rgba(244,114,182,0.2)" },
+  { sym: "⊙", name: "Spotlight", desc: "Directional light source simulated on components", color: "#F0EDE8",
+    orbShadow: "0 0 40px rgba(240,237,232,0.2), inset 4px 4px 8px rgba(255,255,255,0.1)" },
+  { sym: "◫", name: "Animated Border", desc: "CSS-powered rotating, pulsing and drawing borders", color: "#10B981",
+    orbShadow: "0 0 0 2px #10B981, 0 0 20px rgba(16,185,129,0.3)" },
+  { sym: "◉", name: "Inner Shadow", desc: "Inset shadow effects for pressed or embossed component states", color: "#FB923C",
+    orbShadow: "inset 4px 4px 12px rgba(0,0,0,0.6), inset -3px -3px 8px rgba(251,146,60,0.15)" },
+  { sym: "▣", name: "Stroke", desc: "Borders with gradient and animated sweep variants", color: "#F43F5E",
+    orbShadow: "0 0 0 2px #F43F5E, 0 0 16px rgba(244,63,94,0.25)" },
+];
+
 function EffectsShowcaseCard() {
   const [activeIdx, setActiveIdx] = useState(0);
-
-  const effects = [
-    {
-      name: "Drop Shadow",
-      desc: "Multi-layer directional shadows with full x/y/blur/spread control",
-      btnStyle: {
-        background: "var(--brand-default)",
-        color: "var(--text-inverse)",
-        boxShadow: "8px 8px 32px rgba(245,166,35,0.4), 2px 2px 8px rgba(0,0,0,0.3)",
-        border: "none",
-      } as CSSProperties,
-      cardBorder: "1px solid var(--border-strong)",
-      cardShadow: "0 20px 60px rgba(0,0,0,0.5)",
-    },
-    {
-      name: "Neon Glow",
-      desc: "Ambient colour glow with intensity, colour and spread control",
-      btnStyle: {
-        background: "var(--showcase-electric)",
-        color: "var(--text-inverse)",
-        boxShadow: "0 0 20px rgba(34,211,238,0.6), 0 0 60px rgba(34,211,238,0.2)",
-        border: "none",
-      } as CSSProperties,
-      cardBorder: "1px solid rgba(34,211,238,0.3)",
-      cardShadow: "0 0 40px rgba(34,211,238,0.15)",
-    },
-    {
-      name: "Neumorphism",
-      desc: "Soft-UI depth with dual highlight and shadow layers",
-      btnStyle: {
-        background: "var(--bg-elevated)",
-        color: "var(--text-primary)",
-        boxShadow: "6px 6px 16px rgba(0,0,0,0.5), -4px -4px 12px rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.04)",
-      } as CSSProperties,
-      cardBorder: "1px solid rgba(255,255,255,0.06)",
-      cardShadow: "8px 8px 24px rgba(0,0,0,0.4), -4px -4px 16px rgba(255,255,255,0.03)",
-    },
-    {
-      name: "Gradient",
-      desc: "Linear, radial, conic and mesh gradient editor",
-      btnStyle: {
-        background: "linear-gradient(135deg, var(--showcase-plasma), var(--showcase-bloom))",
-        color: "#fff",
-        boxShadow: "0 8px 32px rgba(129,140,248,0.3)",
-        border: "none",
-      } as CSSProperties,
-      cardBorder: "1px solid rgba(129,140,248,0.3)",
-      cardShadow: "0 12px 40px rgba(129,140,248,0.15)",
-    },
-    {
-      name: "Spotlight",
-      desc: "Directional light source simulated on components",
-      btnStyle: {
-        background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 60%), var(--bg-elevated)",
-        color: "var(--text-primary)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-        border: "1px solid rgba(255,255,255,0.1)",
-      } as CSSProperties,
-      cardBorder: "1px solid rgba(255,255,255,0.08)",
-      cardShadow: "0 8px 32px rgba(0,0,0,0.4)",
-    },
-    {
-      name: "Animated Border",
-      desc: "CSS-powered rotating, pulsing and drawing borders",
-      btnStyle: {
-        background: "var(--bg-elevated)",
-        color: "var(--showcase-spearmint)",
-        boxShadow: "none",
-        border: "2px solid var(--showcase-spearmint)",
-        animation: "border-pulse 2s ease-in-out infinite",
-      } as CSSProperties,
-      cardBorder: "2px solid var(--showcase-spearmint)",
-      cardShadow: "0 0 24px rgba(16,185,129,0.15)",
-    },
-    {
-      name: "Inner Shadow",
-      desc: "Inset shadow effects for pressed or embossed component states",
-      btnStyle: {
-        background: "var(--bg-surface)",
-        color: "var(--text-secondary)",
-        boxShadow: "inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 6px rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.04)",
-      } as CSSProperties,
-      cardBorder: "1px solid rgba(255,255,255,0.06)",
-      cardShadow: "inset 4px 4px 12px rgba(0,0,0,0.4), inset -3px -3px 10px rgba(255,255,255,0.03)",
-    },
-    {
-      name: "Stroke",
-      desc: "Borders with gradient and animated sweep variants",
-      btnStyle: {
-        background: "transparent",
-        color: "var(--showcase-crimson)",
-        boxShadow: "none",
-        border: "2px solid var(--showcase-crimson)",
-      } as CSSProperties,
-      cardBorder: "2px solid var(--showcase-crimson)",
-      cardShadow: "0 0 20px rgba(244,63,94,0.12)",
-    },
-  ];
+  const [sparkles] = useState(() =>
+    Array.from({ length: 14 }, () => ({
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      delay: Math.random() * 4,
+      duration: Math.random() * 2 + 3,
+    }))
+  );
 
   useEffect(() => {
-    const t = setInterval(() => setActiveIdx((i) => (i + 1) % effects.length), 3000);
+    const t = setInterval(() => setActiveIdx((i) => (i + 1) % EFFECTS.length), 3000);
     return () => clearInterval(t);
   }, []);
 
-  const fx = effects[activeIdx];
+  const fx = EFFECTS[activeIdx];
 
   return (
     <div
-      className="fx-showcase"
+      className="fx-card"
       style={{
-        border: fx.cardBorder,
-        boxShadow: fx.cardShadow,
-        transition: "border 0.6s ease, box-shadow 0.6s ease",
+        borderColor: `${fx.color}30`,
+        boxShadow: `0 0 40px ${fx.color}10, 2px 4px 16px 0px rgba(248,248,248,0.06) inset`,
       }}
     >
-      <div className="pcard-hdr">
-        <div className="dot" style={{ background: "#FF5F57" }} />
-        <div className="dot" style={{ background: "#FEBC2E" }} />
-        <div className="dot" style={{ background: "#28C840" }} />
-        <span className="pcard-lbl">Effect Preview</span>
-      </div>
-      <div className="fx-card-inner">
-        <div className="fx-card-demo" style={fx.btnStyle}>
-          Click me
+      <div className="fx-card-stage">
+        {/* Sparkle particles */}
+        {sparkles.map((s, i) => (
+          <div
+            key={i}
+            className="fx-sparkle"
+            style={{
+              top: s.top,
+              left: s.left,
+              opacity: 0,
+              animation: `fx-sparkle-anim ${s.duration}s ${s.delay}s ease-in-out infinite`,
+            }}
+          />
+        ))}
+        <style>{`
+          @keyframes fx-sparkle-anim {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.5); }
+          }
+        `}</style>
+
+        {/* Scanning beam */}
+        <div className="fx-beam" style={{ background: `linear-gradient(to bottom, transparent, ${fx.color}, transparent)` }} />
+
+        {/* Effect orbs */}
+        <div className="fx-orb-row">
+          {EFFECTS.map((e, i) => {
+            const isActive = i === activeIdx;
+            const dist = Math.abs(i - activeIdx);
+            const isAdj = dist === 1 || dist === EFFECTS.length - 1;
+            const size = isActive ? "lg" : isAdj ? "" : "sm";
+            return (
+              <div
+                key={i}
+                className={`fx-orb ${size} ${isActive ? "active" : ""}`}
+                style={{
+                  boxShadow: isActive
+                    ? e.orbShadow
+                    : "0px 0px 8px 0px rgba(248,248,248,0.25) inset, 0px 32px 24px -16px rgba(0,0,0,0.40)",
+                  opacity: isActive ? 1 : isAdj ? 0.7 : 0.35,
+                  color: isActive ? e.color : "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+                onClick={() => setActiveIdx(i)}
+              >
+                {e.sym}
+              </div>
+            );
+          })}
         </div>
-        <div className="fx-card-name">{fx.name}</div>
-        <div className="fx-card-desc">{fx.desc}</div>
+      </div>
+
+      {/* Info section */}
+      <div className="fx-card-info">
+        <div className="fx-card-info-name" style={{ color: fx.color }}>{fx.name}</div>
+        <div className="fx-card-info-desc">{fx.desc}</div>
         <div className="fx-card-dots">
-          {effects.map((_, i) => (
+          {EFFECTS.map((_, i) => (
             <div
               key={i}
               className={`fx-card-dot ${i === activeIdx ? "active" : ""}`}
+              style={i === activeIdx ? { background: fx.color } : undefined}
               onClick={() => setActiveIdx(i)}
             />
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Bento media helper ─────────────────────── */
+function BentoMedia({ src, alt, title, gradient, aspect = "16/9" }: {
+  src: string; alt: string; title: string; gradient: string; aspect?: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  return (
+    <div className="bc-media">
+      <div className="bc-media-inner" style={{ aspectRatio: aspect }}>
+        {!error && (
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            style={{
+              width: "100%", height: "100%", objectFit: "cover",
+              opacity: loaded ? 1 : 0, transition: "opacity 0.4s",
+            }}
+            onLoad={() => setLoaded(true)}
+            onError={() => setError(true)}
+          />
+        )}
+        {(!loaded || error) && (
+          <div className="bc-placeholder" style={{ background: gradient, position: error ? "relative" : "absolute", inset: 0 }} />
+        )}
+      </div>
+      <div className="bc-media-bar">
+        <div className="bc-media-dot" style={{ background: "#FF5F57" }} />
+        <div className="bc-media-dot" style={{ background: "#FEBC2E" }} />
+        <div className="bc-media-dot" style={{ background: "#28C840" }} />
+        <span className="bc-media-title">{title}</span>
       </div>
     </div>
   );
@@ -779,11 +694,7 @@ export default function LandingPage() {
     const C = ["#F5A623", "#7C3AED", "#22D3EE", "#F43F5E", "#10B981"];
     const R = ["8px", "24px", "4px", "16px", "50px"];
     let i = 0;
-    const t = setInterval(() => {
-      i = (i + 1) % C.length;
-      setPColor(C[i]);
-      setPRadius(R[i]);
-    }, 2000);
+    const t = setInterval(() => { i = (i + 1) % C.length; setPColor(C[i]); setPRadius(R[i]); }, 2000);
     return () => clearInterval(t);
   }, []);
 
@@ -817,9 +728,7 @@ export default function LandingPage() {
 
       {/* ── Nav ─────────────────────────────────── */}
       <nav className={`nav ${scrolled ? "s" : ""}`}>
-        <div className="nav-logo">
-          J<em>6</em>
-        </div>
+        <div className="nav-logo">J<em>6</em></div>
         <ul className="nav-links">
           <li><a href="#how">How it works</a></li>
           <li><a href="#components">Components</a></li>
@@ -834,64 +743,71 @@ export default function LandingPage() {
         <div className="hero-l">
           <div className="eyebrow">Visual component design</div>
           <h1 className="hero-title">
-            Design<br />
-            <em>React</em><br />
-            components.<br />
-            Without guessing.
+            Design<br /><em>React</em><br />components.<br />Without guessing.
           </h1>
           <p className="hero-desc">
             J6 is a browser-based designer for React components. Build with interaction motions,
             deep effect controls, a full token system — then export clean CSS or Tailwind.
           </p>
           <div className="hero-actions">
-            <button className="bp">
-              Start for free <Arrow />
-            </button>
+            <button className="bp">Start for free <Arrow /></button>
             <button className="bs">Watch demo</button>
           </div>
-
-          {/* ── Showcase components row ─────────────────────── */}
-          <div className="hero-showcase">
-            <HeroDropdown />
-            <HeroPopover />
-            <MiniSwitch />
-            <span
-              className="j6-badge"
-              style={{
-                background: "rgba(163,230,53,0.12)",
-                color: "var(--showcase-acid)",
-                border: "1px solid rgba(163,230,53,0.25)",
-              }}
-            >
-              <span className="pulse" style={{ background: "var(--showcase-acid)" }} />
-              Live preview
-            </span>
-            <MiniTooltip />
-            <MiniProgress />
-          </div>
-
           <div className="stats">
-            <div>
-              <div className="stat-n">22</div>
-              <div className="stat-l">Components</div>
-            </div>
-            <div>
-              <div className="stat-n">8</div>
-              <div className="stat-l">Effect Types</div>
-            </div>
-            <div>
-              <div className="stat-n">&infin;</div>
-              <div className="stat-l">Token Combos</div>
-            </div>
+            <div><div className="stat-n">22</div><div className="stat-l">Components</div></div>
+            <div><div className="stat-n">8</div><div className="stat-l">Effect Types</div></div>
+            <div><div className="stat-n">&infin;</div><div className="stat-l">Token Combos</div></div>
           </div>
         </div>
+
+        {/* Hero right — floating components around the preview card */}
         <div className="hero-r">
           <div className="hcanvas">
             <div className="grid-bg" />
-            <div className="ftag" style={{ top: "16%", left: "10%", animationDelay: "0s" }}>motion.tap</div>
-            <div className="ftag" style={{ top: "20%", right: "8%", animationDelay: "1.2s" }}>glow: 24px</div>
-            <div className="ftag" style={{ bottom: "28%", right: "6%", animationDelay: "0.6s" }}>border-radius</div>
-            <div className="ftag" style={{ bottom: "20%", left: "8%", animationDelay: "1.8s" }}>--token-primary</div>
+
+            {/* Floating dropdown — top left */}
+            <div className="hero-float" style={{ top: "12%", left: "6%", animationDelay: "0s" }}>
+              <HeroDropdown />
+            </div>
+
+            {/* Floating popover — top right */}
+            <div className="hero-float" style={{ top: "14%", right: "6%", animationDelay: "1.2s" }}>
+              <HeroPopover />
+            </div>
+
+            {/* Floating badge — bottom left */}
+            <div className="hero-float" style={{ bottom: "22%", left: "6%", animationDelay: "1.8s" }}>
+              <span
+                className="j6-badge"
+                style={{
+                  background: "rgba(163,230,53,0.12)",
+                  color: "var(--showcase-acid)",
+                  border: "1px solid rgba(163,230,53,0.25)",
+                  boxShadow: "0 4px 16px rgba(163,230,53,0.15)",
+                }}
+              >
+                <span className="pulse" style={{ background: "var(--showcase-acid)" }} />
+                Live preview
+              </span>
+            </div>
+
+            {/* Floating badge — bottom right */}
+            <div className="hero-float" style={{ bottom: "26%", right: "5%", animationDelay: "0.6s" }}>
+              <span
+                className="j6-badge"
+                style={{
+                  background: "rgba(34,211,238,0.12)",
+                  color: "var(--showcase-electric)",
+                  border: "1px solid rgba(34,211,238,0.25)",
+                  boxShadow: "0 4px 16px rgba(34,211,238,0.15)",
+                }}
+              >
+                <span className="pulse" style={{ background: "var(--showcase-electric)" }} />
+                Tailwind export
+              </span>
+            </div>
+
+            {/* Preview card — center */}
             <div className="pcard">
               <div className="pcard-hdr">
                 <div className="dot" style={{ background: "#FF5F57" }} />
@@ -903,32 +819,16 @@ export default function LandingPage() {
                 <button
                   className="pbtn"
                   style={{
-                    background: pColor,
-                    borderRadius: pRadius,
-                    color: "#0A0A0B",
+                    background: pColor, borderRadius: pRadius, color: "#0A0A0B",
                     boxShadow: `0 0 28px ${pColor}60`,
                     transition: "all 0.8s cubic-bezier(0.34,1.56,0.64,1)",
                   }}
-                >
-                  Click me
-                </button>
+                >Click me</button>
                 <div className="pgrid">
-                  <div className="pctrl">
-                    <div className="pctrl-l">Effect</div>
-                    <div className="pctrl-v" style={{ color: "var(--brand-default)" }}>Glow</div>
-                  </div>
-                  <div className="pctrl">
-                    <div className="pctrl-l">Motion</div>
-                    <div className="pctrl-v" style={{ color: "var(--brand-default)" }}>spring</div>
-                  </div>
-                  <div className="pctrl">
-                    <div className="pctrl-l">Color</div>
-                    <div className="pctrl-v" style={{ color: pColor, transition: "color 0.8s" }}>{pColor}</div>
-                  </div>
-                  <div className="pctrl">
-                    <div className="pctrl-l">Radius</div>
-                    <div className="pctrl-v" style={{ color: "var(--brand-default)" }}>{pRadius}</div>
-                  </div>
+                  <div className="pctrl"><div className="pctrl-l">Effect</div><div className="pctrl-v" style={{ color: "var(--brand-default)" }}>Glow</div></div>
+                  <div className="pctrl"><div className="pctrl-l">Motion</div><div className="pctrl-v" style={{ color: "var(--brand-default)" }}>spring</div></div>
+                  <div className="pctrl"><div className="pctrl-l">Color</div><div className="pctrl-v" style={{ color: pColor, transition: "color 0.8s" }}>{pColor}</div></div>
+                  <div className="pctrl"><div className="pctrl-l">Radius</div><div className="pctrl-v" style={{ color: "var(--brand-default)" }}>{pRadius}</div></div>
                 </div>
               </div>
             </div>
@@ -939,9 +839,7 @@ export default function LandingPage() {
       {/* ── Marquee ─────────────────────────────────── */}
       <div className="strip">
         <div className="strip-i">
-          {[...strip, ...strip].map((item, i) => (
-            <span key={i} className="sitem">{item}</span>
-          ))}
+          {[...strip, ...strip].map((item, i) => <span key={i} className="sitem">{item}</span>)}
         </div>
       </div>
 
@@ -950,152 +848,49 @@ export default function LandingPage() {
         <div className="wrap">
           <div className="bento-hdr">
             <div className="ol" style={{ justifyContent: "center" }}>Features</div>
-            <h2 className="h2">
-              Everything you need.<br />
-              <em>Nothing you don't.</em>
-            </h2>
-            <p className="lead">
-              From live preview to production export — J6 covers the entire component design workflow in one focused tool.
-            </p>
+            <h2 className="h2">Everything you need.<br /><em>Nothing you don't.</em></h2>
+            <p className="lead">From live preview to production export — J6 covers the entire component design workflow in one focused tool.</p>
           </div>
-
           <div className="bento-grid">
-            {/* Card A — Live Editor */}
             <div className="bento-card c-a">
               <div className="bc-label">01</div>
               <div className="bc-title">Live Visual Editor & Preview</div>
-              <div className="bc-desc">
-                Design components in real-time on a configurable stage. Set your background to match your app,
-                toggle grids, and see every change instantly.
-              </div>
-              <div className="bc-media">
-                <div className="bc-media-inner" style={{ aspectRatio: "16/9" }}>
-                  <div style={{
-                    width: "100%", height: "100%", minHeight: 200,
-                    background: "linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-subtle) 60%, rgba(245,166,35,0.06) 100%)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <img
-                      src="/edit-component.gif"
-                      alt="Live editor preview"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)", position: "relative", zIndex: 1 }}>
-                      edit-component.gif
-                    </div>
-                  </div>
-                </div>
-                <div className="bc-media-bar">
-                  <div className="bc-media-dot" style={{ background: "#FF5F57" }} />
-                  <div className="bc-media-dot" style={{ background: "#FEBC2E" }} />
-                  <div className="bc-media-dot" style={{ background: "#28C840" }} />
-                  <span className="bc-media-title">j6.app — Component Studio</span>
-                </div>
-              </div>
+              <div className="bc-desc">Design components in real-time on a configurable stage. Set your background to match your app, toggle grids, and see every change instantly.</div>
+              <BentoMedia
+                src="/edit-component.gif" alt="Live editor preview" title="j6.app — Component Studio"
+                gradient="linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-subtle) 60%, rgba(245,166,35,0.06) 100%)"
+                aspect="16/9"
+              />
             </div>
-
-            {/* Card B — Motion & Effects */}
             <div className="bento-card c-b">
               <div className="bc-label">02</div>
               <div className="bc-title">Premium Motion & Effects</div>
-              <div className="bc-desc">
-                Border beam, neon glow, tilt 3D, glare, spotlight — effects that take hours to hand-code, applied in one click.
-              </div>
-              <div className="bc-media">
-                <div className="bc-media-inner" style={{ aspectRatio: "4/5" }}>
-                  <div style={{
-                    width: "100%", height: "100%", minHeight: 200,
-                    background: "linear-gradient(160deg, var(--bg-subtle) 0%, var(--bg-elevated) 50%, rgba(124,58,237,0.08) 100%)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <img
-                      src="/motion-control.gif"
-                      alt="Motion controls"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)", position: "relative", zIndex: 1 }}>
-                      motion-control.gif
-                    </div>
-                  </div>
-                </div>
-                <div className="bc-media-bar">
-                  <div className="bc-media-dot" style={{ background: "#FF5F57" }} />
-                  <div className="bc-media-dot" style={{ background: "#FEBC2E" }} />
-                  <div className="bc-media-dot" style={{ background: "#28C840" }} />
-                  <span className="bc-media-title">Effects Panel</span>
-                </div>
-              </div>
+              <div className="bc-desc">Border beam, neon glow, tilt 3D, glare, spotlight — effects that take hours to hand-code, applied in one click.</div>
+              <BentoMedia
+                src="/motion-control.gif" alt="Motion controls" title="Effects Panel"
+                gradient="linear-gradient(160deg, var(--bg-subtle) 0%, var(--bg-elevated) 50%, rgba(124,58,237,0.08) 100%)"
+                aspect="4/5"
+              />
             </div>
-
-            {/* Card C — Export */}
             <div className="bento-card c-c">
               <div className="bc-label">03</div>
               <div className="bc-title">Multi-Format Code Export</div>
-              <div className="bc-desc">
-                Export as inline CSS, Tailwind utilities, or clean React with named props. Every animation keyframe and CSS variable is included.
-              </div>
-              <div className="bc-media">
-                <div className="bc-media-inner" style={{ aspectRatio: "4/3" }}>
-                  <div style={{
-                    width: "100%", height: "100%", minHeight: 180,
-                    background: "var(--bg-base)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <img
-                      src="/export.gif"
-                      alt="Code export"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", position: "absolute", inset: 0 }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)", position: "relative", zIndex: 1 }}>
-                      export.gif
-                    </div>
-                  </div>
-                </div>
-                <div className="bc-media-bar">
-                  <div className="bc-media-dot" style={{ background: "#FF5F57" }} />
-                  <div className="bc-media-dot" style={{ background: "#FEBC2E" }} />
-                  <div className="bc-media-dot" style={{ background: "#28C840" }} />
-                  <span className="bc-media-title">Export Panel</span>
-                </div>
-              </div>
+              <div className="bc-desc">Export as inline CSS, Tailwind utilities, or clean React with named props. Every animation keyframe and CSS variable is included.</div>
+              <BentoMedia
+                src="/export.gif" alt="Code export" title="Export Panel"
+                gradient="linear-gradient(135deg, var(--bg-base) 0%, var(--bg-subtle) 100%)"
+                aspect="4/3"
+              />
             </div>
-
-            {/* Card D — Token System */}
             <div className="bento-card c-d">
               <div className="bc-label">04</div>
               <div className="bc-title">Design Token System</div>
-              <div className="bc-desc">
-                Create colour palettes, apply them across 22+ components, and keep your design consistent.
-                Tokens persist per-project and appear in every colour picker.
-              </div>
-              <div className="bc-media">
-                <div className="bc-media-inner" style={{ aspectRatio: "4/3" }}>
-                  <div style={{
-                    width: "100%", height: "100%", minHeight: 180,
-                    background: "linear-gradient(135deg, var(--bg-subtle) 0%, rgba(245,166,35,0.04) 100%)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <img
-                      src="/token-system.gif"
-                      alt="Token system"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)", position: "relative", zIndex: 1 }}>
-                      token-system.gif
-                    </div>
-                  </div>
-                </div>
-                <div className="bc-media-bar">
-                  <div className="bc-media-dot" style={{ background: "#FF5F57" }} />
-                  <div className="bc-media-dot" style={{ background: "#FEBC2E" }} />
-                  <div className="bc-media-dot" style={{ background: "#28C840" }} />
-                  <span className="bc-media-title">Token Studio</span>
-                </div>
-              </div>
+              <div className="bc-desc">Create colour palettes, apply them across 22+ components, and keep your design consistent. Tokens persist per-project and appear in every colour picker.</div>
+              <BentoMedia
+                src="/token-system.gif" alt="Token system" title="Token Studio"
+                gradient="linear-gradient(135deg, var(--bg-subtle) 0%, rgba(245,166,35,0.04) 100%)"
+                aspect="4/3"
+              />
             </div>
           </div>
         </div>
@@ -1115,10 +910,7 @@ export default function LandingPage() {
           <div className="fx-layout">
             <div>
               <div className="ol">Visual Effects</div>
-              <h2 className="h2">
-                Eight ways to<br />
-                make it <em>yours.</em>
-              </h2>
+              <h2 className="h2">Eight ways to<br />make it <em>yours.</em></h2>
               <p className="lead">Every effect has full numeric control. Not a preset — a proper design tool.</p>
             </div>
             <EffectsShowcaseCard />
@@ -1132,19 +924,14 @@ export default function LandingPage() {
           <div className="comp-hdr">
             <div>
               <div className="ol">Library</div>
-              <h2 className="h2">
-                Every component<br />
-                you <em>need.</em>
-              </h2>
+              <h2 className="h2">Every component<br />you <em>need.</em></h2>
             </div>
             <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "260px", fontFamily: "var(--mono)", lineHeight: "1.7" }}>
               Free plan includes all standard components. Pro unlocks the advanced ones.
             </p>
           </div>
           <div className="chips">
-            {components.map(([name, isPro]) => (
-              <div key={name} className={`chip ${isPro ? "pro" : ""}`}>{name}</div>
-            ))}
+            {components.map(([name, isPro]) => <div key={name} className={`chip ${isPro ? "pro" : ""}`}>{name}</div>)}
           </div>
         </div>
       </section>
@@ -1158,13 +945,8 @@ export default function LandingPage() {
               <div key={i} className="tc">
                 <div className="ttext">"{t.t}"</div>
                 <div className="tauthor">
-                  <div className="tav">
-                    {t.n.split(" ").map((x) => x[0]).join("")}
-                  </div>
-                  <div>
-                    <div className="tname">{t.n}</div>
-                    <div className="trole">{t.r}</div>
-                  </div>
+                  <div className="tav">{t.n.split(" ").map((x) => x[0]).join("")}</div>
+                  <div><div className="tname">{t.n}</div><div className="trole">{t.r}</div></div>
                 </div>
               </div>
             ))}
@@ -1177,10 +959,7 @@ export default function LandingPage() {
         <div className="wrap">
           <div style={{ marginBottom: "64px" }}>
             <div className="ol">Pricing</div>
-            <h2 className="h2">
-              Start free.<br />
-              <em>Go pro</em> when ready.
-            </h2>
+            <h2 className="h2">Start free.<br /><em>Go pro</em> when ready.</h2>
           </div>
           <div className="pgrid-layout">
             <div className="pcard2">
@@ -1188,9 +967,7 @@ export default function LandingPage() {
               <div className="pamt"><sup>$</sup>0</div>
               <p className="pdesc">Everything you need to start building great components. No card required, no time limit.</p>
               <ul className="pfeats">
-                {["All 16 standard components", "Drop shadow, stroke, gradient effects", "Basic token system", "CSS export", "Hover & tap motion", "Community support"].map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
+                {["All 16 standard components", "Drop shadow, stroke, gradient effects", "Basic token system", "CSS export", "Hover & tap motion", "Community support"].map((f) => <li key={f}>{f}</li>)}
               </ul>
               <button className="pcta pcta-f" style={{ border: "1px solid var(--border-strong)" }}>Start for free</button>
             </div>
@@ -1199,13 +976,7 @@ export default function LandingPage() {
               <div className="pamt"><sup>$</sup>12<sub>/mo</sub></div>
               <p className="pdesc">The full toolkit. Pro components, all effects, Tailwind export, and the complete token architecture system.</p>
               <ul className="pfeats">
-                {[
-                  "Everything in Free", "6 Pro components incl. Datatable", "All 8 effect types",
-                  "Neumorphism & spotlight", "Animated border effects", "Full token system creator",
-                  "Tailwind CSS export", "Entry & exit animations", "Priority support",
-                ].map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
+                {["Everything in Free", "6 Pro components incl. Datatable", "All 8 effect types", "Neumorphism & spotlight", "Animated border effects", "Full token system creator", "Tailwind CSS export", "Entry & exit animations", "Priority support"].map((f) => <li key={f}>{f}</li>)}
               </ul>
               <button className="pcta pcta-p">Start Pro Trial</button>
             </div>
@@ -1216,15 +987,10 @@ export default function LandingPage() {
       {/* ── Final CTA ─────────────────────────────────── */}
       <section className="final">
         <div className="wrap">
-          <h2 className="ftitle">
-            Stop guessing.<br />
-            <em>Start building.</em>
-          </h2>
+          <h2 className="ftitle">Stop guessing.<br /><em>Start building.</em></h2>
           <p className="fdesc">Free forever for standard components. Pro for when you need everything.</p>
           <div className="faction">
-            <button className="bp" style={{ fontSize: "15px", padding: "16px 40px" }}>
-              Open J6 — it's free <Arrow />
-            </button>
+            <button className="bp" style={{ fontSize: "15px", padding: "16px 40px" }}>Open J6 — it's free <Arrow /></button>
             <button className="bs" style={{ fontSize: "15px", padding: "16px 40px" }}>View on GitHub</button>
           </div>
         </div>
@@ -1232,15 +998,10 @@ export default function LandingPage() {
 
       {/* ── Footer ─────────────────────────────────── */}
       <footer className="footer">
-        <div className="flogo">
-          J<em>6</em>
-        </div>
+        <div className="flogo">J<em>6</em></div>
         <ul className="flinks">
-          <li><a href="#">Docs</a></li>
-          <li><a href="#">Components</a></li>
-          <li><a href="#">GitHub</a></li>
-          <li><a href="#">Privacy</a></li>
-          <li><a href="#">Terms</a></li>
+          <li><a href="#">Docs</a></li><li><a href="#">Components</a></li>
+          <li><a href="#">GitHub</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
         </ul>
         <div className="fcopy">&copy; 2026 J6. All rights reserved.</div>
       </footer>
