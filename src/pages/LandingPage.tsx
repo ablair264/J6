@@ -693,34 +693,21 @@ function EffectsShowcaseCard() {
 }
 
 /* ── Bento media helper (video) ─────────────────────── */
-function BentoMedia({ src, alt, title, gradient, aspect = "16/9" }: {
-  src: string; alt?: string; title: string; gradient: string; aspect?: string;
+function BentoMedia({ src, title, gradient, aspect = "16/9" }: {
+  src: string; title: string; gradient: string; aspect?: string;
 }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
   return (
     <div className="bc-media">
-      <div className="bc-media-inner" style={{ aspectRatio: aspect }}>
-        {!error && (
-          <video
-            src={src}
-            aria-label={alt ?? title}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            style={{
-              width: "100%", height: "100%", objectFit: "cover",
-              opacity: loaded ? 1 : 0, transition: "opacity 0.4s",
-            }}
-            onLoadedData={() => setLoaded(true)}
-            onError={() => setError(true)}
-          />
-        )}
-        {(!loaded || error) && (
-          <div className="bc-placeholder" style={{ background: gradient, position: error ? "relative" : "absolute", inset: 0 }} />
-        )}
+      <div className="bc-media-inner" style={{ aspectRatio: aspect, background: gradient }}>
+        <video
+          src={src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
       </div>
       <div className="bc-media-bar">
         <div className="bc-media-dot" style={{ background: "#FF5F57" }} />

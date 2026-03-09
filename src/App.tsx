@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { UIStudioComponentPage } from '@/components/ui/UIStudioPage';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SvgLayoutLoader } from '@/components/ui/svg-layout-loader';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Projects from '@/pages/Projects';
@@ -8,6 +10,17 @@ import Profile from '@/pages/Profile';
 import LandingPage from '@/pages/LandingPage';
 
 export default function App() {
+  const [isBootLoading, setIsBootLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsBootLoading(false), 900);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (isBootLoading) {
+    return <SvgLayoutLoader />;
+  }
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
