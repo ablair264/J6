@@ -828,7 +828,7 @@ export function MotionInspectorSection({
 
             {showTriggerTabs ? (
                 <AnimatePresence mode="wait" initial={false}>
-                {activeTab === 'overlay' && supportsEntryMotion ? (
+                {activeTab === 'overlay' && supportsEntryMotion && !hasSplitOverlayMotion ? (
                     <motion.div
                         key="overlay"
                         initial={{ opacity: 0, y: 4 }}
