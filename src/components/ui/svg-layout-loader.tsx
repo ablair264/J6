@@ -1,6 +1,4 @@
-import { useMemo, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
 type LoaderNode = { col: number; row: number };
 
@@ -32,8 +30,6 @@ function buildPathKeyframes(path: LoaderNode[]): string {
 }
 
 export function SvgLayoutLoader() {
-    const [isDark, setIsDark] = useState(true);
-
     const bounds = useMemo(() => {
         const cols = SVG_LAYOUT_PATH.map((node) => node.col);
         const rows = SVG_LAYOUT_PATH.map((node) => node.row);
@@ -49,38 +45,17 @@ export function SvgLayoutLoader() {
 
     const keyframes = useMemo(() => buildPathKeyframes(SVG_LAYOUT_PATH), []);
     const stepDuration = LOOP_DURATION_SECONDS / SVG_LAYOUT_PATH.length;
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.10)';
+    const gridColor = 'rgba(255, 255, 255, 0.10)';
 
     return (
-        <div
-            className={cn(
-                'relative flex min-h-screen w-full items-center justify-center overflow-hidden transition-colors duration-300',
-                isDark ? 'bg-gray-900' : 'bg-gray-100',
-            )}
-        >
+        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gray-900">
             <div
-                className={cn('absolute inset-0', isDark ? 'opacity-20' : 'opacity-10')}
+                className="absolute inset-0 opacity-20"
                 style={{
                     backgroundImage: `linear-gradient(${gridColor} 1px, transparent 1px), linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
                     backgroundSize: '50px 50px',
                 }}
             />
-
-            <button
-                type="button"
-                onClick={() => setIsDark((prev) => !prev)}
-                className={cn(
-                    'absolute right-6 top-6 z-20 rounded-full p-3 shadow-lg transition-all duration-300',
-                    isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-200',
-                )}
-                aria-label="Toggle theme"
-            >
-                {isDark ? (
-                    <Sun className="h-6 w-6 text-yellow-400" />
-                ) : (
-                    <Moon className="h-6 w-6 text-gray-700" />
-                )}
-            </button>
 
             <div
                 className="relative z-10"
@@ -90,10 +65,7 @@ export function SvgLayoutLoader() {
                     <div
                         // Multiple blocks share the same path with time offsets, preserving the SVG layout while animating.
                         key={index}
-                        className={cn(
-                            'absolute left-0 top-0 rounded-sm',
-                            isDark ? 'bg-white' : 'bg-gray-900',
-                        )}
+                        className="absolute left-0 top-0 rounded-sm bg-white"
                         style={{
                             width: `${SQUARE_SIZE}px`,
                             height: `${SQUARE_SIZE}px`,

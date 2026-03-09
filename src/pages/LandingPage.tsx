@@ -694,7 +694,7 @@ function EffectsShowcaseCard() {
 
 /* ── Bento media helper (video) ─────────────────────── */
 function BentoMedia({ src, title, gradient, aspect = "16/9" }: {
-  src: string; title: string; gradient: string; aspect?: string;
+  src: string; alt?: string; title: string; gradient: string; aspect?: string;
 }) {
   return (
     <div className="bc-media">
