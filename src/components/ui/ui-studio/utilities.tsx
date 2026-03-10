@@ -2239,7 +2239,16 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
     const componentPreset = getComponentVisualPreset(instance.kind, instance.style.componentPreset);
     const extractedEffectsClassName = buildExtractedEffectsClassName(instance.kind, instance.style);
     const hasAnimatedBorderEffect = supportsAnimatedBorderEffect(instance.kind) && instance.style.effectAnimatedBorderEnabled;
-    const previewStyle = buildPreviewStyle(instance.style);
+
+    // When previewing a non-default state (hover/active/disabled), resolve the
+    // state overrides into the config so inline styles reflect the active state.
+    // This avoids relying on CSS !important to override inline styles (which can
+    // fail under Tailwind v4's CSS layer processing).
+    const previewState = instance.style.buttonPreviewState;
+    const resolvedConfig = previewState && previewState !== 'default' && instance.stateOverrides?.[previewState]
+        ? { ...instance.style, ...instance.stateOverrides[previewState] }
+        : instance.style;
+    const previewStyle = buildPreviewStyle(resolvedConfig);
 
     // Badges need smaller sizing than buttons
     if (instance.kind === 'badge') {

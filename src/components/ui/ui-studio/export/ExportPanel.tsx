@@ -87,6 +87,15 @@ export function ExportPanel() {
                     ? 'ui-studio.theme.css'
                     : 'ui-studio-design-bundle.json';
 
+    const tabDescription =
+        codePanelTab === 'snippet'
+            ? 'Quick snippet for an existing file in this project.'
+            : codePanelTab === 'named'
+                ? 'Reusable React component file for this project.'
+                : codePanelTab === 'theme'
+                    ? 'Theme CSS for the selected token set only.'
+                    : 'Studio data for re-opening this design in UI Studio later.';
+
     const copyCode = async (snippet: string) => {
         try {
             await navigator.clipboard.writeText(snippet);
@@ -113,6 +122,13 @@ export function ExportPanel() {
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+                <div className="mr-3 min-w-[220px]">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6f86a7]">Export For</div>
+                    <div className="mt-1 text-[13px] font-semibold text-[#eaf2ff]">This Project</div>
+                    <div className="mt-0.5 text-[11px] leading-relaxed text-[#8fa6c7]">
+                        Generated components reference this project&apos;s existing UI primitives.
+                    </div>
+                </div>
                 <div className="inline-flex rounded-sm bg-[#0d0f12] p-1">
                     <button
                         type="button"
@@ -153,29 +169,30 @@ export function ExportPanel() {
                         value="snippet"
                         className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
                     >
-                        Inline
+                        Quick Snippet
                     </TabsTrigger>
                     <TabsTrigger
                         value="named"
                         className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
                     >
-                        Component
+                        Component File
                     </TabsTrigger>
                     <TabsTrigger
                         value="exports"
                         className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
                     >
-                        Design Bundle
+                        Studio Bundle
                     </TabsTrigger>
                     {exportStyleMode === 'tailwind' ? (
                         <TabsTrigger
                             value="theme"
                             className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
                         >
-                            Theme CSS
+                            Theme Tokens
                         </TabsTrigger>
                     ) : null}
                 </TabsList>
+                <p className="pt-3 text-[11px] leading-relaxed text-[#8fa6c7]">{tabDescription}</p>
                 <TabsContent value="snippet" className="min-h-0">
                     <pre className="h-full min-h-[260px] overflow-auto pt-3 text-[12px] leading-relaxed text-[#bfd1ec]">
                         <code>{activeSnippet}</code>
