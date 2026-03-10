@@ -25,6 +25,10 @@ import {
 
 const studioActionButtonClass =
     'inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-[#b7c8df] transition hover:bg-white/[0.1] hover:text-[#eef5ff]';
+const exportTabTriggerClass =
+    'min-w-0 flex-1 basis-[calc(50%-0.125rem)] whitespace-normal px-2 py-2 text-center text-[11px] font-semibold leading-tight text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]';
+const exportPreClass =
+    'h-full min-h-[260px] overflow-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] pt-3 text-[11px] leading-relaxed text-[#bfd1ec]';
 
 export function ExportPanel() {
     const exportStyleMode = useStudioStore((s) => s.exportStyleMode);
@@ -120,96 +124,98 @@ export function ExportPanel() {
     };
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-                <div className="mr-3 min-w-[220px]">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="flex flex-col gap-3 px-4 py-3">
+                <div className="min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6f86a7]">Export For</div>
                     <div className="mt-1 text-[13px] font-semibold text-[#eaf2ff]">This Project</div>
                     <div className="mt-0.5 text-[11px] leading-relaxed text-[#8fa6c7]">
                         Generated components reference this project&apos;s existing UI primitives.
                     </div>
                 </div>
-                <div className="inline-flex rounded-sm bg-[#0d0f12] p-1">
-                    <button
-                        type="button"
-                        onClick={() => setExportStyleMode('inline')}
-                        className={cn(
-                            'rounded-md px-2 py-1 text-[13px] font-semibold transition',
-                            exportStyleMode === 'inline' ? 'bg-white/[0.16] text-[#eaf3ff]' : 'text-[#92a7c5] hover:text-[#e6f0ff]',
-                        )}
-                    >
-                        CSS
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setExportStyleMode('tailwind')}
-                        className={cn(
-                            'rounded-md px-2 py-1 text-[13px] font-semibold transition',
-                            exportStyleMode === 'tailwind' ? 'bg-white/[0.16] text-[#eaf3ff]' : 'text-[#92a7c5] hover:text-[#e6f0ff]',
-                        )}
-                    >
-                        Tailwind
-                    </button>
-                </div>
-                <div className="ml-auto flex items-center gap-1.5">
-                    <button type="button" onClick={() => void copyCode(activeCodeSnippet)} className={studioActionButtonClass}>
-                        {copiedCode ? <Check className="size-3" /> : <Copy className="size-3" />}
-                        {copiedCode ? 'Copied' : 'Copy'}
-                    </button>
-                    <button type="button" onClick={() => exportCode(activeCodeFilename, activeCodeSnippet)} className={studioActionButtonClass}>
-                        {exportedCode ? <Check className="size-3" /> : <Download className="size-3" />}
-                        {exportedCode ? 'Done' : 'Export'}
-                    </button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="inline-flex rounded-sm bg-[#0d0f12] p-1">
+                        <button
+                            type="button"
+                            onClick={() => setExportStyleMode('inline')}
+                            className={cn(
+                                'rounded-md px-2 py-1 text-[13px] font-semibold transition',
+                                exportStyleMode === 'inline' ? 'bg-white/[0.16] text-[#eaf3ff]' : 'text-[#92a7c5] hover:text-[#e6f0ff]',
+                            )}
+                        >
+                            CSS
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setExportStyleMode('tailwind')}
+                            className={cn(
+                                'rounded-md px-2 py-1 text-[13px] font-semibold transition',
+                                exportStyleMode === 'tailwind' ? 'bg-white/[0.16] text-[#eaf3ff]' : 'text-[#92a7c5] hover:text-[#e6f0ff]',
+                            )}
+                        >
+                            Tailwind
+                        </button>
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                        <button type="button" onClick={() => void copyCode(activeCodeSnippet)} className={studioActionButtonClass}>
+                            {copiedCode ? <Check className="size-3" /> : <Copy className="size-3" />}
+                            {copiedCode ? 'Copied' : 'Copy'}
+                        </button>
+                        <button type="button" onClick={() => exportCode(activeCodeFilename, activeCodeSnippet)} className={studioActionButtonClass}>
+                            {exportedCode ? <Check className="size-3" /> : <Download className="size-3" />}
+                            {exportedCode ? 'Done' : 'Export'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <Tabs value={codePanelTab} onValueChange={(value) => setCodePanelTab(value as CodePanelTab)} className="min-h-0 flex-1 px-4 pb-3 pt-2">
-                <TabsList variant="line" className="w-full border-b border-white/10 pb-1">
+            <Tabs value={codePanelTab} onValueChange={(value) => setCodePanelTab(value as CodePanelTab)} className="min-h-0 min-w-0 flex-1 px-4 pb-3 pt-2">
+                <TabsList variant="line" className="flex w-full flex-wrap items-stretch justify-start gap-1 border-b border-white/10 pb-1">
                     <TabsTrigger
                         value="snippet"
-                        className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
+                        className={exportTabTriggerClass}
                     >
                         Quick Snippet
                     </TabsTrigger>
                     <TabsTrigger
                         value="named"
-                        className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
+                        className={exportTabTriggerClass}
                     >
                         Component File
                     </TabsTrigger>
                     <TabsTrigger
                         value="exports"
-                        className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
+                        className={exportTabTriggerClass}
                     >
                         Studio Bundle
                     </TabsTrigger>
                     {exportStyleMode === 'tailwind' ? (
                         <TabsTrigger
                             value="theme"
-                            className="text-[12px] font-semibold text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]"
+                            className={exportTabTriggerClass}
                         >
                             Theme Tokens
                         </TabsTrigger>
                     ) : null}
                 </TabsList>
                 <p className="pt-3 text-[11px] leading-relaxed text-[#8fa6c7]">{tabDescription}</p>
-                <TabsContent value="snippet" className="min-h-0">
-                    <pre className="h-full min-h-[260px] overflow-auto pt-3 text-[12px] leading-relaxed text-[#bfd1ec]">
+                <TabsContent value="snippet" className="min-h-0 min-w-0">
+                    <pre className={exportPreClass}>
                         <code>{activeSnippet}</code>
                     </pre>
                 </TabsContent>
-                <TabsContent value="named" className="min-h-0">
-                    <pre className="h-full min-h-[260px] overflow-auto pt-3 text-[12px] leading-relaxed text-[#bfd1ec]">
+                <TabsContent value="named" className="min-h-0 min-w-0">
+                    <pre className={exportPreClass}>
                         <code>{activeNamedSnippet}</code>
                     </pre>
                 </TabsContent>
-                <TabsContent value="exports" className="min-h-0">
-                    <pre className="h-full min-h-[260px] overflow-auto pt-3 text-[12px] leading-relaxed text-[#bfd1ec]">
+                <TabsContent value="exports" className="min-h-0 min-w-0">
+                    <pre className={exportPreClass}>
                         <code>{allExportsSnippet}</code>
                     </pre>
                 </TabsContent>
-                <TabsContent value="theme" className="min-h-0">
-                    <pre className="h-full min-h-[260px] overflow-auto pt-3 text-[12px] leading-relaxed text-[#bfd1ec]">
+                <TabsContent value="theme" className="min-h-0 min-w-0">
+                    <pre className={exportPreClass}>
                         <code>{tailwindThemeSnippet}</code>
                     </pre>
                 </TabsContent>
