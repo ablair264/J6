@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, type CSSProperties } from "react";
    J6 TOKENS + PAGE STYLES
    ================================================================ */
 const CSS = `
-  @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+  @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&f[]=satoshi@400,500,700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -25,7 +25,7 @@ const CSS = `
     --showcase-spearmint: #10B981; --showcase-solar: #FACC15;
     --serif: 'Cabinet Grotesk', system-ui, sans-serif;
     --mono: 'Space Mono', 'Courier New', monospace;
-    --sans: 'Space Grotesk', system-ui, sans-serif;
+    --sans: 'Satoshi', system-ui, sans-serif;
   }
 
   html { scroll-behavior: smooth; }
@@ -52,102 +52,22 @@ const CSS = `
   .hero-title em { font-style: normal; color: var(--brand-default); font-weight: 900; }
   .hero-desc { font-size: 16px; line-height: 1.7; color: var(--text-secondary); max-width: 480px; margin-bottom: 52px; font-weight: 400; }
   .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-  .stats { display: flex; gap: 40px; margin-top: 64px; }
-  .stat-n { font-family: var(--serif); font-size: 32px; line-height: 1; margin-bottom: 4px; font-weight: 800; }
-  .stat-l { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; }
   .hero-r { position: relative; overflow: hidden; border-left: 1px solid var(--border-subtle); }
   .hcanvas { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); }
-  .grid-bg { position: absolute; inset: 0; background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 48px 48px; opacity: 0.6; }
 
-  /* ── Floating hero components ─────────────────────────────────── */
-  .hero-float {
-    position: absolute; z-index: 10; animation: fl 4s ease-in-out infinite;
+  /* ── Hero video ─────────────────────────────────── */
+  .hero-video-wrap {
+    position: relative; z-index: 5; width: 92%; max-width: 600px;
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border-default);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
   }
-  @keyframes fl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-
-  /* Dropdown */
-  .j6-dropdown { position: relative; }
-  .j6-dropdown-trigger {
-    font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
-    padding: 10px 20px; border-radius: 6px; cursor: pointer; transition: all 0.22s ease;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--showcase-spearmint); color: var(--text-inverse);
-    border: 1.5px solid rgba(52,211,153,0.4);
-    box-shadow: 0 4px 20px rgba(16,185,129,0.25);
+  .hero-video-wrap video { width: 100%; display: block; }
+  .hero-video-glow {
+    position: absolute; inset: -40%; z-index: -1;
+    background: radial-gradient(ellipse at center, rgba(245,166,35,0.06) 0%, transparent 70%);
+    pointer-events: none;
   }
-  .j6-dropdown-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(16,185,129,0.4); }
-  .j6-dropdown-trigger svg { transition: transform 0.2s; }
-  .j6-dropdown-trigger.open svg { transform: rotate(180deg); }
-  .j6-dropdown-menu {
-    position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 220px;
-    background: rgba(4,120,87,0.95); border: 1px solid rgba(16,185,129,0.65);
-    border-radius: 8px; padding: 6px; opacity: 0; transform: translateY(8px);
-    transition: all 0.2s ease; pointer-events: none; backdrop-filter: blur(16px);
-  }
-  .j6-dropdown-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .j6-dropdown-item {
-    display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 6px;
-    font-family: var(--sans); font-size: 13px; color: rgba(248,250,252,0.9);
-    cursor: pointer; transition: all 0.15s; text-decoration: none;
-  }
-  .j6-dropdown-item:hover { background: rgba(226,232,240,1); color: #0f172a; }
-  .j6-dropdown-item span.icon { font-size: 15px; width: 20px; text-align: center; }
-  .j6-dropdown-sep { height: 1px; background: rgba(255,255,255,0.12); margin: 4px 6px; }
-
-  /* Popover */
-  .j6-popover { position: relative; }
-  .j6-popover-trigger {
-    font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
-    padding: 10px 20px; border-radius: 6px; cursor: pointer; transition: all 0.22s ease;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--interactive-default); color: #fff;
-    border: none; position: relative; overflow: hidden;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.3);
-  }
-  .j6-popover-trigger::before {
-    content: ''; position: absolute; inset: -1px; border-radius: 7px;
-    background: conic-gradient(from 0deg, transparent 60%, var(--showcase-plasma) 80%, transparent 100%);
-    animation: shine-spin 4s linear infinite; z-index: -1;
-  }
-  .j6-popover-trigger::after {
-    content: ''; position: absolute; inset: 1px; border-radius: 5px;
-    background: var(--interactive-default); z-index: -1;
-  }
-  @keyframes shine-spin { to { transform: rotate(360deg); } }
-  .j6-popover-trigger:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,58,237,0.45); }
-  .j6-popover-content {
-    position: absolute; top: calc(100% + 10px); right: 0; transform: translateY(8px);
-    z-index: 30; width: 320px; padding: 20px;
-    background: rgba(91,33,182,0.95); border: 1px solid var(--showcase-plasma);
-    border-radius: 10px; opacity: 0; pointer-events: none;
-    transition: all 0.25s ease; backdrop-filter: blur(16px);
-  }
-  .j6-popover-content.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .j6-popover-content h4 { font-family: var(--serif); font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
-  .j6-popover-content p { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.6; margin-bottom: 12px; }
-  .j6-popover-feat { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; color: rgba(255,255,255,0.7); font-family: var(--mono); }
-  .j6-popover-feat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--showcase-plasma); flex-shrink: 0; }
-
-  /* Hero badges */
-  .j6-badge {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 6px 14px; border-radius: 100px; display: inline-flex; align-items: center; gap: 6px;
-    white-space: nowrap;
-  }
-  .j6-badge .pulse { width: 6px; height: 6px; border-radius: 50%; animation: badge-pulse 2s ease-in-out infinite; }
-  @keyframes badge-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }
-
-  /* ── Hero screenshot ─────────────────────────────────── */
-  .hero-screenshot {
-    position: relative; z-index: 5; width: 85%; max-width: 520px;
-    border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--border-strong);
-    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
-  }
-  .hero-screenshot img { width: 100%; display: block; }
-  .pcard-hdr { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .pcard-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: auto; }
 
   /* ── Marquee Strip ─────────────────────────────────── */
   .strip { border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 16px 0; background: var(--bg-surface); overflow: hidden; white-space: nowrap; }
@@ -209,7 +129,7 @@ const CSS = `
   .sw.on { border-color: var(--brand-default); transform: scale(1.2); }
   .dslider { width: 100%; height: 2px; background: var(--border-strong); border-radius: 2px; outline: none; accent-color: var(--brand-default); appearance: none; -webkit-appearance: none; display: block; margin-top: 4px; }
   .eopt { font-family: var(--mono); font-size: 12px; cursor: pointer; padding: 6px 0 6px 10px; transition: all 0.2s; }
-  .dcanvas { display: flex; align-items: center; justify-content: center; padding: 48px; position: relative; background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 32px 32px; }
+  .dcanvas { display: flex; align-items: center; justify-content: center; padding: 48px; position: relative; background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%); }
   .clabel { position: absolute; bottom: 20px; right: 20px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
 
   /* ── Effects Showcase ─────────────────────────────────── */
@@ -290,25 +210,37 @@ const CSS = `
   .comp-bg { background: var(--bg-subtle); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
   .comp-hdr { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 56px; }
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-  .chip { font-family: var(--mono); font-size: 12px; padding: 9px 18px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 100px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
-  .chip:hover { border-color: var(--brand-default); color: var(--text-primary); }
-  .chip.pro { border-color: rgba(245,166,35,0.3); color: var(--brand-default); }
-  .chip.pro::after { content: 'PRO'; font-size: 8px; letter-spacing: 0.1em; background: var(--brand-default); color: var(--text-inverse); padding: 1px 5px; border-radius: 2px; margin-left: 8px; font-weight: 700; vertical-align: middle; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 10px 20px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-secondary); cursor: pointer; transition: all 0.25s; position: relative; }
+  .chip:hover { border-color: var(--border-strong); color: var(--text-primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .chip.pro { border-color: rgba(245,166,35,0.2); color: var(--brand-default); background: rgba(245,166,35,0.04); }
+  .chip.pro:hover { border-color: rgba(245,166,35,0.5); box-shadow: 0 8px 24px rgba(245,166,35,0.1); }
+  .chip.pro::after { content: 'PRO'; font-size: 8px; letter-spacing: 0.1em; background: var(--brand-default); color: var(--text-inverse); padding: 2px 6px; border-radius: 3px; margin-left: 8px; font-weight: 700; vertical-align: middle; }
 
   /* ── Testimonials ─────────────────────────────────── */
   .tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border-subtle); }
   .tc { background: var(--bg-subtle); padding: 40px 36px; }
   .ttext { font-family: var(--serif); font-size: 18px; line-height: 1.6; color: var(--text-primary); font-weight: 300; margin-bottom: 28px; }
-  .tauthor { display: flex; align-items: center; gap: 12px; }
-  .tav { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-elevated); border: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; color: var(--brand-default); flex-shrink: 0; }
+  .tauthor { display: flex; align-items: baseline; gap: 8px; }
   .tname { font-family: var(--mono); font-size: 12px; color: var(--text-primary); font-weight: 500; }
-  .trole { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .trole { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+  .tauthor .tsep { color: var(--text-muted); font-size: 10px; }
 
   /* ── Pricing ─────────────────────────────────── */
   .pgrid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border-subtle); overflow: hidden; }
   .pcard2 { background: var(--bg-subtle); padding: 56px 48px; position: relative; }
-  .pcard2.ft { background: var(--bg-elevated); }
-  .pcard2.ft::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--brand-default); }
+  .pcard2.ft { background: var(--bg-elevated); overflow: hidden; }
+  .pcard2.ft::before {
+    content: ''; position: absolute; top: -1px; left: -1px; right: -1px; bottom: -1px;
+    background: conic-gradient(from var(--pro-angle, 0deg), transparent 60%, var(--brand-default) 78%, transparent 95%);
+    animation: pro-spin 4s linear infinite; z-index: 0; border-radius: inherit;
+  }
+  .pcard2.ft::after {
+    content: ''; position: absolute; top: 1px; left: 1px; right: 1px; bottom: 1px;
+    background: var(--bg-elevated); z-index: 0; border-radius: inherit;
+  }
+  .pcard2.ft > * { position: relative; z-index: 1; }
+  @keyframes pro-spin { to { --pro-angle: 360deg; } }
+  @property --pro-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
   .ptier { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 32px; }
   .pamt { font-family: var(--serif); font-size: 72px; line-height: 1; margin-bottom: 8px; letter-spacing: -0.03em; }
   .pamt sup { font-size: 24px; vertical-align: super; color: var(--text-muted); }
@@ -356,7 +288,6 @@ const CSS = `
     .footer { flex-direction: column; gap: 20px; text-align: center; }
     .faction { flex-direction: column; align-items: center; }
     .comp-hdr { flex-direction: column; align-items: flex-start; gap: 20px; }
-    .stats { gap: 24px; }
   }
 `;
 
@@ -370,103 +301,13 @@ const Arrow = () => (
   </svg>
 );
 
-const ChevronDown = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 
-/* ── Hero Dropdown (floating in hero-r) ─────────────────────── */
-function HeroDropdown() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, []);
-
-  const sections = [
-    { icon: "◈", label: "How It Works", href: "#how" },
-    { icon: "▣", label: "Visual Effects", href: "#effects" },
-    { icon: "◉", label: "Components", href: "#components" },
-    { icon: "✦", label: "Pricing", href: "#pricing" },
-  ];
-
-  return (
-    <div className="j6-dropdown" ref={ref}>
-      <button
-        className={`j6-dropdown-trigger ${open ? "open" : ""}`}
-        onClick={() => setOpen(!open)}
-      >
-        Explore <ChevronDown />
-      </button>
-      <div className={`j6-dropdown-menu ${open ? "open" : ""}`}>
-        {sections.map((s) => (
-          <a key={s.href} className="j6-dropdown-item" href={s.href} onClick={() => setOpen(false)}>
-            <span className="icon">{s.icon}</span>
-            {s.label}
-          </a>
-        ))}
-        <div className="j6-dropdown-sep" />
-        <a className="j6-dropdown-item" href="#" onClick={() => setOpen(false)}>
-          <span className="icon">↗</span>
-          Open Studio
-        </a>
-      </div>
-    </div>
-  );
-}
-
-/* ── Hero Popover (floating in hero-r) ─────────────────────── */
-function HeroPopover() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, []);
-
-  return (
-    <div className="j6-popover" ref={ref}>
-      <button className="j6-popover-trigger" onClick={() => setOpen(!open)}>
-        Visual Effects
-      </button>
-      <div className={`j6-popover-content ${open ? "open" : ""}`}>
-        <h4>8 Effect Types. Full Control.</h4>
-        <p>
-          Every effect ships with numeric controls for intensity, colour, speed, and spread.
-          Not presets — proper design tools.
-        </p>
-        {[
-          "Drop shadow with multi-layer x/y/blur/spread",
-          "Neon glow with colour and intensity control",
-          "Animated border beam with rotation speed",
-          "Neumorphism with dual highlight/shadow layers",
-          "Spotlight with directional light simulation",
-        ].map((f) => (
-          <div className="j6-popover-feat" key={f}>
-            <div className="dot" />
-            {f}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ── Live Demo ─────────────────────── */
 function LiveDemo() {
-  const [color, setColor] = useState("#F5A623");
-  const [radius, setRadius] = useState(8);
-  const [intensity, setIntensity] = useState(24);
+  const [color, setColor] = useState("#22D3EE");
+  const [radius, setRadius] = useState(12);
+  const [intensity, setIntensity] = useState(36);
   const [effect, setEffect] = useState("glow");
   const [hovered, setHovered] = useState(false);
   const swatches = ["#F5A623", "#7C3AED", "#22D3EE", "#10B981", "#F43F5E", "#F472B6", "#FFFFFF", "#9A9AA3"];
@@ -786,108 +627,21 @@ export default function LandingPage() {
             <button className="bp">Start for free <Arrow /></button>
             <button className="bs">Watch demo</button>
           </div>
-          <div className="stats">
-            <div><div className="stat-n">22</div><div className="stat-l">Components</div></div>
-            <div><div className="stat-n">7</div><div className="stat-l">Effect Types</div></div>
-            <div><div className="stat-n">&infin;</div><div className="stat-l">Token Combos</div></div>
-          </div>
         </div>
 
-        {/* Hero right — floating components around the preview card */}
+        {/* Hero right — product video */}
         <div className="hero-r">
           <div className="hcanvas">
-            <div className="grid-bg" />
-
-            {/* Floating dropdown — top left */}
-            <div className="hero-float" style={{ top: "12%", left: "6%", animationDelay: "0s" }}>
-              <HeroDropdown />
-            </div>
-
-            {/* Floating popover — top right */}
-            <div className="hero-float" style={{ top: "14%", right: "6%", animationDelay: "1.2s" }}>
-              <HeroPopover />
-            </div>
-
-            {/* Floating badge — bottom left */}
-            <div className="hero-float" style={{ bottom: "22%", left: "6%", animationDelay: "1.8s" }}>
-              <span
-                className="j6-badge"
-                style={{
-                  background: "rgba(163,230,53,0.12)",
-                  color: "var(--showcase-acid)",
-                  border: "1px solid rgba(163,230,53,0.25)",
-                  boxShadow: "0 4px 16px rgba(163,230,53,0.15)",
-                }}
-              >
-                <span className="pulse" style={{ background: "var(--showcase-acid)" }} />
-                Live preview
-              </span>
-            </div>
-
-            {/* Floating badge — bottom right */}
-            <div className="hero-float" style={{ bottom: "26%", right: "5%", animationDelay: "0.6s" }}>
-              <span className="j6-badge" style={{
-                background: "rgba(34,211,238,0.12)", color: "var(--showcase-electric)",
-                border: "1px solid rgba(34,211,238,0.25)", boxShadow: "0 4px 16px rgba(34,211,238,0.15)",
-              }}>
-                <span className="pulse" style={{ background: "var(--showcase-electric)" }} />
-                Tailwind export
-              </span>
-            </div>
-
-            {/* Floating badge — mid left */}
-            <div className="hero-float" style={{ top: "42%", left: "4%", animationDelay: "2.4s" }}>
-              <span className="j6-badge" style={{
-                background: "rgba(244,114,182,0.12)", color: "var(--showcase-bloom)",
-                border: "1px solid rgba(244,114,182,0.25)", boxShadow: "0 4px 16px rgba(244,114,182,0.15)",
-              }}>
-                <span className="pulse" style={{ background: "var(--showcase-bloom)" }} />
-                React Motion
-              </span>
-            </div>
-
-            {/* Floating badge — mid right */}
-            <div className="hero-float" style={{ top: "46%", right: "3%", animationDelay: "3.0s" }}>
-              <span className="j6-badge" style={{
-                background: "rgba(251,146,60,0.12)", color: "var(--showcase-inferno)",
-                border: "1px solid rgba(251,146,60,0.25)", boxShadow: "0 4px 16px rgba(251,146,60,0.15)",
-              }}>
-                <span className="pulse" style={{ background: "var(--showcase-inferno)" }} />
-                Token system
-              </span>
-            </div>
-
-            {/* Floating badge — lower mid */}
-            <div className="hero-float" style={{ bottom: "12%", left: "30%", animationDelay: "0.3s" }}>
-              <span className="j6-badge" style={{
-                background: "rgba(129,140,248,0.12)", color: "var(--showcase-plasma)",
-                border: "1px solid rgba(129,140,248,0.25)", boxShadow: "0 4px 16px rgba(129,140,248,0.15)",
-              }}>
-                <span className="pulse" style={{ background: "var(--showcase-plasma)" }} />
-                22 components
-              </span>
-            </div>
-
-            {/* Floating badge — lower right */}
-            <div className="hero-float" style={{ bottom: "8%", right: "15%", animationDelay: "2.0s" }}>
-              <span className="j6-badge" style={{
-                background: "rgba(245,166,35,0.12)", color: "var(--brand-default)",
-                border: "1px solid rgba(245,166,35,0.25)", boxShadow: "0 4px 16px rgba(245,166,35,0.15)",
-              }}>
-                <span className="pulse" style={{ background: "var(--brand-default)" }} />
-                CSS export
-              </span>
-            </div>
-
-            {/* Screenshot — center */}
-            <div className="hero-screenshot">
-              <div className="pcard-hdr">
-                <div className="dot" style={{ background: "#FF5F57" }} />
-                <div className="dot" style={{ background: "#FFBD2E" }} />
-                <div className="dot" style={{ background: "#28C840" }} />
-                <span className="pcard-lbl">j6.app — Component Studio</span>
-              </div>
-              <img src="/screenshot.png" alt="J6 Component Studio" />
+            <div className="hero-video-glow" />
+            <div className="hero-video-wrap">
+              <video
+                src="/edit-component.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+              />
             </div>
           </div>
         </div>
@@ -1002,8 +756,9 @@ export default function LandingPage() {
               <div key={i} className="tc">
                 <div className="ttext">"{t.t}"</div>
                 <div className="tauthor">
-                  <div className="tav">{t.n.split(" ").map((x) => x[0]).join("")}</div>
-                  <div><div className="tname">{t.n}</div><div className="trole">{t.r}</div></div>
+                  <div className="tname">{t.n}</div>
+                  <span className="tsep">/</span>
+                  <div className="trole">{t.r}</div>
                 </div>
               </div>
             ))}
