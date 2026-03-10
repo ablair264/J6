@@ -432,6 +432,9 @@ export function InspectorPanel() {
             fontPosition: resolved.fontPosition,
             fontColor: resolved.fontColor,
             fontOpacity: resolved.fontOpacity,
+            fontBold: resolved.fontBold,
+            fontItalic: resolved.fontItalic,
+            fontUnderline: resolved.fontUnderline,
             strokeColor: resolved.strokeColor,
             strokeOpacity: resolved.strokeOpacity,
             strokeWeight: resolved.strokeWeight,
@@ -452,6 +455,9 @@ export function InspectorPanel() {
                 fontPosition: selectedStyle.fontPosition,
                 fontColor: selectedStyle.fontColor,
                 fontOpacity: selectedStyle.fontOpacity,
+                fontBold: selectedStyle.fontBold,
+                fontItalic: selectedStyle.fontItalic,
+                fontUnderline: selectedStyle.fontUnderline,
                 strokeColor: selectedStyle.strokeColor,
                 strokeOpacity: selectedStyle.strokeOpacity,
                 strokeWeight: selectedStyle.strokeWeight,
@@ -473,11 +479,12 @@ export function InspectorPanel() {
 
     type AppearanceField = 'fillMode' | 'fillColor' | 'fillColorTo' | 'fillWeight' | 'fillOpacity'
         | 'fontSize' | 'fontWeight' | 'fontPosition' | 'fontColor' | 'fontOpacity'
+        | 'fontBold' | 'fontItalic' | 'fontUnderline'
         | 'strokeColor' | 'strokeOpacity' | 'strokeWeight';
 
     const updateAppearanceField = (
         field: AppearanceField,
-        value: string | number | FillMode,
+        value: string | number | boolean | FillMode,
     ) => {
         if (!selectedStyle) return;
         const previewState = selectedStyle.buttonPreviewState;
@@ -1046,13 +1053,13 @@ export function InspectorPanel() {
                                             </FlatField>
                                             <FlatField label="Style">
                                                 <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                    <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <button type="button" onClick={() => updateAppearanceField('fontBold', !currentAppearanceValues.fontBold)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                         <TypeBold className="size-4" />
                                                     </button>
-                                                    <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <button type="button" onClick={() => updateAppearanceField('fontItalic', !currentAppearanceValues.fontItalic)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                         <TypeItalic className="size-4" />
                                                     </button>
-                                                    <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    <button type="button" onClick={() => updateAppearanceField('fontUnderline', !currentAppearanceValues.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                         <TypeUnderline className="size-4" />
                                                     </button>
                                                 </div>
@@ -3774,13 +3781,13 @@ export function InspectorPanel() {
                                                             <div className="min-w-[110px] shrink-0 space-y-1.5">
                                                                 <span className="block text-[12px] font-medium text-[var(--inspector-muted-text)]">Style</span>
                                                                 <div className="flex h-6 items-center gap-0.5 rounded-sm bg-[var(--inspector-input)] p-0.5">
-                                                                    <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                    <button type="button" onClick={() => updateAppearanceField('fontBold', !currentAppearanceValues.fontBold)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                                         <TypeBold className="size-4" />
                                                                     </button>
-                                                                    <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                    <button type="button" onClick={() => updateAppearanceField('fontItalic', !currentAppearanceValues.fontItalic)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                                         <TypeItalic className="size-4" />
                                                                     </button>
-                                                                    <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                                    <button type="button" onClick={() => updateAppearanceField('fontUnderline', !currentAppearanceValues.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                                         <TypeUnderline className="size-4" />
                                                                     </button>
                                                                 </div>
@@ -3826,13 +3833,13 @@ export function InspectorPanel() {
                                                     </FlatField>
                                                     <FlatField label="Style">
                                                         <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                                            <button type="button" onClick={() => updateSelectedStyle('fontBold', !selectedStyle.fontBold)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                            <button type="button" onClick={() => updateAppearanceField('fontBold', !currentAppearanceValues.fontBold)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontBold ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                                 <TypeBold className="size-4" />
                                                             </button>
-                                                            <button type="button" onClick={() => updateSelectedStyle('fontItalic', !selectedStyle.fontItalic)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                            <button type="button" onClick={() => updateAppearanceField('fontItalic', !currentAppearanceValues.fontItalic)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontItalic ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                                 <TypeItalic className="size-4" />
                                                             </button>
-                                                            <button type="button" onClick={() => updateSelectedStyle('fontUnderline', !selectedStyle.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, selectedStyle.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                            <button type="button" onClick={() => updateAppearanceField('fontUnderline', !currentAppearanceValues.fontUnderline)} className={cn(inspectorIconChoiceButtonBase, currentAppearanceValues.fontUnderline ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
                                                                 <TypeUnderline className="size-4" />
                                                             </button>
                                                         </div>

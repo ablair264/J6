@@ -1,10 +1,12 @@
 import type { ComponentInstance, ComponentStyleConfig, UIComponentKind } from '@/components/ui/ui-studio.types';
-import type { StudioColorToken, StudioTokenSet } from '@/components/ui/token-sets';
+import type { StudioTokenSet } from '@/components/ui/token-sets';
 import {
     buildExportComponentName,
     buildMotionClassName,
     buildPreviewPresentation,
+    inferTokenCssVar,
     resolveTokenToHex,
+    sanitizeTokenVarName,
     supportsAnimatedBorderEffect,
     supportsBorderBeamEffect,
     supportsEntryMotion,
@@ -28,6 +30,162 @@ function getStyleForMotionOutput(instance: ComponentInstance): ComponentStyleCon
     return supportsEntryMotion(instance.kind)
         ? instance.style
         : { ...instance.style, motionEntryEnabled: false };
+}
+
+const IMPORT_SOURCE_BY_IDENTIFIER: Record<string, string> = {
+    Accordion: '@/components/ui/accordion',
+    AccordionItem: '@/components/ui/accordion',
+    AccordionTrigger: '@/components/ui/accordion',
+    AccordionContent: '@/components/ui/accordion',
+    Alert: '@/components/ui/alert',
+    AlertAction: '@/components/ui/alert',
+    AlertTitle: '@/components/ui/alert',
+    AlertDescription: '@/components/ui/alert',
+    AnimatedText: '@/components/ui/animated-text',
+    Avatar: '@/components/ui/avatar',
+    AvatarImage: '@/components/ui/avatar',
+    AvatarFallback: '@/components/ui/avatar',
+    AvatarGroup: '@/components/ui/avatar',
+    AvatarGroupCount: '@/components/ui/avatar',
+    Badge: '@/components/ui/badge',
+    Button: '@/components/ui/button',
+    Card: '@/components/ui/card',
+    CardHeader: '@/components/ui/card',
+    CardTitle: '@/components/ui/card',
+    CardDescription: '@/components/ui/card',
+    CardContent: '@/components/ui/card',
+    CardFooter: '@/components/ui/card',
+    Checkbox: '@/components/ui/checkbox',
+    DataTable: '@/components/ui/data-table',
+    Dialog: '@/components/ui/dialog',
+    DialogTrigger: '@/components/ui/dialog',
+    DialogHeader: '@/components/ui/dialog',
+    DialogTitle: '@/components/ui/dialog',
+    DialogDescription: '@/components/ui/dialog',
+    DialogBody: '@/components/ui/dialog',
+    DialogFooter: '@/components/ui/dialog',
+    DialogClose: '@/components/ui/dialog',
+    DialogCloseIcon: '@/components/ui/dialog',
+    Drawer: '@/components/ui/drawer',
+    DrawerTrigger: '@/components/ui/drawer',
+    DrawerContent: '@/components/ui/drawer',
+    DrawerHeader: '@/components/ui/drawer',
+    DrawerTitle: '@/components/ui/drawer',
+    DrawerDescription: '@/components/ui/drawer',
+    DrawerClose: '@/components/ui/drawer',
+    DropdownItem: '@/components/ui/dropdown',
+    DropdownKeyboard: '@/components/ui/dropdown',
+    DropdownLabel: '@/components/ui/dropdown',
+    DropdownSeparator: '@/components/ui/dropdown',
+    Input: '@/components/ui/input',
+    Label: '@/components/ui/label',
+    ListBox: 'react-aria-components',
+    NavigationMenu: '@/components/ui/navigation-menu',
+    NavigationMenuList: '@/components/ui/navigation-menu',
+    NavigationMenuItem: '@/components/ui/navigation-menu',
+    NavigationMenuTrigger: '@/components/ui/navigation-menu',
+    NavigationMenuContent: '@/components/ui/navigation-menu',
+    NavigationMenuLink: '@/components/ui/navigation-menu',
+    Popover: '@/components/ui/popover',
+    PopoverContent: '@/components/ui/popover',
+    PopoverDescription: '@/components/ui/popover',
+    PopoverHeader: '@/components/ui/popover',
+    PopoverTitle: '@/components/ui/popover',
+    PopoverTrigger: '@/components/ui/popover',
+    Progress: '@/components/ui/progress',
+    Slider: '@/components/ui/slider',
+    StatefulButton: '@/components/ui/stateful-button',
+    Switch: '@/components/ui/switch',
+    Tabs: '@/components/ui/tabs',
+    TabsContent: '@/components/ui/tabs',
+    TabsList: '@/components/ui/tabs',
+    TabsTrigger: '@/components/ui/tabs',
+    Tooltip: '@/components/ui/tooltip',
+    TooltipContent: '@/components/ui/tooltip',
+    TooltipTrigger: '@/components/ui/tooltip',
+    Ban: 'lucide-react',
+    Bell: 'lucide-react',
+    Bookmark: 'lucide-react',
+    Check: 'lucide-react',
+    ChevronRight: 'lucide-react',
+    CircleAlert: 'lucide-react',
+    CircleCheck: 'lucide-react',
+    CircleX: 'lucide-react',
+    Copy: 'lucide-react',
+    Database: 'lucide-react',
+    FileText: 'lucide-react',
+    FolderOpen: 'lucide-react',
+    Globe: 'lucide-react',
+    Heart: 'lucide-react',
+    Home: 'lucide-react',
+    Lightbulb: 'lucide-react',
+    Mail: 'lucide-react',
+    MessageCircle: 'lucide-react',
+    Minus: 'lucide-react',
+    MoreVertical: 'lucide-react',
+    Pencil: 'lucide-react',
+    PhoneCall: 'lucide-react',
+    Plus: 'lucide-react',
+    RefreshCw: 'lucide-react',
+    Search: 'lucide-react',
+    Settings: 'lucide-react',
+    Share: 'lucide-react',
+    Shield: 'lucide-react',
+    Slash: 'lucide-react',
+    Sparkles: 'lucide-react',
+    Star: 'lucide-react',
+    Trash2: 'lucide-react',
+    User: 'lucide-react',
+    Users: 'lucide-react',
+    X: 'lucide-react',
+    Zap: 'lucide-react',
+};
+
+function buildNamedSnippetImports(snippet: string): string {
+    const usedIdentifiers = new Set<string>();
+    const identifierMatches = snippet.match(/\b[A-Z][A-Za-z0-9]*\b/g) ?? [];
+    for (const identifier of identifierMatches) {
+        if (IMPORT_SOURCE_BY_IDENTIFIER[identifier]) {
+            usedIdentifiers.add(identifier);
+        }
+    }
+
+    const importsBySource = new Map<string, Set<string>>();
+    for (const identifier of usedIdentifiers) {
+        const source = IMPORT_SOURCE_BY_IDENTIFIER[identifier];
+        const existing = importsBySource.get(source) ?? new Set<string>();
+        existing.add(identifier);
+        importsBySource.set(source, existing);
+    }
+
+    const lines: string[] = [];
+    const needsReactNamespace = snippet.includes('React.');
+    const reactHooks = ['useRef'].filter((hook) => snippet.includes(`${hook}<`) || snippet.includes(`${hook}(`));
+    if (needsReactNamespace || reactHooks.length > 0) {
+        const parts: string[] = [];
+        if (needsReactNamespace) {
+            parts.push('React');
+        }
+        if (reactHooks.length > 0) {
+            parts.push(`{ ${reactHooks.join(', ')} }`);
+        }
+        lines.push(`import ${parts.join(', ')} from 'react';`);
+    }
+
+    const motionMembers = ['motion', 'useMotionValue', 'useMotionTemplate', 'useSpring'].filter((member) =>
+        snippet.includes(member),
+    );
+    if (motionMembers.length > 0) {
+        lines.push(`import { ${motionMembers.join(', ')} } from 'motion/react';`);
+    }
+
+    const orderedSources = Array.from(importsBySource.keys()).sort();
+    for (const source of orderedSources) {
+        const names = Array.from(importsBySource.get(source) ?? []).sort();
+        lines.push(`import { ${names.join(', ')} } from '${source}';`);
+    }
+
+    return lines.join('\n');
 }
 
 // ─── Instance Snippet Builders ───────────────────────────────────────────
@@ -62,11 +220,13 @@ export function buildNamedSnippetForInstance(
         exportStyleMode,
         activeTokenSet,
     );
-    return wrapSnippetInNamedComponent(
+    const namedSnippet = wrapSnippetInNamedComponent(
         baseSnippet,
         buildExportComponentName(instance),
         buildMotionComponentSnippet(getStyleForMotionOutput(instance)),
     );
+    const importBlock = buildNamedSnippetImports(namedSnippet);
+    return importBlock ? `${importBlock}\n\n${namedSnippet}` : namedSnippet;
 }
 
 // ─── Multi-Variant Bundle ────────────────────────────────────────────────
@@ -91,7 +251,7 @@ export function buildMultiVariantBundle(
             tokens: set.tokens.map((token) => ({
                 id: token.id,
                 label: token.label,
-                value: resolveTokenToHex(token) ?? token.value ?? '#000000',
+                value: resolveTokenToHex(token) ?? token.value,
                 cssVar: token.cssVar,
             })),
             sizeTokens: set.sizeTokens,
@@ -111,16 +271,8 @@ export function buildMultiVariantBundle(
 
 export function buildTailwindThemeStyles(
     activeTokenSet: StudioTokenSet,
-    tokenSets: StudioTokenSet[],
     instances: ComponentInstance[],
 ): string {
-    const sanitizeTokenVarName = (tokenId: string): string =>
-        tokenId
-            .toLowerCase()
-            .replace(/[^a-z0-9-]+/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '');
-
     const knownVarFallbacks: Record<string, string> = {
         '--background': '#ffffff',
         '--foreground': '#0f1419',
@@ -135,35 +287,15 @@ export function buildTailwindThemeStyles(
         '--warning': '#f59e0b',
         '--info': '#3b82f6',
         '--destructive': '#ef4444',
-    };
-
-    const inferCssVar = (token: StudioColorToken): string => {
-        if (token.cssVar) {
-            return token.cssVar;
-        }
-        const normalized = sanitizeTokenVarName(token.id);
-        const semanticVars: Record<string, string> = {
-            background: '--background',
-            foreground: '--foreground',
-            primary: '--primary',
-            secondary: '--secondary',
-            accent: '--accent',
-            muted: '--muted',
-            border: '--border',
-            input: '--input',
-            ring: '--ring',
-            success: '--success',
-            warning: '--warning',
-            info: '--info',
-            destructive: '--destructive',
-        };
-        return semanticVars[normalized] ?? `--ui-${normalized}`;
+        '--chart-1': '#f97316',
+        '--chart-2': '#06b6d4',
+        '--chart-3': '#2563eb',
     };
 
     const buildVarLinesForSet = (set: StudioTokenSet): string[] => {
         const deduped = new Map<string, string>();
         for (const token of set.tokens) {
-            const cssVar = inferCssVar(token);
+            const cssVar = inferTokenCssVar(token);
             const resolved =
                 resolveTokenToHex(token) ??
                 token.value ??
@@ -185,17 +317,9 @@ export function buildTailwindThemeStyles(
     ];
 
     const themeInlineLines = activeTokenSet.tokens.map((token) => {
-        const cssVar = inferCssVar(token);
+        const cssVar = inferTokenCssVar(token);
         return `  --color-${sanitizeTokenVarName(token.id)}: var(${cssVar});`;
     });
-
-    const additionalThemeBlocks = tokenSets
-        .filter((set) => set.id !== activeTokenSet.id)
-        .map((set) => {
-            const selector = `[data-ui-theme='${set.id.replace(/'/g, "\\'")}']`;
-            return `${selector} {\n${buildVarLinesForSet(set).join('\n')}\n}`;
-        })
-        .join('\n\n');
 
     const usesRainbowMotion = instances.some(
         (instance) => buildMotionClassName(instance.kind, instance.style.motionPreset) === 'ui-studio-motion-rainbow',
@@ -662,6 +786,8 @@ ${themeInlineLines.join('\n')}
     border-width: var(--ui-btn-hover-border-width) !important;
     font-size: var(--ui-btn-hover-font-size) !important;
     font-weight: var(--ui-btn-hover-font-weight) !important;
+    font-style: var(--ui-btn-hover-font-style) !important;
+    text-decoration: var(--ui-btn-hover-text-decoration) !important;
     justify-content: var(--ui-btn-hover-justify) !important;
     border-style: solid !important;
   }
@@ -674,6 +800,8 @@ ${themeInlineLines.join('\n')}
     border-width: var(--ui-btn-active-border-width) !important;
     font-size: var(--ui-btn-active-font-size) !important;
     font-weight: var(--ui-btn-active-font-weight) !important;
+    font-style: var(--ui-btn-active-font-style) !important;
+    text-decoration: var(--ui-btn-active-text-decoration) !important;
     justify-content: var(--ui-btn-active-justify) !important;
     border-style: solid !important;
   }
@@ -688,6 +816,8 @@ ${themeInlineLines.join('\n')}
     border-width: var(--ui-btn-disabled-border-width) !important;
     font-size: var(--ui-btn-disabled-font-size) !important;
     font-weight: var(--ui-btn-disabled-font-weight) !important;
+    font-style: var(--ui-btn-disabled-font-style) !important;
+    text-decoration: var(--ui-btn-disabled-text-decoration) !important;
     justify-content: var(--ui-btn-disabled-justify) !important;
     border-style: solid !important;
     opacity: 1 !important;
@@ -701,6 +831,8 @@ ${themeInlineLines.join('\n')}
     border-width: var(--ui-btn-hover-border-width) !important;
     font-size: var(--ui-btn-hover-font-size) !important;
     font-weight: var(--ui-btn-hover-font-weight) !important;
+    font-style: var(--ui-btn-hover-font-style) !important;
+    text-decoration: var(--ui-btn-hover-text-decoration) !important;
     justify-content: var(--ui-btn-hover-justify) !important;
     border-style: solid !important;
   }
@@ -713,6 +845,8 @@ ${themeInlineLines.join('\n')}
     border-width: var(--ui-btn-active-border-width) !important;
     font-size: var(--ui-btn-active-font-size) !important;
     font-weight: var(--ui-btn-active-font-weight) !important;
+    font-style: var(--ui-btn-active-font-style) !important;
+    text-decoration: var(--ui-btn-active-text-decoration) !important;
     justify-content: var(--ui-btn-active-justify) !important;
     border-style: solid !important;
   }
@@ -725,12 +859,13 @@ ${themeInlineLines.join('\n')}
     border-width: var(--ui-btn-disabled-border-width) !important;
     font-size: var(--ui-btn-disabled-font-size) !important;
     font-weight: var(--ui-btn-disabled-font-weight) !important;
+    font-style: var(--ui-btn-disabled-font-style) !important;
+    text-decoration: var(--ui-btn-disabled-text-decoration) !important;
     justify-content: var(--ui-btn-disabled-justify) !important;
     border-style: solid !important;
     opacity: 1 !important;
   }
 ${motionUtilityBlocks.length > 0 ? `\n${motionUtilityBlocks.join('\n\n')}\n` : ''}
 }
-${motionKeyframes.length > 0 ? `\n${motionKeyframes.join('\n\n')}\n` : ''}
-${additionalThemeBlocks ? `\n/* Optional alternate saved token sets */\n${additionalThemeBlocks}\n` : ''}`;
+${motionKeyframes.length > 0 ? `\n${motionKeyframes.join('\n\n')}\n` : ''}`;
 }

@@ -35,8 +35,13 @@ const CSS = `
   /* ── Nav ─────────────────────────────────── */
   .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; border-bottom: 1px solid transparent; transition: all 0.4s; }
   .nav.s { background: rgba(10,10,11,0.9); backdrop-filter: blur(24px); border-bottom-color: var(--border-subtle); }
-  .nav-logo { font-family: var(--mono); font-size: 22px; color: var(--text-primary); }
-  .nav-logo em { color: var(--brand-default); font-style: normal; }
+  .nav-logo { display: flex; align-items: center; }
+  .nav-logo img { height: 28px; width: auto; }
+  .nav-logo .logo-light { display: none; }
+  @media (prefers-color-scheme: light) {
+    .nav-logo .logo-dark { display: none; }
+    .nav-logo .logo-light { display: block; }
+  }
   .nav-links { display: flex; gap: 36px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); list-style: none; }
   .nav-links a { color: inherit; text-decoration: none; transition: color 0.2s; cursor: pointer; }
   .nav-links a:hover { color: var(--text-primary); }
@@ -139,9 +144,6 @@ const CSS = `
   .bc-media { width: 100%; position: relative; }
   .bc-media-inner { width: 100%; border-radius: 8px 8px 0 0; overflow: hidden; background: var(--bg-surface); border: 1px solid var(--border-strong); border-bottom: none; position: relative; }
   .bc-media-inner img, .bc-media-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .bc-media-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--border-strong); border-top: 1px solid var(--border-subtle); }
-  .bc-media-dot { width: 7px; height: 7px; border-radius: 50%; }
-  .bc-media-title { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: 8px; letter-spacing: 0.06em; }
   .bc-placeholder {
     width: 100%; height: 100%; min-height: 200px;
     display: flex; align-items: center; justify-content: center;
@@ -296,8 +298,13 @@ const CSS = `
 
   /* ── Footer ─────────────────────────────────── */
   .footer { border-top: 1px solid var(--border-subtle); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; }
-  .flogo { font-family: var(--mono); font-size: 18px; color: var(--text-primary); }
-  .flogo em { color: var(--brand-default); font-style: normal; }
+  .flogo { display: flex; align-items: center; }
+  .flogo img { height: 22px; width: auto; }
+  .flogo .logo-light { display: none; }
+  @media (prefers-color-scheme: light) {
+    .flogo .logo-dark { display: none; }
+    .flogo .logo-light { display: block; }
+  }
   .flinks { display: flex; gap: 28px; list-style: none; }
   .flinks a { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
   .flinks a:hover { color: var(--text-primary); }
@@ -565,28 +572,19 @@ function EffectsShowcaseCard() {
   );
 }
 
-/* ── Bento media helper (video) ─────────────────────── */
-function BentoMedia({ src, title, gradient, aspect = "16/9" }: {
-  src: string; alt?: string; title: string; gradient: string; aspect?: string;
+/* ── Bento media helper (image) ─────────────────────── */
+function BentoMedia({ src, alt, gradient, aspect = "16/9" }: {
+  src: string; alt: string; gradient: string; aspect?: string;
 }) {
   return (
     <div className="bc-media">
       <div className="bc-media-inner" style={{ aspectRatio: aspect, background: gradient }}>
-        <video
+        <img
           src={src}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          alt={alt}
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top left", display: "block" }}
         />
-      </div>
-      <div className="bc-media-bar">
-        <div className="bc-media-dot" style={{ background: "#FF5F57" }} />
-        <div className="bc-media-dot" style={{ background: "#FEBC2E" }} />
-        <div className="bc-media-dot" style={{ background: "#28C840" }} />
-        <span className="bc-media-title">{title}</span>
       </div>
     </div>
   );
@@ -634,7 +632,10 @@ export default function LandingPage() {
 
       {/* ── Nav ─────────────────────────────────── */}
       <nav className={`nav ${scrolled ? "s" : ""}`}>
-        <div className="nav-logo">J<em>6</em></div>
+        <div className="nav-logo">
+          <img src="/logo-dark.svg" alt="J6" className="logo-dark" />
+          <img src="/logo-light.svg" alt="J6" className="logo-light" />
+        </div>
         <ul className="nav-links">
           <li><a href="#how">How it works</a></li>
           <li><a href="#components">Components</a></li>
@@ -698,7 +699,7 @@ export default function LandingPage() {
               <div className="bc-title">Live Visual Editor & Preview</div>
               <div className="bc-desc">Design components in real-time on a configurable stage. Set your background to match your app, toggle grids, and see every change instantly.</div>
               <BentoMedia
-                src="/edit-component.mp4" alt="Live editor preview" title="j6.app — Component Studio"
+                src="/screenshots/studio-editor.png" alt="Live editor with component preview and state variants"
                 gradient="linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-subtle) 60%, rgba(245,166,35,0.06) 100%)"
                 aspect="16/9"
               />
@@ -708,9 +709,9 @@ export default function LandingPage() {
               <div className="bc-title">Premium Motion & Effects</div>
               <div className="bc-desc">Border beam, neon glow, tilt 3D, glare, spotlight — effects that take hours to hand-code, applied in one click.</div>
               <BentoMedia
-                src="/motion-control.mp4" alt="Motion controls" title="Effects Panel"
+                src="/screenshots/motion-controls.png" alt="Motion FX panel with hover, scale, and easing controls"
                 gradient="linear-gradient(160deg, var(--bg-subtle) 0%, var(--bg-elevated) 50%, rgba(124,58,237,0.08) 100%)"
-                aspect="4/5"
+                aspect="9/16"
               />
             </div>
             <div className="bento-card c-c">
@@ -718,9 +719,9 @@ export default function LandingPage() {
               <div className="bc-title">Multi-Format Code Export</div>
               <div className="bc-desc">Export as inline CSS, Tailwind utilities, or clean React with named props. Every animation keyframe and CSS variable is included.</div>
               <BentoMedia
-                src="/export.mp4" alt="Code export" title="Export Panel"
+                src="/screenshots/export-panel.png" alt="Tailwind code export with component and preview styles"
                 gradient="linear-gradient(135deg, var(--bg-base) 0%, var(--bg-subtle) 100%)"
-                aspect="4/3"
+                aspect="3/5"
               />
             </div>
             <div className="bento-card c-d">
@@ -728,7 +729,7 @@ export default function LandingPage() {
               <div className="bc-title">Design Token System</div>
               <div className="bc-desc">Create colour palettes, apply them across 22+ components, and keep your design consistent. Tokens persist per-project and appear in every colour picker.</div>
               <BentoMedia
-                src="/token-system.mp4" alt="Token system" title="Token Studio"
+                src="/screenshots/token-system.png" alt="Colour token palette with primary, secondary, and accent tokens"
                 gradient="linear-gradient(135deg, var(--bg-subtle) 0%, rgba(245,166,35,0.04) 100%)"
                 aspect="4/3"
               />
@@ -840,7 +841,10 @@ export default function LandingPage() {
 
       {/* ── Footer ─────────────────────────────────── */}
       <footer className="footer">
-        <div className="flogo">J<em>6</em></div>
+        <div className="flogo">
+          <img src="/logo-dark.svg" alt="J6" className="logo-dark" />
+          <img src="/logo-light.svg" alt="J6" className="logo-light" />
+        </div>
         <ul className="flinks">
           <li><a href="#">Docs</a></li><li><a href="#">Components</a></li>
           <li><a href="#">GitHub</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>

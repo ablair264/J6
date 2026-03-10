@@ -682,6 +682,8 @@
   border-width: var(--ui-btn-hover-border-width) !important;
   font-size: var(--ui-btn-hover-font-size) !important;
   font-weight: var(--ui-btn-hover-font-weight) !important;
+  font-style: var(--ui-btn-hover-font-style) !important;
+  text-decoration: var(--ui-btn-hover-text-decoration) !important;
   justify-content: var(--ui-btn-hover-justify) !important;
   border-style: solid !important;
 }
@@ -694,6 +696,8 @@
   border-width: var(--ui-btn-active-border-width) !important;
   font-size: var(--ui-btn-active-font-size) !important;
   font-weight: var(--ui-btn-active-font-weight) !important;
+  font-style: var(--ui-btn-active-font-style) !important;
+  text-decoration: var(--ui-btn-active-text-decoration) !important;
   justify-content: var(--ui-btn-active-justify) !important;
   border-style: solid !important;
 }
@@ -708,6 +712,8 @@
   border-width: var(--ui-btn-disabled-border-width) !important;
   font-size: var(--ui-btn-disabled-font-size) !important;
   font-weight: var(--ui-btn-disabled-font-weight) !important;
+  font-style: var(--ui-btn-disabled-font-style) !important;
+  text-decoration: var(--ui-btn-disabled-text-decoration) !important;
   justify-content: var(--ui-btn-disabled-justify) !important;
   border-style: solid !important;
   opacity: 1 !important;
@@ -721,6 +727,8 @@
   border-width: var(--ui-btn-hover-border-width) !important;
   font-size: var(--ui-btn-hover-font-size) !important;
   font-weight: var(--ui-btn-hover-font-weight) !important;
+  font-style: var(--ui-btn-hover-font-style) !important;
+  text-decoration: var(--ui-btn-hover-text-decoration) !important;
   justify-content: var(--ui-btn-hover-justify) !important;
   border-style: solid !important;
 }
@@ -733,6 +741,8 @@
   border-width: var(--ui-btn-active-border-width) !important;
   font-size: var(--ui-btn-active-font-size) !important;
   font-weight: var(--ui-btn-active-font-weight) !important;
+  font-style: var(--ui-btn-active-font-style) !important;
+  text-decoration: var(--ui-btn-active-text-decoration) !important;
   justify-content: var(--ui-btn-active-justify) !important;
   border-style: solid !important;
 }
@@ -745,6 +755,8 @@
   border-width: var(--ui-btn-disabled-border-width) !important;
   font-size: var(--ui-btn-disabled-font-size) !important;
   font-weight: var(--ui-btn-disabled-font-weight) !important;
+  font-style: var(--ui-btn-disabled-font-style) !important;
+  text-decoration: var(--ui-btn-disabled-text-decoration) !important;
   justify-content: var(--ui-btn-disabled-justify) !important;
   border-style: solid !important;
   opacity: 1 !important;

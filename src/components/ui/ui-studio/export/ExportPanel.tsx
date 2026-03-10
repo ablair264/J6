@@ -64,8 +64,8 @@ export function ExportPanel() {
     );
 
     const tailwindThemeSnippet = useMemo(
-        () => buildTailwindThemeStyles(activeTokenSet, tokenSets, instances),
-        [activeTokenSet, tokenSets, instances],
+        () => buildTailwindThemeStyles(activeTokenSet, instances),
+        [activeTokenSet, instances],
     );
 
     const activeCodeSnippet =

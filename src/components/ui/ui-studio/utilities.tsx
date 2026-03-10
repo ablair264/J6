@@ -781,6 +781,52 @@ export function ensureUniqueComponentName(baseName: string, usedNames: Set<strin
     return candidate;
 }
 
+function buildCommentBlock(value: string): string {
+    const lines = value.trim().split('\n');
+    return ['/*', ...lines.map((line) => ` * ${line}`), ' */'].join('\n');
+}
+
+function parseMotionSnippet(
+    motionSnippet?: string,
+): {
+    declarations?: string;
+    wrapperOpen?: string;
+    wrapperClose?: string;
+    supplemental?: string;
+} {
+    const trimmed = motionSnippet?.trim();
+    if (!trimmed) {
+        return {};
+    }
+
+    const marker = '// Wrap your component preview with motion';
+    const markerIndex = trimmed.indexOf(marker);
+    if (markerIndex === -1) {
+        return { declarations: trimmed };
+    }
+
+    const declarations = trimmed.slice(0, markerIndex).trim();
+    const wrapperSection = trimmed.slice(markerIndex + marker.length).trim();
+    const placeholder = '{/* component */}';
+    const wrapperOpenIndex = wrapperSection.indexOf('<motion.div');
+    const placeholderIndex = wrapperSection.indexOf(placeholder);
+    const wrapperCloseTag = '</motion.div>';
+    const wrapperCloseIndex = wrapperSection.indexOf(wrapperCloseTag, placeholderIndex);
+
+    if (wrapperOpenIndex === -1 || placeholderIndex === -1 || wrapperCloseIndex === -1) {
+        return { declarations: trimmed };
+    }
+
+    return {
+        declarations,
+        wrapperOpen: wrapperSection.slice(wrapperOpenIndex, placeholderIndex).trimEnd(),
+        wrapperClose: wrapperSection
+            .slice(placeholderIndex + placeholder.length, wrapperCloseIndex + wrapperCloseTag.length)
+            .trim(),
+        supplemental: wrapperSection.slice(wrapperCloseIndex + wrapperCloseTag.length).trim(),
+    };
+}
+
 export function wrapSnippetInNamedComponent(
     baseSnippet: string,
     componentName: string,
@@ -790,39 +836,47 @@ export function wrapSnippetInNamedComponent(
     const lines = baseSnippet.split('\n');
     const jsxStartIndex = lines.findIndex((line) => line.trimStart().startsWith('<'));
     const sections: string[] = [`export function ${componentName}() {`];
+    const parsedMotion = parseMotionSnippet(motionSnippet);
 
     if (jsxStartIndex === -1) {
         const body = baseSnippet.trim();
         if (body.length > 0) {
             sections.push(indentBlock(body, 2));
         }
+        if (parsedMotion.declarations) {
+            sections.push('', indentBlock(parsedMotion.declarations, 2));
+        }
+        if (parsedMotion.supplemental) {
+            sections.push('', indentBlock(buildCommentBlock(parsedMotion.supplemental), 2));
+        }
         sections.push('}');
     } else {
         const declarations = lines.slice(0, jsxStartIndex).join('\n').trim();
         const jsxExpression = lines.slice(jsxStartIndex).join('\n').trim();
+        const wrappedJsxExpression =
+            parsedMotion.wrapperOpen && parsedMotion.wrapperClose
+                ? `${parsedMotion.wrapperOpen}\n${indentBlock(jsxExpression, 2)}\n${parsedMotion.wrapperClose}`
+                : jsxExpression;
 
         if (declarations.length > 0) {
             sections.push(indentBlock(declarations, 2));
             sections.push('');
         }
 
+        if (parsedMotion.declarations) {
+            sections.push(indentBlock(parsedMotion.declarations, 2));
+            sections.push('');
+        }
+
+        if (parsedMotion.supplemental) {
+            sections.push(indentBlock(buildCommentBlock(parsedMotion.supplemental), 2));
+            sections.push('');
+        }
+
         sections.push('  return (');
-        sections.push(indentBlock(jsxExpression, 4));
+        sections.push(indentBlock(wrappedJsxExpression, 4));
         sections.push('  );');
         sections.push('}');
-    }
-
-    if (motionSnippet && motionSnippet.trim().length > 0) {
-        // Insert motion declarations inside the function body, before the return statement
-        const returnIdx = sections.findIndex((line) => line.trimStart().startsWith('return ('));
-        if (returnIdx > 0) {
-            sections.splice(returnIdx, 0, indentBlock(motionSnippet.trim(), 2), '');
-        } else {
-            // Fallback: insert before closing brace
-            const closingBrace = sections.pop();
-            sections.push('', indentBlock(motionSnippet.trim(), 2));
-            sections.push(closingBrace!);
-        }
     }
 
     if (includeDefaultExport) {
@@ -1545,12 +1599,39 @@ export function toTailwindArbitraryValue(value: string): string {
     return value.trim().replace(/\s+/g, '_');
 }
 
-function sanitizeTokenVarName(tokenId: string): string {
+export function sanitizeTokenVarName(tokenId: string): string {
     return tokenId
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9-]+/g, '-')
         .replace(/^-+|-+$/g, '') || 'token';
+}
+
+const SEMANTIC_TOKEN_CSS_VARS: Record<string, string> = {
+    background: '--background',
+    foreground: '--foreground',
+    primary: '--primary',
+    secondary: '--secondary',
+    accent: '--accent',
+    muted: '--muted',
+    border: '--border',
+    input: '--input',
+    ring: '--ring',
+    success: '--success',
+    warning: '--warning',
+    info: '--info',
+    destructive: '--destructive',
+    'chart-1': '--chart-1',
+    'chart-2': '--chart-2',
+    'chart-3': '--chart-3',
+};
+
+export function inferTokenCssVar(token: StudioColorToken): string {
+    if (token.cssVar) {
+        return token.cssVar;
+    }
+    const normalized = sanitizeTokenVarName(token.id);
+    return SEMANTIC_TOKEN_CSS_VARS[normalized] ?? `--ui-${normalized}`;
 }
 
 function tryResolveSolidColorToHex(value: string): string | null {
@@ -1848,7 +1929,6 @@ export function buildTailwindStylePayload(
 ): { classTokens: string[]; fallbackStyle: CSSProperties } {
     const classes: string[] = [];
     const fallbackStyle: CSSProperties = {};
-    const localTokenVars: Record<string, string> = {};
     const entries = Object.entries(style).filter(([, value]) => value !== undefined && value !== null);
 
     const resolveTokenVariable = (rawColor: string): string | null => {
@@ -1866,12 +1946,7 @@ export function buildTailwindStylePayload(
             if (!tokenHex || tokenHex !== comparable) {
                 continue;
             }
-            if (token.cssVar) {
-                return `var(${token.cssVar})`;
-            }
-            // No semantic CSS variable — return the raw hex directly instead of
-            // creating unnecessary local var indirection like [--ui-token-x:#fff]
-            return tokenHex;
+            return `var(${inferTokenCssVar(token)})`;
         }
 
         return null;
@@ -2039,12 +2114,8 @@ export function buildTailwindStylePayload(
         }
     }
 
-    const localTokenVarClasses = Object.entries(localTokenVars).map(
-        ([cssVar, cssValue]) => `[${cssVar}:${toTailwindArbitraryValue(cssValue)}]`,
-    );
-
     return {
-        classTokens: Array.from(new Set([...localTokenVarClasses, ...classes].filter(Boolean))),
+        classTokens: Array.from(new Set(classes.filter(Boolean))),
         fallbackStyle,
     };
 }
@@ -2217,7 +2288,9 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
             contextVars[`${prefix}-border`] = stateUsesReplacement ? 'transparent' : hexToRgba(s.strokeColor, s.strokeOpacity / 100);
             contextVars[`${prefix}-border-width`] = `${stateUsesReplacement ? 0 : s.strokeWeight}px`;
             contextVars[`${prefix}-font-size`] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;
-            contextVars[`${prefix}-font-weight`] = `${s.fontWeight}`;
+            contextVars[`${prefix}-font-weight`] = s.fontBold ? '700' : `${s.fontWeight}`;
+            contextVars[`${prefix}-font-style`] = s.fontItalic ? 'italic' : 'normal';
+            contextVars[`${prefix}-text-decoration`] = s.fontUnderline ? 'underline' : 'none';
             contextVars[`${prefix}-justify`] = fontPositionToJustify(s.fontPosition);
         }
     }
