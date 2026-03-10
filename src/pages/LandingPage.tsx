@@ -44,29 +44,59 @@ const CSS = `
   .nav-cta:hover { background: var(--brand-hover); transform: translateY(-1px); }
 
   /* ── Hero ─────────────────────────────────── */
-  .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
-  .hero-l { display: flex; flex-direction: column; justify-content: flex-end; padding: 140px 48px 80px; }
-  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-default); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
-  .eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--brand-default); }
-  .hero-title { font-family: var(--serif); font-size: clamp(52px,5.5vw,88px); line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 36px; font-weight: 900; }
-  .hero-title em { font-style: normal; color: var(--brand-default); font-weight: 900; }
-  .hero-desc { font-size: 16px; line-height: 1.7; color: var(--text-secondary); max-width: 480px; margin-bottom: 52px; font-weight: 400; }
-  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-  .hero-r { position: relative; overflow: hidden; border-left: 1px solid var(--border-subtle); }
-  .hcanvas { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); }
-
-  /* ── Hero video ─────────────────────────────────── */
-  .hero-video-wrap {
-    position: relative; z-index: 5; width: 92%; max-width: 600px;
-    border-radius: 16px; overflow: hidden;
-    border: 1px solid var(--border-default);
-    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+  .hero {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 160px 48px 0; position: relative; overflow: hidden;
   }
-  .hero-video-wrap video { width: 100%; display: block; }
-  .hero-video-glow {
-    position: absolute; inset: -40%; z-index: -1;
-    background: radial-gradient(ellipse at center, rgba(245,166,35,0.06) 0%, transparent 70%);
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(245,166,35,0.05) 0%, transparent 60%);
     pointer-events: none;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--brand-default); margin-bottom: 28px; display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--brand-default); }
+  .hero-text { text-align: center; max-width: 800px; display: flex; flex-direction: column; align-items: center; }
+  .hero-title {
+    font-family: var(--serif); font-size: clamp(48px, 6vw, 80px); line-height: 1.05;
+    letter-spacing: -0.035em; margin-bottom: 28px; font-weight: 900;
+  }
+  .hero-title em { font-style: normal; color: var(--brand-default); font-weight: 900; }
+  .hero-desc {
+    font-size: 17px; line-height: 1.7; color: var(--text-secondary);
+    max-width: 520px; margin-bottom: 44px; font-weight: 400;
+  }
+  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 80px; }
+
+  /* ── Hero showcase ─────────────────────────────────── */
+  .hero-showcase {
+    position: relative; width: 100%; max-width: 1100px;
+    perspective: 1200px;
+  }
+  .hero-showcase-inner {
+    width: 100%; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border-default);
+    box-shadow:
+      0 4px 8px rgba(0,0,0,0.1),
+      0 16px 32px rgba(0,0,0,0.2),
+      0 48px 80px rgba(0,0,0,0.4);
+    transform: rotateX(2deg);
+    transform-origin: center top;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .hero-showcase:hover .hero-showcase-inner { transform: rotateX(0deg); }
+  .hero-showcase-inner video { width: 100%; display: block; }
+  .hero-showcase-glow {
+    position: absolute; top: -20%; left: 10%; right: 10%; height: 60%;
+    background: radial-gradient(ellipse at center, rgba(245,166,35,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: -1; filter: blur(40px);
+  }
+  .hero-showcase-fade {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 120px;
+    background: linear-gradient(to bottom, transparent, var(--bg-base));
+    pointer-events: none; z-index: 2;
   }
 
   /* ── Marquee Strip ─────────────────────────────────── */
@@ -275,8 +305,10 @@ const CSS = `
 
   /* ── Responsive ─────────────────────────────────── */
   @media (max-width: 900px) {
-    .hero { grid-template-columns: 1fr; } .hero-r { display: none; }
-    .hero-l { padding: 120px 24px 80px; }
+    .hero { padding: 120px 24px 0; }
+    .hero-title { font-size: clamp(36px, 8vw, 56px); }
+    .hero-actions { margin-bottom: 48px; }
+    .hero-showcase-inner { transform: none; }
     .nav { padding: 16px 24px; } .nav-links { display: none; }
     .sec, .final { padding: 80px 24px; } .sec-sm { padding: 60px 24px; }
     .bento-grid { grid-template-columns: 1fr; }
@@ -614,14 +646,14 @@ export default function LandingPage() {
 
       {/* ── Hero ─────────────────────────────────── */}
       <section className="hero">
-        <div className="hero-l">
+        <div className="hero-text">
           <div className="eyebrow">Visual component design</div>
           <h1 className="hero-title">
-            Design<br /><em>React</em><br />components.<br />Without guessing.
+            Design <em>React</em> components.<br />Without guessing.
           </h1>
           <p className="hero-desc">
-            J6 is a browser-based designer for React components. Build with interaction motions,
-            deep effect controls, a full token system — then export clean CSS or Tailwind.
+            A browser-based studio for React components. Motion controls, visual effects,
+            a full token system — then export clean CSS or Tailwind.
           </p>
           <div className="hero-actions">
             <button className="bp">Start for free <Arrow /></button>
@@ -629,21 +661,19 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Hero right — product video */}
-        <div className="hero-r">
-          <div className="hcanvas">
-            <div className="hero-video-glow" />
-            <div className="hero-video-wrap">
-              <video
-                src="/edit-component.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-              />
-            </div>
+        <div className="hero-showcase">
+          <div className="hero-showcase-glow" />
+          <div className="hero-showcase-inner">
+            <video
+              src="/edit-component.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            />
           </div>
+          <div className="hero-showcase-fade" />
         </div>
       </section>
 
