@@ -547,7 +547,10 @@ export function componentSnippet(
     styleMode: ExportStyleMode = 'inline',
     tokenSet?: StudioTokenSet,
 ): string {
-    const previewBindings = buildSnippetStyleBindings(previewStyle, styleMode, 'preview', tokenSet);
+    const isPanelComponent = ['dialog', 'drawer', 'dropdown', 'popover', 'tooltip'].includes(instance.kind);
+    const kindCamel = instance.kind.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+    const stylePrefix = isPanelComponent ? 'trigger' : kindCamel;
+    const previewBindings = buildSnippetStyleBindings(previewStyle, styleMode, stylePrefix, tokenSet);
     const panelBindings = buildSnippetStyleBindings(buildPanelStyle(instance.style), styleMode, 'content', tokenSet);
     const previewStyleSnippet = buildSnippetStyleAttr(previewBindings.styleVarName);
     const previewClassNameVar = styleMode === 'tailwind' ? previewBindings.classVarName : undefined;
@@ -566,7 +569,6 @@ export function componentSnippet(
     const buttonClassBinding = buildExportClassBinding('button', {
         componentClassName,
         effectClassName,
-        extraClassNames: [BUTTON_STATE_CLASS_NAME],
         styleClassVarName: previewClassNameVar,
     });
     const checkboxClassBinding = buildExportClassBinding('checkbox', {
