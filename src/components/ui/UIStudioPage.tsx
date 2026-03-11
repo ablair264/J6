@@ -280,7 +280,7 @@ export function UIStudioComponentPage() {
     }, [availableInspectorTabs, inspectorTab, setInspectorTab]);
 
     useEffect(() => {
-        if (exportStyleMode === 'inline' && codePanelTab === 'theme') setCodePanelTab('snippet');
+        if (exportStyleMode === 'inline' && codePanelTab === 'theme') setCodePanelTab('code');
     }, [codePanelTab, exportStyleMode, setCodePanelTab]);
 
     // ─── Derived values for canvas + motion ───────────────────────

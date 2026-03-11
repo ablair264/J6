@@ -2235,6 +2235,147 @@ export function buildSnippetStyleBindings(
     };
 }
 
+/** Strip internal CSS custom properties from exported styles.
+ *  These vars power the live inspector preview but are meaningless in production code. */
+export function filterInternalVarsFromStyle(style: CSSProperties): CSSProperties {
+    const internalPrefixes = [
+        '--ui-btn-hover',
+        '--ui-btn-active',
+        '--ui-btn-disabled',
+        '--ui-dropdown-hover',
+        '--ui-animated-border-fill',
+    ];
+    const filtered: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(style)) {
+        if (internalPrefixes.some((prefix) => key.startsWith(prefix))) continue;
+        filtered[key] = value;
+    }
+    return filtered as CSSProperties;
+}
+
+/** Remove default/unnecessary CSS properties from export output. */
+export function filterDefaultProperties(style: CSSProperties): CSSProperties {
+    const filtered = { ...style };
+
+    // Remove internal transition (inspector smoothing, not user-configured)
+    if (filtered.transition && String(filtered.transition).includes('180ms')) {
+        delete filtered.transition;
+    }
+
+    // Remove border properties when border width is 0
+    if (filtered.borderWidth === '0px' || filtered.borderWidth === '0' || filtered.borderWidth === 0) {
+        delete filtered.borderStyle;
+        delete filtered.borderColor;
+        delete filtered.borderWidth;
+    }
+
+    // Remove undefined/null/empty values
+    for (const [key, value] of Object.entries(filtered)) {
+        if (value === undefined || value === null || value === '') {
+            delete (filtered as Record<string, unknown>)[key];
+        }
+    }
+
+    return filtered;
+}
+
+/** Build CSS rule blocks for hover/active/disabled state overrides.
+ *  Returns an array of { selector, properties } entries.
+ *  Only includes properties that DIFFER from the base style. */
+export function buildStateOverrideCSS(
+    instance: ComponentInstance,
+    className: string,
+): Array<{ selector: string; properties: Record<string, string> }> {
+    if (!instance.stateOverrides) return [];
+    const base = instance.style;
+    const rules: Array<{ selector: string; properties: Record<string, string> }> = [];
+
+    const stateMap: Array<{ state: keyof NonNullable<typeof instance.stateOverrides>; pseudo: string }> = [
+        { state: 'hover', pseudo: ':hover' },
+        { state: 'active', pseudo: ':active' },
+        { state: 'disabled', pseudo: ':disabled' },
+    ];
+
+    for (const { state, pseudo } of stateMap) {
+        const overrides = instance.stateOverrides[state];
+        if (!overrides || Object.keys(overrides).length === 0) continue;
+
+        const s = { ...base, ...overrides };
+        const props: Record<string, string> = {};
+
+        if (overrides.fillColor !== undefined || overrides.fillOpacity !== undefined || overrides.fillMode !== undefined || overrides.fillColorTo !== undefined || overrides.fillWeight !== undefined) {
+            props.background = buildStateFill(s.fillMode, s.fillColor, s.fillColorTo, s.fillWeight, s.fillOpacity);
+        }
+        if (overrides.fontColor !== undefined || overrides.fontOpacity !== undefined) {
+            props.color = hexToRgba(s.fontColor, s.fontOpacity / 100);
+        }
+        if (overrides.strokeColor !== undefined || overrides.strokeOpacity !== undefined) {
+            props['border-color'] = hexToRgba(s.strokeColor, s.strokeOpacity / 100);
+        }
+        if (overrides.strokeWeight !== undefined) {
+            props['border-width'] = `${s.strokeWeight}px`;
+        }
+        if (overrides.fontSize !== undefined) {
+            props['font-size'] = `${Math.round(s.fontSize * SIZE_SCALE[s.size])}px`;
+        }
+        if (overrides.fontWeight !== undefined || overrides.fontBold !== undefined) {
+            props['font-weight'] = s.fontBold ? '700' : `${s.fontWeight}`;
+        }
+        if (overrides.fontItalic !== undefined) {
+            props['font-style'] = s.fontItalic ? 'italic' : 'normal';
+        }
+        if (overrides.fontUnderline !== undefined) {
+            props['text-decoration'] = s.fontUnderline ? 'underline' : 'none';
+        }
+
+        if (Object.keys(props).length > 0) {
+            rules.push({ selector: `.${className}${pseudo}`, properties: props });
+        }
+    }
+
+    return rules;
+}
+
+/** Convert state overrides to Tailwind prefixed arbitrary value classes. */
+export function buildTailwindStateClasses(instance: ComponentInstance): string[] {
+    if (!instance.stateOverrides) return [];
+    const classes: string[] = [];
+    const base = instance.style;
+
+    const stateMap: Array<{ state: keyof NonNullable<typeof instance.stateOverrides>; prefix: string }> = [
+        { state: 'hover', prefix: 'hover' },
+        { state: 'active', prefix: 'active' },
+        { state: 'disabled', prefix: 'disabled' },
+    ];
+
+    for (const { state, prefix } of stateMap) {
+        const overrides = instance.stateOverrides[state];
+        if (!overrides || Object.keys(overrides).length === 0) continue;
+        const s = { ...base, ...overrides };
+
+        if (overrides.fillColor !== undefined || overrides.fillOpacity !== undefined) {
+            if (s.fillMode !== 'gradient') {
+                classes.push(`${prefix}:bg-[${hexToRgba(s.fillColor, s.fillOpacity / 100)}]`);
+            }
+        }
+        if (overrides.fontColor !== undefined || overrides.fontOpacity !== undefined) {
+            classes.push(`${prefix}:text-[${hexToRgba(s.fontColor, s.fontOpacity / 100)}]`);
+        }
+        if (overrides.strokeColor !== undefined || overrides.strokeOpacity !== undefined) {
+            classes.push(`${prefix}:border-[${hexToRgba(s.strokeColor, s.strokeOpacity / 100)}]`);
+        }
+        if (overrides.strokeWeight !== undefined) {
+            classes.push(`${prefix}:border-[${s.strokeWeight}px]`);
+        }
+        if (overrides.fontWeight !== undefined || overrides.fontBold !== undefined) {
+            const weight = s.fontBold ? '700' : `${s.fontWeight}`;
+            classes.push(`${prefix}:font-[${weight}]`);
+        }
+    }
+
+    return classes;
+}
+
 export function buildPreviewPresentation(instance: ComponentInstance, forExport = false): { style: CSSProperties; motionClassName?: string } {
     const componentPreset = getComponentVisualPreset(instance.kind, instance.style.componentPreset);
     const extractedEffectsClassName = buildExtractedEffectsClassName(instance.kind, instance.style);
@@ -2271,7 +2412,7 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
         : buildMotionVariables(instance.style);
 
     // Dropdown hover CSS vars
-    const hasDropdownVars = !forExport || supportsDropdownHoverStyle(instance.kind);
+    const hasDropdownVars = !forExport && supportsDropdownHoverStyle(instance.kind);
 
     const contextVars: Record<string, string | undefined> = {};
     if (hasDropdownVars) {
@@ -2280,7 +2421,7 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
     }
 
     // State override CSS vars — derived from stateOverrides map
-    const hasStateStyles = !forExport || supportsStateStyles(instance.kind);
+    const hasStateStyles = !forExport && supportsStateStyles(instance.kind);
     if (hasStateStyles) {
         const base = instance.style;
         const stateVarMap: Array<{ state: string; prefix: string }> = [
@@ -2304,11 +2445,14 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
         }
     }
 
-    const baseStyle = {
+    const rawStyle = {
         ...previewStyle,
         ...motionVars,
         ...contextVars,
     } as CSSProperties;
+    const baseStyle = forExport
+        ? filterDefaultProperties(filterInternalVarsFromStyle(rawStyle))
+        : rawStyle;
     const motionClassName = buildMotionClassName(instance.kind, instance.style.motionPreset);
     const className = cn(componentPreset?.className, motionClassName, extractedEffectsClassName);
     if (!motionClassName && !hasAnimatedBorderEffect) {

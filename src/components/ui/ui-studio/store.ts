@@ -73,7 +73,8 @@ interface ProjectSettings {
 // ─── Types ────────────────────────────────────────────────────────────────
 
 export type InspectorTab = 'style' | 'interaction' | 'behavior';
-export type CodePanelTab = 'snippet' | 'named' | 'exports' | 'theme';
+export type CodePanelTab = 'code' | 'theme';
+export type CodeExportMode = 'snippet' | 'component';
 export type ExportStyleMode = 'inline' | 'tailwind';
 
 export interface PersistedComponentState {
@@ -341,6 +342,7 @@ interface StudioState {
     canvasBackground: string;
     inspectorTab: InspectorTab;
     codePanelTab: CodePanelTab;
+    codeExportMode: CodeExportMode;
     exportStyleMode: ExportStyleMode;
     studioTheme: 'dark' | 'light';
     profileMenuOpen: boolean;
@@ -387,6 +389,7 @@ interface StudioState {
     setCanvasBackground: (color: string) => void;
     setInspectorTab: (tab: InspectorTab) => void;
     setCodePanelTab: (tab: CodePanelTab) => void;
+    setCodeExportMode: (mode: CodeExportMode) => void;
     setExportStyleMode: (mode: ExportStyleMode) => void;
     setStudioTheme: (theme: 'dark' | 'light') => void;
     setProfileMenuOpen: (v: boolean) => void;
@@ -515,7 +518,8 @@ export const useStudioStore = create<StudioState>()(
             showCanvasGrid: true,
             canvasBackground: '',
             inspectorTab: hydrateInspectorTab(initialKind),
-            codePanelTab: 'snippet' as CodePanelTab,
+            codePanelTab: 'code' as CodePanelTab,
+            codeExportMode: 'snippet' as CodeExportMode,
             exportStyleMode: 'inline' as ExportStyleMode,
             studioTheme: hydrateStudioTheme(),
             profileMenuOpen: false,
@@ -578,6 +582,7 @@ export const useStudioStore = create<StudioState>()(
                 }
             },
             setCodePanelTab: (tab) => set({ codePanelTab: tab }),
+            setCodeExportMode: (mode) => set({ codeExportMode: mode }),
             setExportStyleMode: (mode) => set({ exportStyleMode: mode }),
             setStudioTheme: (theme) => {
                 set({ studioTheme: theme });
@@ -923,7 +928,7 @@ export const useStudioStore = create<StudioState>()(
                     inspectorTab: hydrateInspectorTab(kind),
                     editingVariantId: null,
                     editingVariantName: '',
-                    codePanelTab: 'snippet',
+                    codePanelTab: 'code',
                     componentPickerOpen: false,
                     componentPickerQuery: '',
                 });

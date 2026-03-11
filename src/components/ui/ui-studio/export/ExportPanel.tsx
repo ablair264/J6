@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Check, Copy, Download } from 'lucide-react';
+import { Check, Copy, Download, Save } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import {
@@ -7,18 +7,17 @@ import {
     selectSelectedInstance,
     selectActiveTokenSet,
 } from '../store';
-import type { CodePanelTab, ExportStyleMode } from '../store';
+import type { CodePanelTab, CodeExportMode } from '../store';
 import {
     buildExportComponentName,
-    buildPreviewPresentation,
     downloadSnippetFile,
     sanitizeFileSegment,
-    supportsEntryMotion,
     toPascalCase,
 } from '../utilities';
 import {
     buildSnippetForInstance,
     buildNamedSnippetForInstance,
+    buildCSSExport,
     buildMultiVariantBundle,
     buildTailwindThemeStyles,
 } from './code-generators';
@@ -26,7 +25,7 @@ import {
 const studioActionButtonClass =
     'inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-[#b7c8df] transition hover:bg-white/[0.1] hover:text-[#eef5ff]';
 const exportTabTriggerClass =
-    'min-w-0 flex-1 basis-[calc(50%-0.125rem)] whitespace-normal px-2 py-2 text-center text-[11px] font-semibold leading-tight text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]';
+    'min-w-0 flex-1 whitespace-normal px-3 py-2 text-center text-[11px] font-semibold leading-tight text-[#8fa6c7] data-[state=active]:text-[#eaf2ff] data-[state=active]:after:bg-[#63e8da]';
 const exportPreClass =
     'h-full min-h-[260px] overflow-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] pt-3 text-[11px] leading-relaxed text-[#bfd1ec]';
 
@@ -39,6 +38,8 @@ export function ExportPanel() {
     const setExportedCode = useStudioStore((s) => s.setExportedCode);
     const codePanelTab = useStudioStore((s) => s.codePanelTab);
     const setCodePanelTab = useStudioStore((s) => s.setCodePanelTab);
+    const codeExportMode = useStudioStore((s) => s.codeExportMode);
+    const setCodeExportMode = useStudioStore((s) => s.setCodeExportMode);
     const activeKind = useStudioStore((s) => s.activeKind);
     const instances = useStudioStore((s) => s.instances);
     const activeTokenSetId = useStudioStore((s) => s.activeTokenSetId);
@@ -46,59 +47,68 @@ export function ExportPanel() {
     const selectedInstance = useStudioStore(selectSelectedInstance);
     const activeTokenSet = useStudioStore(selectActiveTokenSet);
 
-    const activeSnippet = useMemo(
+    // CSS mode: real CSS class output
+    const cssExport = useMemo(
         () =>
             selectedInstance
-                ? buildSnippetForInstance(selectedInstance, exportStyleMode, activeTokenSet)
-                : '// Select a variant to generate code.',
-        [selectedInstance, exportStyleMode, activeTokenSet],
+                ? buildCSSExport(selectedInstance, activeTokenSet)
+                : '/* Select a variant to generate CSS. */',
+        [selectedInstance, activeTokenSet],
     );
 
-    const activeNamedSnippet = useMemo(
+    // Tailwind snippet (inline usage)
+    const tailwindSnippet = useMemo(
+        () =>
+            selectedInstance
+                ? buildSnippetForInstance(selectedInstance, 'tailwind', activeTokenSet)
+                : '// Select a variant to generate code.',
+        [selectedInstance, activeTokenSet],
+    );
+
+    // Named component (wraps snippet in export function)
+    const namedSnippet = useMemo(
         () =>
             selectedInstance
                 ? buildNamedSnippetForInstance(selectedInstance, exportStyleMode, activeTokenSet)
-                : '// Select a variant to generate a named component.',
+                : '// Select a variant to generate a component.',
         [selectedInstance, exportStyleMode, activeTokenSet],
     );
 
-    const allExportsSnippet = useMemo(
-        () => buildMultiVariantBundle(instances, activeKind, exportStyleMode, activeTokenSetId, tokenSets),
-        [instances, activeKind, exportStyleMode, activeTokenSetId, tokenSets],
-    );
-
+    // Theme CSS (Tailwind mode only)
     const tailwindThemeSnippet = useMemo(
         () => buildTailwindThemeStyles(activeTokenSet, instances),
         [activeTokenSet, instances],
     );
 
-    const activeCodeSnippet =
-        codePanelTab === 'snippet'
-            ? activeSnippet
-            : codePanelTab === 'named'
-                ? activeNamedSnippet
-                : codePanelTab === 'theme'
-                    ? tailwindThemeSnippet
-                    : allExportsSnippet;
+    // Studio bundle JSON (save/load)
+    const bundleSnippet = useMemo(
+        () => buildMultiVariantBundle(instances, activeKind, exportStyleMode, activeTokenSetId, tokenSets),
+        [instances, activeKind, exportStyleMode, activeTokenSetId, tokenSets],
+    );
+
+    // Resolve active code based on tab + mode
+    const activeCodeSnippet = codePanelTab === 'theme'
+        ? tailwindThemeSnippet
+        : codeExportMode === 'snippet'
+            ? (exportStyleMode === 'inline' ? cssExport : tailwindSnippet)
+            : namedSnippet;
 
     const styleModeSuffix = exportStyleMode === 'tailwind' ? '-tailwind' : '';
-    const activeCodeFilename =
-        codePanelTab === 'snippet'
-            ? `ui-studio-${sanitizeFileSegment(activeKind)}-${sanitizeFileSegment(selectedInstance?.name ?? 'variant')}${styleModeSuffix}.tsx`
-            : codePanelTab === 'named'
-                ? `${selectedInstance ? buildExportComponentName(selectedInstance) : `${toPascalCase(activeKind)}Variant`}${styleModeSuffix}.tsx`
-                : codePanelTab === 'theme'
-                    ? 'ui-studio.theme.css'
-                    : 'ui-studio-design-bundle.json';
+    const activeCodeFilename = codePanelTab === 'theme'
+        ? 'ui-studio.theme.css'
+        : codeExportMode === 'snippet'
+            ? exportStyleMode === 'inline'
+                ? `ui-studio-${sanitizeFileSegment(activeKind)}-${sanitizeFileSegment(selectedInstance?.name ?? 'variant')}.css`
+                : `ui-studio-${sanitizeFileSegment(activeKind)}-${sanitizeFileSegment(selectedInstance?.name ?? 'variant')}${styleModeSuffix}.tsx`
+            : `${selectedInstance ? buildExportComponentName(selectedInstance) : `${toPascalCase(activeKind)}Variant`}${styleModeSuffix}.tsx`;
 
-    const tabDescription =
-        codePanelTab === 'snippet'
-            ? 'Quick snippet for an existing file in this project.'
-            : codePanelTab === 'named'
-                ? 'Reusable React component file for this project.'
-                : codePanelTab === 'theme'
-                    ? 'Theme CSS for the selected token set only.'
-                    : 'Studio data for re-opening this design in UI Studio later.';
+    const tabDescription = codePanelTab === 'theme'
+        ? 'Theme CSS with token variables for this token set.'
+        : codeExportMode === 'snippet'
+            ? exportStyleMode === 'inline'
+                ? 'CSS class with pseudo-selectors for state overrides.'
+                : 'Tailwind snippet ready to paste into your JSX.'
+            : 'Reusable React component file for this project.';
 
     const copyCode = async (snippet: string) => {
         try {
@@ -123,14 +133,19 @@ export function ExportPanel() {
         window.setTimeout(() => setExportedCode(false), 1200);
     };
 
+    const saveBundleToFile = () => {
+        downloadSnippetFile('ui-studio-design-bundle.json', bundleSnippet);
+        setExportedCode(true);
+        window.setTimeout(() => setExportedCode(false), 1200);
+    };
+
     return (
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <div className="flex flex-col gap-3 px-4 py-3">
                 <div className="min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6f86a7]">Export For</div>
-                    <div className="mt-1 text-[13px] font-semibold text-[#eaf2ff]">This Project</div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6f86a7]">Export</div>
                     <div className="mt-0.5 text-[11px] leading-relaxed text-[#8fa6c7]">
-                        Generated components reference this project&apos;s existing UI primitives.
+                        Production-ready code for this project.
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -165,56 +180,69 @@ export function ExportPanel() {
                             {exportedCode ? <Check className="size-3" /> : <Download className="size-3" />}
                             {exportedCode ? 'Done' : 'Export'}
                         </button>
+                        <button
+                            type="button"
+                            onClick={saveBundleToFile}
+                            className={studioActionButtonClass}
+                            title="Save studio bundle for re-importing later"
+                        >
+                            <Save className="size-3" />
+                            Bundle
+                        </button>
                     </div>
                 </div>
             </div>
 
             <Tabs value={codePanelTab} onValueChange={(value) => setCodePanelTab(value as CodePanelTab)} className="min-h-0 min-w-0 flex-1 px-4 pb-3 pt-2">
-                <TabsList variant="line" className="flex w-full flex-wrap items-stretch justify-start gap-1 border-b border-white/10 pb-1">
+                <TabsList variant="line" className="flex w-full items-stretch justify-start gap-1 border-b border-white/10 pb-1">
                     <TabsTrigger
-                        value="snippet"
+                        value="code"
                         className={exportTabTriggerClass}
                     >
-                        Quick Snippet
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="named"
-                        className={exportTabTriggerClass}
-                    >
-                        Component File
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="exports"
-                        className={exportTabTriggerClass}
-                    >
-                        Studio Bundle
+                        Code
                     </TabsTrigger>
                     {exportStyleMode === 'tailwind' ? (
                         <TabsTrigger
                             value="theme"
                             className={exportTabTriggerClass}
                         >
-                            Theme Tokens
+                            Theme
                         </TabsTrigger>
                     ) : null}
                 </TabsList>
-                <p className="pt-3 text-[11px] leading-relaxed text-[#8fa6c7]">{tabDescription}</p>
-                <TabsContent value="snippet" className="min-h-0 min-w-0">
+
+                <TabsContent value="code" className="min-h-0 min-w-0">
+                    <div className="flex items-center gap-2 pt-2">
+                        <div className="inline-flex rounded-sm bg-[#0d0f12] p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => setCodeExportMode('snippet')}
+                                className={cn(
+                                    'rounded px-2 py-0.5 text-[11px] font-medium transition',
+                                    codeExportMode === 'snippet' ? 'bg-white/[0.12] text-[#eaf3ff]' : 'text-[#7a94b5] hover:text-[#c5d6ea]',
+                                )}
+                            >
+                                Snippet
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCodeExportMode('component')}
+                                className={cn(
+                                    'rounded px-2 py-0.5 text-[11px] font-medium transition',
+                                    codeExportMode === 'component' ? 'bg-white/[0.12] text-[#eaf3ff]' : 'text-[#7a94b5] hover:text-[#c5d6ea]',
+                                )}
+                            >
+                                Component
+                            </button>
+                        </div>
+                        <p className="text-[10px] leading-snug text-[#6b8ab0]">{tabDescription}</p>
+                    </div>
                     <pre className={exportPreClass}>
-                        <code>{activeSnippet}</code>
-                    </pre>
-                </TabsContent>
-                <TabsContent value="named" className="min-h-0 min-w-0">
-                    <pre className={exportPreClass}>
-                        <code>{activeNamedSnippet}</code>
-                    </pre>
-                </TabsContent>
-                <TabsContent value="exports" className="min-h-0 min-w-0">
-                    <pre className={exportPreClass}>
-                        <code>{allExportsSnippet}</code>
+                        <code>{codePanelTab === 'code' ? activeCodeSnippet : ''}</code>
                     </pre>
                 </TabsContent>
                 <TabsContent value="theme" className="min-h-0 min-w-0">
+                    <p className="pt-2 text-[10px] leading-snug text-[#6b8ab0]">Theme CSS with token variables for this token set.</p>
                     <pre className={exportPreClass}>
                         <code>{tailwindThemeSnippet}</code>
                     </pre>

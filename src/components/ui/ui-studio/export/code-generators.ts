@@ -1,11 +1,15 @@
+import type { CSSProperties } from 'react';
 import type { ComponentInstance, ComponentStyleConfig, UIComponentKind } from '@/components/ui/ui-studio.types';
 import type { StudioTokenSet } from '@/components/ui/token-sets';
 import {
     buildExportComponentName,
     buildMotionClassName,
     buildPreviewPresentation,
+    buildStateOverrideCSS,
+    buildTailwindStateClasses,
     inferTokenCssVar,
     resolveTokenToHex,
+    sanitizeFileSegment,
     sanitizeTokenVarName,
     supportsAnimatedBorderEffect,
     supportsBorderBeamEffect,
@@ -227,6 +231,68 @@ export function buildNamedSnippetForInstance(
     );
     const importBlock = buildNamedSnippetImports(namedSnippet);
     return importBlock ? `${importBlock}\n\n${namedSnippet}` : namedSnippet;
+}
+
+// ─── CSS Export Builder ──────────────────────────────────────────────────
+
+/** Convert React camelCase CSSProperties to kebab-case CSS declarations. */
+function cssPropertiesToCSS(style: CSSProperties): Record<string, string> {
+    const result: Record<string, string> = {};
+    const camelToKebab = (s: string) =>
+        s.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`).replace(/^webkit-/, '-webkit-').replace(/^moz-/, '-moz-');
+
+    for (const [key, value] of Object.entries(style)) {
+        if (value === undefined || value === null || value === '') continue;
+        // Skip any remaining internal CSS custom properties
+        if (key.startsWith('--ui-')) continue;
+        const cssKey = key.startsWith('--') ? key : camelToKebab(key);
+        result[cssKey] = String(value);
+    }
+    return result;
+}
+
+/** Build a clean CSS class export for a component instance.
+ *  Generates a named CSS class + pseudo-selector rules for state overrides. */
+export function buildCSSExport(
+    instance: ComponentInstance,
+    activeTokenSet: StudioTokenSet,
+): string {
+    const presentation = buildPreviewPresentation(instance, true);
+    const style = presentation.style;
+    const className = `studio-${sanitizeFileSegment(instance.name || instance.kind)}`;
+
+    const cssProps = cssPropertiesToCSS(style);
+    const lines: string[] = [];
+    lines.push(`/* CSS */`);
+    lines.push(`.${className} {`);
+    for (const [prop, value] of Object.entries(cssProps)) {
+        if (value !== undefined && value !== '') {
+            lines.push(`  ${prop}: ${value};`);
+        }
+    }
+    lines.push('}');
+
+    // State pseudo-selectors (only properties that differ from base)
+    const stateRules = buildStateOverrideCSS(instance, className);
+    for (const rule of stateRules) {
+        lines.push('');
+        lines.push(`${rule.selector} {`);
+        for (const [prop, value] of Object.entries(rule.properties)) {
+            lines.push(`  ${prop}: ${value};`);
+        }
+        lines.push('}');
+    }
+
+    // Usage hint
+    const componentTag = instance.kind.charAt(0).toUpperCase() + instance.kind.slice(1).replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+    lines.push('');
+    lines.push('/* Usage */');
+    lines.push(`<${componentTag} className="${className}">`);
+    lines.push(`  ${instance.name || instance.kind}`);
+    lines.push(`</${componentTag}>`);
+
+
+    return lines.join('\n');
 }
 
 // ─── Multi-Variant Bundle ────────────────────────────────────────────────
@@ -823,49 +889,7 @@ ${themeInlineLines.join('\n')}
     opacity: 1 !important;
   }
 
-  .ui-studio-button-preview-hover {
-    background: var(--ui-btn-hover-bg) !important;
-    --ui-animated-border-fill: var(--ui-btn-hover-bg);
-    color: var(--ui-btn-hover-fg) !important;
-    border-color: var(--ui-btn-hover-border) !important;
-    border-width: var(--ui-btn-hover-border-width) !important;
-    font-size: var(--ui-btn-hover-font-size) !important;
-    font-weight: var(--ui-btn-hover-font-weight) !important;
-    font-style: var(--ui-btn-hover-font-style) !important;
-    text-decoration: var(--ui-btn-hover-text-decoration) !important;
-    justify-content: var(--ui-btn-hover-justify) !important;
-    border-style: solid !important;
-  }
-
-  .ui-studio-button-preview-active {
-    background: var(--ui-btn-active-bg) !important;
-    --ui-animated-border-fill: var(--ui-btn-active-bg);
-    color: var(--ui-btn-active-fg) !important;
-    border-color: var(--ui-btn-active-border) !important;
-    border-width: var(--ui-btn-active-border-width) !important;
-    font-size: var(--ui-btn-active-font-size) !important;
-    font-weight: var(--ui-btn-active-font-weight) !important;
-    font-style: var(--ui-btn-active-font-style) !important;
-    text-decoration: var(--ui-btn-active-text-decoration) !important;
-    justify-content: var(--ui-btn-active-justify) !important;
-    border-style: solid !important;
-  }
-
-  .ui-studio-button-preview-disabled {
-    background: var(--ui-btn-disabled-bg) !important;
-    --ui-animated-border-fill: var(--ui-btn-disabled-bg);
-    color: var(--ui-btn-disabled-fg) !important;
-    border-color: var(--ui-btn-disabled-border) !important;
-    border-width: var(--ui-btn-disabled-border-width) !important;
-    font-size: var(--ui-btn-disabled-font-size) !important;
-    font-weight: var(--ui-btn-disabled-font-weight) !important;
-    font-style: var(--ui-btn-disabled-font-style) !important;
-    text-decoration: var(--ui-btn-disabled-text-decoration) !important;
-    justify-content: var(--ui-btn-disabled-justify) !important;
-    border-style: solid !important;
-    opacity: 1 !important;
-  }
-${motionUtilityBlocks.length > 0 ? `\n${motionUtilityBlocks.join('\n\n')}\n` : ''}
+${motionUtilityBlocks.length > 0 ? `\n${motionUtilityBlocks.join('\n\n')}\n` : ''
 }
 ${motionKeyframes.length > 0 ? `\n${motionKeyframes.join('\n\n')}\n` : ''}`;
 }
