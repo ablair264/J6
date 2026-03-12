@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, type ReactNode } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,11 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { AnimatedText } from '@/components/ui/animated-text';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ClipboardIcon, ArrowTopRightOnSquareIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 
-/* ─── Theme tokens (dark mode from ui-studio.theme) ─── */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme tokens (dark mode from ui-studio.theme)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const T = {
     bg: '#0a0a0b',
     subtle: '#111113',
@@ -28,7 +30,6 @@ const T = {
     textMuted: '#6b6b72',
     brand: '#f5a623',
     brandHover: '#ffba4a',
-    brandDark: '#d4890a',
     interactive: '#7c3aed',
     interactiveHover: '#9f72ff',
     border: 'rgba(255,255,255,0.08)',
@@ -37,7 +38,6 @@ const T = {
     warning: '#facc15',
     error: '#fb7185',
     info: '#38bdf8',
-    // showcase accents
     electric: '#22d3ee',
     bloom: '#f472b6',
     acid: '#a3e635',
@@ -48,737 +48,1024 @@ const T = {
     solar: '#facc15',
 } as const;
 
-/* ─── Layout helpers ─── */
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
-    return (
-        <section style={{ borderTop: `1px solid ${T.border}` }} className="py-16 px-6 md:px-12 lg:px-20">
-            <div className="max-w-7xl mx-auto">
-                <div className="mb-10">
-                    <h2 className="text-2xl font-semibold tracking-tight" style={{ color: T.text }}>{title}</h2>
-                    {description && <p className="mt-2 text-sm leading-relaxed" style={{ color: T.textSec }}>{description}</p>}
-                </div>
-                {children}
-            </div>
-        </section>
-    );
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Component examples data
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+interface ComponentExample {
+    title: string;
+    preview: ReactNode;
+    code: string;
 }
 
-function SubSection({ label, children }: { label: string; children: React.ReactNode }) {
-    return (
-        <div className="mb-10">
-            <p className="text-xs font-medium uppercase tracking-widest mb-4" style={{ color: T.textMuted }}>{label}</p>
-            {children}
-        </div>
-    );
+interface ComponentEntry {
+    slug: string;
+    name: string;
+    description: string;
+    thumbnail: ReactNode;
+    examples: ComponentExample[];
 }
 
-function ShowcaseRow({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-    return <div className={`flex flex-wrap items-center gap-4 ${className}`}>{children}</div>;
-}
-
-/* ─── Sample data ─── */
 const TABLE_COLUMNS = [
     { key: 'name', label: 'Name', sortable: true },
     { key: 'role', label: 'Role' },
     { key: 'status', label: 'Status', variant: 'badge' as const },
     { key: 'email', label: 'Email' },
 ];
-
 const TABLE_DATA = [
     { name: 'Ava Chen', role: 'Lead Engineer', status: 'Active', email: 'ava@company.io' },
     { name: 'Kai Nakamura', role: 'Designer', status: 'Active', email: 'kai@company.io' },
     { name: 'Zara Osei', role: 'PM', status: 'Away', email: 'zara@company.io' },
     { name: 'Liam Torres', role: 'Backend Dev', status: 'Offline', email: 'liam@company.io' },
 ];
-
 const TABLE_BADGE_COLORS = {
     Active: { bg: T.spearmint, text: '#0a0a0b' },
     Away: { bg: T.solar, text: '#0a0a0b' },
     Offline: { bg: T.textMuted, text: '#f0ede8' },
 };
 
-/* ─── Main Component ─── */
-export default function ComponentLibrary() {
-    const [switchOn, setSwitchOn] = useState(true);
-    const [checkboxChecked, setCheckboxChecked] = useState<boolean | 'indeterminate'>(true);
-    const [sliderValue, setSliderValue] = useState([65]);
-
-    return (
-        <div style={{ background: T.bg, color: T.text, minHeight: '100vh' }}>
-            {/* ━━━ Header ━━━ */}
-            <header className="px-6 md:px-12 lg:px-20 pt-12 pb-16 max-w-7xl mx-auto">
-                <Link to="/" className="inline-flex items-center gap-2 text-sm mb-8 transition-colors hover:opacity-80" style={{ color: T.textSec }}>
-                    <ArrowLeftIcon className="size-4" />
-                    Back to home
-                </Link>
-                <div className="flex items-end justify-between gap-8 flex-wrap">
-                    <div>
-                        <p className="text-xs font-medium uppercase tracking-[0.2em] mb-3" style={{ color: T.brand }}>Component Library</p>
-                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight" style={{ color: T.text }}>
-                            UI Studio <span style={{ color: T.brand }}>OSS</span>
-                        </h1>
-                        <p className="mt-4 text-base leading-relaxed max-w-xl" style={{ color: T.textSec }}>
-                            21 production-ready components built with Radix primitives, React Motion, and a warm amber &amp; violet design system.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="size-3 rounded-full" style={{ background: T.brand, boxShadow: `0 0 12px ${T.brand}40` }} />
-                        <span className="text-xs font-mono" style={{ color: T.textMuted }}>v1.0 — March 2026</span>
-                    </div>
-                </div>
-                {/* Color swatches */}
-                <div className="mt-10 flex flex-wrap gap-2">
-                    {[
-                        { label: 'Brand', color: T.brand },
-                        { label: 'Interactive', color: T.interactive },
-                        { label: 'Success', color: T.success },
-                        { label: 'Warning', color: T.warning },
-                        { label: 'Error', color: T.error },
-                        { label: 'Info', color: T.info },
-                        { label: 'Electric', color: T.electric },
-                        { label: 'Bloom', color: T.bloom },
-                        { label: 'Acid', color: T.acid },
-                        { label: 'Plasma', color: T.plasma },
-                    ].map((s) => (
-                        <div key={s.label} className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: T.elevated, border: `1px solid ${T.border}` }}>
-                            <div className="size-3 rounded-full" style={{ background: s.color }} />
-                            <span className="text-xs font-mono" style={{ color: T.textSec }}>{s.label}</span>
+/* ─── Build the component registry ─── */
+function buildComponents(): ComponentEntry[] {
+    return [
+        /* ── Accordion ── */
+        {
+            slug: 'accordion',
+            name: 'Accordion',
+            description: 'Collapsible content sections for FAQs, settings, and grouped information.',
+            thumbnail: (
+                <div className="flex flex-col gap-1 w-full max-w-[180px]">
+                    {['Archive', 'Trash', 'Settings'].map((t) => (
+                        <div key={t} className="flex items-center justify-between px-3 py-1.5 rounded text-[10px]" style={{ background: T.elevated, color: T.textSec }}>
+                            <span>{t}</span><span style={{ color: T.textMuted }}>—</span>
                         </div>
                     ))}
                 </div>
-            </header>
+            ),
+            examples: [
+                {
+                    title: 'Default',
+                    preview: (
+                        <div className="w-full max-w-lg">
+                            <Accordion type="single" collapsible defaultValue="item-1" dividerEnabled dividerColor={T.border} dividerWeight={1}>
+                                <AccordionItem value="item-1">
+                                    <AccordionTrigger triggerStyle={{ color: T.text, padding: '14px 0' }}>What is a micro-interaction?</AccordionTrigger>
+                                    <AccordionContent contentStyle={{ color: T.textSec, paddingBottom: 14 }}>A micro-interaction is a small, contained product moment that revolves around a single use case.</AccordionContent>
+                                </AccordionItem>
+                                <AccordionItem value="item-2">
+                                    <AccordionTrigger triggerStyle={{ color: T.text, padding: '14px 0' }}>Why should I use a micro-interaction?</AccordionTrigger>
+                                    <AccordionContent contentStyle={{ color: T.textSec, paddingBottom: 14 }}>They enhance user delight and provide contextual feedback for actions.</AccordionContent>
+                                </AccordionItem>
+                                <AccordionItem value="item-3">
+                                    <AccordionTrigger triggerStyle={{ color: T.text, padding: '14px 0' }}>How do I use a micro-interaction?</AccordionTrigger>
+                                    <AccordionContent contentStyle={{ color: T.textSec, paddingBottom: 14 }}>Integrate them at key interaction points like form submissions and state changes.</AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </div>
+                    ),
+                    code: `<Accordion type="single" collapsible defaultValue="item-1">\n  <AccordionItem value="item-1">\n    <AccordionTrigger>What is a micro-interaction?</AccordionTrigger>\n    <AccordionContent>A micro-interaction is a small, contained product moment...</AccordionContent>\n  </AccordionItem>\n</Accordion>`,
+                },
+                {
+                    title: 'Bordered',
+                    preview: (
+                        <div className="w-full max-w-lg">
+                            <Accordion type="single" collapsible dividerEnabled={false}>
+                                {['What is a micro-interaction?', 'Why should I use a micro-interaction?', 'How do I use a micro-interaction?'].map((q, i) => (
+                                    <AccordionItem key={i} value={`b-${i}`}>
+                                        <AccordionTrigger triggerStyle={{ color: T.text, padding: '12px 16px', background: T.surface, borderRadius: 10, border: `1px solid ${T.border}`, marginBottom: 6 }}>{q}</AccordionTrigger>
+                                        <AccordionContent contentStyle={{ color: T.textSec, padding: '0 16px 12px' }}>Accordion content goes here.</AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </div>
+                    ),
+                    code: `<Accordion type="single" collapsible>\n  <AccordionItem value="item-1">\n    <AccordionTrigger style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)' }}>\n      What is a micro-interaction?\n    </AccordionTrigger>\n    <AccordionContent>Content goes here.</AccordionContent>\n  </AccordionItem>\n</Accordion>`,
+                },
+            ],
+        },
 
-            {/* ━━━ BUTTONS ━━━ */}
-            <Section title="Button" description="Primary actions, secondary options, and ghost controls. CVA variants with amber brand and violet interactive accents.">
-                <SubSection label="Primary — Brand">
-                    <ShowcaseRow>
-                        <Button size="lg" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 12 }}>Get Started</Button>
-                        <Button size="default" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Confirm</Button>
-                        <Button size="sm" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Save</Button>
-                        <Button size="xs" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 6 }}>Tiny</Button>
-                    </ShowcaseRow>
-                </SubSection>
-                <SubSection label="Interactive — Violet">
-                    <ShowcaseRow>
-                        <Button style={{ background: T.interactive, color: '#fff', borderRadius: 10 }}>Publish</Button>
-                        <Button style={{ background: T.interactiveHover, color: '#fff', borderRadius: 10 }}>Hover State</Button>
-                        <Button disabled style={{ background: T.interactive, color: '#fff', borderRadius: 10, opacity: 0.4 }}>Disabled</Button>
-                    </ShowcaseRow>
-                </SubSection>
-                <SubSection label="Secondary &amp; Ghost">
-                    <ShowcaseRow>
-                        <Button variant="outline" style={{ borderColor: T.borderStrong, color: T.text, borderRadius: 10 }}>Outline</Button>
-                        <Button variant="secondary" style={{ background: T.elevated, color: T.text, borderRadius: 10 }}>Secondary</Button>
-                        <Button variant="ghost" style={{ color: T.textSec, borderRadius: 10 }}>Ghost</Button>
-                        <Button variant="destructive" style={{ background: T.error, color: '#fff', borderRadius: 10 }}>Delete</Button>
-                    </ShowcaseRow>
-                </SubSection>
-            </Section>
-
-            {/* ━━━ BADGE ━━━ */}
-            <Section title="Badge" description="Status indicators, labels, and tags across the showcase palette.">
-                <SubSection label="Showcase Accents">
-                    <ShowcaseRow>
-                        {[
-                            { label: 'Electric', bg: T.electric, fg: '#0a0a0b' },
-                            { label: 'Bloom', bg: T.bloom, fg: '#0a0a0b' },
-                            { label: 'Acid', bg: T.acid, fg: '#0a0a0b' },
-                            { label: 'Plasma', bg: T.plasma, fg: '#0a0a0b' },
-                            { label: 'Inferno', bg: T.inferno, fg: '#0a0a0b' },
-                            { label: 'Crimson', bg: T.crimson, fg: '#fff' },
-                            { label: 'Spearmint', bg: T.spearmint, fg: '#0a0a0b' },
-                            { label: 'Solar', bg: T.solar, fg: '#0a0a0b' },
-                        ].map((b) => (
-                            <Badge key={b.label} style={{ background: b.bg, color: b.fg, borderRadius: 999 }}>{b.label}</Badge>
-                        ))}
-                    </ShowcaseRow>
-                </SubSection>
-                <SubSection label="Status Variants">
-                    <ShowcaseRow>
-                        <Badge style={{ background: `${T.success}20`, color: T.success, border: `1px solid ${T.success}40`, borderRadius: 999 }}>Active</Badge>
-                        <Badge style={{ background: `${T.warning}20`, color: T.warning, border: `1px solid ${T.warning}40`, borderRadius: 999 }}>Pending</Badge>
-                        <Badge style={{ background: `${T.error}20`, color: T.error, border: `1px solid ${T.error}40`, borderRadius: 999 }}>Failed</Badge>
-                        <Badge style={{ background: `${T.info}20`, color: T.info, border: `1px solid ${T.info}40`, borderRadius: 999 }}>Info</Badge>
-                        <Badge variant="outline" style={{ borderColor: T.borderStrong, color: T.textSec, borderRadius: 999 }}>Draft</Badge>
-                    </ShowcaseRow>
-                </SubSection>
-            </Section>
-
-            {/* ━━━ INPUT ━━━ */}
-            <Section title="Input" description="Text inputs with amber focus ring and warm neutral surfaces.">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium" style={{ color: T.textSec }}>Email</label>
-                        <Input
-                            type="email"
-                            placeholder="you@company.io"
-                            style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium" style={{ color: T.textSec }}>API Key</label>
-                        <Input
-                            type="password"
-                            placeholder="sk-••••••••"
-                            style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium" style={{ color: T.textSec }}>Disabled</label>
-                        <Input
-                            disabled
-                            placeholder="Not editable"
-                            style={{ background: T.subtle, borderColor: T.border, color: T.textMuted, borderRadius: 10, borderWidth: 1, opacity: 0.5 }}
-                        />
-                    </div>
+        /* ── Alert ── */
+        {
+            slug: 'alert',
+            name: 'Alert',
+            description: 'Contextual feedback messages for user actions with status variants.',
+            thumbnail: (
+                <div className="w-full max-w-[180px] p-2 rounded-lg text-[9px]" style={{ background: `${T.info}15`, border: `1px solid ${T.info}30` }}>
+                    <div style={{ color: T.info }} className="font-medium">This is an alert</div>
+                    <div style={{ color: T.textSec }} className="mt-0.5">With a description</div>
+                    <div className="mt-1.5"><span className="px-1.5 py-0.5 rounded text-[8px]" style={{ background: T.info, color: '#0a0a0b' }}>Accept</span></div>
                 </div>
-            </Section>
+            ),
+            examples: [
+                {
+                    title: 'Info',
+                    preview: (
+                        <Alert variant="info" showIcon style={{ background: `${T.info}10`, borderColor: `${T.info}30`, borderRadius: 12, maxWidth: 480 }}>
+                            <AlertTitle style={{ color: T.info }}>System update available</AlertTitle>
+                            <AlertDescription style={{ color: T.textSec }}>A new version is ready. Review the changelog before updating.</AlertDescription>
+                            <AlertAction><Button size="xs" style={{ background: T.info, color: '#0a0a0b', borderRadius: 6 }}>Update now</Button></AlertAction>
+                        </Alert>
+                    ),
+                    code: `<Alert variant="info" showIcon>\n  <AlertTitle>System update available</AlertTitle>\n  <AlertDescription>A new version is ready.</AlertDescription>\n  <AlertAction><Button size="xs">Update now</Button></AlertAction>\n</Alert>`,
+                },
+                {
+                    title: 'Success',
+                    preview: (
+                        <Alert variant="success" showIcon style={{ background: `${T.success}10`, borderColor: `${T.success}30`, borderRadius: 12, maxWidth: 480 }}>
+                            <AlertTitle style={{ color: T.success }}>Deployment successful</AlertTitle>
+                            <AlertDescription style={{ color: T.textSec }}>Production build deployed to all regions.</AlertDescription>
+                        </Alert>
+                    ),
+                    code: `<Alert variant="success" showIcon>\n  <AlertTitle>Deployment successful</AlertTitle>\n  <AlertDescription>Production build deployed to all regions.</AlertDescription>\n</Alert>`,
+                },
+                {
+                    title: 'Warning',
+                    preview: (
+                        <Alert variant="warning" showIcon style={{ background: `${T.warning}10`, borderColor: `${T.warning}30`, borderRadius: 12, maxWidth: 480 }}>
+                            <AlertTitle style={{ color: T.warning }}>API rate limit approaching</AlertTitle>
+                            <AlertDescription style={{ color: T.textSec }}>You&apos;ve used 89% of your monthly quota.</AlertDescription>
+                        </Alert>
+                    ),
+                    code: `<Alert variant="warning" showIcon>\n  <AlertTitle>API rate limit approaching</AlertTitle>\n  <AlertDescription>You've used 89% of your monthly quota.</AlertDescription>\n</Alert>`,
+                },
+                {
+                    title: 'Error',
+                    preview: (
+                        <Alert variant="error" showIcon dismissible style={{ background: `${T.error}10`, borderColor: `${T.error}30`, borderRadius: 12, maxWidth: 480 }}>
+                            <AlertTitle style={{ color: T.error }}>Payment failed</AlertTitle>
+                            <AlertDescription style={{ color: T.textSec }}>Your card ending in 4242 was declined.</AlertDescription>
+                            <AlertAction><Button size="xs" variant="outline" style={{ borderColor: `${T.error}50`, color: T.error, borderRadius: 6 }}>Update card</Button></AlertAction>
+                        </Alert>
+                    ),
+                    code: `<Alert variant="error" showIcon dismissible>\n  <AlertTitle>Payment failed</AlertTitle>\n  <AlertDescription>Your card ending in 4242 was declined.</AlertDescription>\n</Alert>`,
+                },
+            ],
+        },
 
-            {/* ━━━ CHECKBOX & SWITCH ━━━ */}
-            <Section title="Checkbox &amp; Switch" description="Toggle controls with amber active states.">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-3xl">
-                    <SubSection label="Checkbox">
+        /* ── Avatar ── */
+        {
+            slug: 'avatar',
+            name: 'Avatar',
+            description: 'User representations with images, fallback initials, and status badges.',
+            thumbnail: (
+                <div className="flex -space-x-2">
+                    {[T.interactive, T.brand, T.electric, T.bloom].map((c, i) => (
+                        <div key={i} className="size-8 rounded-full flex items-center justify-center text-[9px] font-bold" style={{ background: c, color: '#0a0a0b', border: `2px solid ${T.surface}` }}>{['AC', 'KN', 'ZO', 'LT'][i]}</div>
+                    ))}
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Sizes',
+                    preview: (
+                        <div className="flex items-end gap-4">
+                            <Avatar size="sm" bgColor={T.interactive}><AvatarFallback fontColor="#fff">SM</AvatarFallback></Avatar>
+                            <Avatar size="md" bgColor={T.brand}><AvatarFallback fontColor="#0a0a0b" fontBold>MD</AvatarFallback></Avatar>
+                            <Avatar size="lg" bgColor={T.electric}><AvatarFallback fontColor="#0a0a0b" fontBold>LG</AvatarFallback></Avatar>
+                        </div>
+                    ),
+                    code: `<Avatar size="sm" bgColor="#7c3aed"><AvatarFallback fontColor="#fff">SM</AvatarFallback></Avatar>\n<Avatar size="md" bgColor="#f5a623"><AvatarFallback fontColor="#0a0a0b">MD</AvatarFallback></Avatar>\n<Avatar size="lg" bgColor="#22d3ee"><AvatarFallback fontColor="#0a0a0b">LG</AvatarFallback></Avatar>`,
+                },
+                {
+                    title: 'With Images & Badges',
+                    preview: (
+                        <div className="flex items-center gap-4">
+                            <Avatar size="md" strokeWeight={2} strokeColor={T.brand} badge badgeColor={T.success}><AvatarImage src="https://i.pravatar.cc/80?img=1" /><AvatarFallback>U1</AvatarFallback></Avatar>
+                            <Avatar size="md" strokeWeight={2} strokeColor={T.interactive} badge badgeColor={T.success}><AvatarImage src="https://i.pravatar.cc/80?img=5" /><AvatarFallback>U2</AvatarFallback></Avatar>
+                            <Avatar size="md" strokeWeight={2} strokeColor={T.electric} badge badgeColor={T.error}><AvatarImage src="https://i.pravatar.cc/80?img=8" /><AvatarFallback>U3</AvatarFallback></Avatar>
+                            <Avatar size="md" shape="rounded" strokeWeight={2} strokeColor={T.bloom}><AvatarImage src="https://i.pravatar.cc/80?img=12" /><AvatarFallback>U4</AvatarFallback></Avatar>
+                        </div>
+                    ),
+                    code: `<Avatar size="md" strokeWeight={2} strokeColor="#f5a623" badge badgeColor="#34d399">\n  <AvatarImage src="https://i.pravatar.cc/80?img=1" />\n  <AvatarFallback>U1</AvatarFallback>\n</Avatar>`,
+                },
+            ],
+        },
+
+        /* ── Badge ── */
+        {
+            slug: 'badge',
+            name: 'Badge',
+            description: 'Small status indicators, labels, and tags for categorization.',
+            thumbnail: (
+                <div className="flex gap-1.5">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-medium" style={{ background: T.brand, color: '#0a0a0b' }}>Badge</span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-medium" style={{ background: T.interactive, color: '#fff' }}>New</span>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Showcase Colors',
+                    preview: (
+                        <div className="flex flex-wrap gap-3">
+                            {[
+                                { label: 'Electric', bg: T.electric, fg: '#0a0a0b' },
+                                { label: 'Bloom', bg: T.bloom, fg: '#0a0a0b' },
+                                { label: 'Acid', bg: T.acid, fg: '#0a0a0b' },
+                                { label: 'Plasma', bg: T.plasma, fg: '#0a0a0b' },
+                                { label: 'Inferno', bg: T.inferno, fg: '#0a0a0b' },
+                                { label: 'Crimson', bg: T.crimson, fg: '#fff' },
+                                { label: 'Spearmint', bg: T.spearmint, fg: '#0a0a0b' },
+                                { label: 'Solar', bg: T.solar, fg: '#0a0a0b' },
+                            ].map((b) => (
+                                <Badge key={b.label} style={{ background: b.bg, color: b.fg, borderRadius: 999 }}>{b.label}</Badge>
+                            ))}
+                        </div>
+                    ),
+                    code: `<Badge style={{ background: '#22d3ee', color: '#0a0a0b' }}>Electric</Badge>\n<Badge style={{ background: '#f472b6', color: '#0a0a0b' }}>Bloom</Badge>\n<Badge style={{ background: '#a3e635', color: '#0a0a0b' }}>Acid</Badge>`,
+                },
+                {
+                    title: 'Status Variants',
+                    preview: (
+                        <div className="flex flex-wrap gap-3">
+                            <Badge style={{ background: `${T.success}20`, color: T.success, border: `1px solid ${T.success}40`, borderRadius: 999 }}>Active</Badge>
+                            <Badge style={{ background: `${T.warning}20`, color: T.warning, border: `1px solid ${T.warning}40`, borderRadius: 999 }}>Pending</Badge>
+                            <Badge style={{ background: `${T.error}20`, color: T.error, border: `1px solid ${T.error}40`, borderRadius: 999 }}>Failed</Badge>
+                            <Badge style={{ background: `${T.info}20`, color: T.info, border: `1px solid ${T.info}40`, borderRadius: 999 }}>Info</Badge>
+                            <Badge variant="outline" style={{ borderColor: T.borderStrong, color: T.textSec, borderRadius: 999 }}>Draft</Badge>
+                        </div>
+                    ),
+                    code: `<Badge style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }}>Active</Badge>`,
+                },
+            ],
+        },
+
+        /* ── Button ── */
+        {
+            slug: 'button',
+            name: 'Button',
+            description: 'Interactive controls for actions with multiple variants, sizes, and states.',
+            thumbnail: (
+                <span className="px-3 py-1.5 rounded-lg text-[10px] font-medium" style={{ background: T.brand, color: '#0a0a0b' }}>Button</span>
+            ),
+            examples: [
+                {
+                    title: 'Variants',
+                    preview: (
+                        <div className="flex flex-wrap gap-3">
+                            <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Primary</Button>
+                            <Button variant="secondary" style={{ background: T.elevated, color: T.text, borderRadius: 10 }}>Secondary</Button>
+                            <Button variant="destructive" style={{ background: T.error, color: '#fff', borderRadius: 10 }}>Destructive</Button>
+                            <Button variant="outline" style={{ borderColor: T.borderStrong, color: T.text, borderRadius: 10 }}>Outline</Button>
+                            <Button variant="ghost" style={{ color: T.textSec, borderRadius: 10 }}>Ghost</Button>
+                            <Button variant="link" style={{ color: T.brand }}>Link</Button>
+                        </div>
+                    ),
+                    code: `<Button>Primary</Button>\n<Button variant="secondary">Secondary</Button>\n<Button variant="destructive">Destructive</Button>\n<Button variant="outline">Outline</Button>\n<Button variant="ghost">Ghost</Button>\n<Button variant="link">Link</Button>`,
+                },
+                {
+                    title: 'Sizes',
+                    preview: (
+                        <div className="flex items-center gap-3">
+                            <Button size="sm" style={{ background: T.interactive, color: '#fff', borderRadius: 8 }}>Small</Button>
+                            <Button size="default" style={{ background: T.interactive, color: '#fff', borderRadius: 10 }}>Default</Button>
+                            <Button size="lg" style={{ background: T.interactive, color: '#fff', borderRadius: 12 }}>Large</Button>
+                        </div>
+                    ),
+                    code: `<Button size="sm">Small</Button>\n<Button size="default">Default</Button>\n<Button size="lg">Large</Button>`,
+                },
+                {
+                    title: 'Disabled',
+                    preview: (
+                        <div className="flex items-center gap-3">
+                            <Button disabled style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10, opacity: 0.4 }}>Primary</Button>
+                            <Button disabled variant="outline" style={{ borderColor: T.borderStrong, color: T.text, borderRadius: 10, opacity: 0.4 }}>Outline</Button>
+                        </div>
+                    ),
+                    code: `<Button disabled>Primary</Button>\n<Button disabled variant="outline">Outline</Button>`,
+                },
+            ],
+        },
+
+        /* ── Card ── */
+        {
+            slug: 'card',
+            name: 'Card',
+            description: 'Surface containers for grouping related content with multiple elevation levels.',
+            thumbnail: (
+                <div className="w-full max-w-[180px] p-3 rounded-lg" style={{ background: T.elevated, border: `1px solid ${T.border}` }}>
+                    <div className="text-[10px] font-medium" style={{ color: T.text }}>Card Title</div>
+                    <div className="text-[8px] mt-0.5" style={{ color: T.textMuted }}>Description text</div>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Default',
+                    preview: (
+                        <Card style={{ background: T.surface, borderColor: T.border, borderRadius: 16, maxWidth: 360 }}>
+                            <CardHeader><CardTitle style={{ color: T.text }}>Default Card</CardTitle><CardDescription style={{ color: T.textSec }}>A surface with subtle border.</CardDescription></CardHeader>
+                            <CardContent><p className="text-sm" style={{ color: T.textMuted }}>Flexible content area with warm neutral styling.</p></CardContent>
+                            <CardFooter className="flex gap-3"><Button size="sm" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Action</Button><Button size="sm" variant="ghost" style={{ color: T.textSec }}>Cancel</Button></CardFooter>
+                        </Card>
+                    ),
+                    code: `<Card>\n  <CardHeader>\n    <CardTitle>Default Card</CardTitle>\n    <CardDescription>A surface with subtle border.</CardDescription>\n  </CardHeader>\n  <CardContent><p>Flexible content area.</p></CardContent>\n  <CardFooter>\n    <Button size="sm">Action</Button>\n    <Button size="sm" variant="ghost">Cancel</Button>\n  </CardFooter>\n</Card>`,
+                },
+                {
+                    title: 'Elevated',
+                    preview: (
+                        <Card variant="elevated" style={{ background: T.elevated, borderColor: 'transparent', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', maxWidth: 360 }}>
+                            <CardHeader><CardTitle style={{ color: T.text }}>Elevated Card</CardTitle><CardDescription style={{ color: T.textSec }}>Deep shadow for prominent surfaces.</CardDescription></CardHeader>
+                            <CardContent>
+                                <div className="flex items-center gap-3">
+                                    <div className="size-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: `${T.interactive}30`, color: T.interactive }}>KN</div>
+                                    <div><p className="text-sm font-medium" style={{ color: T.text }}>Kai Nakamura</p><p className="text-xs" style={{ color: T.textMuted }}>Lead Designer</p></div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ),
+                    code: `<Card variant="elevated">\n  <CardHeader>\n    <CardTitle>Elevated Card</CardTitle>\n    <CardDescription>Deep shadow for prominent surfaces.</CardDescription>\n  </CardHeader>\n  <CardContent>...</CardContent>\n</Card>`,
+                },
+            ],
+        },
+
+        /* ── Checkbox ── */
+        {
+            slug: 'checkbox',
+            name: 'Checkbox',
+            description: 'Toggle control for boolean selections and multi-option forms.',
+            thumbnail: (
+                <div className="flex items-center gap-2">
+                    <div className="size-4 rounded border flex items-center justify-center text-[8px]" style={{ background: T.brand, borderColor: T.brand, color: '#0a0a0b' }}>✓</div>
+                    <span className="text-[10px]" style={{ color: T.text }}>Checked</span>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'States',
+                    preview: (
                         <div className="space-y-4">
                             {['Enable notifications', 'Auto-save drafts', 'Dark mode'].map((label, i) => (
                                 <label key={label} className="flex items-center gap-3 cursor-pointer">
-                                    <Checkbox
-                                        defaultChecked={i < 2}
-                                        checked={i === 0 ? checkboxChecked : undefined}
-                                        onCheckedChange={i === 0 ? (v) => setCheckboxChecked(v as boolean | 'indeterminate') : undefined}
-                                        style={{ borderColor: T.borderStrong, borderRadius: 4 }}
-                                    />
+                                    <Checkbox defaultChecked={i < 2} style={{ borderColor: T.borderStrong, borderRadius: 4 }} />
                                     <span className="text-sm" style={{ color: T.text }}>{label}</span>
                                 </label>
                             ))}
                         </div>
-                    </SubSection>
-                    <SubSection label="Switch">
-                        <div className="space-y-4">
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
-                                <span className="text-sm" style={{ color: T.text }}>Feature flags</span>
-                                <Switch
-                                    checked={switchOn}
-                                    onCheckedChange={setSwitchOn}
-                                    trackColor={T.elevated}
-                                    trackActiveColor={T.brand}
-                                    thumbColor={T.textMuted}
-                                    thumbActiveColor="#0a0a0b"
-                                />
-                            </label>
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
-                                <span className="text-sm" style={{ color: T.text }}>Analytics</span>
-                                <Switch
-                                    defaultChecked
-                                    trackColor={T.elevated}
-                                    trackActiveColor={T.interactive}
-                                    thumbColor={T.textMuted}
-                                    thumbActiveColor="#fff"
-                                />
-                            </label>
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
-                                <span className="text-sm" style={{ color: T.textMuted }}>Maintenance mode</span>
-                                <Switch
-                                    trackColor={T.elevated}
-                                    trackActiveColor={T.error}
-                                    thumbColor={T.textMuted}
-                                    thumbActiveColor="#fff"
-                                />
-                            </label>
-                        </div>
-                    </SubSection>
-                </div>
-            </Section>
+                    ),
+                    code: `<label className="flex items-center gap-3">\n  <Checkbox defaultChecked />\n  <span>Enable notifications</span>\n</label>`,
+                },
+            ],
+        },
 
-            {/* ━━━ SLIDER ━━━ */}
-            <Section title="Slider" description="Range input with amber track highlight.">
-                <div className="max-w-md space-y-8">
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
-                            <span style={{ color: T.textSec }}>Opacity</span>
-                            <span className="font-mono" style={{ color: T.brand }}>{sliderValue[0]}%</span>
-                        </div>
-                        <Slider
-                            value={sliderValue}
-                            onValueChange={setSliderValue}
-                            max={100}
-                            step={1}
-                        />
+        /* ── Data Table ── */
+        {
+            slug: 'data-table',
+            name: 'Data Table',
+            description: 'Sortable, striped data tables with badge columns and themed rows.',
+            thumbnail: (
+                <div className="w-full max-w-[180px]">
+                    <div className="flex text-[7px] px-2 py-1" style={{ background: T.elevated, color: T.textMuted }}>
+                        <span className="flex-1">Plans</span><span className="flex-1">Sort</span><span className="flex-1">Filter</span>
                     </div>
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
-                            <span style={{ color: T.textSec }}>Volume</span>
-                            <span className="font-mono" style={{ color: T.textMuted }}>40%</span>
-                        </div>
-                        <Slider defaultValue={[40]} max={100} step={1} />
-                    </div>
-                </div>
-            </Section>
-
-            {/* ━━━ PROGRESS ━━━ */}
-            <Section title="Progress" description="Linear and circular progress indicators with brand and status colors.">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <SubSection label="Linear">
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span style={{ color: T.textSec }}>Upload</span>
-                                    <span className="font-mono" style={{ color: T.brand }}>78%</span>
-                                </div>
-                                <Progress value={78} trackColor={T.elevated} indicatorColor={T.brand} />
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span style={{ color: T.textSec }}>Build</span>
-                                    <span className="font-mono" style={{ color: T.success }}>100%</span>
-                                </div>
-                                <Progress value={100} trackColor={T.elevated} indicatorColor={T.success} />
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span style={{ color: T.textSec }}>Deploy</span>
-                                    <span className="font-mono" style={{ color: T.interactive }}>45%</span>
-                                </div>
-                                <Progress value={45} trackColor={T.elevated} indicatorColor={T.interactive} />
-                            </div>
-                        </div>
-                    </SubSection>
-                    <SubSection label="Circular">
-                        <ShowcaseRow>
-                            <Progress variant="circular" value={78} indicatorColor={T.brand} trackColor={T.elevated} labelColor={T.text} showLabel circularSize={72} circularStrokeWidth={6} />
-                            <Progress variant="circular" value={100} indicatorColor={T.success} trackColor={T.elevated} labelColor={T.text} showLabel circularSize={72} circularStrokeWidth={6} />
-                            <Progress variant="circular" value={45} indicatorColor={T.interactive} trackColor={T.elevated} labelColor={T.text} showLabel circularSize={72} circularStrokeWidth={6} />
-                            <Progress variant="circular" value={23} indicatorColor={T.error} trackColor={T.elevated} labelColor={T.text} showLabel circularSize={72} circularStrokeWidth={6} />
-                        </ShowcaseRow>
-                    </SubSection>
-                </div>
-            </Section>
-
-            {/* ━━━ TABS ━━━ */}
-            <Section title="Tabs" description="Navigation tabs with multiple variants and amber active indicators.">
-                <div className="space-y-10">
-                    <SubSection label="Line Variant">
-                        <Tabs defaultValue="overview" style={{ maxWidth: 500 }}>
-                            <TabsList variant="line" style={{ borderColor: T.border }}>
-                                <TabsTrigger value="overview" indicatorColor={T.brand} activeTextColor={T.text} inactiveTextColor={T.textMuted}>Overview</TabsTrigger>
-                                <TabsTrigger value="analytics" indicatorColor={T.brand} activeTextColor={T.text} inactiveTextColor={T.textMuted}>Analytics</TabsTrigger>
-                                <TabsTrigger value="settings" indicatorColor={T.brand} activeTextColor={T.text} inactiveTextColor={T.textMuted}>Settings</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="overview" className="pt-4 text-sm" style={{ color: T.textSec }}>Overview content with project summary and key metrics.</TabsContent>
-                            <TabsContent value="analytics" className="pt-4 text-sm" style={{ color: T.textSec }}>Analytics dashboard with charts and insights.</TabsContent>
-                            <TabsContent value="settings" className="pt-4 text-sm" style={{ color: T.textSec }}>Configure project settings and preferences.</TabsContent>
-                        </Tabs>
-                    </SubSection>
-                    <SubSection label="Pill Variant">
-                        <Tabs defaultValue="all" style={{ maxWidth: 500 }}>
-                            <TabsList variant="pill" listBg={T.elevated}>
-                                <TabsTrigger value="all" activeBg={T.brand} activeTextColor="#0a0a0b" inactiveTextColor={T.textMuted}>All</TabsTrigger>
-                                <TabsTrigger value="active" activeBg={T.brand} activeTextColor="#0a0a0b" inactiveTextColor={T.textMuted}>Active</TabsTrigger>
-                                <TabsTrigger value="archived" activeBg={T.brand} activeTextColor="#0a0a0b" inactiveTextColor={T.textMuted}>Archived</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </SubSection>
-                    <SubSection label="Segment Variant">
-                        <Tabs defaultValue="monthly" style={{ maxWidth: 400 }}>
-                            <TabsList variant="segment" listBg={T.elevated}>
-                                <TabsTrigger value="monthly" activeBg={T.surface} activeTextColor={T.text} inactiveTextColor={T.textMuted}>Monthly</TabsTrigger>
-                                <TabsTrigger value="yearly" activeBg={T.surface} activeTextColor={T.text} inactiveTextColor={T.textMuted}>Yearly</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </SubSection>
-                </div>
-            </Section>
-
-            {/* ━━━ CARD ━━━ */}
-            <Section title="Card" description="Surface containers with warm neutral backgrounds and amber accents.">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Card style={{ background: T.surface, borderColor: T.border, borderRadius: 16 }}>
-                        <CardHeader>
-                            <CardTitle style={{ color: T.text }}>Default Card</CardTitle>
-                            <CardDescription style={{ color: T.textSec }}>A basic surface with subtle border.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm" style={{ color: T.textMuted }}>Content area with flexible layout options and warm neutral styling.</p>
-                        </CardContent>
-                        <CardFooter className="flex gap-3">
-                            <Button size="sm" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Action</Button>
-                            <Button size="sm" variant="ghost" style={{ color: T.textSec }}>Cancel</Button>
-                        </CardFooter>
-                    </Card>
-
-                    <Card variant="elevated" style={{ background: T.elevated, borderColor: 'transparent', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-                        <CardHeader>
-                            <CardTitle style={{ color: T.text }}>Elevated Card</CardTitle>
-                            <CardDescription style={{ color: T.textSec }}>Lifted surface with deep shadow.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center gap-3">
-                                <div className="size-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: `${T.interactive}30`, color: T.interactive }}>KN</div>
-                                <div>
-                                    <p className="text-sm font-medium" style={{ color: T.text }}>Kai Nakamura</p>
-                                    <p className="text-xs" style={{ color: T.textMuted }}>Lead Designer</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card style={{ background: `linear-gradient(135deg, ${T.surface}, ${T.elevated})`, borderColor: T.border, borderRadius: 16 }}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle style={{ color: T.text }}>Metrics</CardTitle>
-                                <Badge style={{ background: `${T.success}20`, color: T.success, borderRadius: 999 }}>+12%</Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold tracking-tight" style={{ color: T.brand }}>$48,290</p>
-                            <p className="text-xs mt-1" style={{ color: T.textMuted }}>Revenue this month</p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </Section>
-
-            {/* ━━━ ALERT ━━━ */}
-            <Section title="Alert" description="Contextual feedback with status-colored variants.">
-                <div className="space-y-4 max-w-2xl">
-                    <Alert variant="info" showIcon style={{ background: `${T.info}10`, borderColor: `${T.info}30`, borderRadius: 12 }}>
-                        <AlertTitle style={{ color: T.info }}>System update available</AlertTitle>
-                        <AlertDescription style={{ color: T.textSec }}>A new version is ready. Review the changelog before updating.</AlertDescription>
-                        <AlertAction>
-                            <Button size="xs" style={{ background: T.info, color: '#0a0a0b', borderRadius: 6 }}>Update now</Button>
-                        </AlertAction>
-                    </Alert>
-
-                    <Alert variant="success" showIcon style={{ background: `${T.success}10`, borderColor: `${T.success}30`, borderRadius: 12 }}>
-                        <AlertTitle style={{ color: T.success }}>Deployment successful</AlertTitle>
-                        <AlertDescription style={{ color: T.textSec }}>Production build deployed to all regions.</AlertDescription>
-                    </Alert>
-
-                    <Alert variant="warning" showIcon style={{ background: `${T.warning}10`, borderColor: `${T.warning}30`, borderRadius: 12 }}>
-                        <AlertTitle style={{ color: T.warning }}>API rate limit approaching</AlertTitle>
-                        <AlertDescription style={{ color: T.textSec }}>You've used 89% of your monthly quota.</AlertDescription>
-                    </Alert>
-
-                    <Alert variant="error" showIcon dismissible style={{ background: `${T.error}10`, borderColor: `${T.error}30`, borderRadius: 12 }}>
-                        <AlertTitle style={{ color: T.error }}>Payment failed</AlertTitle>
-                        <AlertDescription style={{ color: T.textSec }}>Your card ending in 4242 was declined. Please update your payment method.</AlertDescription>
-                        <AlertAction>
-                            <Button size="xs" variant="outline" style={{ borderColor: `${T.error}50`, color: T.error, borderRadius: 6 }}>Update card</Button>
-                        </AlertAction>
-                    </Alert>
-                </div>
-            </Section>
-
-            {/* ━━━ ACCORDION ━━━ */}
-            <Section title="Accordion" description="Collapsible content sections with warm dividers.">
-                <div className="max-w-2xl" style={{ background: T.surface, borderRadius: 16, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
-                    <Accordion type="single" collapsible defaultValue="item-1" dividerEnabled dividerColor={T.border} dividerWeight={1}>
-                        <AccordionItem value="item-1">
-                            <AccordionTrigger triggerStyle={{ color: T.text, padding: '16px 20px' }}>What design tokens are included?</AccordionTrigger>
-                            <AccordionContent contentStyle={{ color: T.textSec, padding: '0 20px 16px' }}>
-                                The theme includes primitive colors (neutrals, amber, violet, cyan, rose, emerald, and more), semantic tokens for backgrounds, borders, text, brand, interactive states, and status indicators, plus 8 showcase accent palettes.
-                            </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="item-2">
-                            <AccordionTrigger triggerStyle={{ color: T.text, padding: '16px 20px' }}>How does dark mode work?</AccordionTrigger>
-                            <AccordionContent contentStyle={{ color: T.textSec, padding: '0 20px 16px' }}>
-                                The theme uses the <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: T.elevated, color: T.brand }}>.dark</code> class with CSS custom properties. Each token has light and dark variants that automatically resolve based on the active mode.
-                            </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="item-3">
-                            <AccordionTrigger triggerStyle={{ color: T.text, padding: '16px 20px' }}>Can I customize the brand color?</AccordionTrigger>
-                            <AccordionContent contentStyle={{ color: T.textSec, padding: '0 20px 16px' }}>
-                                Yes — override the <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: T.elevated, color: T.brand }}>--ui-semantic-brand-*</code> CSS variables with your own hex values. All components that reference brand tokens will update automatically.
-                            </AccordionContent>
-                        </AccordionItem>
-                    </Accordion>
-                </div>
-            </Section>
-
-            {/* ━━━ AVATAR ━━━ */}
-            <Section title="Avatar" description="User representations with fallback initials and status badges.">
-                <SubSection label="Sizes &amp; Shapes">
-                    <ShowcaseRow>
-                        <Avatar size="sm" bgColor={T.interactive} badge badgeColor={T.success}>
-                            <AvatarFallback fontColor="#fff">AC</AvatarFallback>
-                        </Avatar>
-                        <Avatar size="md" bgColor={T.brand} badge badgeColor={T.success}>
-                            <AvatarFallback fontColor="#0a0a0b" fontBold>KN</AvatarFallback>
-                        </Avatar>
-                        <Avatar size="lg" bgColor={T.electric} badge badgeColor={T.error}>
-                            <AvatarFallback fontColor="#0a0a0b" fontBold>ZO</AvatarFallback>
-                        </Avatar>
-                        <Avatar size="lg" shape="rounded" bgColor={T.bloom} badge badgeColor={T.brand}>
-                            <AvatarFallback fontColor="#0a0a0b" fontBold>LT</AvatarFallback>
-                        </Avatar>
-                    </ShowcaseRow>
-                </SubSection>
-                <SubSection label="With Images">
-                    <ShowcaseRow>
-                        <Avatar size="md" strokeWeight={2} strokeColor={T.brand}>
-                            <AvatarImage src="https://i.pravatar.cc/80?img=1" />
-                            <AvatarFallback>U1</AvatarFallback>
-                        </Avatar>
-                        <Avatar size="md" strokeWeight={2} strokeColor={T.interactive}>
-                            <AvatarImage src="https://i.pravatar.cc/80?img=5" />
-                            <AvatarFallback>U2</AvatarFallback>
-                        </Avatar>
-                        <Avatar size="md" strokeWeight={2} strokeColor={T.electric}>
-                            <AvatarImage src="https://i.pravatar.cc/80?img=8" />
-                            <AvatarFallback>U3</AvatarFallback>
-                        </Avatar>
-                        <Avatar size="md" strokeWeight={2} strokeColor={T.bloom}>
-                            <AvatarImage src="https://i.pravatar.cc/80?img=12" />
-                            <AvatarFallback>U4</AvatarFallback>
-                        </Avatar>
-                    </ShowcaseRow>
-                </SubSection>
-            </Section>
-
-            {/* ━━━ DATA TABLE ━━━ */}
-            <Section title="Data Table" description="Sortable, striped data display with themed header and row colors.">
-                <div className="max-w-3xl" style={{ borderRadius: 16, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
-                    <DataTable
-                        columns={TABLE_COLUMNS}
-                        data={TABLE_DATA}
-                        sortable
-                        striped
-                        headerBg={T.elevated}
-                        rowBg={T.surface}
-                        stripedBg={T.subtle}
-                        textColor={T.text}
-                        headerTextColor={T.textSec}
-                        borderColor={T.border}
-                        badgeColors={TABLE_BADGE_COLORS}
-                    />
-                </div>
-            </Section>
-
-            {/* ━━━ TOOLTIP ━━━ */}
-            <Section title="Tooltip" description="Contextual hints on hover with arrow indicators.">
-                <ShowcaseRow>
-                    <Tooltip>
-                        <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Hover me</Button>
-                        <TooltipContent inverse>
-                            <p>This is a tooltip with useful context.</p>
-                        </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Brand tooltip</Button>
-                        <TooltipContent>
-                            <p>Saves your current configuration.</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </ShowcaseRow>
-            </Section>
-
-            {/* ━━━ DIALOG (static preview) ━━━ */}
-            <Section title="Dialog" description="Modal overlays for confirmations and forms. Shown as a static preview.">
-                <div className="max-w-md" style={{
-                    background: T.elevated,
-                    borderRadius: 16,
-                    border: `1px solid ${T.border}`,
-                    boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-                    overflow: 'hidden',
-                }}>
-                    <div className="p-6 space-y-1" style={{ borderBottom: `1px solid ${T.border}` }}>
-                        <h3 className="text-lg font-semibold" style={{ color: T.text }}>Confirm deployment</h3>
-                        <p className="text-sm" style={{ color: T.textSec }}>This will push changes to production. Are you sure?</p>
-                    </div>
-                    <div className="p-6">
-                        <p className="text-sm" style={{ color: T.textMuted }}>
-                            Branch <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: T.surface, color: T.brand }}>main</code> will be deployed to all regions.
-                            This action cannot be undone.
-                        </p>
-                    </div>
-                    <div className="flex justify-end gap-3 p-6 pt-0">
-                        <Button variant="ghost" style={{ color: T.textSec, borderRadius: 8 }}>Cancel</Button>
-                        <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Deploy</Button>
-                    </div>
-                </div>
-            </Section>
-
-            {/* ━━━ DRAWER (static preview) ━━━ */}
-            <Section title="Drawer" description="Slide-in panels for navigation and settings. Shown as a static preview.">
-                <div className="max-w-xs" style={{
-                    background: T.elevated,
-                    borderRadius: 16,
-                    border: `1px solid ${T.border}`,
-                    boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-                    height: 400,
-                    overflow: 'hidden',
-                }}>
-                    <div className="p-6" style={{ borderBottom: `1px solid ${T.border}` }}>
-                        <h3 className="text-lg font-semibold" style={{ color: T.text }}>Settings</h3>
-                        <p className="text-sm mt-1" style={{ color: T.textSec }}>Configure your workspace.</p>
-                    </div>
-                    <div className="p-4 space-y-1">
-                        {['General', 'Appearance', 'Notifications', 'Security', 'Billing'].map((item, i) => (
-                            <div
-                                key={item}
-                                className="px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-colors"
-                                style={{
-                                    background: i === 1 ? `${T.brand}15` : 'transparent',
-                                    color: i === 1 ? T.brand : T.textSec,
-                                }}
-                            >
-                                {item}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </Section>
-
-            {/* ━━━ DROPDOWN (static preview) ━━━ */}
-            <Section title="Dropdown" description="Action menus with keyboard shortcuts. Shown as a static preview.">
-                <div className="max-w-[220px]" style={{
-                    background: T.elevated,
-                    borderRadius: 12,
-                    border: `1px solid ${T.border}`,
-                    boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
-                    overflow: 'hidden',
-                    padding: '4px',
-                }}>
-                    {[
-                        { label: 'Edit', shortcut: '⌘E' },
-                        { label: 'Duplicate', shortcut: '⌘D' },
-                        { label: 'Move to...', shortcut: '⌘M' },
-                        { divider: true },
-                        { label: 'Archive', shortcut: '⌘⌫' },
-                        { label: 'Delete', shortcut: '⇧⌘⌫', danger: true },
-                    ].map((item, i) =>
-                        'divider' in item ? (
-                            <div key={i} className="my-1" style={{ height: 1, background: T.border }} />
-                        ) : (
-                            <div
-                                key={item.label}
-                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors"
-                                style={{ color: item.danger ? T.error : T.text }}
-                            >
-                                <span>{item.label}</span>
-                                <span className="text-xs font-mono" style={{ color: T.textMuted }}>{item.shortcut}</span>
-                            </div>
-                        ),
-                    )}
-                </div>
-            </Section>
-
-            {/* ━━━ POPOVER (static preview) ━━━ */}
-            <Section title="Popover" description="Floating content panels anchored to triggers. Shown as a static preview.">
-                <div className="flex items-start gap-4">
-                    <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Trigger</Button>
-                    <div style={{
-                        background: T.elevated,
-                        borderRadius: 12,
-                        border: `1px solid ${T.border}`,
-                        boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
-                        padding: '16px',
-                        width: 280,
-                    }}>
-                        <p className="text-sm font-medium mb-2" style={{ color: T.text }}>Quick settings</p>
-                        <div className="space-y-3">
-                            <label className="flex items-center justify-between">
-                                <span className="text-sm" style={{ color: T.textSec }}>Compact mode</span>
-                                <Switch size="sm" trackColor={T.surface} trackActiveColor={T.brand} thumbColor={T.textMuted} thumbActiveColor="#0a0a0b" />
-                            </label>
-                            <label className="flex items-center justify-between">
-                                <span className="text-sm" style={{ color: T.textSec }}>Sound effects</span>
-                                <Switch size="sm" defaultChecked trackColor={T.surface} trackActiveColor={T.brand} thumbColor={T.textMuted} thumbActiveColor="#0a0a0b" />
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </Section>
-
-            {/* ━━━ NAVIGATION MENU (static preview) ━━━ */}
-            <Section title="Navigation Menu" description="Horizontal and vertical navigation with active state indicators.">
-                <div className="space-y-8">
-                    <SubSection label="Horizontal">
-                        <div className="inline-flex items-center gap-1 p-1 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                            {['Dashboard', 'Projects', 'Team', 'Settings'].map((item, i) => (
-                                <div
-                                    key={item}
-                                    className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors"
-                                    style={{
-                                        background: i === 0 ? T.brand : 'transparent',
-                                        color: i === 0 ? '#0a0a0b' : T.textSec,
-                                    }}
-                                >
-                                    {item}
-                                </div>
-                            ))}
-                        </div>
-                    </SubSection>
-                    <SubSection label="Vertical">
-                        <div className="inline-flex flex-col gap-1 p-2 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}`, width: 200 }}>
-                            {[
-                                { label: 'Home', active: false },
-                                { label: 'Components', active: true },
-                                { label: 'Tokens', active: false },
-                                { label: 'Export', active: false },
-                            ].map((item) => (
-                                <div
-                                    key={item.label}
-                                    className="px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors"
-                                    style={{
-                                        background: item.active ? `${T.brand}15` : 'transparent',
-                                        color: item.active ? T.brand : T.textSec,
-                                        borderLeft: item.active ? `2px solid ${T.brand}` : '2px solid transparent',
-                                    }}
-                                >
-                                    {item.label}
-                                </div>
-                            ))}
-                        </div>
-                    </SubSection>
-                </div>
-            </Section>
-
-            {/* ━━━ ANIMATED TEXT ━━━ */}
-            <Section title="Animated Text" description="16 text animation variants — entry reveals, hover interactions, and continuous effects.">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {([
-                        { variant: 'blur-in' as const, label: 'Blur In', text: 'Hello World', style: { fontSize: 32, fontWeight: 600, color: T.text } },
-                        { variant: 'typewriter' as const, label: 'Typewriter', text: 'Building the future...', style: { fontSize: 24, fontWeight: 400, color: T.textSec } },
-                        { variant: 'split-entrance' as const, label: 'Split Entrance', text: 'Design System', style: { fontSize: 32, fontWeight: 700, color: T.text } },
-                        { variant: 'fade-up' as const, label: 'Fade Up', text: 'Amber & Violet', style: { fontSize: 28, fontWeight: 600, color: T.brand } },
-                        { variant: 'letters-pull-up' as const, label: 'Letters Pull Up', text: 'UI Studio', style: { fontSize: 32, fontWeight: 700, color: T.text } },
-                        { variant: 'decrypt' as const, label: 'Decrypt', text: 'ENCRYPTED', style: { fontSize: 28, fontWeight: 600, color: T.electric } },
-                        { variant: 'gradient-sweep' as const, label: 'Gradient Sweep', text: 'Gradient', style: { fontSize: 36, fontWeight: 700 }, extra: { gradientColor1: T.brand, gradientColor2: T.interactive } },
-                        { variant: 'shiny-text' as const, label: 'Shiny Text', text: 'Premium', style: { fontSize: 36, fontWeight: 700, color: T.textMuted } },
-                        { variant: 'bounce' as const, label: 'Bounce (hover)', text: 'Hover me!', style: { fontSize: 32, fontWeight: 700, color: T.text } },
-                        { variant: 'bubble' as const, label: 'Bubble (hover)', text: 'Proximity weight', style: { fontSize: 32, fontWeight: 400, color: T.text } },
-                        { variant: 'disperse' as const, label: 'Disperse (hover)', text: 'Scatter', style: { fontSize: 32, fontWeight: 600, color: T.text } },
-                        { variant: 'pattern' as const, label: 'Pattern', text: 'PATTERN', style: { fontSize: 48, fontWeight: 800, color: T.textMuted } },
-                    ] as const).map((item) => (
-                        <div
-                            key={item.variant}
-                            className="p-6 rounded-xl flex flex-col justify-between min-h-[120px]"
-                            style={{ background: T.surface, border: `1px solid ${T.border}` }}
-                        >
-                            <p className="text-xs font-mono mb-3" style={{ color: T.textMuted }}>{item.label}</p>
-                            <AnimatedText
-                                text={item.text}
-                                variant={item.variant}
-                                speed={item.variant === 'typewriter' ? 1.2 : 0.4}
-                                stagger={0.04}
-                                splitBy="word"
-                                trigger="mount"
-                                style={item.style}
-                                {...('extra' in item ? item.extra : {})}
-                            />
+                    {[['Pro Plan', 'Active', 'Credit Card'], ['Basic', 'Active', 'PayPal']].map((row, i) => (
+                        <div key={i} className="flex text-[7px] px-2 py-1" style={{ background: i % 2 ? T.subtle : T.surface, color: T.textSec }}>
+                            {row.map((c, j) => <span key={j} className="flex-1">{c}</span>)}
                         </div>
                     ))}
                 </div>
-            </Section>
+            ),
+            examples: [
+                {
+                    title: 'Sortable & Striped',
+                    preview: (
+                        <div style={{ borderRadius: 12, border: `1px solid ${T.border}`, overflow: 'hidden', maxWidth: 600 }}>
+                            <DataTable columns={TABLE_COLUMNS} data={TABLE_DATA} sortable striped headerBg={T.elevated} rowBg={T.surface} stripedBg={T.subtle} textColor={T.text} headerTextColor={T.textSec} borderColor={T.border} badgeColors={TABLE_BADGE_COLORS} />
+                        </div>
+                    ),
+                    code: `<DataTable\n  columns={columns}\n  data={data}\n  sortable\n  striped\n  headerBg="#1a1a1d"\n  rowBg="#141416"\n  stripedBg="#111113"\n/>`,
+                },
+            ],
+        },
 
-            {/* ━━━ Footer ━━━ */}
-            <footer className="py-16 px-6 md:px-12 lg:px-20 text-center" style={{ borderTop: `1px solid ${T.border}` }}>
-                <p className="text-sm" style={{ color: T.textMuted }}>
-                    Built with UI Studio OSS — 21 components, 1 theme, infinite possibilities.
-                </p>
-                <p className="text-xs mt-2 font-mono" style={{ color: `${T.textMuted}80` }}>
-                    Amber <span style={{ color: T.brand }}>&#9679;</span> &amp; Violet <span style={{ color: T.interactive }}>&#9679;</span> Design System
-                </p>
-            </footer>
+        /* ── Dialog ── */
+        {
+            slug: 'dialog',
+            name: 'Dialog',
+            description: 'Modal overlays that interrupt the user for confirmations and critical actions.',
+            thumbnail: (
+                <div className="w-full max-w-[180px] p-2.5 rounded-lg" style={{ background: T.elevated, border: `1px solid ${T.border}`, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+                    <div className="text-[9px] font-medium" style={{ color: T.text }}>Please login again.</div>
+                    <div className="text-[7px] mt-0.5" style={{ color: T.textSec }}>Your session has expired.</div>
+                    <div className="flex gap-1 mt-2 justify-end">
+                        <span className="px-1.5 py-0.5 rounded text-[7px]" style={{ color: T.textMuted }}>Cancel</span>
+                        <span className="px-1.5 py-0.5 rounded text-[7px]" style={{ background: T.brand, color: '#0a0a0b' }}>Login</span>
+                    </div>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Confirmation',
+                    preview: (
+                        <div style={{ background: T.elevated, borderRadius: 16, border: `1px solid ${T.border}`, boxShadow: '0 24px 64px rgba(0,0,0,0.5)', overflow: 'hidden', maxWidth: 400 }}>
+                            <div className="p-6 space-y-1" style={{ borderBottom: `1px solid ${T.border}` }}>
+                                <h3 className="text-base font-semibold" style={{ color: T.text }}>Confirm deployment</h3>
+                                <p className="text-[13px]" style={{ color: T.textSec }}>This will push changes to production. Are you sure?</p>
+                            </div>
+                            <div className="p-6"><p className="text-[13px]" style={{ color: T.textMuted }}>Branch <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: T.surface, color: T.brand }}>main</code> will be deployed.</p></div>
+                            <div className="flex justify-end gap-3 px-6 pb-6">
+                                <Button variant="ghost" size="sm" style={{ color: T.textSec, borderRadius: 8 }}>Cancel</Button>
+                                <Button size="sm" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Deploy</Button>
+                            </div>
+                        </div>
+                    ),
+                    code: `<Dialog>\n  <DialogHeader title="Confirm deployment" description="This will push changes to production." />\n  <DialogBody>Branch main will be deployed.</DialogBody>\n  <DialogFooter>\n    <DialogClose>Cancel</DialogClose>\n    <Button>Deploy</Button>\n  </DialogFooter>\n</Dialog>`,
+                },
+            ],
+        },
+
+        /* ── Drawer ── */
+        {
+            slug: 'drawer',
+            name: 'Drawer',
+            description: 'Slide-in panels for navigation, settings, and contextual content.',
+            thumbnail: (
+                <div className="w-full max-w-[180px] rounded-lg overflow-hidden" style={{ background: T.elevated, border: `1px solid ${T.border}`, height: 80 }}>
+                    <div className="px-2.5 py-2 text-[9px] font-medium" style={{ color: T.text, borderBottom: `1px solid ${T.border}` }}>Settings</div>
+                    {['General', 'Appearance', 'Security'].map((t, i) => (
+                        <div key={t} className="px-2.5 py-1 text-[8px]" style={{ color: i === 1 ? T.brand : T.textMuted }}>{t}</div>
+                    ))}
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Navigation Drawer',
+                    preview: (
+                        <div style={{ background: T.elevated, borderRadius: 16, border: `1px solid ${T.border}`, boxShadow: '0 24px 64px rgba(0,0,0,0.5)', width: 280, height: 360, overflow: 'hidden' }}>
+                            <div className="p-5" style={{ borderBottom: `1px solid ${T.border}` }}>
+                                <h3 className="text-base font-semibold" style={{ color: T.text }}>Settings</h3>
+                                <p className="text-[13px] mt-1" style={{ color: T.textSec }}>Configure your workspace.</p>
+                            </div>
+                            <div className="p-3 space-y-0.5">
+                                {['General', 'Appearance', 'Notifications', 'Security', 'Billing'].map((item, i) => (
+                                    <div key={item} className="px-3 py-2 rounded-lg text-[13px]" style={{ background: i === 1 ? `${T.brand}15` : 'transparent', color: i === 1 ? T.brand : T.textSec }}>{item}</div>
+                                ))}
+                            </div>
+                        </div>
+                    ),
+                    code: `<Drawer>\n  <DrawerTrigger><Button>Open Settings</Button></DrawerTrigger>\n  <DrawerContent side="right">\n    <DrawerHeader>\n      <DrawerTitle>Settings</DrawerTitle>\n      <DrawerDescription>Configure your workspace.</DrawerDescription>\n    </DrawerHeader>\n    {/* Navigation items */}\n  </DrawerContent>\n</Drawer>`,
+                },
+            ],
+        },
+
+        /* ── Dropdown ── */
+        {
+            slug: 'dropdown',
+            name: 'Dropdown',
+            description: 'Action menus with keyboard shortcuts for contextual operations.',
+            thumbnail: (
+                <div className="w-full max-w-[140px] rounded-lg p-1" style={{ background: T.elevated, border: `1px solid ${T.border}` }}>
+                    {['Edit', 'Duplicate', 'Delete'].map((t) => (
+                        <div key={t} className="px-2 py-1 rounded text-[8px]" style={{ color: t === 'Delete' ? T.error : T.text }}>{t}</div>
+                    ))}
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'With Shortcuts',
+                    preview: (
+                        <div style={{ background: T.elevated, borderRadius: 12, border: `1px solid ${T.border}`, boxShadow: '0 16px 48px rgba(0,0,0,0.5)', padding: 4, width: 220 }}>
+                            {[{ label: 'Edit', shortcut: '⌘E' }, { label: 'Duplicate', shortcut: '⌘D' }, { label: 'Move to...', shortcut: '⌘M' }, { divider: true }, { label: 'Archive', shortcut: '⌘⌫' }, { label: 'Delete', shortcut: '⇧⌘⌫', danger: true }].map((item, i) =>
+                                'divider' in item ? <div key={i} className="my-1" style={{ height: 1, background: T.border }} /> : (
+                                    <div key={item.label} className="flex items-center justify-between px-3 py-2 rounded-lg text-[13px]" style={{ color: item.danger ? T.error : T.text }}>
+                                        <span>{item.label}</span><span className="text-[11px] font-mono" style={{ color: T.textMuted }}>{item.shortcut}</span>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    ),
+                    code: `<DropdownMenu>\n  <DropdownMenuTrigger><Button>Actions</Button></DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>Edit <DropdownMenuShortcut>⌘E</DropdownMenuShortcut></DropdownMenuItem>\n    <DropdownMenuItem>Duplicate <DropdownMenuShortcut>⌘D</DropdownMenuShortcut></DropdownMenuItem>\n    <DropdownMenuSeparator />\n    <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>`,
+                },
+            ],
+        },
+
+        /* ── Input ── */
+        {
+            slug: 'input',
+            name: 'Input',
+            description: 'Text input fields for forms with labels and states.',
+            thumbnail: (
+                <div className="w-full max-w-[180px] px-3 py-1.5 rounded-lg text-[9px]" style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.textMuted }}>you@company.io</div>
+            ),
+            examples: [
+                {
+                    title: 'With Labels',
+                    preview: (
+                        <div className="grid grid-cols-2 gap-6 max-w-md">
+                            <div className="space-y-1.5"><label className="text-[13px] font-medium" style={{ color: T.textSec }}>Email</label><Input placeholder="you@company.io" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }} /></div>
+                            <div className="space-y-1.5"><label className="text-[13px] font-medium" style={{ color: T.textSec }}>API Key</label><Input type="password" placeholder="sk-••••••••" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }} /></div>
+                        </div>
+                    ),
+                    code: `<div className="space-y-1.5">\n  <label>Email</label>\n  <Input placeholder="you@company.io" />\n</div>`,
+                },
+                {
+                    title: 'Disabled',
+                    preview: (
+                        <div className="max-w-xs">
+                            <Input disabled placeholder="Not editable" style={{ background: T.subtle, borderColor: T.border, color: T.textMuted, borderRadius: 10, borderWidth: 1, opacity: 0.5 }} />
+                        </div>
+                    ),
+                    code: `<Input disabled placeholder="Not editable" />`,
+                },
+            ],
+        },
+
+        /* ── Navigation Menu ── */
+        {
+            slug: 'navigation-menu',
+            name: 'Navigation Menu',
+            description: 'Horizontal and vertical navigation with active state indicators.',
+            thumbnail: (
+                <div className="flex gap-1 p-0.5 rounded-lg" style={{ background: T.surface }}>
+                    {['Dashboard', 'Export'].map((t, i) => (
+                        <span key={t} className="px-2 py-0.5 rounded text-[8px]" style={{ background: i === 0 ? T.brand : 'transparent', color: i === 0 ? '#0a0a0b' : T.textMuted }}>{t}</span>
+                    ))}
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Horizontal',
+                    preview: (
+                        <div className="inline-flex items-center gap-1 p-1 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                            {['Dashboard', 'Projects', 'Team', 'Settings'].map((item, i) => (
+                                <div key={item} className="px-4 py-2 rounded-lg text-[13px] font-medium" style={{ background: i === 0 ? T.brand : 'transparent', color: i === 0 ? '#0a0a0b' : T.textSec }}>{item}</div>
+                            ))}
+                        </div>
+                    ),
+                    code: `<NavigationMenu>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active>Dashboard</NavigationMenuLink>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuLink>Projects</NavigationMenuLink>\n    </NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>`,
+                },
+            ],
+        },
+
+        /* ── Popover ── */
+        {
+            slug: 'popover',
+            name: 'Popover',
+            description: 'Floating content panels anchored to triggers for settings and quick actions.',
+            thumbnail: (
+                <div className="w-full max-w-[160px] p-2 rounded-lg" style={{ background: T.elevated, border: `1px solid ${T.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                    <div className="text-[8px] font-medium mb-1.5" style={{ color: T.text }}>Quick settings</div>
+                    <div className="flex items-center justify-between"><span className="text-[7px]" style={{ color: T.textSec }}>Compact</span><div className="w-5 h-3 rounded-full" style={{ background: T.brand }} /></div>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Settings Popover',
+                    preview: (
+                        <div className="flex items-start gap-4">
+                            <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Trigger</Button>
+                            <div style={{ background: T.elevated, borderRadius: 12, border: `1px solid ${T.border}`, boxShadow: '0 16px 48px rgba(0,0,0,0.4)', padding: 16, width: 260 }}>
+                                <p className="text-[13px] font-medium mb-3" style={{ color: T.text }}>Quick settings</p>
+                                <div className="space-y-3">
+                                    <label className="flex items-center justify-between"><span className="text-[13px]" style={{ color: T.textSec }}>Compact mode</span><Switch size="sm" trackColor={T.surface} trackActiveColor={T.brand} thumbColor={T.textMuted} thumbActiveColor="#0a0a0b" /></label>
+                                    <label className="flex items-center justify-between"><span className="text-[13px]" style={{ color: T.textSec }}>Sound effects</span><Switch size="sm" defaultChecked trackColor={T.surface} trackActiveColor={T.brand} thumbColor={T.textMuted} thumbActiveColor="#0a0a0b" /></label>
+                                </div>
+                            </div>
+                        </div>
+                    ),
+                    code: `<Popover>\n  <PopoverTrigger><Button>Trigger</Button></PopoverTrigger>\n  <PopoverContent>\n    <PopoverTitle>Quick settings</PopoverTitle>\n    <Switch>Compact mode</Switch>\n  </PopoverContent>\n</Popover>`,
+                },
+            ],
+        },
+
+        /* ── Progress ── */
+        {
+            slug: 'progress',
+            name: 'Progress',
+            description: 'Linear and circular progress indicators for loading and completion states.',
+            thumbnail: (
+                <div className="w-full max-w-[180px] space-y-1.5">
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: T.elevated }}><div className="h-full rounded-full" style={{ width: '68%', background: T.brand }} /></div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: T.elevated }}><div className="h-full rounded-full" style={{ width: '100%', background: T.success }} /></div>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Linear',
+                    preview: (
+                        <div className="space-y-6 max-w-md">
+                            {[{ label: 'Upload', value: 78, color: T.brand }, { label: 'Build', value: 100, color: T.success }, { label: 'Deploy', value: 45, color: T.interactive }].map((p) => (
+                                <div key={p.label} className="space-y-2">
+                                    <div className="flex justify-between text-[13px]"><span style={{ color: T.textSec }}>{p.label}</span><span className="font-mono" style={{ color: p.color }}>{p.value}%</span></div>
+                                    <Progress value={p.value} trackColor={T.elevated} indicatorColor={p.color} />
+                                </div>
+                            ))}
+                        </div>
+                    ),
+                    code: `<Progress value={78} trackColor="#1a1a1d" indicatorColor="#f5a623" />`,
+                },
+                {
+                    title: 'Circular',
+                    preview: (
+                        <div className="flex gap-6">
+                            {[{ v: 78, c: T.brand }, { v: 100, c: T.success }, { v: 45, c: T.interactive }, { v: 23, c: T.error }].map((p) => (
+                                <Progress key={p.v} variant="circular" value={p.v} indicatorColor={p.c} trackColor={T.elevated} labelColor={T.text} showLabel circularSize={68} circularStrokeWidth={5} />
+                            ))}
+                        </div>
+                    ),
+                    code: `<Progress variant="circular" value={78} indicatorColor="#f5a623" showLabel circularSize={68} />`,
+                },
+            ],
+        },
+
+        /* ── Slider ── */
+        {
+            slug: 'slider',
+            name: 'Slider',
+            description: 'Range input for selecting numeric values within a defined range.',
+            thumbnail: (
+                <div className="w-full max-w-[160px]">
+                    <div className="h-1.5 rounded-full relative" style={{ background: T.elevated }}>
+                        <div className="h-full rounded-full" style={{ width: '60%', background: T.brand }} />
+                        <div className="size-3 rounded-full absolute top-1/2 -translate-y-1/2" style={{ left: '57%', background: T.text, border: `2px solid ${T.brand}` }} />
+                    </div>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Default',
+                    preview: (
+                        <div className="max-w-sm space-y-8">
+                            <div className="space-y-3">
+                                <div className="flex justify-between text-[13px]"><span style={{ color: T.textSec }}>Opacity</span><span className="font-mono" style={{ color: T.brand }}>65%</span></div>
+                                <Slider defaultValue={[65]} max={100} step={1} />
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between text-[13px]"><span style={{ color: T.textSec }}>Volume</span><span className="font-mono" style={{ color: T.textMuted }}>40%</span></div>
+                                <Slider defaultValue={[40]} max={100} step={1} />
+                            </div>
+                        </div>
+                    ),
+                    code: `<Slider defaultValue={[65]} max={100} step={1} />`,
+                },
+            ],
+        },
+
+        /* ── Switch ── */
+        {
+            slug: 'switch',
+            name: 'Switch',
+            description: 'Toggle controls for on/off states with customizable track and thumb colors.',
+            thumbnail: (
+                <div className="flex gap-2">
+                    <div className="w-8 h-4 rounded-full relative" style={{ background: T.brand }}><div className="size-3 rounded-full absolute top-0.5 right-0.5" style={{ background: '#0a0a0b' }} /></div>
+                    <div className="w-8 h-4 rounded-full relative" style={{ background: T.elevated }}><div className="size-3 rounded-full absolute top-0.5 left-0.5" style={{ background: T.textMuted }} /></div>
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Color Variants',
+                    preview: (
+                        <div className="space-y-4">
+                            {[{ label: 'Feature flags', color: T.brand }, { label: 'Analytics', color: T.interactive }, { label: 'Maintenance', color: T.error }].map((s, i) => (
+                                <label key={s.label} className="flex items-center justify-between gap-8 cursor-pointer" style={{ width: 260 }}>
+                                    <span className="text-[13px]" style={{ color: T.text }}>{s.label}</span>
+                                    <Switch defaultChecked={i < 2} trackColor={T.elevated} trackActiveColor={s.color} thumbColor={T.textMuted} thumbActiveColor={s.color === T.error ? '#fff' : '#0a0a0b'} />
+                                </label>
+                            ))}
+                        </div>
+                    ),
+                    code: `<Switch\n  trackColor="#1a1a1d"\n  trackActiveColor="#f5a623"\n  thumbColor="#6b6b72"\n  thumbActiveColor="#0a0a0b"\n/>`,
+                },
+            ],
+        },
+
+        /* ── Tabs ── */
+        {
+            slug: 'tabs',
+            name: 'Tabs',
+            description: 'Navigation tabs with line, pill, and segment variants.',
+            thumbnail: (
+                <div className="flex gap-0.5 p-0.5 rounded" style={{ background: T.elevated }}>
+                    {['Prev', 'Next'].map((t, i) => (
+                        <span key={t} className="px-2 py-0.5 rounded text-[8px]" style={{ background: i === 0 ? T.surface : 'transparent', color: i === 0 ? T.text : T.textMuted }}>{t}</span>
+                    ))}
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Line',
+                    preview: (
+                        <Tabs defaultValue="overview" style={{ maxWidth: 460 }}>
+                            <TabsList variant="line" style={{ borderColor: T.border }}>
+                                {['overview', 'analytics', 'settings'].map((v) => (
+                                    <TabsTrigger key={v} value={v} indicatorColor={T.brand} activeTextColor={T.text} inactiveTextColor={T.textMuted}>{v.charAt(0).toUpperCase() + v.slice(1)}</TabsTrigger>
+                                ))}
+                            </TabsList>
+                            <TabsContent value="overview" className="pt-4 text-[13px]" style={{ color: T.textSec }}>Overview content with project summary and key metrics.</TabsContent>
+                            <TabsContent value="analytics" className="pt-4 text-[13px]" style={{ color: T.textSec }}>Analytics dashboard with charts and insights.</TabsContent>
+                            <TabsContent value="settings" className="pt-4 text-[13px]" style={{ color: T.textSec }}>Configure project settings and preferences.</TabsContent>
+                        </Tabs>
+                    ),
+                    code: `<Tabs defaultValue="overview">\n  <TabsList variant="line">\n    <TabsTrigger value="overview">Overview</TabsTrigger>\n    <TabsTrigger value="analytics">Analytics</TabsTrigger>\n  </TabsList>\n  <TabsContent value="overview">Overview content...</TabsContent>\n</Tabs>`,
+                },
+                {
+                    title: 'Pill',
+                    preview: (
+                        <Tabs defaultValue="all" style={{ maxWidth: 400 }}>
+                            <TabsList variant="pill" listBg={T.elevated}>
+                                {['all', 'active', 'archived'].map((v) => (
+                                    <TabsTrigger key={v} value={v} activeBg={T.brand} activeTextColor="#0a0a0b" inactiveTextColor={T.textMuted}>{v.charAt(0).toUpperCase() + v.slice(1)}</TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                    ),
+                    code: `<Tabs defaultValue="all">\n  <TabsList variant="pill">\n    <TabsTrigger value="all">All</TabsTrigger>\n    <TabsTrigger value="active">Active</TabsTrigger>\n  </TabsList>\n</Tabs>`,
+                },
+            ],
+        },
+
+        /* ── Tooltip ── */
+        {
+            slug: 'tooltip',
+            name: 'Tooltip',
+            description: 'Contextual hints on hover for additional information.',
+            thumbnail: (
+                <div className="flex flex-col items-center gap-1">
+                    <div className="px-2 py-1 rounded text-[8px]" style={{ background: T.text, color: T.bg }}>Tooltip</div>
+                    <div className="size-0 border-x-4 border-x-transparent" style={{ borderTop: `4px solid ${T.text}` }} />
+                </div>
+            ),
+            examples: [
+                {
+                    title: 'Default & Inverse',
+                    preview: (
+                        <div className="flex gap-4">
+                            <Tooltip>
+                                <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Hover me</Button>
+                                <TooltipContent inverse><p>Useful context tooltip.</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Brand tooltip</Button>
+                                <TooltipContent><p>Saves your configuration.</p></TooltipContent>
+                            </Tooltip>
+                        </div>
+                    ),
+                    code: `<Tooltip>\n  <Button>Hover me</Button>\n  <TooltipContent inverse>\n    <p>Useful context tooltip.</p>\n  </TooltipContent>\n</Tooltip>`,
+                },
+            ],
+        },
+
+        /* ── Animated Text ── */
+        {
+            slug: 'animated-text',
+            name: 'Animated Text',
+            description: '16 text animation variants — entry reveals, hover interactions, and continuous effects.',
+            thumbnail: (
+                <div className="text-[12px] font-bold" style={{ color: T.brand }}>Aa<span className="opacity-50">nimated</span></div>
+            ),
+            examples: [
+                {
+                    title: 'Entry Animations',
+                    preview: (
+                        <div className="grid grid-cols-2 gap-6">
+                            {[
+                                { v: 'blur-in' as const, text: 'Blur In', color: T.text },
+                                { v: 'fade-up' as const, text: 'Fade Up', color: T.brand },
+                                { v: 'split-entrance' as const, text: 'Split Entrance', color: T.text },
+                                { v: 'letters-pull-up' as const, text: 'Letters Pull Up', color: T.text },
+                            ].map((item) => (
+                                <div key={item.v} className="p-4 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                                    <p className="text-[11px] font-mono mb-2" style={{ color: T.textMuted }}>{item.v}</p>
+                                    <AnimatedText text={item.text} variant={item.v} speed={0.4} stagger={0.04} splitBy="word" trigger="mount" style={{ fontSize: 24, fontWeight: 600, color: item.color }} />
+                                </div>
+                            ))}
+                        </div>
+                    ),
+                    code: `<AnimatedText text="Blur In" variant="blur-in" speed={0.4} stagger={0.04} />`,
+                },
+                {
+                    title: 'Continuous Effects',
+                    preview: (
+                        <div className="grid grid-cols-2 gap-6">
+                            {[
+                                { v: 'gradient-sweep' as const, text: 'Gradient', extra: { gradientColor1: T.brand, gradientColor2: T.interactive } },
+                                { v: 'shiny-text' as const, text: 'Premium', style: { color: T.textMuted } },
+                                { v: 'typewriter' as const, text: 'Building the future...', style: { color: T.textSec }, speed: 1.2 },
+                                { v: 'decrypt' as const, text: 'ENCRYPTED', style: { color: T.electric }, speed: 1.5 },
+                            ].map((item) => (
+                                <div key={item.v} className="p-4 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                                    <p className="text-[11px] font-mono mb-2" style={{ color: T.textMuted }}>{item.v}</p>
+                                    <AnimatedText text={item.text} variant={item.v} speed={item.speed ?? 0.4} stagger={0.04} splitBy="word" trigger="mount" style={{ fontSize: 24, fontWeight: 700, ...item.style }} {...('extra' in item ? item.extra : {})} />
+                                </div>
+                            ))}
+                        </div>
+                    ),
+                    code: `<AnimatedText text="Gradient" variant="gradient-sweep" gradientColor1="#f5a623" gradientColor2="#7c3aed" />`,
+                },
+                {
+                    title: 'Hover Interactive',
+                    preview: (
+                        <div className="grid grid-cols-2 gap-6">
+                            {[
+                                { v: 'bounce' as const, text: 'Hover me!' },
+                                { v: 'bubble' as const, text: 'Proximity' },
+                                { v: 'disperse' as const, text: 'Scatter' },
+                                { v: 'pattern' as const, text: 'PATTERN', style: { fontSize: 36, fontWeight: 800, color: T.textMuted } },
+                            ].map((item) => (
+                                <div key={item.v} className="p-4 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                                    <p className="text-[11px] font-mono mb-2" style={{ color: T.textMuted }}>{item.v}</p>
+                                    <AnimatedText text={item.text} variant={item.v} speed={0.4} stagger={0.04} splitBy="word" trigger="mount" style={{ fontSize: 28, fontWeight: 700, color: T.text, ...item.style }} />
+                                </div>
+                            ))}
+                        </div>
+                    ),
+                    code: `<AnimatedText text="Hover me!" variant="bounce" />\n<AnimatedText text="Proximity" variant="bubble" />\n<AnimatedText text="Scatter" variant="disperse" />\n<AnimatedText text="PATTERN" variant="pattern" />`,
+                },
+            ],
+        },
+    ];
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Preview / Code Block
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function ExampleBlock({ example }: { example: ComponentExample }) {
+    const [tab, setTab] = useState<'preview' | 'code'>('preview');
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(example.code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    };
+
+    return (
+        <div>
+            {/* Toolbar */}
+            <div className="flex items-center justify-between py-2.5">
+                <div className="flex gap-0">
+                    {(['preview', 'code'] as const).map((t) => (
+                        <button key={t} onClick={() => setTab(t)} className="px-3.5 py-1.5 text-[13px] font-medium rounded-lg transition-colors" style={{ background: tab === t ? T.elevated : 'transparent', color: tab === t ? T.text : T.textMuted }}>
+                            {t.charAt(0).toUpperCase() + t.slice(1)}
+                        </button>
+                    ))}
+                </div>
+                <div className="flex items-center gap-2">
+                    <button onClick={handleCopy} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] font-mono transition-colors" style={{ background: T.elevated, color: T.textMuted, border: `1px solid ${T.border}` }}>
+                        <ClipboardIcon className="size-3.5" />{copied ? 'Copied!' : 'Copy'}
+                    </button>
+                    <button className="p-1.5 rounded-lg transition-colors" style={{ color: T.textMuted }}>
+                        <ArrowTopRightOnSquareIcon className="size-3.5" />
+                    </button>
+                    <button className="p-1.5 rounded-lg transition-colors" style={{ color: T.textMuted }}>
+                        <ArrowsPointingOutIcon className="size-3.5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${T.border}` }}>
+                {tab === 'preview' ? (
+                    <div className="flex items-center justify-center p-10 min-h-[160px]" style={{ background: T.subtle }}>
+                        {example.preview}
+                    </div>
+                ) : (
+                    <div className="p-5 overflow-x-auto" style={{ background: T.subtle }}>
+                        <pre className="text-[13px] font-mono leading-relaxed" style={{ color: T.textSec }}>
+                            <code>{example.code}</code>
+                        </pre>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Sidebar
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function Sidebar({ components, activeSlug, onNavigate }: { components: ComponentEntry[]; activeSlug: string | null; onNavigate: (slug: string | null) => void }) {
+    const [search, setSearch] = useState('');
+    const filtered = components.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+
+    return (
+        <aside className="w-[200px] min-w-[200px] h-screen sticky top-0 flex flex-col overflow-hidden" style={{ background: T.bg, borderRight: `1px solid ${T.border}` }}>
+            {/* Logo */}
+            <div className="px-4 pt-4 pb-3">
+                <button onClick={() => onNavigate(null)} className="flex items-center gap-2 cursor-pointer">
+                    <div className="size-5 rounded-md flex items-center justify-center text-[10px] font-bold" style={{ background: T.brand, color: '#0a0a0b' }}>U</div>
+                    <span className="text-[14px] font-semibold" style={{ color: T.text }}>UI Studio</span>
+                </button>
+            </div>
+
+            {/* Search */}
+            <div className="px-3 pb-3">
+                <div className="relative">
+                    <MagnifyingGlassIcon className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: T.textMuted }} />
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full pl-8 pr-8 py-1.5 rounded-lg text-[12px] outline-none placeholder:text-[12px]"
+                        style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.text }}
+                    />
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono px-1 py-0.5 rounded" style={{ background: T.elevated, color: T.textMuted }}>⌘K</span>
+                </div>
+            </div>
+
+            {/* Nav links */}
+            <div className="flex-1 overflow-y-auto px-2 pb-4">
+                <div className="px-2 pt-2 pb-1.5">
+                    <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: T.textMuted }}>Elements</span>
+                </div>
+                {filtered.map((c) => (
+                    <button
+                        key={c.slug}
+                        onClick={() => onNavigate(c.slug)}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] transition-colors block"
+                        style={{
+                            background: activeSlug === c.slug ? `${T.brand}12` : 'transparent',
+                            color: activeSlug === c.slug ? T.brand : T.textSec,
+                        }}
+                    >
+                        {c.name}
+                    </button>
+                ))}
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-4" style={{ borderTop: `1px solid ${T.border}` }}>
+                <p className="text-[11px] mb-1" style={{ color: T.textMuted }}>Built with UI Studio OSS</p>
+                <Link to="/" className="text-[12px] font-medium" style={{ color: T.brand }}>Back to home</Link>
+            </div>
+        </aside>
+    );
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Index Grid
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function IndexGrid({ components, onNavigate }: { components: ComponentEntry[]; onNavigate: (slug: string) => void }) {
+    return (
+        <div className="p-8 lg:p-12">
+            <div className="mb-10">
+                <p className="text-[11px] font-medium uppercase tracking-[0.15em] mb-2" style={{ color: T.brand }}>Component Library</p>
+                <h1 className="text-[28px] font-semibold tracking-tight" style={{ color: T.text }}>
+                    Elements <span className="text-[15px] font-normal ml-2" style={{ color: T.textSec }}>Small building blocks for your application.</span>
+                </h1>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {components.map((c) => (
+                    <button key={c.slug} onClick={() => onNavigate(c.slug)} className="group text-left cursor-pointer">
+                        <div className="rounded-xl overflow-hidden flex items-center justify-center p-6 min-h-[140px] transition-all group-hover:border-opacity-30" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                            {c.thumbnail}
+                        </div>
+                        <p className="mt-2.5 text-[13px] font-medium" style={{ color: T.text }}>{c.name}</p>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Detail Page
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function DetailPage({ component }: { component: ComponentEntry }) {
+    return (
+        <div className="p-8 lg:p-12 max-w-4xl">
+            <h1 className="text-[24px] font-semibold tracking-tight" style={{ color: T.text }}>{component.name}</h1>
+            <p className="mt-1.5 text-[14px] leading-relaxed" style={{ color: T.textSec }}>{component.description}</p>
+
+            <div className="mt-8 space-y-10">
+                {component.examples.map((ex, i) => (
+                    <div key={i}>
+                        {component.examples.length > 1 && (
+                            <p className="text-[13px] font-medium mb-1" style={{ color: T.textMuted }}>{ex.title}</p>
+                        )}
+                        <ExampleBlock example={ex} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Main Export
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+export default function ComponentLibrary() {
+    const { slug } = useParams<{ slug?: string }>();
+    const navigate = useNavigate();
+    const components = buildComponents();
+    const activeComponent = slug ? components.find((c) => c.slug === slug) : null;
+
+    const handleNavigate = (target: string | null) => {
+        if (target) {
+            navigate(`/library/${target}`);
+        } else {
+            navigate('/library');
+        }
+    };
+
+    return (
+        <div className="flex" style={{ background: T.bg, color: T.text, minHeight: '100vh' }}>
+            <Sidebar components={components} activeSlug={slug ?? null} onNavigate={handleNavigate} />
+            <main className="flex-1 overflow-y-auto h-screen">
+                {activeComponent ? (
+                    <DetailPage component={activeComponent} />
+                ) : (
+                    <IndexGrid components={components} onNavigate={(s) => handleNavigate(s)} />
+                )}
+            </main>
         </div>
     );
 }

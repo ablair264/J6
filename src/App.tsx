@@ -26,6 +26,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/library" element={<ComponentLibrary />} />
+      <Route path="/library/:slug" element={<ComponentLibrary />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
