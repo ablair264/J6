@@ -1630,163 +1630,57 @@ export function InspectorPanel() {
                                             <option value="success">Success</option>
                                             <option value="warning">Warning</option>
                                             <option value="error">Error</option>
-                                            <option value="destructive">Destructive</option>
-                                            <option value="invert">Invert</option>
                                         </FlatSelect>
                                     </FlatField>
                                     <div className="space-y-1.5">
-                                        <FlatSwitchRow label="Transparent" checked={selectedStyle.alertBorderless} onCheckedChange={(value) => updateSelectedStyle('alertBorderless', value)} />
                                         <FlatSwitchRow label="Dismissible" checked={selectedStyle.alertDismissible} onCheckedChange={(value) => updateSelectedStyle('alertDismissible', value)} />
-                                        {selectedStyle.alertDismissible ? (
-                                            <FlatSwitchRow label="Dismiss as action" checked={selectedStyle.alertDismissAsAction} onCheckedChange={(value) => updateSelectedStyle('alertDismissAsAction', value)} />
-                                        ) : null}
                                         <FlatSwitchRow label="Show Icon" checked={selectedStyle.alertShowIcon} onCheckedChange={(value) => updateSelectedStyle('alertShowIcon', value)} />
                                     </div>
-                                    {selectedStyle.alertShowIcon ? (
-                                        <FlatField label="Icon Style" stacked>
-                                            <FlatSelect value={selectedStyle.alertIconMode} onValueChange={(value) => updateSelectedStyle('alertIconMode', value as ComponentStyleConfig['alertIconMode'])} ariaLabel="Alert icon style">
-                                                <option value="variant">By Variant</option>
-                                                <option value="shield">Shield</option>
-                                                <option value="database">Database</option>
-                                                <option value="globe">Globe</option>
-                                                <option value="lightbulb">Lightbulb</option>
-                                                <option value="circle-alert">Circle Alert</option>
-                                                <option value="circle-check">Circle Check</option>
-                                                <option value="x-circle">Circle X</option>
-                                            </FlatSelect>
-                                        </FlatField>
-                                    ) : null}
+                                    <FlatField label="Actions" stacked>
+                                        <FlatSelect value={selectedStyle.alertActionMode} onValueChange={(value) => updateSelectedStyle('alertActionMode', value as ComponentStyleConfig['alertActionMode'])} ariaLabel="Alert action mode">
+                                            <option value="none">None</option>
+                                            <option value="single">Single</option>
+                                            <option value="double">Double</option>
+                                        </FlatSelect>
+                                    </FlatField>
 
-                                <FlatElementSubsection title="Actions" defaultOpen={false}>
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatField label="Mode" stacked>
-                                            <FlatSelect value={selectedStyle.alertActionMode} onValueChange={(value) => updateSelectedStyle('alertActionMode', value as ComponentStyleConfig['alertActionMode'])} ariaLabel="Alert action mode">
-                                                <option value="none">None</option>
-                                                <option value="single">Single</option>
-                                                <option value="double">Double</option>
-                                            </FlatSelect>
-                                        </FlatField>
-                                        {selectedStyle.alertActionMode !== 'none' ? (
-                                            <FlatField label="Size" stacked>
-                                                <FlatSelect value={selectedStyle.alertActionSize} onValueChange={(value) => updateSelectedStyle('alertActionSize', value as ComponentStyleConfig['alertActionSize'])} ariaLabel="Alert action size">
-                                                    <option value="xs">XS</option>
-                                                    <option value="sm">SM</option>
-                                                </FlatSelect>
-                                            </FlatField>
-                                        ) : (
-                                            <span />
-                                        )}
-                                    </div>
-                                    {selectedStyle.alertActionMode !== 'none' ? (
-                                        <>
-                                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                                <FlatField label="Primary" stacked>
-                                                    <FlatSelect value={selectedStyle.alertPrimaryActionVariant} onValueChange={(value) => updateSelectedStyle('alertPrimaryActionVariant', value as ComponentStyleConfig['alertPrimaryActionVariant'])} ariaLabel="Primary action variant">
-                                                        <option value="default">Default</option>
-                                                        <option value="outline">Outline</option>
-                                                        <option value="ghost">Ghost</option>
-                                                        <option value="link">Link</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                                <FlatField label="Icon" stacked>
-                                                    <FlatSelect value={selectedStyle.alertPrimaryActionIcon} onValueChange={(value) => updateSelectedStyle('alertPrimaryActionIcon', value as ComponentStyleConfig['alertPrimaryActionIcon'])} ariaLabel="Primary action icon">
-                                                        <option value="none">None</option>
-                                                        <option value="refresh">Refresh</option>
-                                                        <option value="x">X</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            </div>
-                                            {selectedStyle.alertActionMode === 'double' ? (
-                                                <FlatField label="Secondary" stacked>
-                                                    <FlatSelect value={selectedStyle.alertSecondaryActionVariant} onValueChange={(value) => updateSelectedStyle('alertSecondaryActionVariant', value as ComponentStyleConfig['alertSecondaryActionVariant'])} ariaLabel="Secondary action variant">
-                                                        <option value="default">Default</option>
-                                                        <option value="outline">Outline</option>
-                                                        <option value="ghost">Ghost</option>
-                                                        <option value="link">Link</option>
-                                                    </FlatSelect>
-                                                </FlatField>
-                                            ) : null}
-                                        </>
-                                    ) : null}
-                                    <FlatSwitchRow label="Inline Link" checked={selectedStyle.alertShowInlineLink} onCheckedChange={(value) => updateSelectedStyle('alertShowInlineLink', value)} />
-                                    {selectedStyle.alertShowInlineLink ? (
-                                        <FlatField label="Link Variant" stacked>
-                                            <FlatSelect value={selectedStyle.alertInlineLinkVariant} onValueChange={(value) => updateSelectedStyle('alertInlineLinkVariant', value as ComponentStyleConfig['alertInlineLinkVariant'])} ariaLabel="Inline link variant">
-                                                <option value="link">Link</option>
-                                                <option value="ghost">Ghost</option>
-                                                <option value="outline">Outline</option>
-                                                <option value="default">Default</option>
-                                            </FlatSelect>
-                                        </FlatField>
-                                    ) : null}
-                                </FlatElementSubsection>
-
-                                <FlatElementSubsection title="Preview Text" defaultOpen={false}>
+                                <FlatElementSubsection title="Content" defaultOpen={false}>
                                     <FlatField label="Title" stacked>
                                         <input
                                             type="text"
-                                            value={selectedStyle.alertTitleText}
-                                            onChange={(e) => updateSelectedStyle('alertTitleText', e.target.value)}
+                                            value={selectedStyle.alertTitle}
+                                            onChange={(e) => updateSelectedStyle('alertTitle', e.target.value)}
                                             className={studioInputClass}
                                             placeholder="Alert Title"
                                         />
                                     </FlatField>
                                     <FlatField label="Description" stacked>
                                         <textarea
-                                            value={selectedStyle.alertDescriptionText}
-                                            onChange={(e) => updateSelectedStyle('alertDescriptionText', e.target.value)}
+                                            value={selectedStyle.alertDescription}
+                                            onChange={(e) => updateSelectedStyle('alertDescription', e.target.value)}
                                             className={cn(studioInputClass, 'min-h-[64px] resize-y py-2')}
                                             placeholder="Alert description text"
                                         />
                                     </FlatField>
-                                    <FlatField label="Format" stacked>
-                                        <FlatSelect value={selectedStyle.alertDescriptionMode} onValueChange={(value) => updateSelectedStyle('alertDescriptionMode', value as ComponentStyleConfig['alertDescriptionMode'])} ariaLabel="Alert description mode">
-                                            <option value="plain">Plain</option>
-                                            <option value="list">Bullet List</option>
-                                        </FlatSelect>
-                                    </FlatField>
-                                    {selectedStyle.alertDescriptionMode === 'list' ? (
-                                        <FlatField label="List Items" stacked>
-                                            <textarea
-                                                value={selectedStyle.alertListItems}
-                                                onChange={(e) => updateSelectedStyle('alertListItems', e.target.value)}
-                                                className={cn(studioInputClass, 'min-h-[72px] resize-y py-2')}
-                                                placeholder={'Item one\nItem two\nItem three'}
+                                    {selectedStyle.alertActionMode !== 'none' ? (
+                                        <FlatField label="Primary Label" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.alertPrimaryLabel}
+                                                onChange={(e) => updateSelectedStyle('alertPrimaryLabel', e.target.value)}
+                                                className={studioInputClass}
+                                                placeholder="Confirm"
                                             />
                                         </FlatField>
                                     ) : null}
-                                    {selectedStyle.alertActionMode !== 'none' ? (
-                                        <>
-                                            <FlatField label="Primary Label" stacked>
-                                                <input
-                                                    type="text"
-                                                    value={selectedStyle.alertPrimaryActionLabel}
-                                                    onChange={(e) => updateSelectedStyle('alertPrimaryActionLabel', e.target.value)}
-                                                    className={studioInputClass}
-                                                    placeholder="Primary action"
-                                                />
-                                            </FlatField>
-                                            {selectedStyle.alertActionMode === 'double' ? (
-                                                <FlatField label="Secondary Label" stacked>
-                                                    <input
-                                                        type="text"
-                                                        value={selectedStyle.alertSecondaryActionLabel}
-                                                        onChange={(e) => updateSelectedStyle('alertSecondaryActionLabel', e.target.value)}
-                                                        className={studioInputClass}
-                                                        placeholder="Secondary action"
-                                                    />
-                                                </FlatField>
-                                            ) : null}
-                                        </>
-                                    ) : null}
-                                    {selectedStyle.alertShowInlineLink ? (
-                                        <FlatField label="Link Label" stacked>
+                                    {selectedStyle.alertActionMode === 'double' ? (
+                                        <FlatField label="Secondary Label" stacked>
                                             <input
                                                 type="text"
-                                                value={selectedStyle.alertInlineLinkLabel}
-                                                onChange={(e) => updateSelectedStyle('alertInlineLinkLabel', e.target.value)}
+                                                value={selectedStyle.alertSecondaryLabel}
+                                                onChange={(e) => updateSelectedStyle('alertSecondaryLabel', e.target.value)}
                                                 className={studioInputClass}
-                                                placeholder="Learn more"
+                                                placeholder="Cancel"
                                             />
                                         </FlatField>
                                     ) : null}

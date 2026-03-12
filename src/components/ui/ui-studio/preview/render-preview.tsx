@@ -621,59 +621,21 @@ export function componentSnippet(
         }
         case 'alert': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            const listItems = instance.style.alertListItems
-                .split('\n')
-                .map((item) => item.trim())
-                .filter(Boolean);
-            const showInlineLink = instance.style.alertShowInlineLink && instance.style.alertInlineLinkLabel.trim().length > 0;
-            const hasPrimaryAction = instance.style.alertPrimaryActionLabel.trim().length > 0;
-            const hasSecondaryAction = instance.style.alertActionMode === 'double' && instance.style.alertSecondaryActionLabel.trim().length > 0;
-            const showActionRow = instance.style.alertActionMode !== 'none' && (hasPrimaryAction || hasSecondaryAction);
-
-            const alertIconComponent =
-                instance.style.alertIconMode === 'shield'
-                    ? 'ShieldCheck'
-                    : instance.style.alertIconMode === 'database'
-                        ? 'Database'
-                        : instance.style.alertIconMode === 'globe'
-                            ? 'Globe'
-                            : instance.style.alertIconMode === 'lightbulb'
-                                ? 'Lightbulb'
-                                : instance.style.alertIconMode === 'circle-alert'
-                                    ? 'CircleAlert'
-                                    : instance.style.alertIconMode === 'circle-check'
-                                        ? 'CircleCheck'
-                                        : instance.style.alertIconMode === 'x-circle'
-                                            ? 'CircleX'
-                                            : null;
-            const iconProp =
-                instance.style.icon !== 'none' && icon
-                    ? `icon={${icon}}`
-                    : alertIconComponent
-                        ? `icon={<${alertIconComponent} className="size-4" />}`
-                        : '';
+            const title = instance.style.alertTitle || 'Alert Title';
+            const description = instance.style.alertDescription || 'This is an alert message with relevant details.';
+            const iconProp = instance.style.icon !== 'none' && icon ? `icon={${icon}}` : '';
             const alertProps = [
                 `variant="${instance.style.alertVariant}"`,
-                `dismissible={${String(instance.style.alertDismissible)}}`,
+                instance.style.alertDismissible ? 'dismissible' : '',
                 instance.style.alertShowIcon ? '' : 'showIcon={false}',
                 instance.style.alertShowIcon && iconProp ? iconProp : '',
-                instance.style.alertDismissible
-                    ? `dismissMotion={{ hoverEnabled: ${String(instance.style.alertCloseHoverEnabled)}, hoverScale: ${instance.style.alertCloseHoverScale}, tapEnabled: ${String(instance.style.alertCloseTapEnabled)}, tapScale: ${instance.style.alertCloseTapScale} }}`
-                    : '',
             ].filter(Boolean).join('\n  ');
-            const descriptionSnippet = instance.style.alertDescriptionMode === 'list'
-                ? `<AlertDescription>\n    <p>${instance.style.alertDescriptionText || 'Please check the following details:'}</p>${listItems.length > 0 ? `\n    <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm">\n${listItems.map((item) => `      <li>${item}</li>`).join('\n')}\n    </ul>` : ''}${showInlineLink ? `\n    <Button variant="${instance.style.alertInlineLinkVariant}" size="sm" className="h-auto p-0 underline">${instance.style.alertInlineLinkLabel}</Button>` : ''}\n  </AlertDescription>`
-                : `<AlertDescription>${instance.style.alertDescriptionText || 'This is an alert message with relevant details.'}${showInlineLink ? ` <Button variant="${instance.style.alertInlineLinkVariant}" size="sm" className="h-auto p-0 underline">${instance.style.alertInlineLinkLabel}</Button>` : ''}</AlertDescription>`;
-            const primaryActionIcon =
-                instance.style.alertPrimaryActionIcon === 'refresh'
-                    ? '<RefreshCw className="size-3" /> '
-                    : instance.style.alertPrimaryActionIcon === 'x'
-                        ? '<X className="size-3" /> '
-                        : '';
-            const actionSnippet = showActionRow
-                ? `\n  <AlertAction>${hasSecondaryAction ? `\n    <Button variant="${instance.style.alertSecondaryActionVariant}" size="${instance.style.alertActionSize}">${instance.style.alertSecondaryActionLabel}</Button>` : ''}${hasPrimaryAction ? `\n    <Button variant="${instance.style.alertPrimaryActionVariant}" size="${instance.style.alertActionSize}">${primaryActionIcon}${instance.style.alertPrimaryActionLabel}</Button>` : ''}\n  </AlertAction>`
+            const showActions = instance.style.alertActionMode !== 'none';
+            const showSecondary = instance.style.alertActionMode === 'double';
+            const actionSnippet = showActions
+                ? `\n  <AlertAction>${showSecondary ? `\n    <Button variant="outline" size="xs">${instance.style.alertSecondaryLabel || 'Cancel'}</Button>` : ''}\n    <Button size="xs">${instance.style.alertPrimaryLabel || 'Confirm'}</Button>\n  </AlertAction>`
                 : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<Alert\n  ${alertProps}${classNameSnippet}${previewStyleSnippet}\n>\n  <AlertTitle>${instance.style.alertTitleText || 'Alert Title'}</AlertTitle>\n  ${descriptionSnippet}${actionSnippet}\n</Alert>`;
+            return `${declarations ? `${declarations}\n\n` : ''}<Alert\n  ${alertProps}${classNameSnippet}${previewStyleSnippet}\n>\n  <AlertTitle>${title}</AlertTitle>\n  <AlertDescription>${description}</AlertDescription>${actionSnippet}\n</Alert>`;
         }
         case 'avatar': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
