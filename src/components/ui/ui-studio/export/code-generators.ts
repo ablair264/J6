@@ -19,6 +19,7 @@ import {
     supportsGrainEffect,
     supportsNeonGlowEffect,
     supportsPulseRingEffect,
+    supportsRadialGlowEffect,
     supportsRippleFillEffect,
     supportsShineBorderEffect,
     supportsSweepEffect,
@@ -423,6 +424,9 @@ export function buildTailwindThemeStyles(
     const usesGradientBorderEffect = instances.some(
         (instance) => supportsGradientBorderEffect(instance.kind) && instance.style.effectGradientBorder,
     );
+    const usesRadialGlowEffect = instances.some(
+        (instance) => supportsRadialGlowEffect(instance.kind) && instance.style.effectRadialGlow,
+    );
     const usesAnimatedText = instances.some(
         (instance) => instance.kind === 'animated-text',
     );
@@ -521,6 +525,7 @@ export function buildTailwindThemeStyles(
     if (usesAnimatedBorderEffect) {
         motionUtilityBlocks.push(`  .ui-studio-effect-animated-border {
     position: relative;
+    --ui-animated-border-fill-current: var(--ui-animated-border-fill, var(--ui-effect-fill-base, var(--ui-motion-fill, rgba(17, 24, 39, 0.9))));
   }
 
   .ui-studio-effect-animated-border-state-default,
@@ -532,7 +537,7 @@ export function buildTailwindThemeStyles(
     border-color: transparent !important;
     border-width: var(--ui-effect-border-width, 1px) !important;
     background:
-      linear-gradient(var(--ui-animated-border-fill, var(--ui-motion-fill, rgba(17, 24, 39, 0.9))), var(--ui-animated-border-fill, var(--ui-motion-fill, rgba(17, 24, 39, 0.9)))),
+      linear-gradient(var(--ui-animated-border-fill-current), var(--ui-animated-border-fill-current)),
       linear-gradient(
         90deg,
         var(--ui-effect-border-1, #22d3ee),
@@ -545,6 +550,7 @@ export function buildTailwindThemeStyles(
     background-origin: border-box !important;
     background-clip: padding-box, border-box !important;
     background-size: 100% 100%, 300% 100% !important;
+    will-change: background-position;
     animation: ui-studio-effect-border-spin var(--ui-effect-border-speed, 2.8s) linear infinite;
   }`);
     }
@@ -745,7 +751,7 @@ export function buildTailwindThemeStyles(
         motionUtilityBlocks.push(`  .ui-studio-effect-gradient-border {
     border-color: transparent !important;
     background-image:
-      linear-gradient(var(--ui-effect-grad-border-fill, #ffffff), var(--ui-effect-grad-border-fill, #ffffff)),
+      linear-gradient(var(--ui-effect-grad-border-fill, var(--ui-effect-fill-base, #ffffff)), var(--ui-effect-grad-border-fill, var(--ui-effect-fill-base, #ffffff))),
       linear-gradient(
         var(--ui-effect-grad-border-angle, 135deg),
         var(--ui-effect-grad-border-1, #22d3ee),
@@ -756,6 +762,18 @@ export function buildTailwindThemeStyles(
     background-clip: padding-box, border-box !important;
     border-width: var(--ui-effect-grad-border-width, 2px) !important;
     border-style: solid !important;
+  }`);
+    }
+
+    if (usesRadialGlowEffect) {
+        motionUtilityBlocks.push(`  .ui-studio-effect-radial-glow {
+    background:
+      radial-gradient(
+        var(--ui-effect-radial-glow-size, 120% 120%) at 50% 50%,
+        var(--ui-effect-radial-glow-color, rgba(255, 255, 255, 0.18)) 0%,
+        transparent 70%
+      ),
+      var(--ui-effect-radial-glow-fill, var(--ui-effect-fill-base, transparent)) !important;
   }`);
     }
 
@@ -856,6 +874,8 @@ ${themeInlineLines.join('\n')}
   .ui-studio-button-state:hover {
     background: var(--ui-btn-hover-bg) !important;
     --ui-animated-border-fill: var(--ui-btn-hover-bg);
+    --ui-effect-grad-border-fill: var(--ui-btn-hover-bg);
+    --ui-effect-radial-glow-fill: var(--ui-btn-hover-bg);
     color: var(--ui-btn-hover-fg) !important;
     border-color: var(--ui-btn-hover-border) !important;
     border-width: var(--ui-btn-hover-border-width) !important;
@@ -870,6 +890,8 @@ ${themeInlineLines.join('\n')}
   .ui-studio-button-state:active {
     background: var(--ui-btn-active-bg) !important;
     --ui-animated-border-fill: var(--ui-btn-active-bg);
+    --ui-effect-grad-border-fill: var(--ui-btn-active-bg);
+    --ui-effect-radial-glow-fill: var(--ui-btn-active-bg);
     color: var(--ui-btn-active-fg) !important;
     border-color: var(--ui-btn-active-border) !important;
     border-width: var(--ui-btn-active-border-width) !important;
@@ -886,6 +908,8 @@ ${themeInlineLines.join('\n')}
   .ui-studio-button-state[aria-disabled='true'] {
     background: var(--ui-btn-disabled-bg) !important;
     --ui-animated-border-fill: var(--ui-btn-disabled-bg);
+    --ui-effect-grad-border-fill: var(--ui-btn-disabled-bg);
+    --ui-effect-radial-glow-fill: var(--ui-btn-disabled-bg);
     color: var(--ui-btn-disabled-fg) !important;
     border-color: var(--ui-btn-disabled-border) !important;
     border-width: var(--ui-btn-disabled-border-width) !important;

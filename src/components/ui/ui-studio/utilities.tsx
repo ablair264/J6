@@ -342,6 +342,7 @@ export function supportsNeumorphicEffect(kind: UIComponentKind): boolean {
 export function buildExtractedEffectsClassName(kind: UIComponentKind, style: ComponentStyleConfig): string | undefined {
     const classes: string[] = [];
     const animatedBorderActive = supportsAnimatedBorderEffect(kind) && style.effectAnimatedBorderEnabled;
+    const gradientBorderActive = !animatedBorderActive && supportsGradientBorderEffect(kind) && style.effectGradientBorder;
     if (supportsGradientSlideEffect(kind) && style.effectGradientSlideEnabled) {
         classes.push(
             'ui-studio-effect-gradient-slide',
@@ -404,9 +405,12 @@ export function buildExtractedEffectsClassName(kind: UIComponentKind, style: Com
     if (supportsGrainEffect(kind) && style.effectGrain) {
         classes.push('ui-studio-effect-grain');
     }
+    if (supportsRadialGlowEffect(kind) && style.effectRadialGlow) {
+        classes.push('ui-studio-effect-radial-glow');
+    }
     // Gradient border and animated border both control layered background/border.
     // If both are enabled, prefer animated border to preserve motion feedback.
-    if (!animatedBorderActive && supportsGradientBorderEffect(kind) && style.effectGradientBorder) {
+    if (gradientBorderActive) {
         classes.push('ui-studio-effect-gradient-border');
     }
     return classes.length > 0 ? classes.join(' ') : undefined;
@@ -1259,9 +1263,18 @@ export function loadGoogleFont(fontFamily: string): void {
 }
 
 export function buildMotionVariables(config: ComponentStyleConfig): CSSProperties {
+    const effectFillBase = buildStateFill(
+        config.fillMode,
+        config.fillColor,
+        config.fillColorTo,
+        config.fillWeight,
+        config.fillOpacity,
+    );
     return {
         ['--ui-motion-speed' as string]: `${config.motionSpeed}s`,
         ['--ui-motion-fill' as string]: hexToRgba(config.fillColor, Math.max(0.25, config.fillOpacity / 100)),
+        ['--ui-effect-fill-base' as string]: effectFillBase,
+        ['--ui-animated-border-fill' as string]: effectFillBase,
         ['--ui-motion-gradient-from' as string]: config.effectGradientSlideColor,
         ['--ui-motion-gradient-to' as string]: config.effectGradientSlideColorTo,
         ['--ui-motion-ripple-color' as string]: config.effectRippleFillColor,
@@ -1311,7 +1324,10 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
         ['--ui-effect-grad-border-3' as string]: config.gradientBorderColor3,
         ['--ui-effect-grad-border-angle' as string]: `${config.gradientBorderAngle}deg`,
         ['--ui-effect-grad-border-width' as string]: `${Math.max(0, config.strokeWeight)}px`,
-        ['--ui-effect-grad-border-fill' as string]: hexToRgba(config.fillColor, Math.max(0, Math.min(1, config.fillOpacity / 100))),
+        ['--ui-effect-grad-border-fill' as string]: effectFillBase,
+        ['--ui-effect-radial-glow-fill' as string]: effectFillBase,
+        ['--ui-effect-radial-glow-color' as string]: hexToRgba(config.radialGlowColor, config.radialGlowOpacity / 100),
+        ['--ui-effect-radial-glow-size' as string]: `${config.radialGlowSize}% ${config.radialGlowSize}%`,
         ['--ui-checkbox-selection-speed' as string]: `${config.checkboxSelectionAnimationSpeed}s`,
         ['--ui-slider-thumb-hover-scale' as string]: String(config.sliderThumbHoverScale),
         ['--ui-slider-thumb-tap-bounce' as string]: `${config.sliderThumbTapBounce}s`,
@@ -1328,6 +1344,13 @@ export function buildMotionVariables(config: ComponentStyleConfig): CSSPropertie
 export function buildActiveMotionVariables(kind: UIComponentKind, config: ComponentStyleConfig): CSSProperties {
     const vars: Record<string, string> = {};
     const motionPreset = buildMotionClassName(kind, config.motionPreset);
+    const effectFillBase = buildStateFill(
+        config.fillMode,
+        config.fillColor,
+        config.fillColorTo,
+        config.fillWeight,
+        config.fillOpacity,
+    );
 
     // Core motion speed — needed by shimmer, rainbow, and most effects
     const needsSpeed = motionPreset ||
@@ -1339,6 +1362,14 @@ export function buildActiveMotionVariables(kind: UIComponentKind, config: Compon
     if (needsSpeed) {
         vars['--ui-motion-speed'] = `${config.motionSpeed}s`;
         vars['--ui-motion-fill'] = hexToRgba(config.fillColor, Math.max(0.25, config.fillOpacity / 100));
+    }
+
+    if (
+        (supportsAnimatedBorderEffect(kind) && config.effectAnimatedBorderEnabled) ||
+        (supportsGradientBorderEffect(kind) && config.effectGradientBorder) ||
+        (supportsRadialGlowEffect(kind) && config.effectRadialGlow)
+    ) {
+        vars['--ui-effect-fill-base'] = effectFillBase;
     }
 
     // Rainbow
@@ -1366,6 +1397,7 @@ export function buildActiveMotionVariables(kind: UIComponentKind, config: Compon
     if (supportsAnimatedBorderEffect(kind) && config.effectAnimatedBorderEnabled) {
         vars['--ui-effect-border-speed'] = `${config.effectAnimatedBorderSpeed}s`;
         vars['--ui-effect-border-width'] = `${Math.max(0, config.strokeWeight)}px`;
+        vars['--ui-animated-border-fill'] = effectFillBase;
         vars['--ui-effect-border-1'] = config.effectAnimatedBorderColor1;
         vars['--ui-effect-border-2'] = config.effectAnimatedBorderColor2;
         vars['--ui-effect-border-3'] = config.effectAnimatedBorderColor3;
@@ -1432,7 +1464,13 @@ export function buildActiveMotionVariables(kind: UIComponentKind, config: Compon
         vars['--ui-effect-grad-border-3'] = config.gradientBorderColor3;
         vars['--ui-effect-grad-border-angle'] = `${config.gradientBorderAngle}deg`;
         vars['--ui-effect-grad-border-width'] = `${Math.max(0, config.strokeWeight)}px`;
-        vars['--ui-effect-grad-border-fill'] = hexToRgba(config.fillColor, Math.max(0, Math.min(1, config.fillOpacity / 100)));
+        vars['--ui-effect-grad-border-fill'] = effectFillBase;
+    }
+
+    if (supportsRadialGlowEffect(kind) && config.effectRadialGlow) {
+        vars['--ui-effect-radial-glow-fill'] = effectFillBase;
+        vars['--ui-effect-radial-glow-color'] = hexToRgba(config.radialGlowColor, config.radialGlowOpacity / 100);
+        vars['--ui-effect-radial-glow-size'] = `${config.radialGlowSize}% ${config.radialGlowSize}%`;
     }
 
     // Checkbox/slider — only for those kinds
@@ -2380,6 +2418,8 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
     const componentPreset = getComponentVisualPreset(instance.kind, instance.style.componentPreset);
     const extractedEffectsClassName = buildExtractedEffectsClassName(instance.kind, instance.style);
     const hasAnimatedBorderEffect = supportsAnimatedBorderEffect(instance.kind) && instance.style.effectAnimatedBorderEnabled;
+    const hasGradientBorderEffect = !hasAnimatedBorderEffect && supportsGradientBorderEffect(instance.kind) && instance.style.effectGradientBorder;
+    const hasRadialGlowEffect = supportsRadialGlowEffect(instance.kind) && instance.style.effectRadialGlow;
 
     // When previewing a non-default state (hover/active/disabled), resolve the
     // state overrides into the config so inline styles reflect the active state.
@@ -2455,7 +2495,9 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
         : rawStyle;
     const motionClassName = buildMotionClassName(instance.kind, instance.style.motionPreset);
     const className = cn(componentPreset?.className, motionClassName, extractedEffectsClassName);
-    if (!motionClassName && !hasAnimatedBorderEffect) {
+    const shouldClearBackground = Boolean(motionClassName) || hasAnimatedBorderEffect || hasGradientBorderEffect || hasRadialGlowEffect;
+    const shouldClearBorderColor = Boolean(motionClassName) || hasAnimatedBorderEffect || hasGradientBorderEffect;
+    if (!shouldClearBackground && !shouldClearBorderColor) {
         return { style: baseStyle, motionClassName: className || undefined };
     }
 
@@ -2463,8 +2505,8 @@ export function buildPreviewPresentation(instance: ComponentInstance, forExport 
         style: {
             ...baseStyle,
             // Motion/effect layers define their own visual background.
-            background: undefined,
-            borderColor: undefined,
+            ...(shouldClearBackground ? { background: undefined } : {}),
+            ...(shouldClearBorderColor ? { borderColor: undefined } : {}),
         },
         motionClassName: className || undefined,
     };

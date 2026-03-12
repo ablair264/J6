@@ -99,7 +99,7 @@ const TABLE_BADGE_COLORS = {
 function AvatarHoverCard() {
     const [hovered, setHovered] = useState(false);
     return (
-        <div className="relative inline-block pb-4">
+        <div className="relative inline-block pt-4">
             <div
                 className="cursor-pointer transition-transform duration-200"
                 style={{ transform: hovered ? 'translateY(-2px) scale(1.06)' : 'none' }}
@@ -113,7 +113,7 @@ function AvatarHoverCard() {
             </div>
             {hovered && (
                 <div
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 shadow-xl"
+                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-10 shadow-xl"
                     style={{
                         background: T.elevated,
                         border: `1px solid ${T.border}`,
@@ -350,9 +350,9 @@ function buildComponents(): ComponentEntry[] {
                 {
                     title: 'Hover Contact Card',
                     preview: (
-                        <div className="pt-2">
+                        <div className="pb-24">
                             <AvatarHoverCard />
-                            <p className="text-[11px] mt-2" style={{ color: T.textMuted }}>Hover the avatar above</p>
+                            <p className="text-[11px] mt-2" style={{ color: T.textMuted }}>Hover the avatar</p>
                         </div>
                     ),
                     code: `{/* Hover-activated contact card — matches the studio's avatar popover */}\n<Avatar size="lg" badge badgeColor="#34d399"\n  onMouseEnter={() => setHovered(true)}\n  onMouseLeave={() => setHovered(false)}\n>\n  <AvatarImage src="..." />\n  <AvatarFallback>KN</AvatarFallback>\n</Avatar>\n{hovered && (\n  <div className="popover-card">\n    <Avatar customSize={36} />\n    <p>Kai Nakamura</p>\n    <p>Lead Designer</p>\n    <div>{/* action icons: chat, email, phone */}</div>\n  </div>\n)}`,

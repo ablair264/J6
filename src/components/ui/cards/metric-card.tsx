@@ -389,7 +389,7 @@ export function MetricCard({
       return (
         <Card
           className={cn(
-            'flex items-center gap-3 py-3.5 px-4 min-h-[68px] overflow-hidden',
+            'flex flex-row items-center gap-3 py-3.5 px-4 min-h-[68px] overflow-hidden',
             variantWidthClasses[variant],
             className,
           )}
@@ -408,7 +408,7 @@ export function MetricCard({
     return (
       <Card
         className={cn(
-          'flex items-center gap-3 py-3.5 px-4 min-h-[68px] cursor-pointer overflow-hidden',
+          'flex flex-row items-center gap-3 py-3.5 px-4 min-h-[68px] cursor-pointer overflow-hidden',
           'transition-colors hover:border-primary/30',
           variantWidthClasses[variant],
           className,
