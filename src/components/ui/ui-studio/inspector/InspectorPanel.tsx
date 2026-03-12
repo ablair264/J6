@@ -1623,7 +1623,6 @@ export function InspectorPanel() {
                     {selectedInstance?.kind === 'alert' && selectedStyle ? (
                         <div className="p-1">
                             <FlatInspectorSection title="Alert Config" icon={Table} defaultOpen>
-                                <FlatElementSubsection title="Structure" defaultOpen>
                                     <FlatField label="Variant" stacked>
                                         <FlatSelect value={selectedStyle.alertVariant} onValueChange={(value) => updateSelectedStyle('alertVariant', value as ComponentStyleConfig['alertVariant'])} ariaLabel="Alert variant">
                                             <option value="default">Default</option>
@@ -1657,7 +1656,6 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     ) : null}
-                                </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Content" defaultOpen={false}>
                                     <FlatField label="Title" stacked>
@@ -3791,7 +3789,7 @@ export function InspectorPanel() {
                                                             </button>
                                                         </div>
                                                     </FlatField>
-                                                    {selectedInstance.kind !== 'animated-text' && selectedInstance.kind !== 'button' && selectedInstance.kind !== 'stage-button' && (
+                                                    {selectedInstance.kind !== 'animated-text' && selectedInstance.kind !== 'button' && selectedInstance.kind !== 'stage-button' && selectedInstance.kind !== 'alert' && (
                                                         <FlatField label="Align">
                                                             <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
                                                                 {[
