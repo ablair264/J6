@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, ChevronDown, ChevronUp, Minus, SlidersHorizontal, X } from 'lucide-react';
 import {
@@ -882,12 +882,17 @@ export function InspectorPanel() {
 
     // ─── Rename helpers ───────────────────────────────────────────────────
 
+    const renameOpenedAt = useRef(0);
+
     const startRenameVariant = (instance: ComponentInstance) => {
+        renameOpenedAt.current = Date.now();
         setEditingVariantId(instance.id);
         setEditingVariantName(instance.name);
     };
 
     const commitRenameVariant = (instanceId: string) => {
+        // Guard: ignore blur events that fire within 100ms of opening (focus-management race)
+        if (Date.now() - renameOpenedAt.current < 100) return;
         const trimmed = editingVariantName.trim();
         if (trimmed.length > 0) {
             updateInstanceName(instanceId, trimmed);
@@ -923,11 +928,11 @@ export function InspectorPanel() {
                             <h2 className="truncate text-sm font-semibold text-[var(--inspector-text)]">{selectedInstance.name}</h2>
                             <button
                                 type="button"
-                                onClick={() => startRenameVariant(selectedInstance)}
-                                className="rounded-md p-1 text-[var(--inspector-muted-text)] transition hover:bg-[var(--inspector-input)] hover:text-[var(--inspector-text)]"
+                                onClick={(e) => { e.stopPropagation(); startRenameVariant(selectedInstance); }}
+                                className="cursor-pointer rounded-md p-1.5 text-[var(--inspector-muted-text)] transition hover:bg-[var(--inspector-input)] hover:text-[var(--inspector-text)]"
                                 aria-label="Rename component"
                             >
-                                <EditOne className="size-4" />
+                                <EditOne className="size-4 pointer-events-none" />
                             </button>
                         </div>
                     )}
