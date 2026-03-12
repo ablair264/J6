@@ -357,6 +357,7 @@ interface StudioState {
     hoverPreviewInstanceId: string | null;
     instanceContextMenu: { instanceId: string; x: number; y: number } | null;
     motionPreviewKey: number;
+    motionScrollProgress: number;
 
     // ─── Token state ──────────────────────────────────────────────────
     tokenSets: StudioTokenSet[];
@@ -405,6 +406,7 @@ interface StudioState {
     setInstanceContextMenu: (menu: { instanceId: string; x: number; y: number } | null) => void;
     setMotionPreviewKey: (v: number) => void;
     replayMotion: () => void;
+    setMotionScrollProgress: (v: number) => void;
 
     // Token actions
     setTokenSets: (sets: StudioTokenSet[] | ((current: StudioTokenSet[]) => StudioTokenSet[])) => void;
@@ -534,6 +536,7 @@ export const useStudioStore = create<StudioState>()(
             hoverPreviewInstanceId: null,
             instanceContextMenu: null,
             motionPreviewKey: 0,
+            motionScrollProgress: 0,
 
             // ─── Tokens ───────────────────────────────────────────
             tokenSets: hydrateTokenSets(),
@@ -610,6 +613,7 @@ export const useStudioStore = create<StudioState>()(
             setInstanceContextMenu: (menu) => set({ instanceContextMenu: menu }),
             setMotionPreviewKey: (v) => set({ motionPreviewKey: v }),
             replayMotion: () => set((state) => ({ motionPreviewKey: state.motionPreviewKey + 1 })),
+            setMotionScrollProgress: (v) => set({ motionScrollProgress: v }),
 
             // Token setters
             setTokenSets: (arg) => {
