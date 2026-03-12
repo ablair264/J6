@@ -14,7 +14,11 @@ export type AnimatedTextVariant =
     | 'gradual-spacing'
     | 'letters-pull-up'
     | 'fade-up'
-    | 'fade-down';
+    | 'fade-down'
+    | 'bounce'
+    | 'bubble'
+    | 'disperse'
+    | 'pattern';
 
 export type AnimatedTextSplitBy = 'char' | 'word' | 'line';
 export type AnimatedTextTrigger = 'mount' | 'hover';
@@ -403,6 +407,155 @@ function FadeDownText({
     );
 }
 
+// ─── Bounce (per-char spring bounce on hover) ───────────────────────────────
+
+function BounceText({
+    text, speed = 0.03, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
+    const chars = useMemo(() => text.split(''), [text]);
+
+    return (
+        <motion.span
+            className={cn('inline-block cursor-pointer', className)}
+            style={style}
+            whileHover="hover"
+            initial="initial"
+            data-slot="animated-text"
+        >
+            {chars.map((char, i) => (
+                <motion.span
+                    key={`${char}-${i}`}
+                    className="inline-block"
+                    style={char === ' ' ? { whiteSpace: 'pre' } : undefined}
+                    variants={{
+                        initial: { y: 0, scale: 1 },
+                        hover: {
+                            y: -4,
+                            scale: 1.2,
+                            transition: {
+                                type: 'spring',
+                                stiffness: 300,
+                                damping: 15,
+                                delay: i * (speed ?? 0.03),
+                            },
+                        },
+                    }}
+                >
+                    {char}
+                </motion.span>
+            ))}
+        </motion.span>
+    );
+}
+
+// ─── Bubble (proximity-based font-weight change on hover) ───────────────────
+
+function BubbleText({
+    text, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'className' | 'style'>) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const chars = useMemo(() => text.split(''), [text]);
+
+    return (
+        <span
+            className={cn('inline-block cursor-pointer', className)}
+            style={style}
+            onMouseLeave={() => setHoveredIndex(null)}
+            data-slot="animated-text"
+        >
+            {chars.map((char, i) => {
+                const distance = hoveredIndex !== null ? Math.abs(hoveredIndex - i) : null;
+                const weight = distance === 0 ? 900 : distance === 1 ? 500 : distance === 2 ? 300 : undefined;
+                const opacity = distance === 0 ? 1 : distance === 1 ? 0.9 : undefined;
+                return (
+                    <span
+                        key={`${char}-${i}`}
+                        onMouseEnter={() => setHoveredIndex(i)}
+                        className="inline-block transition-all duration-300 ease-in-out"
+                        style={{
+                            fontWeight: weight,
+                            opacity,
+                            ...(char === ' ' ? { whiteSpace: 'pre' as const } : {}),
+                        }}
+                    >
+                        {char === ' ' ? '\u00A0' : char}
+                    </span>
+                );
+            })}
+        </span>
+    );
+}
+
+// ─── Disperse (chars scatter on hover with transforms) ──────────────────────
+
+const DISPERSE_TRANSFORMS = [
+    { x: -0.8, y: -0.6, r: -29 },
+    { x: -0.2, y: -0.4, r: -6 },
+    { x: -0.05, y: 0.1, r: 12 },
+    { x: -0.05, y: -0.1, r: -9 },
+    { x: -0.1, y: 0.55, r: 3 },
+    { x: 0, y: -0.1, r: 9 },
+    { x: 0, y: 0.15, r: -12 },
+    { x: 0, y: 0.15, r: -17 },
+    { x: 0, y: -0.65, r: 9 },
+    { x: 0.1, y: 0.4, r: 12 },
+    { x: 0, y: -0.15, r: -9 },
+    { x: 0.2, y: 0.15, r: 12 },
+    { x: 0.8, y: 0.6, r: 20 },
+];
+
+function DisperseText({
+    text, speed = 0.75, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'speed' | 'className' | 'style'>) {
+    const [isActive, setIsActive] = useState(false);
+    const chars = useMemo(() => text.split(''), [text]);
+
+    return (
+        <span
+            className={cn('relative inline-flex cursor-pointer', className)}
+            style={style}
+            onMouseEnter={() => setIsActive(true)}
+            onMouseLeave={() => setIsActive(false)}
+            data-slot="animated-text"
+        >
+            {chars.map((char, i) => {
+                const t = DISPERSE_TRANSFORMS[i % DISPERSE_TRANSFORMS.length];
+                return (
+                    <motion.span
+                        key={`${char}-${i}`}
+                        className="inline-block"
+                        style={char === ' ' ? { whiteSpace: 'pre' } : undefined}
+                        animate={isActive
+                            ? { x: `${t.x}em`, y: `${t.y}em`, rotateZ: t.r }
+                            : { x: 0, y: 0, rotateZ: 0 }
+                        }
+                        transition={{ duration: speed ?? 0.75, ease: [0.33, 1, 0.68, 1] }}
+                    >
+                        {char}
+                    </motion.span>
+                );
+            })}
+        </span>
+    );
+}
+
+// ─── Pattern (CSS striped shadow text effect) ───────────────────────────────
+
+function PatternText({
+    text, className, style,
+}: Pick<AnimatedTextProps, 'text' | 'className' | 'style'>) {
+    return (
+        <span
+            data-shadow={text}
+            className={cn('ui-studio-animated-text-pattern relative inline-block', className)}
+            style={style}
+            data-slot="animated-text"
+        >
+            {text}
+        </span>
+    );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export function AnimatedText({
@@ -472,6 +625,14 @@ export function AnimatedText({
                 return <FadeUpText key={animKey} {...commonProps} />;
             case 'fade-down':
                 return <FadeDownText key={animKey} {...commonProps} />;
+            case 'bounce':
+                return <BounceText key={animKey} {...commonProps} />;
+            case 'bubble':
+                return <BubbleText key={animKey} {...commonProps} />;
+            case 'disperse':
+                return <DisperseText key={animKey} {...commonProps} />;
+            case 'pattern':
+                return <PatternText key={animKey} {...commonProps} />;
             default:
                 return <span className={className} style={style} data-slot="animated-text">{text}</span>;
         }

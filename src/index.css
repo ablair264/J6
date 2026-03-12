@@ -508,6 +508,37 @@
   100% { background-position: -200% 0; }
 }
 
+/* Pattern animated text variant */
+.ui-studio-animated-text-pattern {
+  position: relative;
+  display: inline-block;
+}
+
+.ui-studio-animated-text-pattern::after {
+  content: attr(data-shadow);
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0%,
+    transparent 3%,
+    currentColor 3%,
+    currentColor 5%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: ui-studio-pattern-shift 5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes ui-studio-pattern-shift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
 @keyframes ui-studio-loading-success-pop {
   0% {
     transform: scale(0.72);

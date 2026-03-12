@@ -26,7 +26,7 @@ export type UIComponentKind =
 
 export type SizeOption = 'sm' | 'md' | 'lg';
 export type CardVariant = 'default' | 'bordered' | 'elevated' | 'glass';
-export type AnimatedTextVariant = 'typewriter' | 'blur-in' | 'split-entrance' | 'counting-number' | 'decrypt' | 'gradient-sweep' | 'shiny-text' | 'word-rotate' | 'gradual-spacing' | 'letters-pull-up' | 'fade-up' | 'fade-down';
+export type AnimatedTextVariant = 'typewriter' | 'blur-in' | 'split-entrance' | 'counting-number' | 'decrypt' | 'gradient-sweep' | 'shiny-text' | 'word-rotate' | 'gradual-spacing' | 'letters-pull-up' | 'fade-up' | 'fade-down' | 'bounce' | 'bubble' | 'disperse' | 'pattern';
 export type AnimatedTextSplitBy = 'char' | 'word' | 'line';
 export type AnimatedTextTrigger = 'mount' | 'hover';
 export type FillMode = 'solid' | 'gradient';

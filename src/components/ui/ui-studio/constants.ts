@@ -3362,6 +3362,34 @@ export const COMPONENT_VISUAL_PRESETS: Record<UIComponentKind, ComponentVisualPr
             kind: 'animated-text',
             values: { componentPreset: 'letters-pull-up', fontSize: 32, fontColor: '#e2e8f0', fontWeight: 600, animatedTextVariant: 'letters-pull-up' as const, animatedTextSpeed: 0.3, animatedTextStaggerDelay: 0.03 },
         },
+        {
+            id: 'bounce',
+            label: 'Bounce',
+            description: 'Per-character spring bounce on hover.',
+            kind: 'animated-text',
+            values: { componentPreset: 'bounce', fontSize: 36, fontColor: '#f1f5f9', fontWeight: 700, animatedTextVariant: 'bounce' as const, animatedTextSpeed: 0.3, animatedTextStaggerDelay: 0.05 },
+        },
+        {
+            id: 'bubble',
+            label: 'Bubble',
+            description: 'Proximity-based font weight on hover.',
+            kind: 'animated-text',
+            values: { componentPreset: 'bubble', fontSize: 36, fontColor: '#e2e8f0', fontWeight: 400, animatedTextVariant: 'bubble' as const },
+        },
+        {
+            id: 'disperse',
+            label: 'Disperse',
+            description: 'Characters scatter on hover.',
+            kind: 'animated-text',
+            values: { componentPreset: 'disperse', fontSize: 32, fontColor: '#f1f5f9', fontWeight: 600, animatedTextVariant: 'disperse' as const, animatedTextSpeed: 0.5 },
+        },
+        {
+            id: 'pattern',
+            label: 'Pattern',
+            description: 'Striped CSS pattern overlay on text.',
+            kind: 'animated-text',
+            values: { componentPreset: 'pattern', fontSize: 48, fontColor: '#94a3b8', fontWeight: 800, animatedTextVariant: 'pattern' as const },
+        },
     ],
     accordion: [
         {

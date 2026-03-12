@@ -3412,7 +3412,12 @@ export function InspectorPanel() {
                         <div className="p-1">
                             <FlatInspectorSection title="Text Animation" icon={Sparkles} defaultOpen>
                                     <FlatField label="Animation" stacked>
-                                        <FlatSelect value={selectedStyle.animatedTextVariant} onValueChange={(value) => updateSelectedStyle('animatedTextVariant', value as AnimatedTextVariant)} ariaLabel="Animation variant">
+                                        <FlatSelect value={selectedStyle.animatedTextVariant} onValueChange={(value) => {
+                                            updateSelectedStyle('animatedTextVariant', value as AnimatedTextVariant);
+                                            if (!(['blur-in', 'split-entrance', 'gradual-spacing', 'letters-pull-up', 'fade-up', 'fade-down'] as string[]).includes(value)) {
+                                                updateSelectedStyle('animatedTextTrigger', 'mount');
+                                            }
+                                        }} ariaLabel="Animation variant">
                                             <option value="typewriter">Typewriter</option>
                                             <option value="blur-in">Blur In</option>
                                             <option value="split-entrance">Split Entrance</option>
@@ -3425,6 +3430,10 @@ export function InspectorPanel() {
                                             <option value="letters-pull-up">Letters Pull Up</option>
                                             <option value="fade-up">Fade Up</option>
                                             <option value="fade-down">Fade Down</option>
+                                            <option value="bounce">Bounce</option>
+                                            <option value="bubble">Bubble</option>
+                                            <option value="disperse">Disperse</option>
+                                            <option value="pattern">Pattern</option>
                                         </FlatSelect>
                                     </FlatField>
                                     {selectedStyle.animatedTextVariant === 'counting-number' ? (
@@ -3464,12 +3473,14 @@ export function InspectorPanel() {
                                         </FlatField>
                                     )}
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatField label="Trigger" stacked>
-                                            <FlatSelect value={selectedStyle.animatedTextTrigger} onValueChange={(value) => updateSelectedStyle('animatedTextTrigger', value as AnimatedTextTrigger)} ariaLabel="Animation trigger">
-                                                <option value="mount">On Mount</option>
-                                                <option value="hover">On Hover</option>
-                                            </FlatSelect>
-                                        </FlatField>
+                                        {(['blur-in', 'split-entrance', 'gradual-spacing', 'letters-pull-up', 'fade-up', 'fade-down'] as string[]).includes(selectedStyle.animatedTextVariant) ? (
+                                            <FlatField label="Trigger" stacked>
+                                                <FlatSelect value={selectedStyle.animatedTextTrigger} onValueChange={(value) => updateSelectedStyle('animatedTextTrigger', value as AnimatedTextTrigger)} ariaLabel="Animation trigger">
+                                                    <option value="mount">On Mount</option>
+                                                    <option value="hover">On Hover</option>
+                                                </FlatSelect>
+                                            </FlatField>
+                                        ) : null}
                                         {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance') ? (
                                             <FlatField label="Split By" stacked>
                                                 <FlatSelect value={selectedStyle.animatedTextSplitBy} onValueChange={(value) => updateSelectedStyle('animatedTextSplitBy', value as AnimatedTextSplitBy)} ariaLabel="Split mode">
@@ -3480,12 +3491,14 @@ export function InspectorPanel() {
                                             </FlatField>
                                         ) : null}
                                     </div>
+                                    {selectedStyle.animatedTextVariant !== 'bubble' && selectedStyle.animatedTextVariant !== 'pattern' ? (
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Speed" value={selectedStyle.animatedTextSpeed} min={0.01} max={5} step={0.05} unit="s" onChange={(value) => updateSelectedStyle('animatedTextSpeed', value)} />
-                                        {(selectedStyle.animatedTextVariant === 'blur-in' || selectedStyle.animatedTextVariant === 'split-entrance' || selectedStyle.animatedTextVariant === 'gradual-spacing' || selectedStyle.animatedTextVariant === 'letters-pull-up') ? (
+                                        {(['blur-in', 'split-entrance', 'gradual-spacing', 'letters-pull-up', 'bounce'] as string[]).includes(selectedStyle.animatedTextVariant) ? (
                                             <FlatUnitField label="Stagger" value={selectedStyle.animatedTextStaggerDelay} min={0.01} max={0.5} step={0.01} unit="s" onChange={(value) => updateSelectedStyle('animatedTextStaggerDelay', value)} />
                                         ) : null}
                                     </div>
+                                    ) : null}
 
                                 {(selectedStyle.animatedTextVariant === 'gradient-sweep' || selectedStyle.animatedTextVariant === 'shiny-text') ? (
                                     <FlatElementSubsection title="Gradient Colors" defaultOpen>
