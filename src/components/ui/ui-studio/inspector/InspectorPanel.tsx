@@ -285,6 +285,7 @@ export function InspectorPanel() {
     const deleteInstance = useStudioStore((s) => s.deleteInstance);
     const updateInstanceName = useStudioStore((s) => s.updateInstanceName);
     const applyComponentVisualPreset = useStudioStore((s) => s.applyComponentVisualPreset);
+    const renameInputRef = useRef<HTMLInputElement | null>(null);
 
     // ─── Derived state (driven by inspector registry) ──────────────────────
 
@@ -901,6 +902,15 @@ export function InspectorPanel() {
         setEditingVariantName('');
     };
 
+    useEffect(() => {
+        if (!selectedInstance || editingVariantId !== selectedInstance.id) return;
+        const frameId = window.requestAnimationFrame(() => {
+            renameInputRef.current?.focus();
+            renameInputRef.current?.select();
+        });
+        return () => window.cancelAnimationFrame(frameId);
+    }, [editingVariantId, selectedInstance]);
+
     // ─── Render ───────────────────────────────────────────────────────────
 
     if (!selectedStyle || !selectedInstance) {
@@ -913,15 +923,16 @@ export function InspectorPanel() {
                 <div className="mx-1 mb-1.5 flex items-center justify-between border-b border-[var(--inspector-border-soft)] px-2 pb-2 pt-1">
                     {editingVariantId === selectedInstance.id ? (
                         <input
+                            ref={renameInputRef}
                             value={editingVariantName}
                             onChange={(event) => setEditingVariantName(event.target.value)}
                             onBlur={() => commitRenameVariant(selectedInstance.id)}
+                            onMouseDown={(event) => event.stopPropagation()}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') { event.preventDefault(); commitRenameVariant(selectedInstance.id); }
                                 if (event.key === 'Escape') { event.preventDefault(); setEditingVariantId(null); setEditingVariantName(''); }
                             }}
                             className={cn(studioInputClass, 'h-8 max-w-[220px]')}
-                            autoFocus
                         />
                     ) : (
                         <div className="inline-flex items-center gap-2">

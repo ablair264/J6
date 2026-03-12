@@ -80,6 +80,8 @@ export function Sidebar() {
     const componentSearchRef = useRef<HTMLInputElement | null>(null);
     const hoverPreviewTimerRef = useRef<number | null>(null);
     const contextMenuRef = useRef<HTMLDivElement | null>(null);
+    const renameInputRef = useRef<HTMLInputElement | null>(null);
+    const renameOpenedAt = useRef(0);
 
     const defaultCanvasBg = studioTheme === 'dark' ? '#101a2d' : '#f3f7ff';
     const canvasBackground = canvasBackgroundStore || defaultCanvasBg;
@@ -138,6 +140,15 @@ export function Sidebar() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!editingVariantId) return;
+        const frameId = window.requestAnimationFrame(() => {
+            renameInputRef.current?.focus();
+            renameInputRef.current?.select();
+        });
+        return () => window.cancelAnimationFrame(frameId);
+    }, [editingVariantId]);
+
     // Context menu close handlers
     useEffect(() => {
         if (!instanceContextMenu) return;
@@ -181,11 +192,14 @@ export function Sidebar() {
     };
 
     const startRenameVariant = (instance: { id: string; name: string }) => {
+        renameOpenedAt.current = Date.now();
+        setSelectedInstanceId(instance.id);
         setEditingVariantId(instance.id);
         setEditingVariantName(instance.name);
     };
 
     const commitRenameVariant = (instanceId: string) => {
+        if (Date.now() - renameOpenedAt.current < 100) return;
         const trimmed = editingVariantName.trim();
         if (trimmed.length > 0) {
             updateInstanceName(instanceId, trimmed);
@@ -434,9 +448,12 @@ export function Sidebar() {
                                                     <div className="min-w-0 flex-1">
                                                         {isEditing ? (
                                                             <input
+                                                                ref={renameInputRef}
                                                                 value={editingVariantName}
                                                                 onChange={(event) => setEditingVariantName(event.target.value)}
                                                                 onBlur={() => commitRenameVariant(instance.id)}
+                                                                onMouseDown={(event) => event.stopPropagation()}
+                                                                onClick={(event) => event.stopPropagation()}
                                                                 onKeyDown={(event) => {
                                                                     if (event.key === 'Enter') {
                                                                         event.preventDefault();
@@ -448,9 +465,7 @@ export function Sidebar() {
                                                                         setEditingVariantName('');
                                                                     }
                                                                 }}
-                                                                onClick={(event) => event.stopPropagation()}
                                                                 className={cn(studioInputClass, 'h-7')}
-                                                                autoFocus
                                                             />
                                                         ) : (
                                                             <>
