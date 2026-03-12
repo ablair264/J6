@@ -12,7 +12,6 @@ import type {
     MotionEaseOption,
     MotionGroupOrigin,
     MotionGroupStrategy,
-    MotionPreviewMode,
     MotionRelationshipScope,
     MotionScrollMode,
     MotionTimelineStep,
@@ -28,8 +27,8 @@ export type MotionPresetOption = { id: string; label: string; description: strin
 type MotionTriggerTab = 'hover' | 'tap' | 'overlay';
 
 const MOTION_AUTHORING_OPTIONS: Array<{ value: MotionAuthoringMode; label: string; description: string }> = [
-    { value: 'simple', label: 'Simple', description: 'Use the current direct controls for entry, hover, and tap.' },
-    { value: 'timeline', label: 'Timeline', description: 'Author motion as ordered steps that later phases will run directly.' },
+    { value: 'simple', label: 'Simple', description: 'Use direct controls for entry, hover, and press.' },
+    { value: 'timeline', label: 'Timeline', description: 'Build a sequenced motion recipe for advanced cases.' },
 ];
 
 const MOTION_CATEGORY_OPTIONS: Array<{ value: MotionCategory; label: string }> = [
@@ -45,15 +44,6 @@ const MOTION_RELATIONSHIP_OPTIONS: Array<{ value: MotionRelationshipScope; label
     { value: 'children', label: 'Children' },
     { value: 'siblings', label: 'Siblings' },
     { value: 'group', label: 'Whole Group' },
-];
-
-const MOTION_PREVIEW_OPTIONS: Array<{ value: MotionPreviewMode; label: string }> = [
-    { value: 'idle', label: 'Idle' },
-    { value: 'hover', label: 'Hover' },
-    { value: 'tap', label: 'Tap' },
-    { value: 'playOnce', label: 'Play Once' },
-    { value: 'loop', label: 'Loop' },
-    { value: 'scrub', label: 'Scrub' },
 ];
 
 const MOTION_GROUP_STRATEGY_OPTIONS: Array<{ value: MotionGroupStrategy; label: string }> = [
@@ -1013,8 +1003,8 @@ export function MotionInspectorSection({
                 <div className="space-y-2">
                     <CollapsibleTrigger className="group/motion-model flex w-full items-center justify-between text-left">
                         <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Motion Model</p>
-                            <p className="text-[11px] text-[#64748b]">Set the motion category, authoring mode, and interaction scope.</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Motion Setup</p>
+                            <p className="text-[11px] text-[#64748b]">Choose how this component should move. Preview it from the stage controls.</p>
                         </div>
                         <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/motion-model:rotate-180" />
                     </CollapsibleTrigger>
@@ -1027,32 +1017,25 @@ export function MotionInspectorSection({
                         </div>
 
                         <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Motion Category</p>
-                            <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">This helps group presets and keeps motion intent clear for developers.</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Purpose</p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">Describe the job of the motion: feedback, transition, attention, hierarchy, or ambience.</p>
                             <div className="mt-2">
                                 <SchemaButtonGroup options={MOTION_CATEGORY_OPTIONS} value={selectedStyle.motionCategory} onChange={(value) => updateSelectedStyle('motionCategory', value)} columns={2} />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Relationship Scope</p>
-                                <div className="mt-2">
-                                    <SchemaButtonGroup
-                                        options={MOTION_RELATIONSHIP_OPTIONS}
-                                        value={selectedStyle.motionRelationshipScope}
-                                        onChange={(value) => {
-                                            updateSelectedStyle('motionRelationshipScope', value);
-                                            updateSelectedStyle('motionGroupScope', value);
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Preview Mode</p>
-                                <div className="mt-2">
-                                    <SchemaButtonGroup options={MOTION_PREVIEW_OPTIONS} value={selectedStyle.motionPreviewMode} onChange={(value) => updateSelectedStyle('motionPreviewMode', value)} />
-                                </div>
+                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Affects</p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">Pick whether motion stays on this layer or should influence nearby items in a set.</p>
+                            <div className="mt-2">
+                                <SchemaButtonGroup
+                                    options={MOTION_RELATIONSHIP_OPTIONS}
+                                    value={selectedStyle.motionRelationshipScope}
+                                    onChange={(value) => {
+                                        updateSelectedStyle('motionRelationshipScope', value);
+                                        updateSelectedStyle('motionGroupScope', value);
+                                    }}
+                                />
                             </div>
                         </div>
                     </CollapsibleContent>
@@ -1063,8 +1046,8 @@ export function MotionInspectorSection({
                 <div className="space-y-2">
                     <CollapsibleTrigger className="group/timeline flex w-full items-center justify-between text-left">
                         <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Timeline</p>
-                            <p className="text-[11px] text-[#64748b]">Build ordered motion steps now, even while preview still runs the current simple engine.</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Advanced Timeline</p>
+                            <p className="text-[11px] text-[#64748b]">Sequence multiple steps for entry, hover, press, looping, and scroll motion.</p>
                         </div>
                         <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/timeline:rotate-180" />
                     </CollapsibleTrigger>
@@ -1073,7 +1056,7 @@ export function MotionInspectorSection({
                             <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-[12px] text-[#e2e8f0]">Timeline authoring</p>
-                                    <p className="text-[11px] text-[#64748b]">Use timeline steps for entry, hover, tap, exit, loop, or scroll triggers.</p>
+                                    <p className="text-[11px] text-[#64748b]">Turn this on when one interaction needs more than a single hover or press state.</p>
                                 </div>
                                 <Switch.Root
                                     checked={selectedStyle.motionTimelineEnabled}
@@ -1257,12 +1240,12 @@ export function MotionInspectorSection({
                         <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/group:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Strategy</p>
-                            <div className="mt-2">
-                                <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
+                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Strategy</p>
+                                <div className="mt-2">
+                                    <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
+                                </div>
                             </div>
-                        </div>
 
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
@@ -1272,10 +1255,10 @@ export function MotionInspectorSection({
                                 </div>
                             </div>
                             <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Scope</p>
-                                <div className="mt-2">
-                                    <SchemaButtonGroup options={MOTION_RELATIONSHIP_OPTIONS} value={selectedStyle.motionGroupScope} onChange={(value) => updateSelectedStyle('motionGroupScope', value)} />
-                                </div>
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Applies To</p>
+                                <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">
+                                    Uses the stage-level <span className="text-[#dbe7f8]">Affects</span> setting above.
+                                </p>
                             </div>
                         </div>
 
@@ -1300,7 +1283,7 @@ export function MotionInspectorSection({
                     <CollapsibleTrigger className="group/scroll flex w-full items-center justify-between text-left">
                         <div>
                             <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Scroll</p>
-                            <p className="text-[11px] text-[#64748b]">Capture scroll-triggered intent now. Runtime support lands in a later phase.</p>
+                            <p className="text-[11px] text-[#64748b]">Set how the component should behave when it enters the viewport, then preview it from the stage toolbar.</p>
                         </div>
                         <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/scroll:rotate-180" />
                     </CollapsibleTrigger>

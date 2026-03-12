@@ -72,9 +72,14 @@ export type PreviewGestureMotion = any;
 export interface PreviewMotionProps {
     initial?: any;
     animate?: any;
+    whileInView?: any;
     whileHover?: PreviewGestureMotion;
     whileTap?: PreviewGestureMotion;
     transition?: any;
+    viewport?: {
+        once?: boolean;
+        amount?: number;
+    };
     style?: CSSProperties;
 }
 
@@ -308,6 +313,13 @@ export function buildPreviewMotionProps(
     const compiled = compileMotionConfig(config);
     const previewMode = config.motionPreviewMode;
     const transformOrigin = compiled.entry?.transformOrigin;
+    const scrollTransformOrigin = compiled.scroll?.transformOrigin;
+
+    const scrollStyle = scrollTransformOrigin ? { transformOrigin: scrollTransformOrigin } : transformOrigin ? { transformOrigin } : undefined;
+    const scrollViewport = {
+        once: !config.motionScrollReplay,
+        amount: Math.max(0, Math.min(1, config.motionScrollStart / 100)),
+    };
 
     if (previewMode === 'hover' && allowInteraction && compiled.hover?.target) {
         return {
@@ -347,7 +359,17 @@ export function buildPreviewMotionProps(
             transition: compiled.scroll.transition
                 ? { ...compiled.scroll.transition, duration: 0 }
                 : { type: 'tween' as const, duration: 0 },
-            ...(transformOrigin ? { style: { transformOrigin } } : {}),
+            ...(scrollStyle ? { style: scrollStyle } : {}),
+        };
+    }
+
+    if (config.motionScrollEnabled && compiled.scroll?.target) {
+        return {
+            initial: compiled.scroll.initial ?? (allowEntry && config.motionEntryEnabled ? compiled.entry?.initial : undefined),
+            whileInView: compiled.scroll.target,
+            transition: compiled.scroll.transition ?? (allowEntry ? compiled.entry?.transition : undefined),
+            viewport: scrollViewport,
+            ...(scrollStyle ? { style: scrollStyle } : {}),
         };
     }
 
@@ -570,6 +592,7 @@ export function hasAnyMotionEnabled(config: ComponentStyleConfig): boolean {
     return (
         config.motionEntryEnabled ||
         config.motionExitEnabled ||
+        config.motionScrollEnabled ||
         config.motionHoverEnabled ||
         config.motionTapEnabled ||
         config.motionStaggerEnabled ||
@@ -582,7 +605,7 @@ function buildMotionExitValues(config: ComponentStyleConfig) {
 }
 
 export function renderEntryMotion(content: ReactNode, config: ComponentStyleConfig): ReactNode {
-    if (!config.motionEntryEnabled) {
+    if (!config.motionEntryEnabled && !config.motionScrollEnabled) {
         return content;
     }
     const previewMotion = buildPreviewMotionProps(config, { allowEntry: true, allowInteraction: false });
@@ -591,8 +614,10 @@ export function renderEntryMotion(content: ReactNode, config: ComponentStyleConf
         <motion.div
             initial={previewMotion.initial}
             animate={previewMotion.animate}
+            whileInView={previewMotion.whileInView}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
             transition={previewMotion.transition}
+            viewport={previewMotion.viewport}
             {...(previewMotion.style ? { style: previewMotion.style } : {})}
         >
             {content}
@@ -619,10 +644,12 @@ export function renderWithMotionControls(
             className="w-full"
             initial={previewMotion.initial}
             animate={previewMotion.animate}
+            whileInView={previewMotion.whileInView}
             whileHover={previewMotion.whileHover}
             whileTap={previewMotion.whileTap}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
             transition={previewMotion.transition}
+            viewport={previewMotion.viewport}
             {...(previewMotion.style ? { style: previewMotion.style } : {})}
         >
             {content}
@@ -699,9 +726,11 @@ function buildGroupChildMotion(config: ComponentStyleConfig) {
 
     return {
         initial: compiled.entry?.initial ?? previewMotion.initial ?? { opacity: 0, y: 8 },
-        animate: compiled.entry?.target ?? previewMotion.animate ?? { opacity: 1, y: 0 },
+        animate: compiled.entry?.target ?? previewMotion.animate ?? (previewMotion.whileInView ? undefined : { opacity: 1, y: 0 }),
+        whileInView: previewMotion.whileInView,
         transition: entryTransition,
         duration: entryDuration,
+        viewport: previewMotion.viewport,
         style: compiled.entry?.transformOrigin ? { transformOrigin: compiled.entry.transformOrigin } : previewMotion.style,
     };
 }
@@ -728,10 +757,12 @@ export function renderStaggeredChildren(
                 key={index}
                 initial={childMotion.initial}
                 animate={childMotion.animate}
+                whileInView={childMotion.whileInView}
                 transition={{
                     ...(childMotion.transition ?? {}),
                     delay: (childMotion.transition?.delay ?? 0) + delay,
                 }}
+                viewport={childMotion.viewport}
                 style={childMotion.style}
             >
                 {child}
@@ -851,6 +882,10 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
     const compiled = compileMotionConfig(config);
     const groupStrategy = resolveGroupStrategy(config);
     const relationshipScope = resolveRelationshipScope(config);
+    const scrollViewport = {
+        once: !config.motionScrollReplay,
+        amount: Math.max(0, Math.min(1, config.motionScrollStart / 100)),
+    };
     const relationshipNotes: Partial<Record<NonNullable<ComponentStyleConfig['motionRelationshipScope']>, string>> = {
         siblings: '// Sibling items react when one item is hovered.',
         children: '// Child items partially follow the hovered item.',
@@ -872,14 +907,25 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
     };
 
     const motionPropsEntries = [
-        config.motionEntryEnabled && compiled.entry?.initial ? `initial: ${serializeValue(compiled.entry.initial)}` : null,
-        config.motionEntryEnabled && compiled.entry?.target ? `animate: ${serializeValue(compiled.entry.target)}` : null,
+        !config.motionScrollEnabled && config.motionEntryEnabled && compiled.entry?.initial ? `initial: ${serializeValue(compiled.entry.initial)}` : null,
+        !config.motionScrollEnabled && config.motionEntryEnabled && compiled.entry?.target ? `animate: ${serializeValue(compiled.entry.target)}` : null,
         config.motionHoverEnabled ? `whileHover: ${serializeValue(buildMotionGesture(config, 'hover'))}` : null,
         config.motionTapEnabled ? `whileTap: ${serializeValue(buildMotionGesture(config, 'tap'))}` : null,
         config.motionExitEnabled && compiled.exit?.target ? `exit: ${serializeValue(compiled.exit.target)}` : null,
-        compiled.entry?.transition ? `transition: ${serializeValue(compiled.entry.transition)}` : null,
-        compiled.entry?.transformOrigin ? `style: ${serializeValue({ transformOrigin: compiled.entry.transformOrigin })}` : null,
+        !config.motionScrollEnabled && compiled.entry?.transition ? `transition: ${serializeValue(compiled.entry.transition)}` : null,
+        !config.motionScrollEnabled && compiled.entry?.transformOrigin ? `style: ${serializeValue({ transformOrigin: compiled.entry.transformOrigin })}` : null,
     ].filter(Boolean);
+    const scrollMotionEntries = config.motionScrollEnabled && compiled.scroll?.target
+        ? [
+            compiled.scroll.initial ? `initial: ${serializeValue(compiled.scroll.initial)}` : null,
+            `whileInView: ${serializeValue(compiled.scroll.target)}`,
+            (compiled.scroll.transition ?? compiled.entry?.transition) ? `transition: ${serializeValue(compiled.scroll.transition ?? compiled.entry?.transition)}` : null,
+            `viewport: ${serializeValue(scrollViewport)}`,
+            (compiled.scroll.transformOrigin ?? compiled.entry?.transformOrigin)
+                ? `style: ${serializeValue({ transformOrigin: compiled.scroll.transformOrigin ?? compiled.entry?.transformOrigin })}`
+                : null,
+        ].filter(Boolean)
+        : [];
 
     const timelineGroups = Object.entries(compiled)
         .filter(([, trigger]) => trigger?.steps.length)
@@ -897,6 +943,13 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
 
     let snippet = `const motionProps = {\n  ${motionPropsEntries.join(',\n  ')}\n};`;
 
+    if (scrollMotionEntries.length) {
+        snippet += `\n\nconst scrollMotion = {\n  ${scrollMotionEntries.join(',\n  ')}\n};`;
+        if (config.motionScrollMode === 'progress') {
+            snippet += `\n\n// Progress mode uses an in-view fallback here. For continuous scrubbing, drive the same target with scrollYProgress.`;
+        }
+    }
+
     if (timelineGroups) {
         snippet += `\n\nconst motionTimeline = {\n${timelineGroups}\n};`;
     }
@@ -905,10 +958,11 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
         snippet += `\n\n${relationshipNotes[relationshipScope] ?? '// Related elements respond together.'}\nconst motionRelationshipScope = '${relationshipScope}';`;
     }
 
-    snippet += `\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
+    const motionWrapperProps = scrollMotionEntries.length ? '{...motionProps} {...scrollMotion}' : '{...motionProps}';
+    snippet += `\n\n// Wrap your component preview with motion\n<motion.div ${motionWrapperProps}>\n  {/* component */}\n</motion.div>`;
 
     if (groupStrategy !== 'none') {
-        snippet += `\n\n// Group children\nconst groupStrategy = '${groupStrategy}';\nconst groupOrigin = '${config.motionGroupOrigin}';\nconst groupInterval = ${groupInterval};\nconst getGroupOrder = (index, total) => {\n  if (groupOrigin === 'last') return total - 1 - index;\n  if (groupOrigin === 'center') {\n    const center = (total - 1) / 2;\n    return Array.from({ length: total }, (_, childIndex) => childIndex)\n      .sort((a, b) => Math.abs(a - center) - Math.abs(b - center) || a - b)\n      .indexOf(index);\n  }\n  return index;\n};\n{items.map((item, index) => {\n  const orderIndex = getGroupOrder(index, items.length);\n  const delay = groupStrategy === 'queue'\n    ? orderIndex * (${groupChildMotion.duration} + groupInterval)\n    : orderIndex * groupInterval;\n  return (\n    <motion.div\n      key={item.id}\n      initial={${serializeValue(groupChildMotion.initial)}}\n      animate={${serializeValue(groupChildMotion.animate)}}\n      transition={{ ...${serializeValue(groupChildMotion.transition)}, delay }}\n      ${groupChildMotion.style ? `style={${serializeValue(groupChildMotion.style)}}` : ''}\n    >\n      {item.content}\n    </motion.div>\n  );\n})}`;
+        snippet += `\n\n// Group children\nconst groupStrategy = '${groupStrategy}';\nconst groupOrigin = '${config.motionGroupOrigin}';\nconst groupInterval = ${groupInterval};\nconst getGroupOrder = (index, total) => {\n  if (groupOrigin === 'last') return total - 1 - index;\n  if (groupOrigin === 'center') {\n    const center = (total - 1) / 2;\n    return Array.from({ length: total }, (_, childIndex) => childIndex)\n      .sort((a, b) => Math.abs(a - center) - Math.abs(b - center) || a - b)\n      .indexOf(index);\n  }\n  return index;\n};\n{items.map((item, index) => {\n  const orderIndex = getGroupOrder(index, items.length);\n  const delay = groupStrategy === 'queue'\n    ? orderIndex * (${groupChildMotion.duration} + groupInterval)\n    : orderIndex * groupInterval;\n  return (\n    <motion.div\n      key={item.id}\n      initial={${serializeValue(groupChildMotion.initial)}}\n      ${groupChildMotion.animate ? `animate={${serializeValue(groupChildMotion.animate)}}` : ''}\n      ${groupChildMotion.whileInView ? `whileInView={${serializeValue(groupChildMotion.whileInView)}}` : ''}\n      transition={{ ...${serializeValue(groupChildMotion.transition)}, delay }}\n      ${groupChildMotion.viewport ? `viewport={${serializeValue(groupChildMotion.viewport)}}` : ''}\n      ${groupChildMotion.style ? `style={${serializeValue(groupChildMotion.style)}}` : ''}\n    >\n      {item.content}\n    </motion.div>\n  );\n})}`;
     }
 
     if (hasAdvancedHoverEnabled(config)) {

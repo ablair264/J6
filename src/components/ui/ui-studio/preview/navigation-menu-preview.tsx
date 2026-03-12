@@ -52,14 +52,16 @@ export function NavigationMenuPreview({
             total: navItems.length,
             axis: instanceStyle.navMenuOrientation === 'vertical' ? 'y' : 'x',
         });
-        const hasHoverOrTap = Boolean(itemMotionProps.animate || itemMotionProps.whileHover || itemMotionProps.whileTap);
+        const hasHoverOrTap = Boolean(itemMotionProps.animate || itemMotionProps.whileInView || itemMotionProps.whileHover || itemMotionProps.whileTap);
         if (!hasHoverOrTap) return content;
         return (
             <motion.div
                 animate={itemMotionProps.animate}
+                whileInView={itemMotionProps.whileInView}
                 whileHover={itemMotionProps.whileHover}
                 whileTap={itemMotionProps.whileTap}
                 transition={itemMotionProps.transition}
+                viewport={itemMotionProps.viewport}
                 style={itemMotionProps.style}
                 onHoverStart={() => setHoveredIndex(index)}
                 onHoverEnd={() => setHoveredIndex((current) => (current === index ? null : current))}
