@@ -1,22 +1,17 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
-import { Switch } from 'radix-ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FlatSelect } from '@/components/ui/ui-studio/inspector';
+import { AnimatedCheckbox } from '@/components/ui/motion/AnimatedCheckbox';
 import { cn } from '@/lib/utils';
 import type {
     ComponentStyleConfig,
-    MotionAuthoringMode,
-    MotionCategory,
     MotionEaseOption,
     MotionGroupOrigin,
     MotionGroupStrategy,
-    MotionRelationshipScope,
     MotionScrollMode,
-    MotionTimelineStep,
     MotionTransitionType,
-    MotionTrigger,
     StaggerDirection,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
@@ -24,81 +19,9 @@ import { supportsStaggerMotion } from '@/components/ui/ui-studio/utilities';
 
 export type MotionPresetOption = { id: string; label: string; description: string; values?: Partial<ComponentStyleConfig> };
 
-type MotionTriggerTab = 'hover' | 'tap' | 'overlay';
+type MotionTriggerTab = 'entry' | 'hover' | 'tap';
 
-const MOTION_AUTHORING_OPTIONS: Array<{ value: MotionAuthoringMode; label: string; description: string }> = [
-    { value: 'simple', label: 'Simple', description: 'Use direct controls for entry, hover, and press.' },
-    { value: 'timeline', label: 'Timeline', description: 'Build a sequenced motion recipe for advanced cases.' },
-];
-
-const MOTION_CATEGORY_OPTIONS: Array<{ value: MotionCategory; label: string }> = [
-    { value: 'feedback', label: 'Feedback' },
-    { value: 'transition', label: 'Transition' },
-    { value: 'attention', label: 'Attention' },
-    { value: 'hierarchy', label: 'Hierarchy' },
-    { value: 'ambient', label: 'Ambient' },
-];
-
-const MOTION_RELATIONSHIP_OPTIONS: Array<{ value: MotionRelationshipScope; label: string }> = [
-    { value: 'self', label: 'This Element' },
-    { value: 'children', label: 'Children' },
-    { value: 'siblings', label: 'Siblings' },
-    { value: 'group', label: 'Whole Group' },
-];
-
-const MOTION_GROUP_STRATEGY_OPTIONS: Array<{ value: MotionGroupStrategy; label: string }> = [
-    { value: 'none', label: 'None' },
-    { value: 'stagger', label: 'Stagger' },
-    { value: 'queue', label: 'Queue' },
-];
-
-const MOTION_GROUP_ORIGIN_OPTIONS: Array<{ value: MotionGroupOrigin; label: string }> = [
-    { value: 'first', label: 'First' },
-    { value: 'last', label: 'Last' },
-    { value: 'center', label: 'Center' },
-];
-
-const MOTION_SCROLL_MODE_OPTIONS: Array<{ value: MotionScrollMode; label: string }> = [
-    { value: 'enter', label: 'Enter' },
-    { value: 'replay', label: 'Replay' },
-    { value: 'progress', label: 'Progress' },
-];
-
-const TIMELINE_TRIGGER_OPTIONS: Array<{ value: MotionTrigger; label: string }> = [
-    { value: 'entry', label: 'Entry' },
-    { value: 'hover', label: 'Hover' },
-    { value: 'tap', label: 'Tap' },
-    { value: 'exit', label: 'Exit' },
-    { value: 'loop', label: 'Loop' },
-    { value: 'scroll', label: 'Scroll' },
-];
-
-const SIMPLE_EASE_OPTIONS: Array<{ value: MotionEaseOption; label: string }> = [
-    { value: 'linear', label: 'Linear' },
-    { value: 'easeIn', label: 'Ease In' },
-    { value: 'easeOut', label: 'Ease Out' },
-    { value: 'easeInOut', label: 'Ease In Out' },
-    { value: 'anticipate', label: 'Anticipate' },
-    { value: 'backIn', label: 'Back In' },
-    { value: 'backOut', label: 'Back Out' },
-    { value: 'backInOut', label: 'Back In Out' },
-    { value: 'circIn', label: 'Circ In' },
-    { value: 'circOut', label: 'Circ Out' },
-    { value: 'circInOut', label: 'Circ In Out' },
-    { value: 'cubicBezier', label: 'Custom Bezier' },
-];
-
-function createTimelineStep(trigger: MotionTrigger, index: number): MotionTimelineStep {
-    return {
-        id: `timeline-${trigger}-${index}`,
-        trigger,
-        label: `${trigger.charAt(0).toUpperCase()}${trigger.slice(1)} Step`,
-        duration: 0.2,
-        delay: 0,
-        transitionType: 'tween',
-        ease: 'easeInOut',
-    };
-}
+/* ─── Tuning per component kind ─── */
 
 interface MotionControlTuning {
     hoverScaleMin: number;
@@ -127,112 +50,44 @@ const DEFAULT_MOTION_CONTROL_TUNING: MotionControlTuning = {
 };
 
 const MOTION_CONTROL_TUNING_BY_KIND: Partial<Record<UIComponentKind, Partial<MotionControlTuning>>> = {
-    button: {
-        hoverScaleMin: 92,
-        hoverScaleMax: 118,
-        hoverOffset: 24,
-        tapScaleMin: 85,
-        tapScaleMax: 104,
-        tapOffset: 14,
-    },
-    'stage-button': {
-        hoverScaleMin: 92,
-        hoverScaleMax: 118,
-        hoverOffset: 24,
-        tapScaleMin: 85,
-        tapScaleMax: 104,
-        tapOffset: 14,
-    },
-    badge: {
-        hoverScaleMin: 92,
-        hoverScaleMax: 116,
-        hoverOffset: 18,
-        tapScaleMin: 86,
-        tapScaleMax: 105,
-        tapOffset: 12,
-    },
-    input: {
-        hoverScaleMin: 96,
-        hoverScaleMax: 108,
-        hoverOffset: 12,
-        hoverRotateRange: 10,
-        tapScaleMin: 92,
-        tapScaleMax: 104,
-        tapOffset: 10,
-        tapRotateRange: 10,
-    },
-    tabs: {
-        hoverScaleMin: 94,
-        hoverScaleMax: 112,
-        hoverOffset: 14,
-        tapScaleMin: 90,
-        tapScaleMax: 106,
-        tapOffset: 10,
-    },
-    checkbox: {
-        hoverScaleMin: 90,
-        hoverScaleMax: 120,
-        hoverOffset: 14,
-        tapScaleMin: 82,
-        tapScaleMax: 108,
-        tapOffset: 10,
-    },
-    slider: {
-        hoverScaleMin: 96,
-        hoverScaleMax: 110,
-        hoverOffset: 10,
-        hoverRotateRange: 8,
-        tapScaleMin: 90,
-        tapScaleMax: 106,
-        tapOffset: 8,
-        tapRotateRange: 8,
-    },
-    tooltip: {
-        hoverScaleMin: 94,
-        hoverScaleMax: 110,
-        hoverOffset: 10,
-        tapScaleMin: 92,
-        tapScaleMax: 106,
-        tapOffset: 8,
-        overlayOffset: 80,
-    },
-    popover: {
-        hoverScaleMin: 94,
-        hoverScaleMax: 110,
-        hoverOffset: 12,
-        tapScaleMin: 92,
-        tapScaleMax: 106,
-        tapOffset: 10,
-        overlayOffset: 150,
-    },
-    dropdown: {
-        hoverScaleMin: 94,
-        hoverScaleMax: 110,
-        hoverOffset: 12,
-        tapScaleMin: 92,
-        tapScaleMax: 106,
-        tapOffset: 10,
-        overlayOffset: 140,
-    },
-    dialog: {
-        hoverScaleMin: 94,
-        hoverScaleMax: 108,
-        hoverOffset: 10,
-        tapScaleMin: 92,
-        tapScaleMax: 106,
-        tapOffset: 8,
-        overlayOffset: 200,
-        overlayRotateRange: 18,
-    },
+    button: { hoverScaleMin: 92, hoverScaleMax: 118, hoverOffset: 24, tapScaleMin: 85, tapScaleMax: 104, tapOffset: 14 },
+    'stage-button': { hoverScaleMin: 92, hoverScaleMax: 118, hoverOffset: 24, tapScaleMin: 85, tapScaleMax: 104, tapOffset: 14 },
+    badge: { hoverScaleMin: 92, hoverScaleMax: 116, hoverOffset: 18, tapScaleMin: 86, tapScaleMax: 105, tapOffset: 12 },
+    input: { hoverScaleMin: 96, hoverScaleMax: 108, hoverOffset: 12, hoverRotateRange: 10, tapScaleMin: 92, tapScaleMax: 104, tapOffset: 10, tapRotateRange: 10 },
+    tabs: { hoverScaleMin: 94, hoverScaleMax: 112, hoverOffset: 14, tapScaleMin: 90, tapScaleMax: 106, tapOffset: 10 },
+    checkbox: { hoverScaleMin: 90, hoverScaleMax: 120, hoverOffset: 14, tapScaleMin: 82, tapScaleMax: 108, tapOffset: 10 },
+    slider: { hoverScaleMin: 96, hoverScaleMax: 110, hoverOffset: 10, hoverRotateRange: 8, tapScaleMin: 90, tapScaleMax: 106, tapOffset: 8, tapRotateRange: 8 },
+    tooltip: { hoverScaleMin: 94, hoverScaleMax: 110, hoverOffset: 10, tapScaleMin: 92, tapScaleMax: 106, tapOffset: 8, overlayOffset: 80 },
+    popover: { hoverScaleMin: 94, hoverScaleMax: 110, hoverOffset: 12, tapScaleMin: 92, tapScaleMax: 106, tapOffset: 10, overlayOffset: 150 },
+    dropdown: { hoverScaleMin: 94, hoverScaleMax: 110, hoverOffset: 12, tapScaleMin: 92, tapScaleMax: 106, tapOffset: 10, overlayOffset: 140 },
+    dialog: { hoverScaleMin: 94, hoverScaleMax: 108, hoverOffset: 10, tapScaleMin: 92, tapScaleMax: 106, tapOffset: 8, overlayOffset: 200, overlayRotateRange: 18 },
 };
 
 function getMotionControlTuning(kind: UIComponentKind): MotionControlTuning {
-    const override = MOTION_CONTROL_TUNING_BY_KIND[kind] ?? {};
-    return {
-        ...DEFAULT_MOTION_CONTROL_TUNING,
-        ...override,
-    };
+    return { ...DEFAULT_MOTION_CONTROL_TUNING, ...(MOTION_CONTROL_TUNING_BY_KIND[kind] ?? {}) };
 }
+
+/* ─── Options arrays ─── */
+
+const MOTION_GROUP_STRATEGY_OPTIONS: Array<{ value: MotionGroupStrategy; label: string }> = [
+    { value: 'none', label: 'None' },
+    { value: 'stagger', label: 'Stagger' },
+    { value: 'queue', label: 'Queue' },
+];
+
+const MOTION_GROUP_ORIGIN_OPTIONS: Array<{ value: MotionGroupOrigin; label: string }> = [
+    { value: 'first', label: 'First' },
+    { value: 'last', label: 'Last' },
+    { value: 'center', label: 'Center' },
+];
+
+const MOTION_SCROLL_MODE_OPTIONS: Array<{ value: MotionScrollMode; label: string }> = [
+    { value: 'enter', label: 'Enter' },
+    { value: 'replay', label: 'Replay' },
+    { value: 'progress', label: 'Progress' },
+];
+
+/* ─── Reusable sub-components ─── */
 
 function SpringCurve({ stiffness, damping }: { stiffness: number; damping: number }) {
     const w = 220;
@@ -256,36 +111,15 @@ function SpringCurve({ stiffness, damping }: { stiffness: number; damping: numbe
     return (
         <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-full w-full">
             <line x1="0" y1={h * 0.15} x2={w} y2={h * 0.15} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-            <polyline
-                points={points.join(' ')}
-                fill="none"
-                stroke="#2dd4bf"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity="0.85"
-            />
+            <polyline points={points.join(' ')} fill="none" stroke="#2dd4bf" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.85" />
         </svg>
     );
 }
 
 function MotionParamRow({
-    label,
-    hint,
-    value,
-    min,
-    max,
-    step = 1,
-    unit,
-    onChange,
+    label, hint, value, min, max, step = 1, unit, onChange,
 }: {
-    label: string;
-    hint?: string;
-    value: number;
-    min: number;
-    max: number;
-    step?: number;
-    unit?: string;
+    label: string; hint?: string; value: number; min: number; max: number; step?: number; unit?: string;
     onChange: (v: number) => void;
 }) {
     const fill = max > min ? Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)) : 0;
@@ -296,16 +130,10 @@ function MotionParamRow({
                     {label}
                     {hint ? <span className="ml-1 text-[10px] text-[#3d4f66]">- {hint}</span> : null}
                 </span>
-                <span className="font-mono text-[10px] text-[#64748b]">
-                    {value}{unit ?? ''}
-                </span>
+                <span className="font-mono text-[10px] text-[#64748b]">{value}{unit ?? ''}</span>
             </div>
             <input
-                type="range"
-                min={min}
-                max={max}
-                step={step}
-                value={value}
+                type="range" min={min} max={max} step={step} value={value}
                 onChange={(event) => onChange(Number(event.target.value))}
                 className="ui-studio-motion-range w-full"
                 style={{ '--motion-fill-percent': `${fill}%` } as CSSProperties}
@@ -316,52 +144,27 @@ function MotionParamRow({
 }
 
 function XYPad({
-    x,
-    y,
-    onXChange,
-    onYChange,
-    xMin = -120,
-    xMax = 120,
-    yMin = -120,
-    yMax = 120,
-    compact = false,
+    x, y, onXChange, onYChange,
+    xMin = -120, xMax = 120, yMin = -120, yMax = 120, compact = false,
 }: {
-    x: number;
-    y: number;
-    onXChange: (value: number) => void;
-    onYChange: (value: number) => void;
-    xMin?: number;
-    xMax?: number;
-    yMin?: number;
-    yMax?: number;
-    compact?: boolean;
+    x: number; y: number; onXChange: (value: number) => void; onYChange: (value: number) => void;
+    xMin?: number; xMax?: number; yMin?: number; yMax?: number; compact?: boolean;
 }) {
     const padRef = useRef<HTMLDivElement | null>(null);
     const [dragging, setDragging] = useState(false);
-
-    const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-
+    const clamp = (value: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, value));
     const updateFromPointer = (clientX: number, clientY: number) => {
         const pad = padRef.current;
-        if (!pad) {
-            return;
-        }
+        if (!pad) return;
         const rect = pad.getBoundingClientRect();
-        if (!rect.width || !rect.height) {
-            return;
-        }
+        if (!rect.width || !rect.height) return;
         const xNorm = clamp((clientX - rect.left) / rect.width, 0, 1);
         const yNorm = clamp((clientY - rect.top) / rect.height, 0, 1);
-        const nextX = Math.round(xMin + xNorm * (xMax - xMin));
-        const nextY = Math.round(yMin + yNorm * (yMax - yMin));
-        onXChange(nextX);
-        onYChange(nextY);
+        onXChange(Math.round(xMin + xNorm * (xMax - xMin)));
+        onYChange(Math.round(yMin + yNorm * (yMax - yMin)));
     };
-
     useEffect(() => {
-        if (!dragging) {
-            return;
-        }
+        if (!dragging) return;
         const handlePointerMove = (event: PointerEvent) => updateFromPointer(event.clientX, event.clientY);
         const handlePointerUp = () => setDragging(false);
         window.addEventListener('pointermove', handlePointerMove);
@@ -371,43 +174,24 @@ function XYPad({
             window.removeEventListener('pointerup', handlePointerUp);
         };
     }, [dragging]);
-
     const xPercent = xMax > xMin ? ((clamp(x, xMin, xMax) - xMin) / (xMax - xMin)) * 100 : 50;
     const yPercent = yMax > yMin ? ((clamp(y, yMin, yMax) - yMin) / (yMax - yMin)) * 100 : 50;
-
     return (
         <div className="space-y-2">
             <div
                 ref={padRef}
-                className={cn(
-                    'relative w-full touch-none overflow-hidden rounded-lg border border-white/7 bg-[#13161b] cursor-crosshair',
-                    compact ? 'h-[82px]' : 'h-[100px]',
-                )}
-                onPointerDown={(event) => {
-                    if (event.button !== 0) {
-                        return;
-                    }
-                    event.preventDefault();
-                    updateFromPointer(event.clientX, event.clientY);
-                    setDragging(true);
-                }}
+                className={cn('relative w-full touch-none overflow-hidden rounded-lg border border-white/7 bg-[#13161b] cursor-crosshair', compact ? 'h-[82px]' : 'h-[100px]')}
+                onPointerDown={(event) => { if (event.button !== 0) return; event.preventDefault(); updateFromPointer(event.clientX, event.clientY); setDragging(true); }}
             >
                 <div className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/8" />
                 <div className="pointer-events-none absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-white/8" />
-                <div className="pointer-events-none absolute bottom-1 right-2 text-[10px] text-[#334155]">X axis →</div>
-                <div className="pointer-events-none absolute left-2 top-1 text-[10px] text-[#334155]">↓ Y</div>
-                <div
-                    className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2dd4bf] shadow-[0_0_0_4px_rgba(45,212,191,0.15)]"
-                    style={{ left: `${xPercent}%`, top: `${yPercent}%` }}
-                />
+                <div className="pointer-events-none absolute bottom-1 right-2 text-[10px] text-[#334155]">X axis &rarr;</div>
+                <div className="pointer-events-none absolute left-2 top-1 text-[10px] text-[#334155]">&darr; Y</div>
+                <div className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2dd4bf] shadow-[0_0_0_4px_rgba(45,212,191,0.15)]" style={{ left: `${xPercent}%`, top: `${yPercent}%` }} />
             </div>
             <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-md bg-[#161c29] px-2 py-1 text-[12px] text-[#8fa6c7]">
-                    X <span className="float-right font-mono text-[#d8e6fb]">{x}</span>
-                </div>
-                <div className="rounded-md bg-[#161c29] px-2 py-1 text-[12px] text-[#8fa6c7]">
-                    Y <span className="float-right font-mono text-[#d8e6fb]">{y}</span>
-                </div>
+                <div className="rounded-md bg-[#161c29] px-2 py-1 text-[12px] text-[#8fa6c7]">X <span className="float-right font-mono text-[#d8e6fb]">{x}</span></div>
+                <div className="rounded-md bg-[#161c29] px-2 py-1 text-[12px] text-[#8fa6c7]">Y <span className="float-right font-mono text-[#d8e6fb]">{y}</span></div>
             </div>
         </div>
     );
@@ -416,69 +200,36 @@ function XYPad({
 function MotionPresetPreview({ presetId }: { presetId: string }) {
     const base = 'h-2.5 w-7 rounded-sm bg-[#2dd4bf]';
     switch (presetId) {
-        case 'fade-in':
-            return <motion.div className={base} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'fade-scale':
-            return <motion.div className={base} animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'scale-in':
-            return <motion.div className={base} animate={{ scale: [0.72, 1.06, 1], opacity: [0.3, 1, 0.9] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeOut' }} />;
-        case 'slide-up':
-            return <motion.div className={base} animate={{ y: [6, 0, 6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'slide-up-left':
-            return <motion.div className={base} animate={{ x: [-6, 0, -6], y: [6, 0, 6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'slide-up-right':
-            return <motion.div className={base} animate={{ x: [6, 0, 6], y: [6, 0, 6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'slide-down':
-            return <motion.div className={base} animate={{ y: [-6, 0, -6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'slide-in-left':
-            return <motion.div className={base} animate={{ x: [-8, 0, -8], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'slide-in-right':
-            return <motion.div className={base} animate={{ x: [8, 0, 8], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'hover-lift':
-            return <motion.div className={base} animate={{ y: [0, -4, 0], scale: [1, 1.03, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'hover-nudge-right':
-            return <motion.div className={base} animate={{ x: [0, 5, 0] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'card-hover':
-            return <motion.div className={base} animate={{ y: [0, -6, 0], scale: [1, 1.05, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'tap-scale':
-            return <motion.div className={base} animate={{ scale: [1, 0.92, 1] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'tap-nudge-down':
-            return <motion.div className={base} animate={{ y: [0, 4, 0] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'button-press':
-            return <motion.div className={base} animate={{ scale: [1, 0.9, 1] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'motion-gradient-slide':
-            return <motion.div className={base} animate={{ x: [-8, 8, -8] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'motion-animated-border':
-            return <motion.div className={base} animate={{ rotate: [0, 360] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }} />;
-        case 'motion-ripple-hover':
-            return <motion.div className={base} animate={{ scale: [0.8, 1.3, 0.8], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'motion-loading-stack':
-            return <motion.div className={base} animate={{ rotate: [0, 360] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} />;
-        case 'motion-shiny-sweep':
-            return <motion.div className={base} animate={{ x: [-10, 10, -10], opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'motion-shimmer-orbit':
-            return <motion.div className={base} animate={{ x: [-6, 6, -6], scale: [1, 1.08, 1] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
-        case 'motion-rainbow':
-            return <motion.div className={base} animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.04, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
-        default:
-            return <motion.div className={base} animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'fade-in': return <motion.div className={base} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'fade-scale': return <motion.div className={base} animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'scale-in': return <motion.div className={base} animate={{ scale: [0.72, 1.06, 1], opacity: [0.3, 1, 0.9] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeOut' }} />;
+        case 'slide-up': return <motion.div className={base} animate={{ y: [6, 0, 6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'slide-up-left': return <motion.div className={base} animate={{ x: [-6, 0, -6], y: [6, 0, 6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'slide-up-right': return <motion.div className={base} animate={{ x: [6, 0, 6], y: [6, 0, 6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'slide-down': return <motion.div className={base} animate={{ y: [-6, 0, -6], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'slide-in-left': return <motion.div className={base} animate={{ x: [-8, 0, -8], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'slide-in-right': return <motion.div className={base} animate={{ x: [8, 0, 8], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'hover-lift': return <motion.div className={base} animate={{ y: [0, -4, 0], scale: [1, 1.03, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'hover-nudge-right': return <motion.div className={base} animate={{ x: [0, 5, 0] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'card-hover': return <motion.div className={base} animate={{ y: [0, -6, 0], scale: [1, 1.05, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'tap-scale': return <motion.div className={base} animate={{ scale: [1, 0.92, 1] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'tap-nudge-down': return <motion.div className={base} animate={{ y: [0, 4, 0] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'button-press': return <motion.div className={base} animate={{ scale: [1, 0.9, 1] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'motion-gradient-slide': return <motion.div className={base} animate={{ x: [-8, 8, -8] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'motion-animated-border': return <motion.div className={base} animate={{ rotate: [0, 360] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }} />;
+        case 'motion-ripple-hover': return <motion.div className={base} animate={{ scale: [0.8, 1.3, 0.8], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'motion-loading-stack': return <motion.div className={base} animate={{ rotate: [0, 360] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} />;
+        case 'motion-shiny-sweep': return <motion.div className={base} animate={{ x: [-10, 10, -10], opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'motion-shimmer-orbit': return <motion.div className={base} animate={{ x: [-6, 6, -6], scale: [1, 1.08, 1] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
+        case 'motion-rainbow': return <motion.div className={base} animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.04, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />;
+        default: return <motion.div className={base} animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />;
     }
 }
 
-function MotionPresetStrip({
-    presets,
-    onSelect,
-    title = 'Quick presets',
-    defaultOpen = true,
-}: {
-    presets: MotionPresetOption[];
-    onSelect: (id: string) => void;
-    title?: string;
-    defaultOpen?: boolean;
+function MotionPresetStrip({ presets, onSelect, title = 'Quick presets', defaultOpen = true }: {
+    presets: MotionPresetOption[]; onSelect: (id: string) => void; title?: string; defaultOpen?: boolean;
 }) {
-    if (presets.length === 0) {
-        return null;
-    }
+    if (presets.length === 0) return null;
     return (
         <Collapsible defaultOpen={defaultOpen}>
             <div className="space-y-1.5">
@@ -489,12 +240,7 @@ function MotionPresetStrip({
                 <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
                     <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                         {presets.map((preset) => (
-                            <button
-                                key={preset.id}
-                                type="button"
-                                onClick={() => onSelect(preset.id)}
-                                className="rounded-md bg-[#111827] px-2 py-1.5 text-left transition hover:bg-[#162235]"
-                            >
+                            <button key={preset.id} type="button" onClick={() => onSelect(preset.id)} className="rounded-md bg-[#111827] px-2 py-1.5 text-left transition hover:bg-[#162235]">
                                 <div className="mb-1.5 flex h-8 items-center justify-center rounded bg-[#0b1220]">
                                     <MotionPresetPreview presetId={preset.id} />
                                 </div>
@@ -509,39 +255,16 @@ function MotionPresetStrip({
 }
 
 function MotionTransitionCard({
-    transitionType,
-    ease,
-    duration,
-    delay,
-    stiffness,
-    damping,
-    mass,
-    customBezier,
-    onTransitionTypeChange,
-    onEaseChange,
-    onDurationChange,
-    onDelayChange,
-    onStiffnessChange,
-    onDampingChange,
-    onMassChange,
-    onCustomBezierChange,
+    transitionType, ease, duration, delay, stiffness, damping, mass, customBezier,
+    onTransitionTypeChange, onEaseChange, onDurationChange, onDelayChange,
+    onStiffnessChange, onDampingChange, onMassChange, onCustomBezierChange,
 }: {
-    transitionType: MotionTransitionType;
-    ease: MotionEaseOption;
-    duration: number;
-    delay: number;
-    stiffness: number;
-    damping: number;
-    mass: number;
-    customBezier?: [number, number, number, number];
-    onTransitionTypeChange: (v: MotionTransitionType) => void;
-    onEaseChange: (v: MotionEaseOption) => void;
-    onDurationChange: (v: number) => void;
-    onDelayChange: (v: number) => void;
-    onStiffnessChange: (v: number) => void;
-    onDampingChange: (v: number) => void;
-    onMassChange: (v: number) => void;
-    onCustomBezierChange?: (v: [number, number, number, number]) => void;
+    transitionType: MotionTransitionType; ease: MotionEaseOption; duration: number; delay: number;
+    stiffness: number; damping: number; mass: number; customBezier?: [number, number, number, number];
+    onTransitionTypeChange: (v: MotionTransitionType) => void; onEaseChange: (v: MotionEaseOption) => void;
+    onDurationChange: (v: number) => void; onDelayChange: (v: number) => void;
+    onStiffnessChange: (v: number) => void; onDampingChange: (v: number) => void;
+    onMassChange: (v: number) => void; onCustomBezierChange?: (v: [number, number, number, number]) => void;
 }) {
     return (
         <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
@@ -549,29 +272,17 @@ function MotionTransitionCard({
                 <span className="text-[11px] text-[#8fa6c7]">Transition</span>
                 <div className="flex gap-1">
                     {(['tween', 'spring'] as const).map((type) => (
-                        <button
-                            key={type}
-                            type="button"
-                            onClick={() => onTransitionTypeChange(type)}
-                            className={cn(
-                                'rounded px-2.5 py-1 text-[10px] font-semibold transition-colors',
-                                transitionType === type
-                                    ? 'bg-[rgba(45,212,191,0.12)] text-[#2dd4bf]'
-                                    : 'text-[#64748b] hover:text-[#8fa6c7]',
-                            )}
-                        >
+                        <button key={type} type="button" onClick={() => onTransitionTypeChange(type)}
+                            className={cn('rounded px-2.5 py-1 text-[10px] font-semibold transition-colors',
+                                transitionType === type ? 'bg-[rgba(45,212,191,0.12)] text-[#2dd4bf]' : 'text-[#64748b] hover:text-[#8fa6c7]')}>
                             {type.charAt(0).toUpperCase() + type.slice(1)}
                         </button>
                     ))}
                 </div>
             </div>
-
             {transitionType === 'spring' ? (
-                <div className="h-8 overflow-hidden rounded bg-[#0b1220]">
-                    <SpringCurve stiffness={stiffness} damping={damping} />
-                </div>
+                <div className="h-8 overflow-hidden rounded bg-[#0b1220]"><SpringCurve stiffness={stiffness} damping={damping} /></div>
             ) : null}
-
             {transitionType === 'spring' ? (
                 <div className="space-y-2.5">
                     <MotionParamRow label="Stiffness" hint="how snappy" value={stiffness} min={40} max={600} step={5} onChange={onStiffnessChange} />
@@ -582,12 +293,8 @@ function MotionTransitionCard({
                 <div className="space-y-2.5">
                     <div className="space-y-1">
                         <span className="text-[11px] text-[#8fa6c7]">Easing</span>
-                        <select
-                            value={ease}
-                            onChange={(event) => onEaseChange(event.target.value as MotionEaseOption)}
-                            aria-label="Easing curve"
-                            className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
-                        >
+                        <select value={ease} onChange={(event) => onEaseChange(event.target.value as MotionEaseOption)} aria-label="Easing curve"
+                            className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40">
                             <optgroup label="Standard">
                                 <option value="linear">Linear</option>
                                 <option value="easeIn">Ease In</option>
@@ -617,20 +324,11 @@ function MotionTransitionCard({
                                 {(['P1x', 'P1y', 'P2x', 'P2y'] as const).map((label, idx) => (
                                     <div key={label} className="space-y-0.5">
                                         <span className="text-[9px] text-[#475569]">{label}</span>
-                                        <input
-                                            type="number"
-                                            value={customBezier[idx]}
-                                            onChange={(event) => {
-                                                const next = [...customBezier] as [number, number, number, number];
-                                                next[idx] = Number.parseFloat(event.target.value) || 0;
-                                                onCustomBezierChange(next);
-                                            }}
-                                            step={0.05}
-                                            min={0}
-                                            max={1}
+                                        <input type="number" value={customBezier[idx]}
+                                            onChange={(event) => { const next = [...customBezier] as [number, number, number, number]; next[idx] = Number.parseFloat(event.target.value) || 0; onCustomBezierChange(next); }}
+                                            step={0.05} min={0} max={1}
                                             className="h-6 w-full rounded bg-[#111827] px-1.5 text-[10px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
-                                            aria-label={`Bezier ${label}`}
-                                        />
+                                            aria-label={`Bezier ${label}`} />
                                     </div>
                                 ))}
                             </div>
@@ -639,76 +337,33 @@ function MotionTransitionCard({
                     <MotionParamRow label="Duration" value={duration} min={0} max={2} step={0.05} unit="s" onChange={onDurationChange} />
                 </div>
             )}
-
             <MotionParamRow label="Delay" value={delay} min={0} max={2} step={0.05} unit="s" onChange={onDelayChange} />
         </div>
     );
 }
 
-function MotionColorField({
-    label,
-    value,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-}) {
+function MotionColorField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
     const safeValue = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#22d3ee';
     return (
         <div className="space-y-1">
             <span className="text-[11px] text-[#8fa6c7]">{label}</span>
             <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-2">
-                <input
-                    type="color"
-                    value={safeValue}
-                    onChange={(event) => onChange(event.target.value)}
-                    className="h-8 w-full cursor-pointer rounded border border-white/10 bg-[#111827] p-1"
-                    aria-label={label}
-                />
-                <input
-                    type="text"
-                    value={safeValue.toUpperCase()}
-                    readOnly
-                    className="h-8 rounded bg-[#111827] px-2 font-mono text-[11px] text-[#dbe7f8] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
-                    aria-label={`${label} hex`}
-                />
+                <input type="color" value={safeValue} onChange={(event) => onChange(event.target.value)} className="h-8 w-full cursor-pointer rounded border border-white/10 bg-[#111827] p-1" aria-label={label} />
+                <input type="text" value={safeValue.toUpperCase()} readOnly className="h-8 rounded bg-[#111827] px-2 font-mono text-[11px] text-[#dbe7f8] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label={`${label} hex`} />
             </div>
         </div>
     );
 }
 
-function SchemaButtonGroup<T extends string>({
-    options,
-    value,
-    onChange,
-    columns = 2,
-}: {
-    options: Array<{ value: T; label: string; description?: string }>;
-    value: T;
-    onChange: (value: T) => void;
-    columns?: 1 | 2 | 3;
+function SchemaButtonGroup<T extends string>({ options, value, onChange, columns = 2 }: {
+    options: Array<{ value: T; label: string; description?: string }>; value: T; onChange: (value: T) => void; columns?: 1 | 2 | 3;
 }) {
     return (
-        <div
-            className="grid gap-1.5"
-            style={{
-                gridTemplateColumns:
-                    columns === 1 ? '1fr' : columns === 3 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
-            }}
-        >
+        <div className="grid gap-1.5" style={{ gridTemplateColumns: columns === 1 ? '1fr' : columns === 3 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))' }}>
             {options.map((option) => (
-                <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => onChange(option.value)}
-                    className={cn(
-                        'rounded-md border px-2 py-2 text-left transition-colors',
-                        value === option.value
-                            ? 'border-[#2dd4bf]/40 bg-[rgba(45,212,191,0.1)]'
-                            : 'border-white/[0.08] bg-[#111827] hover:bg-[#162235]',
-                    )}
-                >
+                <button key={option.value} type="button" onClick={() => onChange(option.value)}
+                    className={cn('rounded-md border px-2 py-2 text-left transition-colors',
+                        value === option.value ? 'border-[#2dd4bf]/40 bg-[rgba(45,212,191,0.1)]' : 'border-white/[0.08] bg-[#111827] hover:bg-[#162235]')}>
                     <p className={cn('text-[10px] font-semibold', value === option.value ? 'text-[#2dd4bf]' : 'text-[#dbe7f8]')}>{option.label}</p>
                     {option.description ? <p className="mt-0.5 text-[10px] leading-relaxed text-[#64748b]">{option.description}</p> : null}
                 </button>
@@ -716,6 +371,14 @@ function SchemaButtonGroup<T extends string>({
         </div>
     );
 }
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+    return <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">{children}</p>;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Main component
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 export function MotionInspectorSection({
     selectedStyle,
@@ -744,742 +407,164 @@ export function MotionInspectorSection({
     applyVisualMotionPreset: (id: string) => void;
     clearVisualMotionPreset: () => void;
 }) {
-    const hasSplitOverlayMotion =
-        componentKind === 'tooltip' ||
-        componentKind === 'dialog' ||
-        componentKind === 'popover' ||
-        componentKind === 'dropdown';
-    const [activeTab, setActiveTab] = useState<MotionTriggerTab>(supportsEntryMotion || hasSplitOverlayMotion ? 'overlay' : 'hover');
     const tuning = getMotionControlTuning(componentKind);
     const showTriggerTabs = componentKind !== 'checkbox' && componentKind !== 'slider';
-    const entryTabLabel = isOverlayComponent ? 'Overlay' : 'Entry';
-    const entryHelperText = isOverlayComponent ? 'Runs when the overlay opens.' : 'Runs when the component appears.';
-    const entryEnableLabel = isOverlayComponent ? 'Enable overlay motion' : 'Enable entry motion';
-    const tabs: Array<{ id: MotionTriggerTab; icon: string; label: string }> = showTriggerTabs && supportsEntryMotion && !hasSplitOverlayMotion
-        ? [
-            { id: 'overlay', icon: '▣', label: entryTabLabel },
-            { id: 'hover', icon: '✦', label: 'Hover' },
-            { id: 'tap', icon: '◉', label: 'Tap' },
-        ]
-        : showTriggerTabs && hasSplitOverlayMotion
-            ? [
-            { id: 'overlay', icon: '▣', label: 'Overlay' },
-            { id: 'hover', icon: '✦', label: 'Hover' },
-            { id: 'tap', icon: '◉', label: 'Tap' },
-        ]
-        : showTriggerTabs
-            ? [
-            { id: 'hover', icon: '✦', label: 'Hover' },
-            { id: 'tap', icon: '◉', label: 'Tap' },
-        ]
-            : [];
-    const overlayBodyPresetKey: keyof ComponentStyleConfig | null =
-        componentKind === 'tooltip'
-            ? 'tooltipBodyMotionPresetId'
-            : componentKind === 'dialog'
-                ? 'dialogBodyMotionPresetId'
-                : componentKind === 'popover'
-                    ? 'popoverBodyMotionPresetId'
-                    : componentKind === 'dropdown'
-                        ? 'dropdownBodyMotionPresetId'
-                        : null;
-    const overlayTextPresetKey: keyof ComponentStyleConfig | null =
-        componentKind === 'tooltip'
-            ? 'tooltipTextMotionPresetId'
-            : componentKind === 'dialog'
-                ? 'dialogTextMotionPresetId'
-                : componentKind === 'popover'
-                    ? 'popoverTextMotionPresetId'
-                    : null;
+
+    /* ─── Tab bar setup ─── */
+    const tabs: Array<{ id: MotionTriggerTab; icon: string; label: string }> = [];
+    if (supportsEntryMotion || isOverlayComponent) {
+        tabs.push({ id: 'entry', icon: '\u25A3', label: isOverlayComponent ? 'Overlay' : 'Entry' });
+    }
+    if (showTriggerTabs) {
+        tabs.push({ id: 'hover', icon: '\u2726', label: 'Hover' });
+        tabs.push({ id: 'tap', icon: '\u25C9', label: 'Tap' });
+    }
+
+    const defaultTab: MotionTriggerTab = tabs[0]?.id ?? 'hover';
+    const [activeTab, setActiveTab] = useState<MotionTriggerTab>(defaultTab);
+
+    useEffect(() => {
+        if (!tabs.some((tab) => tab.id === activeTab)) {
+            setActiveTab(tabs[0]?.id ?? 'hover');
+        }
+    }, [activeTab, tabs.length, supportsEntryMotion, isOverlayComponent, showTriggerTabs]);
+
+    /* ─── Preset helpers ─── */
     const hoverMotionPresets = useMemo(
-        () =>
-            interactionMotionPresets.filter(
-                (preset) =>
-                    preset.values?.motionHoverScale !== undefined ||
-                    preset.values?.motionHoverX !== undefined ||
-                    preset.values?.motionHoverY !== undefined ||
-                    preset.values?.motionHoverRotate !== undefined ||
-                    preset.values?.motionHoverOpacity !== undefined ||
-                    preset.values?.motionHoverTransitionType !== undefined,
-            ),
+        () => interactionMotionPresets.filter((p) =>
+            p.values?.motionHoverScale !== undefined || p.values?.motionHoverX !== undefined ||
+            p.values?.motionHoverY !== undefined || p.values?.motionHoverRotate !== undefined ||
+            p.values?.motionHoverOpacity !== undefined || p.values?.motionHoverTransitionType !== undefined),
         [interactionMotionPresets],
     );
     const tapMotionPresets = useMemo(
-        () =>
-            interactionMotionPresets.filter(
-                (preset) =>
-                    preset.values?.motionTapScale !== undefined ||
-                    preset.values?.motionTapX !== undefined ||
-                    preset.values?.motionTapY !== undefined ||
-                    preset.values?.motionTapRotate !== undefined ||
-                    preset.values?.motionTapOpacity !== undefined ||
-                    preset.values?.motionTapTransitionType !== undefined,
-            ),
+        () => interactionMotionPresets.filter((p) =>
+            p.values?.motionTapScale !== undefined || p.values?.motionTapX !== undefined ||
+            p.values?.motionTapY !== undefined || p.values?.motionTapRotate !== undefined ||
+            p.values?.motionTapOpacity !== undefined || p.values?.motionTapTransitionType !== undefined),
         [interactionMotionPresets],
     );
+
     const applyScopedInteractionPreset = (presetId: string, scope: 'hover' | 'tap') => {
         const preset = interactionMotionPresets.find((item) => item.id === presetId);
-        if (!preset) {
-            return;
-        }
-        if (scope === 'hover') {
-            updateSelectedStyle('motionHoverEnabled', true);
-            (Object.entries(preset.values ?? {}) as Array<[keyof ComponentStyleConfig, ComponentStyleConfig[keyof ComponentStyleConfig]]>).forEach(([key, value]) => {
-                if (key === 'motionHoverEnabled' || String(key).startsWith('motionHover')) {
-                    updateSelectedStyle(key, value);
-                }
-            });
-            return;
-        }
-        updateSelectedStyle('motionTapEnabled', true);
+        if (!preset) return;
+        const prefix = scope === 'hover' ? 'motionHover' : 'motionTap';
+        updateSelectedStyle(scope === 'hover' ? 'motionHoverEnabled' : 'motionTapEnabled', true);
         (Object.entries(preset.values ?? {}) as Array<[keyof ComponentStyleConfig, ComponentStyleConfig[keyof ComponentStyleConfig]]>).forEach(([key, value]) => {
-            if (key === 'motionTapEnabled' || String(key).startsWith('motionTap')) {
-                updateSelectedStyle(key, value);
-            }
+            if (String(key).startsWith(prefix)) updateSelectedStyle(key, value);
         });
     };
-    const splitOverlayMotionOptions: MotionPresetOption[] = [
-        {
-            id: 'none',
-            label: 'No motion',
-            description: 'Keep this layer static with no entry animation.',
-        },
-        {
-            id: 'custom',
-            label: 'Custom',
-            description: 'Use the manual controls below.',
-        },
-        ...surfaceMotionPresets,
-    ];
-    const renderSplitOverlayCustomControls = () => (
-        <div className="space-y-2.5 rounded-md border border-white/[0.08] bg-[#0b1220]/50 p-2.5">
-            <div className="space-y-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Opacity</p>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <span className="text-[10px] text-[#64748b]">From</span>
-                        <MotionParamRow label="" value={selectedStyle.motionInitialOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionInitialOpacity', v)} />
-                    </div>
-                    <div className="space-y-1">
-                        <span className="text-[10px] text-[#64748b]">To</span>
-                        <MotionParamRow label="" value={selectedStyle.motionAnimateOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionAnimateOpacity', v)} />
-                    </div>
-                </div>
-            </div>
 
-            <div className="space-y-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Transform</p>
-                <XYPad
-                    compact
-                    x={selectedStyle.motionInitialX}
-                    y={selectedStyle.motionInitialY}
-                    xMin={-tuning.overlayOffset}
-                    xMax={tuning.overlayOffset}
-                    yMin={-tuning.overlayOffset}
-                    yMax={tuning.overlayOffset}
-                    onXChange={(value) => updateSelectedStyle('motionInitialX', value)}
-                    onYChange={(value) => updateSelectedStyle('motionInitialY', value)}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                    <MotionParamRow label="End X" value={selectedStyle.motionAnimateX} min={-tuning.overlayOffset} max={tuning.overlayOffset} onChange={(v) => updateSelectedStyle('motionAnimateX', v)} />
-                    <MotionParamRow label="End Y" value={selectedStyle.motionAnimateY} min={-tuning.overlayOffset} max={tuning.overlayOffset} onChange={(v) => updateSelectedStyle('motionAnimateY', v)} />
-                </div>
-                <MotionParamRow label="Rotate" value={selectedStyle.motionAnimateRotate} min={-tuning.overlayRotateRange} max={tuning.overlayRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionAnimateRotate', v)} />
-            </div>
-
-            <MotionTransitionCard
-                transitionType={selectedStyle.motionTransitionType}
-                ease={selectedStyle.motionEase}
-                duration={selectedStyle.motionDuration}
-                delay={selectedStyle.motionDelay}
-                stiffness={selectedStyle.motionStiffness}
-                damping={selectedStyle.motionDamping}
-                mass={selectedStyle.motionMass}
-                onTransitionTypeChange={(v) => updateSelectedStyle('motionTransitionType', v)}
-                onEaseChange={(v) => updateSelectedStyle('motionEase', v)}
-                onDurationChange={(v) => updateSelectedStyle('motionDuration', v)}
-                onDelayChange={(v) => updateSelectedStyle('motionDelay', v)}
-                onStiffnessChange={(v) => updateSelectedStyle('motionStiffness', v)}
-                onDampingChange={(v) => updateSelectedStyle('motionDamping', v)}
-                onMassChange={(v) => updateSelectedStyle('motionMass', v)}
-                customBezier={selectedStyle.motionCustomBezier}
-                onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
-            />
-        </div>
-    );
-    const advancedHoverEnabled =
-        selectedStyle.motionHoverTiltEnabled ||
-        selectedStyle.motionHoverGlareEnabled ||
-        selectedStyle.motionHoverSpotlightEnabled;
-    const timelineSteps = selectedStyle.motionTimelineSteps ?? [];
-    const [selectedTimelineStepId, setSelectedTimelineStepId] = useState<string | null>(timelineSteps[0]?.id ?? null);
-    const selectedTimelineStep = timelineSteps.find((step) => step.id === selectedTimelineStepId) ?? timelineSteps[0] ?? null;
-
-    const updateTimelineSteps = (nextSteps: MotionTimelineStep[]) => {
-        updateSelectedStyle('motionTimelineSteps', nextSteps);
-        updateSelectedStyle('motionTimelineEnabled', nextSteps.length > 0 || selectedStyle.motionAuthoringMode === 'timeline');
-    };
-
-    const updateTimelineStep = (stepId: string, patch: Partial<MotionTimelineStep>) => {
-        updateTimelineSteps(timelineSteps.map((step) => (step.id === stepId ? { ...step, ...patch } : step)));
-    };
-
-    const addTimelineStep = (trigger: MotionTrigger) => {
-        const nextStep = createTimelineStep(trigger, timelineSteps.length + 1);
-        const nextSteps = [...timelineSteps, nextStep];
-        updateSelectedStyle('motionAuthoringMode', 'timeline');
-        updateSelectedStyle('motionTimelineEnabled', true);
-        updateSelectedStyle('motionTimelineSteps', nextSteps);
-        setSelectedTimelineStepId(nextStep.id);
-    };
-
-    const removeTimelineStep = (stepId: string) => {
-        const nextSteps = timelineSteps.filter((step) => step.id !== stepId);
-        updateTimelineSteps(nextSteps);
-        setSelectedTimelineStepId((current) => (current === stepId ? nextSteps[0]?.id ?? null : current));
-    };
-
-    const applyMotionAuthoringMode = (mode: MotionAuthoringMode) => {
-        updateSelectedStyle('motionAuthoringMode', mode);
-        updateSelectedStyle('motionTimelineEnabled', mode === 'timeline' || timelineSteps.length > 0);
-    };
-
-    const applyGlobalEase = (ease: MotionEaseOption) => {
-        updateSelectedStyle('motionEase', ease);
-        updateSelectedStyle('motionHoverEase', ease);
-        updateSelectedStyle('motionTapEase', ease);
-        if (selectedStyle.motionTransitionType === 'spring' && ease !== 'cubicBezier') {
-            updateSelectedStyle('motionTransitionType', 'tween');
-        }
-        if (selectedStyle.motionHoverTransitionType === 'spring' && ease !== 'cubicBezier') {
-            updateSelectedStyle('motionHoverTransitionType', 'tween');
-        }
-        if (selectedStyle.motionTapTransitionType === 'spring' && ease !== 'cubicBezier') {
-            updateSelectedStyle('motionTapTransitionType', 'tween');
-        }
-        updateTimelineSteps(
-            timelineSteps.map((step) => ({
-                ...step,
-                ease,
-                ...(ease === 'cubicBezier' ? {} : { customBezier: undefined }),
-            })),
-        );
-    };
-
+    /* ─── Group / stagger helpers ─── */
     const applyGroupStrategy = (strategy: MotionGroupStrategy) => {
         updateSelectedStyle('motionGroupStrategy', strategy);
         updateSelectedStyle('motionStaggerEnabled', strategy !== 'none');
     };
-
     const applyGroupOrigin = (origin: MotionGroupOrigin) => {
         updateSelectedStyle('motionGroupOrigin', origin);
         updateSelectedStyle('motionStaggerDirection', origin === 'last' ? 'reverse' : 'forward');
     };
 
-    useEffect(() => {
-        if (!timelineSteps.length) {
-            if (selectedTimelineStepId !== null) {
-                setSelectedTimelineStepId(null);
-            }
-            return;
-        }
-        if (!selectedTimelineStepId || !timelineSteps.some((step) => step.id === selectedTimelineStepId)) {
-            setSelectedTimelineStepId(timelineSteps[0].id);
-        }
-    }, [selectedTimelineStepId, timelineSteps]);
+    /* ─── Overlay preset key ─── */
+    const overlayPresetKey: keyof ComponentStyleConfig | null =
+        componentKind === 'tooltip' ? 'tooltipMotionPresetId'
+        : componentKind === 'dialog' ? 'dialogMotionPresetId'
+        : componentKind === 'popover' ? 'popoverMotionPresetId'
+        : componentKind === 'dropdown' ? 'dropdownMotionPresetId'
+        : componentKind === 'drawer' ? 'drawerMotionPresetId'
+        : componentKind === 'input' ? 'inputAutocompleteMotionPresetId'
+        : componentKind === 'tabs' ? 'tabsMotionPresetId'
+        : null;
 
-    useEffect(() => {
-        if (!supportsEntryMotion && !hasSplitOverlayMotion && activeTab === 'overlay') {
-            setActiveTab('hover');
-        }
-        if (!showTriggerTabs && activeTab === 'overlay') {
-            setActiveTab('hover');
-        }
-    }, [activeTab, supportsEntryMotion, hasSplitOverlayMotion, showTriggerTabs]);
+    /* ─── Advanced hover state ─── */
+    const advancedHoverEnabled =
+        selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled;
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Render
+       ═══════════════════════════════════════════════════════════════════════ */
 
     return (
         <div className="min-w-0 space-y-2.5">
-            <Collapsible defaultOpen>
-                <div className="space-y-2">
-                    <CollapsibleTrigger className="group/motion-model flex w-full items-center justify-between text-left">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Motion Setup</p>
-                            <p className="text-[11px] text-[#64748b]">Choose how this component should move. Preview it from the stage controls.</p>
-                        </div>
-                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/motion-model:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Authoring Mode</p>
-                            <div className="mt-2">
-                                <SchemaButtonGroup options={MOTION_AUTHORING_OPTIONS} value={selectedStyle.motionAuthoringMode} onChange={applyMotionAuthoringMode} />
-                            </div>
-                        </div>
 
-                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Purpose</p>
-                            <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">Describe the job of the motion: feedback, transition, attention, hierarchy, or ambience.</p>
-                            <div className="mt-2">
-                                <SchemaButtonGroup options={MOTION_CATEGORY_OPTIONS} value={selectedStyle.motionCategory} onChange={(value) => updateSelectedStyle('motionCategory', value)} columns={2} />
-                            </div>
-                        </div>
-
-                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Affects</p>
-                            <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">Pick whether motion stays on this layer or should influence nearby items in a set.</p>
-                            <div className="mt-2">
-                                <SchemaButtonGroup
-                                    options={MOTION_RELATIONSHIP_OPTIONS}
-                                    value={selectedStyle.motionRelationshipScope}
-                                    onChange={(value) => {
-                                        updateSelectedStyle('motionRelationshipScope', value);
-                                        updateSelectedStyle('motionGroupScope', value);
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
-
-            <Collapsible defaultOpen={selectedStyle.motionAuthoringMode === 'timeline' || selectedStyle.motionTimelineEnabled}>
-                <div className="space-y-2">
-                    <CollapsibleTrigger className="group/timeline flex w-full items-center justify-between text-left">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Advanced Timeline</p>
-                            <p className="text-[11px] text-[#64748b]">Sequence multiple steps for entry, hover, press, looping, and scroll motion.</p>
-                        </div>
-                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/timeline:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <div className="flex items-center justify-between gap-3">
-                                <div>
-                                    <p className="text-[12px] text-[#e2e8f0]">Timeline authoring</p>
-                                    <p className="text-[11px] text-[#64748b]">Turn this on when one interaction needs more than a single hover or press state.</p>
-                                </div>
-                                <Switch.Root
-                                    checked={selectedStyle.motionTimelineEnabled}
-                                    onCheckedChange={(checked) => updateSelectedStyle('motionTimelineEnabled', checked)}
-                                    aria-label="Enable timeline authoring"
-                                    className={cn(
-                                        'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                        selectedStyle.motionTimelineEnabled ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
-                                    )}
-                                >
-                                    <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.motionTimelineEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                                </Switch.Root>
-                            </div>
-
-                            <div className="mt-2 grid grid-cols-2 gap-1.5">
-                                {TIMELINE_TRIGGER_OPTIONS.map((trigger) => (
-                                    <button
-                                        key={trigger.value}
-                                        type="button"
-                                        onClick={() => addTimelineStep(trigger.value)}
-                                        className="rounded-md border border-white/[0.08] bg-[#111827] px-2 py-1.5 text-left text-[10px] font-semibold text-[#dbe7f8] transition hover:bg-[#162235]"
-                                    >
-                                        Add {trigger.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {timelineSteps.length ? (
-                            <>
-                                <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Timeline Steps</p>
-                                    <div className="mt-2 flex flex-wrap gap-1.5">
-                                        {timelineSteps.map((step, index) => (
-                                            <button
-                                                key={step.id}
-                                                type="button"
-                                                onClick={() => setSelectedTimelineStepId(step.id)}
-                                                className={cn(
-                                                    'rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors',
-                                                    selectedTimelineStep?.id === step.id
-                                                        ? 'border-[#2dd4bf]/40 bg-[rgba(45,212,191,0.1)] text-[#2dd4bf]'
-                                                        : 'border-white/[0.08] bg-[#111827] text-[#8fa6c7] hover:text-[#dbe7f8]',
-                                                )}
-                                            >
-                                                {index + 1}. {step.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {selectedTimelineStep ? (
-                                    <div className="space-y-2.5 rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <p className="text-[12px] text-[#e2e8f0]">{selectedTimelineStep.label}</p>
-                                                <p className="text-[11px] text-[#64748b]">Step ids stay stable so export and later runtime phases can reference them.</p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeTimelineStep(selectedTimelineStep.id)}
-                                                className="rounded border border-rose-400/20 px-2 py-1 text-[10px] font-semibold text-rose-300 transition hover:bg-rose-400/10"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="space-y-1">
-                                                <span className="text-[11px] text-[#8fa6c7]">Label</span>
-                                                <input
-                                                    type="text"
-                                                    value={selectedTimelineStep.label}
-                                                    onChange={(event) => updateTimelineStep(selectedTimelineStep.id, { label: event.target.value })}
-                                                    className="h-8 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[11px] text-[#8fa6c7]">Trigger</span>
-                                                <FlatSelect
-                                                    value={selectedTimelineStep.trigger}
-                                                    onValueChange={(value) => updateTimelineStep(selectedTimelineStep.id, { trigger: value as MotionTrigger })}
-                                                    ariaLabel="Timeline trigger"
-                                                >
-                                                    {TIMELINE_TRIGGER_OPTIONS.map((trigger) => (
-                                                        <option key={trigger.value} value={trigger.value}>
-                                                            {trigger.label}
-                                                        </option>
-                                                    ))}
-                                                </FlatSelect>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <MotionParamRow
-                                                label="Start At"
-                                                value={selectedTimelineStep.at ?? 0}
-                                                min={0}
-                                                max={5}
-                                                step={0.05}
-                                                unit="s"
-                                                onChange={(value) => updateTimelineStep(selectedTimelineStep.id, { at: value })}
-                                            />
-                                            <MotionParamRow
-                                                label="Repeat Delay"
-                                                value={selectedTimelineStep.repeatDelay ?? 0}
-                                                min={0}
-                                                max={3}
-                                                step={0.05}
-                                                unit="s"
-                                                onChange={(value) => updateTimelineStep(selectedTimelineStep.id, { repeatDelay: value })}
-                                            />
-                                        </div>
-                                        <MotionParamRow
-                                            label="Repeat Count"
-                                            value={selectedTimelineStep.repeat ?? 0}
-                                            min={0}
-                                            max={8}
-                                            step={1}
-                                            onChange={(value) => updateTimelineStep(selectedTimelineStep.id, { repeat: value })}
-                                        />
-
-                                        <MotionTransitionCard
-                                            transitionType={selectedTimelineStep.transitionType}
-                                            ease={selectedTimelineStep.ease}
-                                            duration={selectedTimelineStep.duration}
-                                            delay={selectedTimelineStep.delay}
-                                            stiffness={selectedTimelineStep.stiffness ?? 160}
-                                            damping={selectedTimelineStep.damping ?? 18}
-                                            mass={selectedTimelineStep.mass ?? 1}
-                                            customBezier={selectedTimelineStep.customBezier}
-                                            onTransitionTypeChange={(value) => updateTimelineStep(selectedTimelineStep.id, { transitionType: value })}
-                                            onEaseChange={(value) =>
-                                                updateTimelineStep(selectedTimelineStep.id, {
-                                                    ease: value,
-                                                    ...(value === 'cubicBezier' ? {} : { customBezier: undefined }),
-                                                })
-                                            }
-                                            onDurationChange={(value) => updateTimelineStep(selectedTimelineStep.id, { duration: value })}
-                                            onDelayChange={(value) => updateTimelineStep(selectedTimelineStep.id, { delay: value })}
-                                            onStiffnessChange={(value) => updateTimelineStep(selectedTimelineStep.id, { stiffness: value })}
-                                            onDampingChange={(value) => updateTimelineStep(selectedTimelineStep.id, { damping: value })}
-                                            onMassChange={(value) => updateTimelineStep(selectedTimelineStep.id, { mass: value })}
-                                            onCustomBezierChange={(value) => updateTimelineStep(selectedTimelineStep.id, { customBezier: value })}
-                                        />
-                                    </div>
-                                ) : null}
-                            </>
-                        ) : (
-                            <div className="rounded-lg border border-dashed border-white/[0.08] bg-[#0b1220]/40 px-3 py-4 text-[11px] leading-relaxed text-[#64748b]">
-                                No explicit timeline steps yet. Add one above to start building the next-generation motion model.
-                            </div>
-                        )}
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
-
-            <Collapsible defaultOpen={false}>
-                <div className="space-y-2">
-                    <CollapsibleTrigger className="group/easing flex w-full items-center justify-between text-left">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Easing</p>
-                            <p className="text-[11px] text-[#64748b]">Apply one easing family across entry, hover, tap, and timeline steps.</p>
-                        </div>
-                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/easing:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                        <SchemaButtonGroup options={SIMPLE_EASE_OPTIONS} value={selectedStyle.motionEase} onChange={applyGlobalEase} columns={2} />
-                        <p className="text-[11px] leading-relaxed text-[#64748b]">This is a schema-level shortcut. The legacy detail controls below can still override individual hover or tap transitions.</p>
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
-
-            <Collapsible defaultOpen={supportsStaggerMotion(componentKind)}>
-                <div className="space-y-2">
-                    <CollapsibleTrigger className="group/group flex w-full items-center justify-between text-left">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group</p>
-                            <p className="text-[11px] text-[#64748b]">Prepare stagger and queue behavior for repeated children and grouped interactions.</p>
-                        </div>
-                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/group:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Strategy</p>
-                                <div className="mt-2">
-                                    <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
-                                </div>
-                            </div>
-
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Origin</p>
-                                <div className="mt-2">
-                                    <SchemaButtonGroup options={MOTION_GROUP_ORIGIN_OPTIONS} value={selectedStyle.motionGroupOrigin} onChange={applyGroupOrigin} columns={3} />
-                                </div>
-                            </div>
-                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Applies To</p>
-                                <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">
-                                    Uses the stage-level <span className="text-[#dbe7f8]">Affects</span> setting above.
-                                </p>
-                            </div>
-                        </div>
-
-                        <MotionParamRow
-                            label="Group Interval"
-                            value={selectedStyle.motionGroupInterval}
-                            min={0.01}
-                            max={0.4}
-                            step={0.01}
-                            unit="s"
-                            onChange={(value) => {
-                                updateSelectedStyle('motionGroupInterval', value);
-                                updateSelectedStyle('motionStaggerDelay', value);
-                            }}
-                        />
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
-
-            <Collapsible defaultOpen={false}>
-                <div className="space-y-2">
-                    <CollapsibleTrigger className="group/scroll flex w-full items-center justify-between text-left">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Scroll</p>
-                            <p className="text-[11px] text-[#64748b]">Set how the component should behave when it enters the viewport, then preview it from the stage toolbar.</p>
-                        </div>
-                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/scroll:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                        <div className="flex items-center justify-between rounded-lg border border-white/[0.08] bg-[#0b1220]/60 px-2.5 py-2">
-                            <div>
-                                <p className="text-[12px] text-[#e2e8f0]">Enable scroll motion</p>
-                                <p className="text-[11px] text-[#64748b]">Use for enter, replay, or progress-based motion later.</p>
-                            </div>
-                            <Switch.Root
-                                checked={selectedStyle.motionScrollEnabled}
-                                onCheckedChange={(checked) => updateSelectedStyle('motionScrollEnabled', checked)}
-                                aria-label="Enable scroll motion"
-                                className={cn(
-                                    'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                    selectedStyle.motionScrollEnabled ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
-                                )}
-                            >
-                                <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.motionScrollEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                            </Switch.Root>
-                        </div>
-                        {selectedStyle.motionScrollEnabled ? (
-                            <>
-                                <SchemaButtonGroup options={MOTION_SCROLL_MODE_OPTIONS} value={selectedStyle.motionScrollMode} onChange={(value) => updateSelectedStyle('motionScrollMode', value)} columns={3} />
-                                <div className="grid grid-cols-2 gap-2">
-                                    <MotionParamRow label="Start" value={selectedStyle.motionScrollStart} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('motionScrollStart', value)} />
-                                    <MotionParamRow label="End" value={selectedStyle.motionScrollEnd} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('motionScrollEnd', value)} />
-                                </div>
-                                <MotionParamRow label="Parallax" value={selectedStyle.motionScrollParallax} min={0} max={200} unit="px" onChange={(value) => updateSelectedStyle('motionScrollParallax', value)} />
-                                <div className="flex items-center justify-between rounded-lg border border-white/[0.08] bg-[#0b1220]/40 px-2.5 py-2">
-                                    <div>
-                                        <p className="text-[12px] text-[#e2e8f0]">Replay on re-entry</p>
-                                        <p className="text-[11px] text-[#64748b]">Useful for sections that should animate every time they enter the viewport.</p>
-                                    </div>
-                                    <Switch.Root
-                                        checked={selectedStyle.motionScrollReplay}
-                                        onCheckedChange={(checked) => updateSelectedStyle('motionScrollReplay', checked)}
-                                        aria-label="Replay on scroll re-entry"
-                                        className={cn(
-                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                            selectedStyle.motionScrollReplay ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
-                                        )}
-                                    >
-                                        <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.motionScrollReplay ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                                    </Switch.Root>
-                                </div>
-                            </>
-                        ) : null}
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
-
-            <Collapsible defaultOpen={false}>
-                <div className="space-y-2">
-                    <CollapsibleTrigger className="group/simple-motion flex w-full items-center justify-between text-left">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Simple Controls</p>
-                            <p className="text-[11px] text-[#64748b]">Compatibility controls that still drive the current preview runtime.</p>
-                        </div>
-                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/simple-motion:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-            {showTriggerTabs ? (
+            {/* ── Tab bar ── */}
+            {tabs.length > 0 ? (
                 <div className="grid min-w-0 gap-1 py-1" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
                     {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setActiveTab(tab.id)}
-                            className={cn(
-                                'flex flex-col items-center gap-0.5 rounded-md py-2 transition-all duration-150',
-                                activeTab === tab.id
-                                    ? 'bg-[rgba(45,212,191,0.1)]'
-                                    : 'hover:bg-white/[0.04]',
-                            )}
-                        >
-                            <span className={cn('text-sm leading-none', activeTab === tab.id ? 'text-[#2dd4bf]' : 'text-[#64748b]')}>
-                                {tab.icon}
-                            </span>
-                            <span className={cn('text-[9px] font-semibold uppercase tracking-[0.06em]', activeTab === tab.id ? 'text-[#2dd4bf]' : 'text-[#64748b]')}>
-                                {tab.label}
-                            </span>
+                        <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
+                            className={cn('flex flex-col items-center gap-0.5 rounded-md py-2 transition-all duration-150',
+                                activeTab === tab.id ? 'bg-[rgba(45,212,191,0.1)]' : 'hover:bg-white/[0.04]')}>
+                            <span className={cn('text-sm leading-none', activeTab === tab.id ? 'text-[#2dd4bf]' : 'text-[#64748b]')}>{tab.icon}</span>
+                            <span className={cn('text-[9px] font-semibold uppercase tracking-[0.06em]', activeTab === tab.id ? 'text-[#2dd4bf]' : 'text-[#64748b]')}>{tab.label}</span>
                         </button>
                     ))}
                 </div>
             ) : null}
 
-            {showTriggerTabs ? (
-                <AnimatePresence mode="wait" initial={false}>
-                {activeTab === 'overlay' && supportsEntryMotion && !hasSplitOverlayMotion ? (
-                    <motion.div
-                        key="overlay"
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.14, ease: 'easeOut' }}
-                        className="space-y-2.5"
-                    >
-                        <p className="text-[11px] text-[#8fa6c7]">{entryHelperText}</p>
+            {/* ── Tab content ── */}
+            <AnimatePresence mode="wait" initial={false}>
 
-                        <MotionPresetStrip presets={surfaceMotionPresets} onSelect={applyMotionComponentPreset} />
+                {/* ────── Entry Tab ────── */}
+                {activeTab === 'entry' ? (
+                    <motion.div key="entry" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.14, ease: 'easeOut' }} className="space-y-2.5">
+                        <MotionPresetStrip presets={visualMotionPresets} onSelect={applyVisualMotionPreset} title="Entry presets" />
 
-                        <div className="flex items-center justify-between">
-                            <span className="text-[12px] text-[#e2e8f0]">{entryEnableLabel}</span>
-                            <Switch.Root
-                                checked={selectedStyle.motionEntryEnabled}
-                                onCheckedChange={(checked) => {
-                                    updateSelectedStyle('motionEntryEnabled', checked);
-                                }}
-                                aria-label={entryEnableLabel}
-                                className={cn(
-                                    'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                    'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                    selectedStyle.motionEntryEnabled
-                                        ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                        : 'border-white/[0.12] bg-[#13161b]',
-                                )}
-                            >
-                                <Switch.Thumb
-                                    className={cn(
-                                        'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                        selectedStyle.motionEntryEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                    )}
-                                />
-                            </Switch.Root>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <span className="text-[12px] text-[#e2e8f0]">Enable exit motion</span>
-                            <Switch.Root
-                                checked={selectedStyle.motionExitEnabled}
-                                onCheckedChange={(checked) => updateSelectedStyle('motionExitEnabled', checked)}
-                                aria-label="Enable exit motion"
-                                className={cn(
-                                    'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                    'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                    selectedStyle.motionExitEnabled
-                                        ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                        : 'border-white/[0.12] bg-[#13161b]',
-                                )}
-                            >
-                                <Switch.Thumb
-                                    className={cn(
-                                        'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                        selectedStyle.motionExitEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                    )}
-                                />
-                            </Switch.Root>
-                        </div>
+                        <AnimatedCheckbox checked={selectedStyle.motionEntryEnabled} onChange={(checked) => updateSelectedStyle('motionEntryEnabled', checked)} label="Enable entry motion" />
+                        <AnimatedCheckbox checked={selectedStyle.motionExitEnabled} onChange={(checked) => updateSelectedStyle('motionExitEnabled', checked)} label="Enable exit motion" />
 
                         <AnimatePresence initial={false}>
                             {selectedStyle.motionEntryEnabled || selectedStyle.motionExitEnabled ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                                    className="space-y-2.5"
-                                >
-                                    <div className="space-y-2.5">
-                                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Opacity</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] text-[#64748b]">From</span>
-                                                <MotionParamRow label="" value={selectedStyle.motionInitialOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionInitialOpacity', v)} />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] text-[#64748b]">To</span>
-                                                <MotionParamRow label="" value={selectedStyle.motionAnimateOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionAnimateOpacity', v)} />
-                                            </div>
+                                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15, ease: 'easeOut' }} className="space-y-2.5">
+                                    {/* Opacity */}
+                                    <SectionLabel>Opacity</SectionLabel>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] text-[#64748b]">From</span>
+                                            <MotionParamRow label="" value={selectedStyle.motionInitialOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionInitialOpacity', v)} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] text-[#64748b]">To</span>
+                                            <MotionParamRow label="" value={selectedStyle.motionAnimateOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionAnimateOpacity', v)} />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2.5">
-                                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Transform</p>
-                                        <XYPad
-                                            x={selectedStyle.motionInitialX}
-                                            y={selectedStyle.motionInitialY}
-                                            xMin={-tuning.overlayOffset}
-                                            xMax={tuning.overlayOffset}
-                                            yMin={-tuning.overlayOffset}
-                                            yMax={tuning.overlayOffset}
-                                            onXChange={(value) => updateSelectedStyle('motionInitialX', value)}
-                                            onYChange={(value) => updateSelectedStyle('motionInitialY', value)}
-                                        />
-                                        <MotionParamRow label="Rotate" value={selectedStyle.motionAnimateRotate} min={-tuning.overlayRotateRange} max={tuning.overlayRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionAnimateRotate', v)} />
+                                    {/* Transform */}
+                                    <SectionLabel>Transform</SectionLabel>
+                                    <XYPad compact x={selectedStyle.motionInitialX} y={selectedStyle.motionInitialY}
+                                        xMin={-tuning.overlayOffset} xMax={tuning.overlayOffset} yMin={-tuning.overlayOffset} yMax={tuning.overlayOffset}
+                                        onXChange={(v) => updateSelectedStyle('motionInitialX', v)} onYChange={(v) => updateSelectedStyle('motionInitialY', v)} />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <MotionParamRow label="Scale From" value={selectedStyle.motionInitialScale} min={0} max={200} unit="%" onChange={(v) => updateSelectedStyle('motionInitialScale', v)} />
+                                        <MotionParamRow label="Scale To" value={selectedStyle.motionAnimateScale} min={0} max={200} unit="%" onChange={(v) => updateSelectedStyle('motionAnimateScale', v)} />
+                                    </div>
+                                    <MotionParamRow label="Rotate" value={selectedStyle.motionAnimateRotate} min={-tuning.overlayRotateRange} max={tuning.overlayRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionAnimateRotate', v)} />
+
+                                    {/* Filter */}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] text-[#64748b]">Filter from</span>
+                                            <input type="text" value={selectedStyle.motionInitialFilter} onChange={(e) => updateSelectedStyle('motionInitialFilter', e.target.value)}
+                                                placeholder="blur(8px)" className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label="Initial filter" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] text-[#64748b]">Filter to</span>
+                                            <input type="text" value={selectedStyle.motionAnimateFilter} onChange={(e) => updateSelectedStyle('motionAnimateFilter', e.target.value)}
+                                                placeholder="blur(0px)" className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label="Animate filter" />
+                                        </div>
                                     </div>
 
+                                    {/* Transform origin */}
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] text-[#64748b]">Transform Origin</span>
+                                        <input type="text" value={selectedStyle.motionTransformOrigin} onChange={(e) => updateSelectedStyle('motionTransformOrigin', e.target.value)}
+                                            placeholder="center center" className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label="Transform origin" />
+                                    </div>
+
+                                    {/* Shared transition */}
                                     <MotionTransitionCard
-                                        transitionType={selectedStyle.motionTransitionType}
-                                        ease={selectedStyle.motionEase}
-                                        duration={selectedStyle.motionDuration}
-                                        delay={selectedStyle.motionDelay}
-                                        stiffness={selectedStyle.motionStiffness}
-                                        damping={selectedStyle.motionDamping}
-                                        mass={selectedStyle.motionMass}
+                                        transitionType={selectedStyle.motionTransitionType} ease={selectedStyle.motionEase}
+                                        duration={selectedStyle.motionDuration} delay={selectedStyle.motionDelay}
+                                        stiffness={selectedStyle.motionStiffness} damping={selectedStyle.motionDamping} mass={selectedStyle.motionMass}
                                         onTransitionTypeChange={(v) => updateSelectedStyle('motionTransitionType', v)}
                                         onEaseChange={(v) => updateSelectedStyle('motionEase', v)}
                                         onDurationChange={(v) => updateSelectedStyle('motionDuration', v)}
@@ -1487,386 +572,114 @@ export function MotionInspectorSection({
                                         onStiffnessChange={(v) => updateSelectedStyle('motionStiffness', v)}
                                         onDampingChange={(v) => updateSelectedStyle('motionDamping', v)}
                                         onMassChange={(v) => updateSelectedStyle('motionMass', v)}
-                                    />
-                                </motion.div>
-                            ) : null}
-                        </AnimatePresence>
-                    </motion.div>
-                ) : null}
-
-                {activeTab === 'overlay' && hasSplitOverlayMotion ? (
-                    <motion.div
-                        key="split-overlay"
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.14, ease: 'easeOut' }}
-                        className="space-y-2.5"
-                    >
-                        <p className="text-[11px] text-[#8fa6c7]">Controls how the overlay body and text animate in.</p>
-
-                        {overlayTextPresetKey ? (
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[11px] text-[#8fa6c7]">{`${componentKind[0].toUpperCase()}${componentKind.slice(1)} Text Motion`}</span>
-                                    <Switch.Root
-                                        checked={String(selectedStyle[overlayTextPresetKey]) !== 'none'}
-                                        onCheckedChange={(checked) => {
-                                            if (!checked) {
-                                                updateSelectedStyle(overlayTextPresetKey, 'none' as never);
-                                                return;
-                                            }
-                                            updateSelectedStyle(overlayTextPresetKey, 'custom' as never);
-                                        }}
-                                        aria-label={`Enable ${componentKind} text motion`}
-                                        className={cn(
-                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                            String(selectedStyle[overlayTextPresetKey]) !== 'none'
-                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                : 'border-white/[0.12] bg-[#13161b]',
-                                        )}
-                                    >
-                                        <Switch.Thumb
-                                            className={cn(
-                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                String(selectedStyle[overlayTextPresetKey]) !== 'none'
-                                                    ? 'translate-x-[18px] bg-[#2dd4bf]'
-                                                    : 'translate-x-[2px] bg-[#64748b]',
-                                            )}
-                                        />
-                                    </Switch.Root>
-                                </div>
-                                <FlatSelect
-                                    value={String(selectedStyle[overlayTextPresetKey])}
-                                    onValueChange={(value) => updateSelectedStyle(overlayTextPresetKey, value as never)}
-                                    ariaLabel={`${componentKind} text motion preset`}
-                                >
-                                    {splitOverlayMotionOptions.map((preset) => (
-                                        <option key={preset.id} value={preset.id}>
-                                            {preset.label}
-                                        </option>
-                                    ))}
-                                </FlatSelect>
-                                <p className="text-[10px] leading-relaxed text-[#64748b]">
-                                    {splitOverlayMotionOptions.find((preset) => preset.id === String(selectedStyle[overlayTextPresetKey]))?.description ?? 'Select a motion preset.'}
-                                </p>
-                                {String(selectedStyle[overlayTextPresetKey]) === 'custom' ? renderSplitOverlayCustomControls() : null}
-                            </div>
-                        ) : null}
-                        {overlayBodyPresetKey ? (
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[11px] text-[#8fa6c7]">
-                                    {componentKind === 'dropdown' ? 'Dropdown Body Motion' : `${componentKind[0].toUpperCase()}${componentKind.slice(1)} Body Motion`}
-                                    </span>
-                                    <Switch.Root
-                                        checked={String(selectedStyle[overlayBodyPresetKey]) !== 'none'}
-                                        onCheckedChange={(checked) => {
-                                            if (!checked) {
-                                                updateSelectedStyle(overlayBodyPresetKey, 'none' as never);
-                                                return;
-                                            }
-                                            updateSelectedStyle(overlayBodyPresetKey, 'custom' as never);
-                                        }}
-                                        aria-label={`Enable ${componentKind} body motion`}
-                                        className={cn(
-                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                            String(selectedStyle[overlayBodyPresetKey]) !== 'none'
-                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                : 'border-white/[0.12] bg-[#13161b]',
-                                        )}
-                                    >
-                                        <Switch.Thumb
-                                            className={cn(
-                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                String(selectedStyle[overlayBodyPresetKey]) !== 'none'
-                                                    ? 'translate-x-[18px] bg-[#2dd4bf]'
-                                                    : 'translate-x-[2px] bg-[#64748b]',
-                                            )}
-                                        />
-                                    </Switch.Root>
-                                </div>
-                                <FlatSelect
-                                    value={String(selectedStyle[overlayBodyPresetKey])}
-                                    onValueChange={(value) => updateSelectedStyle(overlayBodyPresetKey, value as never)}
-                                    ariaLabel={`${componentKind} body motion preset`}
-                                >
-                                    {splitOverlayMotionOptions.map((preset) => (
-                                        <option key={preset.id} value={preset.id}>
-                                            {preset.label}
-                                        </option>
-                                    ))}
-                                </FlatSelect>
-                                <p className="text-[10px] leading-relaxed text-[#64748b]">
-                                    {splitOverlayMotionOptions.find((preset) => preset.id === String(selectedStyle[overlayBodyPresetKey]))?.description ?? 'Select a motion preset.'}
-                                </p>
-                                {String(selectedStyle[overlayBodyPresetKey]) === 'custom' ? renderSplitOverlayCustomControls() : null}
-                            </div>
-                        ) : null}
-
-                        {componentKind === 'dropdown' ? (
-                            <div className="space-y-2 rounded-md border border-white/[0.08] bg-[#0b1220]/50 p-2">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[11px] text-[#8fa6c7]">Dropdown Option Hover</span>
-                                    <Switch.Root
-                                        checked={selectedStyle.dropdownOptionHoverEnabled}
-                                        onCheckedChange={(checked) => updateSelectedStyle('dropdownOptionHoverEnabled', checked)}
-                                        aria-label="Enable dropdown option hover motion"
-                                        className={cn(
-                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                            selectedStyle.dropdownOptionHoverEnabled
-                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                : 'border-white/[0.12] bg-[#13161b]',
-                                        )}
-                                    >
-                                        <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.dropdownOptionHoverEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                                    </Switch.Root>
-                                </div>
-                                {selectedStyle.dropdownOptionHoverEnabled ? (
-                                    <>
-                                        <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionHoverScale} min={90} max={115} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionHoverScale', v)} />
-                                        <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionHoverY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionHoverY', v)} />
-                                    </>
-                                ) : null}
-                                <div className="h-px bg-white/[0.08]" />
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[11px] text-[#8fa6c7]">Dropdown Option Tap</span>
-                                    <Switch.Root
-                                        checked={selectedStyle.dropdownOptionTapEnabled}
-                                        onCheckedChange={(checked) => updateSelectedStyle('dropdownOptionTapEnabled', checked)}
-                                        aria-label="Enable dropdown option tap motion"
-                                        className={cn(
-                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                            selectedStyle.dropdownOptionTapEnabled
-                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                : 'border-white/[0.12] bg-[#13161b]',
-                                        )}
-                                    >
-                                        <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.dropdownOptionTapEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                                    </Switch.Root>
-                                </div>
-                                {selectedStyle.dropdownOptionTapEnabled ? (
-                                    <>
-                                        <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionTapScale} min={85} max={110} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionTapScale', v)} />
-                                        <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionTapY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionTapY', v)} />
-                                    </>
-                                ) : null}
-                            </div>
-                        ) : null}
-                    </motion.div>
-                ) : null}
-
-                {activeTab === 'hover' ? (
-                    <motion.div
-                        key="hover"
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.14, ease: 'easeOut' }}
-                        className="space-y-2.5"
-                    >
-                        <p className="text-[11px] text-[#8fa6c7]">Applies while hovered</p>
-
-                        <MotionPresetStrip presets={hoverMotionPresets} onSelect={(id) => applyScopedInteractionPreset(id, 'hover')} title="Hover presets" defaultOpen={false} />
-
-                        <div className="flex items-center justify-between">
-                            <span className="text-[12px] text-[#e2e8f0]">Enable hover interaction</span>
-                            <Switch.Root
-                                checked={selectedStyle.motionHoverEnabled}
-                                onCheckedChange={(checked) => updateSelectedStyle('motionHoverEnabled', checked)}
-                                aria-label="Enable hover interaction"
-                                className={cn(
-                                    'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                    'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                    selectedStyle.motionHoverEnabled
-                                        ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                        : 'border-white/[0.12] bg-[#13161b]',
-                                )}
-                            >
-                                <Switch.Thumb
-                                    className={cn(
-                                        'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                        selectedStyle.motionHoverEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                    )}
-                                />
-                            </Switch.Root>
-                        </div>
-
-                        <AnimatePresence initial={false}>
-                            {selectedStyle.motionHoverEnabled ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                                    className="space-y-2.5"
-                                >
-                                    <div className="space-y-2.5">
-                                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Transform</p>
-                                        <MotionParamRow label="Scale" value={selectedStyle.motionHoverScale} min={tuning.hoverScaleMin} max={tuning.hoverScaleMax} unit="%" onChange={(v) => updateSelectedStyle('motionHoverScale', v)} />
-                                        <XYPad
-                                            compact
-                                            x={selectedStyle.motionHoverX}
-                                            y={selectedStyle.motionHoverY}
-                                            xMin={-tuning.hoverOffset}
-                                            xMax={tuning.hoverOffset}
-                                            yMin={-tuning.hoverOffset}
-                                            yMax={tuning.hoverOffset}
-                                            onXChange={(value) => updateSelectedStyle('motionHoverX', value)}
-                                            onYChange={(value) => updateSelectedStyle('motionHoverY', value)}
-                                        />
-                                        <MotionParamRow label="Rotate" value={selectedStyle.motionHoverRotate} min={-tuning.hoverRotateRange} max={tuning.hoverRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionHoverRotate', v)} />
-                                        <MotionParamRow label="Opacity" value={selectedStyle.motionHoverOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionHoverOpacity', v)} />
-                                    </div>
-
-                                    <MotionTransitionCard
-                                        transitionType={selectedStyle.motionHoverTransitionType}
-                                        ease={selectedStyle.motionHoverEase}
-                                        duration={selectedStyle.motionHoverDuration}
-                                        delay={selectedStyle.motionHoverDelay}
-                                        stiffness={selectedStyle.motionHoverStiffness}
-                                        damping={selectedStyle.motionHoverDamping}
-                                        mass={selectedStyle.motionHoverMass}
-                                        onTransitionTypeChange={(v) => updateSelectedStyle('motionHoverTransitionType', v)}
-                                        onEaseChange={(v) => updateSelectedStyle('motionHoverEase', v)}
-                                        onDurationChange={(v) => updateSelectedStyle('motionHoverDuration', v)}
-                                        onDelayChange={(v) => updateSelectedStyle('motionHoverDelay', v)}
-                                        onStiffnessChange={(v) => updateSelectedStyle('motionHoverStiffness', v)}
-                                        onDampingChange={(v) => updateSelectedStyle('motionHoverDamping', v)}
-                                        onMassChange={(v) => updateSelectedStyle('motionHoverMass', v)}
                                         customBezier={selectedStyle.motionCustomBezier}
                                         onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
                                     />
+
+                                    {/* Stagger (conditional) */}
+                                    {supportsStaggerMotion(componentKind) ? (
+                                        <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
+                                            <SectionLabel>Stagger</SectionLabel>
+                                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                                <SectionLabel>Group Strategy</SectionLabel>
+                                                <div className="mt-2">
+                                                    <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                                <SectionLabel>Group Origin</SectionLabel>
+                                                <div className="mt-2">
+                                                    <SchemaButtonGroup options={MOTION_GROUP_ORIGIN_OPTIONS} value={selectedStyle.motionGroupOrigin} onChange={applyGroupOrigin} columns={3} />
+                                                </div>
+                                            </div>
+                                            <MotionParamRow label="Group Interval" value={selectedStyle.motionGroupInterval} min={0.01} max={0.4} step={0.01} unit="s"
+                                                onChange={(v) => { updateSelectedStyle('motionGroupInterval', v); updateSelectedStyle('motionStaggerDelay', v); }} />
+                                        </div>
+                                    ) : null}
+                                </motion.div>
+                            ) : null}
+                        </AnimatePresence>
+                    </motion.div>
+                ) : null}
+
+                {/* ────── Hover Tab ────── */}
+                {activeTab === 'hover' ? (
+                    <motion.div key="hover" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.14, ease: 'easeOut' }} className="space-y-2.5">
+                        <MotionPresetStrip presets={hoverMotionPresets} onSelect={(id) => applyScopedInteractionPreset(id, 'hover')} title="Hover presets" defaultOpen={false} />
+
+                        <AnimatedCheckbox checked={selectedStyle.motionHoverEnabled} onChange={(checked) => updateSelectedStyle('motionHoverEnabled', checked)} label="Enable hover motion" />
+
+                        <AnimatePresence initial={false}>
+                            {selectedStyle.motionHoverEnabled ? (
+                                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15, ease: 'easeOut' }} className="space-y-2.5">
+                                    <SectionLabel>Transform</SectionLabel>
+                                    <MotionParamRow label="Scale" value={selectedStyle.motionHoverScale} min={tuning.hoverScaleMin} max={tuning.hoverScaleMax} unit="%" onChange={(v) => updateSelectedStyle('motionHoverScale', v)} />
+                                    <XYPad compact x={selectedStyle.motionHoverX} y={selectedStyle.motionHoverY}
+                                        xMin={-tuning.hoverOffset} xMax={tuning.hoverOffset} yMin={-tuning.hoverOffset} yMax={tuning.hoverOffset}
+                                        onXChange={(v) => updateSelectedStyle('motionHoverX', v)} onYChange={(v) => updateSelectedStyle('motionHoverY', v)} />
+                                    <MotionParamRow label="Rotate" value={selectedStyle.motionHoverRotate} min={-tuning.hoverRotateRange} max={tuning.hoverRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionHoverRotate', v)} />
+                                    <MotionParamRow label="Opacity" value={selectedStyle.motionHoverOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionHoverOpacity', v)} />
+
+                                    {/* Transition override */}
+                                    <div className="border-t border-white/[0.08] pt-2 space-y-2">
+                                        <AnimatedCheckbox checked={selectedStyle.motionHoverTransitionOverride} onChange={(checked) => updateSelectedStyle('motionHoverTransitionOverride', checked)} label="Override timing" />
+                                        {selectedStyle.motionHoverTransitionOverride ? (
+                                            <MotionTransitionCard
+                                                transitionType={selectedStyle.motionHoverTransitionType} ease={selectedStyle.motionHoverEase}
+                                                duration={selectedStyle.motionHoverDuration} delay={selectedStyle.motionHoverDelay}
+                                                stiffness={selectedStyle.motionHoverStiffness} damping={selectedStyle.motionHoverDamping} mass={selectedStyle.motionHoverMass}
+                                                onTransitionTypeChange={(v) => updateSelectedStyle('motionHoverTransitionType', v)}
+                                                onEaseChange={(v) => updateSelectedStyle('motionHoverEase', v)}
+                                                onDurationChange={(v) => updateSelectedStyle('motionHoverDuration', v)}
+                                                onDelayChange={(v) => updateSelectedStyle('motionHoverDelay', v)}
+                                                onStiffnessChange={(v) => updateSelectedStyle('motionHoverStiffness', v)}
+                                                onDampingChange={(v) => updateSelectedStyle('motionHoverDamping', v)}
+                                                onMassChange={(v) => updateSelectedStyle('motionHoverMass', v)}
+                                                customBezier={selectedStyle.motionCustomBezier}
+                                                onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
+                                            />
+                                        ) : (
+                                            <p className="text-[10px] text-[#64748b]">Using shared transition from Entry tab.</p>
+                                        )}
+                                    </div>
                                 </motion.div>
                             ) : null}
                         </AnimatePresence>
 
+                        {/* Advanced Hover */}
                         {supportsAdvancedHover ? (
                             <Collapsible defaultOpen={advancedHoverEnabled}>
                                 <div className="space-y-1.5 border-t border-white/[0.08] pt-2">
                                     <CollapsibleTrigger className="group/advanced-hover flex w-full items-center justify-between text-left">
-                                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Advanced Hover</p>
+                                        <SectionLabel>Advanced Hover</SectionLabel>
                                         <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/advanced-hover:rotate-180" />
                                     </CollapsibleTrigger>
                                     <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
                                         <div className="space-y-2.5 pt-1">
+                                            {/* Tilt 3D */}
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <span className="text-[11px] text-[#8fa6c7]">Tilt 3D</span>
-                                                    <Switch.Root
-                                                        checked={selectedStyle.motionHoverTiltEnabled}
-                                                        onCheckedChange={(checked) => updateSelectedStyle('motionHoverTiltEnabled', checked)}
-                                                        aria-label="Enable 3D tilt"
-                                                        className={cn(
-                                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                                            selectedStyle.motionHoverTiltEnabled
-                                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                                : 'border-white/[0.12] bg-[#13161b]',
-                                                        )}
-                                                    >
-                                                        <Switch.Thumb
-                                                            className={cn(
-                                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                                selectedStyle.motionHoverTiltEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                                            )}
-                                                        />
-                                                    </Switch.Root>
-                                                </div>
+                                                <AnimatedCheckbox checked={selectedStyle.motionHoverTiltEnabled} onChange={(checked) => updateSelectedStyle('motionHoverTiltEnabled', checked)} label="Tilt 3D" />
                                                 {selectedStyle.motionHoverTiltEnabled ? (
-                                                    <MotionParamRow
-                                                        label="Tilt Strength"
-                                                        value={selectedStyle.motionHoverTiltStrength}
-                                                        min={1}
-                                                        max={45}
-                                                        unit="°"
-                                                        onChange={(v) => updateSelectedStyle('motionHoverTiltStrength', v)}
-                                                    />
+                                                    <MotionParamRow label="Tilt Strength" value={selectedStyle.motionHoverTiltStrength} min={1} max={45} unit="°" onChange={(v) => updateSelectedStyle('motionHoverTiltStrength', v)} />
                                                 ) : null}
                                             </div>
-
+                                            {/* Glare */}
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <span className="text-[11px] text-[#8fa6c7]">Glare</span>
-                                                    <Switch.Root
-                                                        checked={selectedStyle.motionHoverGlareEnabled}
-                                                        onCheckedChange={(checked) => updateSelectedStyle('motionHoverGlareEnabled', checked)}
-                                                        aria-label="Enable glare"
-                                                        className={cn(
-                                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                                            selectedStyle.motionHoverGlareEnabled
-                                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                                : 'border-white/[0.12] bg-[#13161b]',
-                                                        )}
-                                                    >
-                                                        <Switch.Thumb
-                                                            className={cn(
-                                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                                selectedStyle.motionHoverGlareEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                                            )}
-                                                        />
-                                                    </Switch.Root>
-                                                </div>
+                                                <AnimatedCheckbox checked={selectedStyle.motionHoverGlareEnabled} onChange={(checked) => updateSelectedStyle('motionHoverGlareEnabled', checked)} label="Glare" />
                                                 {selectedStyle.motionHoverGlareEnabled ? (
                                                     <div className="space-y-2.5">
-                                                        <MotionColorField
-                                                            label="Glare Color"
-                                                            value={selectedStyle.motionHoverGlareColor}
-                                                            onChange={(value) => updateSelectedStyle('motionHoverGlareColor', value)}
-                                                        />
-                                                        <MotionParamRow
-                                                            label="Glare Opacity"
-                                                            value={selectedStyle.motionHoverGlareOpacity}
-                                                            min={0.05}
-                                                            max={1}
-                                                            step={0.05}
-                                                            onChange={(v) => updateSelectedStyle('motionHoverGlareOpacity', v)}
-                                                        />
+                                                        <MotionColorField label="Glare Color" value={selectedStyle.motionHoverGlareColor} onChange={(v) => updateSelectedStyle('motionHoverGlareColor', v)} />
+                                                        <MotionParamRow label="Glare Opacity" value={selectedStyle.motionHoverGlareOpacity} min={0.05} max={1} step={0.05} onChange={(v) => updateSelectedStyle('motionHoverGlareOpacity', v)} />
                                                     </div>
                                                 ) : null}
                                             </div>
-
+                                            {/* Spotlight */}
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <span className="text-[11px] text-[#8fa6c7]">Spotlight</span>
-                                                    <Switch.Root
-                                                        checked={selectedStyle.motionHoverSpotlightEnabled}
-                                                        onCheckedChange={(checked) => updateSelectedStyle('motionHoverSpotlightEnabled', checked)}
-                                                        aria-label="Enable spotlight"
-                                                        className={cn(
-                                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                                            'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                                            selectedStyle.motionHoverSpotlightEnabled
-                                                                ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                                                : 'border-white/[0.12] bg-[#13161b]',
-                                                        )}
-                                                    >
-                                                        <Switch.Thumb
-                                                            className={cn(
-                                                                'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                                                selectedStyle.motionHoverSpotlightEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                                            )}
-                                                        />
-                                                    </Switch.Root>
-                                                </div>
+                                                <AnimatedCheckbox checked={selectedStyle.motionHoverSpotlightEnabled} onChange={(checked) => updateSelectedStyle('motionHoverSpotlightEnabled', checked)} label="Spotlight" />
                                                 {selectedStyle.motionHoverSpotlightEnabled ? (
                                                     <div className="space-y-2.5">
-                                                        <MotionColorField
-                                                            label="Spotlight Color"
-                                                            value={selectedStyle.motionHoverSpotlightColor}
-                                                            onChange={(value) => updateSelectedStyle('motionHoverSpotlightColor', value)}
-                                                        />
-                                                        <MotionParamRow
-                                                            label="Spotlight Size"
-                                                            value={selectedStyle.motionHoverSpotlightSize}
-                                                            min={50}
-                                                            max={600}
-                                                            unit="px"
-                                                            onChange={(v) => updateSelectedStyle('motionHoverSpotlightSize', v)}
-                                                        />
+                                                        <MotionColorField label="Spotlight Color" value={selectedStyle.motionHoverSpotlightColor} onChange={(v) => updateSelectedStyle('motionHoverSpotlightColor', v)} />
+                                                        <MotionParamRow label="Spotlight Size" value={selectedStyle.motionHoverSpotlightSize} min={50} max={600} unit="px" onChange={(v) => updateSelectedStyle('motionHoverSpotlightSize', v)} />
                                                     </div>
                                                 ) : null}
                                             </div>
@@ -1878,244 +691,151 @@ export function MotionInspectorSection({
                     </motion.div>
                 ) : null}
 
+                {/* ────── Tap Tab ────── */}
                 {activeTab === 'tap' ? (
-                    <motion.div
-                        key="tap"
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.14, ease: 'easeOut' }}
-                        className="space-y-2.5"
-                    >
-                        <p className="text-[11px] text-[#8fa6c7]">Applies on press/tap</p>
-
+                    <motion.div key="tap" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.14, ease: 'easeOut' }} className="space-y-2.5">
                         <MotionPresetStrip presets={tapMotionPresets} onSelect={(id) => applyScopedInteractionPreset(id, 'tap')} title="Tap presets" defaultOpen={false} />
 
-                        <div className="flex items-center justify-between">
-                            <span className="text-[12px] text-[#e2e8f0]">Enable tap feedback</span>
-                            <Switch.Root
-                                checked={selectedStyle.motionTapEnabled}
-                                onCheckedChange={(checked) => updateSelectedStyle('motionTapEnabled', checked)}
-                                aria-label="Enable tap feedback"
-                                className={cn(
-                                    'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                    'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                    selectedStyle.motionTapEnabled
-                                        ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                        : 'border-white/[0.12] bg-[#13161b]',
-                                )}
-                            >
-                                <Switch.Thumb
-                                    className={cn(
-                                        'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                        selectedStyle.motionTapEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]',
-                                    )}
-                                />
-                            </Switch.Root>
-                        </div>
+                        <AnimatedCheckbox checked={selectedStyle.motionTapEnabled} onChange={(checked) => updateSelectedStyle('motionTapEnabled', checked)} label="Enable tap motion" />
 
                         <AnimatePresence initial={false}>
                             {selectedStyle.motionTapEnabled ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                                    className="space-y-2.5"
-                                >
-                                    <div className="space-y-2.5">
-                                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Transform</p>
-                                        <MotionParamRow label="Scale" value={selectedStyle.motionTapScale} min={tuning.tapScaleMin} max={tuning.tapScaleMax} unit="%" onChange={(v) => updateSelectedStyle('motionTapScale', v)} />
-                                        <XYPad
-                                            compact
-                                            x={selectedStyle.motionTapX}
-                                            y={selectedStyle.motionTapY}
-                                            xMin={-tuning.tapOffset}
-                                            xMax={tuning.tapOffset}
-                                            yMin={-tuning.tapOffset}
-                                            yMax={tuning.tapOffset}
-                                            onXChange={(value) => updateSelectedStyle('motionTapX', value)}
-                                            onYChange={(value) => updateSelectedStyle('motionTapY', value)}
-                                        />
-                                        <MotionParamRow label="Rotate" value={selectedStyle.motionTapRotate} min={-tuning.tapRotateRange} max={tuning.tapRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionTapRotate', v)} />
-                                        <MotionParamRow label="Opacity" value={selectedStyle.motionTapOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionTapOpacity', v)} />
-                                    </div>
+                                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15, ease: 'easeOut' }} className="space-y-2.5">
+                                    <SectionLabel>Transform</SectionLabel>
+                                    <MotionParamRow label="Scale" value={selectedStyle.motionTapScale} min={tuning.tapScaleMin} max={tuning.tapScaleMax} unit="%" onChange={(v) => updateSelectedStyle('motionTapScale', v)} />
+                                    <XYPad compact x={selectedStyle.motionTapX} y={selectedStyle.motionTapY}
+                                        xMin={-tuning.tapOffset} xMax={tuning.tapOffset} yMin={-tuning.tapOffset} yMax={tuning.tapOffset}
+                                        onXChange={(v) => updateSelectedStyle('motionTapX', v)} onYChange={(v) => updateSelectedStyle('motionTapY', v)} />
+                                    <MotionParamRow label="Rotate" value={selectedStyle.motionTapRotate} min={-tuning.tapRotateRange} max={tuning.tapRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionTapRotate', v)} />
+                                    <MotionParamRow label="Opacity" value={selectedStyle.motionTapOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionTapOpacity', v)} />
 
-                                    <MotionTransitionCard
-                                        transitionType={selectedStyle.motionTapTransitionType}
-                                        ease={selectedStyle.motionTapEase}
-                                        duration={selectedStyle.motionTapDuration}
-                                        delay={selectedStyle.motionTapDelay}
-                                        stiffness={selectedStyle.motionTapStiffness}
-                                        damping={selectedStyle.motionTapDamping}
-                                        mass={selectedStyle.motionTapMass}
-                                        onTransitionTypeChange={(v) => updateSelectedStyle('motionTapTransitionType', v)}
-                                        onEaseChange={(v) => {
-                                            updateSelectedStyle('motionTapEase', v);
-                                            if (selectedStyle.motionTapTransitionType === 'spring') {
-                                                updateSelectedStyle('motionTapTransitionType', 'tween');
-                                            }
-                                        }}
-                                        onDurationChange={(v) => updateSelectedStyle('motionTapDuration', v)}
-                                        onDelayChange={(v) => updateSelectedStyle('motionTapDelay', v)}
-                                        onStiffnessChange={(v) => updateSelectedStyle('motionTapStiffness', v)}
-                                        onDampingChange={(v) => updateSelectedStyle('motionTapDamping', v)}
-                                        onMassChange={(v) => updateSelectedStyle('motionTapMass', v)}
-                                        customBezier={selectedStyle.motionCustomBezier}
-                                        onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
-                                    />
+                                    {/* Transition override */}
+                                    <div className="border-t border-white/[0.08] pt-2 space-y-2">
+                                        <AnimatedCheckbox checked={selectedStyle.motionTapTransitionOverride} onChange={(checked) => updateSelectedStyle('motionTapTransitionOverride', checked)} label="Override timing" />
+                                        {selectedStyle.motionTapTransitionOverride ? (
+                                            <MotionTransitionCard
+                                                transitionType={selectedStyle.motionTapTransitionType} ease={selectedStyle.motionTapEase}
+                                                duration={selectedStyle.motionTapDuration} delay={selectedStyle.motionTapDelay}
+                                                stiffness={selectedStyle.motionTapStiffness} damping={selectedStyle.motionTapDamping} mass={selectedStyle.motionTapMass}
+                                                onTransitionTypeChange={(v) => updateSelectedStyle('motionTapTransitionType', v)}
+                                                onEaseChange={(v) => updateSelectedStyle('motionTapEase', v)}
+                                                onDurationChange={(v) => updateSelectedStyle('motionTapDuration', v)}
+                                                onDelayChange={(v) => updateSelectedStyle('motionTapDelay', v)}
+                                                onStiffnessChange={(v) => updateSelectedStyle('motionTapStiffness', v)}
+                                                onDampingChange={(v) => updateSelectedStyle('motionTapDamping', v)}
+                                                onMassChange={(v) => updateSelectedStyle('motionTapMass', v)}
+                                                customBezier={selectedStyle.motionCustomBezier}
+                                                onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
+                                            />
+                                        ) : (
+                                            <p className="text-[10px] text-[#64748b]">Using shared transition from Entry tab.</p>
+                                        )}
+                                    </div>
                                 </motion.div>
                             ) : null}
                         </AnimatePresence>
                     </motion.div>
                 ) : null}
-                </AnimatePresence>
+            </AnimatePresence>
+
+            {/* ── Scroll section (below tabs, always visible) ── */}
+            <Collapsible defaultOpen={false}>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/scroll flex w-full items-center justify-between text-left">
+                        <div>
+                            <SectionLabel>Scroll</SectionLabel>
+                            <p className="text-[11px] text-[#64748b]">Set how the component behaves when it enters the viewport.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/scroll:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                        <AnimatedCheckbox checked={selectedStyle.motionScrollEnabled} onChange={(checked) => updateSelectedStyle('motionScrollEnabled', checked)} label="Enable scroll motion" />
+                        {selectedStyle.motionScrollEnabled ? (
+                            <>
+                                <SchemaButtonGroup options={MOTION_SCROLL_MODE_OPTIONS} value={selectedStyle.motionScrollMode} onChange={(v) => updateSelectedStyle('motionScrollMode', v)} columns={3} />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <MotionParamRow label="Start" value={selectedStyle.motionScrollStart} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionScrollStart', v)} />
+                                    <MotionParamRow label="End" value={selectedStyle.motionScrollEnd} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionScrollEnd', v)} />
+                                </div>
+                                <AnimatedCheckbox checked={selectedStyle.motionScrollReplay} onChange={(checked) => updateSelectedStyle('motionScrollReplay', checked)} label="Replay on re-entry" description="Useful for sections that should animate every time they enter the viewport." />
+                                <MotionParamRow label="Parallax" value={selectedStyle.motionScrollParallax} min={0} max={200} unit="px" onChange={(v) => updateSelectedStyle('motionScrollParallax', v)} />
+                            </>
+                        ) : null}
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
+
+            {/* ── Overlay preset section (only for overlay component kinds) ── */}
+            {overlayPresetKey ? (
+                <div className="space-y-2 border-t border-white/[0.08] pt-2">
+                    <SectionLabel>{componentKind === 'input' ? 'Autocomplete Motion' : componentKind === 'tabs' ? 'Tab Panel Motion' : `${componentKind.charAt(0).toUpperCase()}${componentKind.slice(1)} Motion`}</SectionLabel>
+                    <FlatSelect
+                        value={String(selectedStyle[overlayPresetKey])}
+                        onValueChange={(value) => updateSelectedStyle(overlayPresetKey, value as never)}
+                        ariaLabel={`${componentKind} motion preset`}
+                    >
+                        <option value="none">No motion</option>
+                        {surfaceMotionPresets.map((preset) => (
+                            <option key={preset.id} value={preset.id}>{preset.label}</option>
+                        ))}
+                    </FlatSelect>
+                </div>
+            ) : null}
+
+            {/* ── Component-specific controls carried over ── */}
+            {componentKind === 'dropdown' ? (
+                <div className="space-y-2 rounded-md border border-white/[0.08] bg-[#0b1220]/50 p-2">
+                    <AnimatedCheckbox checked={selectedStyle.dropdownOptionHoverEnabled} onChange={(checked) => updateSelectedStyle('dropdownOptionHoverEnabled', checked)} label="Dropdown Option Hover" />
+                    {selectedStyle.dropdownOptionHoverEnabled ? (
+                        <>
+                            <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionHoverScale} min={90} max={115} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionHoverScale', v)} />
+                            <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionHoverY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionHoverY', v)} />
+                        </>
+                    ) : null}
+                    <div className="h-px bg-white/[0.08]" />
+                    <AnimatedCheckbox checked={selectedStyle.dropdownOptionTapEnabled} onChange={(checked) => updateSelectedStyle('dropdownOptionTapEnabled', checked)} label="Dropdown Option Tap" />
+                    {selectedStyle.dropdownOptionTapEnabled ? (
+                        <>
+                            <MotionParamRow label="Scale" value={selectedStyle.dropdownOptionTapScale} min={85} max={110} unit="%" onChange={(v) => updateSelectedStyle('dropdownOptionTapScale', v)} />
+                            <MotionParamRow label="Y Offset" value={selectedStyle.dropdownOptionTapY} min={-12} max={12} unit="px" onChange={(v) => updateSelectedStyle('dropdownOptionTapY', v)} />
+                        </>
+                    ) : null}
+                </div>
             ) : null}
 
             {componentKind === 'input' ? (
                 <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-[#8fa6c7]">Autocomplete Dropdown</span>
-                        <Switch.Root
-                            checked={selectedStyle.inputAutocompleteEnabled}
-                            onCheckedChange={(checked) => updateSelectedStyle('inputAutocompleteEnabled', checked)}
-                            aria-label="Enable autocomplete dropdown"
-                            className={cn(
-                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                selectedStyle.inputAutocompleteEnabled
-                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                    : 'border-white/[0.12] bg-[#13161b]',
-                            )}
-                        >
-                            <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.inputAutocompleteEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                        </Switch.Root>
-                    </div>
-                    {selectedStyle.inputAutocompleteEnabled ? (
-                        <div className="space-y-1">
-                            <span className="text-[11px] text-[#8fa6c7]">Autocomplete Body Motion</span>
-                            <FlatSelect
-                                value={selectedStyle.inputAutocompleteBodyMotionPresetId}
-                                onValueChange={(value) => updateSelectedStyle('inputAutocompleteBodyMotionPresetId', value)}
-                                ariaLabel="Autocomplete body motion preset"
-                            >
-                                {surfaceMotionPresets.map((preset) => (
-                                    <option key={preset.id} value={preset.id}>
-                                        {preset.label}
-                                    </option>
-                                ))}
-                            </FlatSelect>
-                        </div>
-                    ) : null}
+                    <AnimatedCheckbox checked={selectedStyle.inputAutocompleteEnabled} onChange={(checked) => updateSelectedStyle('inputAutocompleteEnabled', checked)} label="Autocomplete Dropdown" />
                 </div>
             ) : null}
 
             {componentKind === 'tabs' ? (
                 <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-[#8fa6c7]">Underline Motion</span>
-                        <Switch.Root
-                            checked={selectedStyle.tabsUnderlineMotionEnabled}
-                            onCheckedChange={(checked) => updateSelectedStyle('tabsUnderlineMotionEnabled', checked)}
-                            aria-label="Enable tab underline motion"
-                            className={cn(
-                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                selectedStyle.tabsUnderlineMotionEnabled
-                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                    : 'border-white/[0.12] bg-[#13161b]',
-                            )}
-                        >
-                            <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.tabsUnderlineMotionEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                        </Switch.Root>
-                    </div>
-                    <div className="space-y-1">
-                        <span className="text-[11px] text-[#8fa6c7]">Tab Body Motion</span>
-                        <FlatSelect value={selectedStyle.tabsBodyMotionPresetId} onValueChange={(value) => updateSelectedStyle('tabsBodyMotionPresetId', value)} ariaLabel="Tab body motion preset">
-                            {surfaceMotionPresets.map((preset) => (
-                                <option key={preset.id} value={preset.id}>
-                                    {preset.label}
-                                </option>
-                            ))}
-                        </FlatSelect>
-                    </div>
-                    <div className="space-y-1">
-                        <span className="text-[11px] text-[#8fa6c7]">Tab Text Motion</span>
-                        <FlatSelect value={selectedStyle.tabsTextMotionPresetId} onValueChange={(value) => updateSelectedStyle('tabsTextMotionPresetId', value)} ariaLabel="Tab text motion preset">
-                            {surfaceMotionPresets.map((preset) => (
-                                <option key={preset.id} value={preset.id}>
-                                    {preset.label}
-                                </option>
-                            ))}
-                        </FlatSelect>
-                    </div>
+                    <AnimatedCheckbox checked={selectedStyle.tabsUnderlineMotionEnabled} onChange={(checked) => updateSelectedStyle('tabsUnderlineMotionEnabled', checked)} label="Underline Motion" />
                 </div>
             ) : null}
 
             {componentKind === 'switch' ? (
                 <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
-                    <MotionParamRow
-                        label="Transition Speed"
-                        value={selectedStyle.switchAnimationSpeed}
-                        min={0.05}
-                        max={1}
-                        step={0.05}
-                        unit="s"
-                        onChange={(value) => updateSelectedStyle('switchAnimationSpeed', value)}
-                    />
-                    <MotionParamRow
-                        label="Thumb Scale (On)"
-                        value={selectedStyle.switchThumbScale}
-                        min={0.7}
-                        max={1.3}
-                        step={0.05}
-                        unit="x"
-                        onChange={(value) => updateSelectedStyle('switchThumbScale', value)}
-                    />
+                    <MotionParamRow label="Transition Speed" value={selectedStyle.switchAnimationSpeed} min={0.05} max={1} step={0.05} unit="s" onChange={(v) => updateSelectedStyle('switchAnimationSpeed', v)} />
+                    <MotionParamRow label="Thumb Scale (On)" value={selectedStyle.switchThumbScale} min={0.7} max={1.3} step={0.05} unit="x" onChange={(v) => updateSelectedStyle('switchThumbScale', v)} />
                 </div>
             ) : null}
 
             {componentKind === 'checkbox' ? (
                 <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-[#8fa6c7]">Checkbox Hover</span>
-                        <Switch.Root
-                            checked={selectedStyle.checkboxHoverEnabled}
-                            onCheckedChange={(checked) => updateSelectedStyle('checkboxHoverEnabled', checked)}
-                            aria-label="Enable checkbox hover motion"
-                            className={cn(
-                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                selectedStyle.checkboxHoverEnabled
-                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                    : 'border-white/[0.12] bg-[#13161b]',
-                            )}
-                        >
-                            <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.checkboxHoverEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                        </Switch.Root>
-                    </div>
+                    <AnimatedCheckbox checked={selectedStyle.checkboxHoverEnabled} onChange={(checked) => updateSelectedStyle('checkboxHoverEnabled', checked)} label="Checkbox Hover" />
                     {selectedStyle.checkboxHoverEnabled ? (
                         <MotionParamRow label="Hover Scale" value={selectedStyle.checkboxHoverScale} min={90} max={130} unit="%" onChange={(v) => updateSelectedStyle('checkboxHoverScale', v)} />
                     ) : null}
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-[#8fa6c7]">Checkbox Tap</span>
-                        <Switch.Root
-                            checked={selectedStyle.checkboxTapEnabled}
-                            onCheckedChange={(checked) => updateSelectedStyle('checkboxTapEnabled', checked)}
-                            aria-label="Enable checkbox tap motion"
-                            className={cn(
-                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                selectedStyle.checkboxTapEnabled
-                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                    : 'border-white/[0.12] bg-[#13161b]',
-                            )}
-                        >
-                            <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.checkboxTapEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
-                        </Switch.Root>
-                    </div>
+                    <AnimatedCheckbox checked={selectedStyle.checkboxTapEnabled} onChange={(checked) => updateSelectedStyle('checkboxTapEnabled', checked)} label="Checkbox Tap" />
                     {selectedStyle.checkboxTapEnabled ? (
                         <MotionParamRow label="Tap Scale" value={selectedStyle.checkboxTapScale} min={80} max={110} unit="%" onChange={(v) => updateSelectedStyle('checkboxTapScale', v)} />
                     ) : null}
                     <div className="space-y-1">
                         <span className="text-[11px] text-[#8fa6c7]">Selection Icon</span>
-                        <select value={selectedStyle.checkboxSelectionIcon} onChange={(event) => updateSelectedStyle('checkboxSelectionIcon', event.target.value as ComponentStyleConfig['checkboxSelectionIcon'])} className="h-8 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40">
+                        <select value={selectedStyle.checkboxSelectionIcon} onChange={(e) => updateSelectedStyle('checkboxSelectionIcon', e.target.value as ComponentStyleConfig['checkboxSelectionIcon'])}
+                            className="h-8 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40">
                             <option value="tick">Tick</option>
                             <option value="cross">Cross</option>
                             <option value="solid">Solid</option>
@@ -2134,63 +854,6 @@ export function MotionInspectorSection({
                     <MotionParamRow label="Bar Bounce" value={selectedStyle.sliderBarBounce} min={0} max={0.8} step={0.02} unit="s" onChange={(v) => updateSelectedStyle('sliderBarBounce', v)} />
                 </div>
             ) : null}
-
-            {supportsStaggerMotion(componentKind) ? (
-                <div className="space-y-2.5 border-t border-white/[0.08] pt-2">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[12px] text-[#e2e8f0]">Stagger children</span>
-                        <Switch.Root
-                            checked={selectedStyle.motionStaggerEnabled}
-                            onCheckedChange={(checked) => updateSelectedStyle('motionStaggerEnabled', checked)}
-                            aria-label="Enable stagger animation"
-                            className={cn(
-                                'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
-                                'focus-visible:ring-2 focus-visible:ring-[#2dd4bf]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0f12]',
-                                selectedStyle.motionStaggerEnabled
-                                    ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20'
-                                    : 'border-white/[0.12] bg-[#13161b]',
-                            )}
-                        >
-                            <Switch.Thumb
-                                className={cn(
-                                    'block size-3.5 rounded-full transition-transform duration-200 will-change-transform',
-                                    selectedStyle.motionStaggerEnabled
-                                        ? 'translate-x-[18px] bg-[#2dd4bf]'
-                                        : 'translate-x-[2px] bg-[#64748b]',
-                                )}
-                            />
-                        </Switch.Root>
-                    </div>
-                    {selectedStyle.motionStaggerEnabled ? (
-                        <div className="space-y-2.5">
-                            <MotionParamRow label="Stagger Delay" value={selectedStyle.motionStaggerDelay} min={0.01} max={0.3} step={0.01} unit="s" onChange={(v) => updateSelectedStyle('motionStaggerDelay', v)} />
-                            <div className="space-y-1">
-                                <span className="text-[11px] text-[#8fa6c7]">Direction</span>
-                                <div className="flex gap-1">
-                                    {(['forward', 'reverse'] as const).map((dir) => (
-                                        <button
-                                            key={dir}
-                                            type="button"
-                                            onClick={() => updateSelectedStyle('motionStaggerDirection', dir as StaggerDirection)}
-                                            className={cn(
-                                                'rounded px-2.5 py-1 text-[10px] font-semibold transition-colors',
-                                                selectedStyle.motionStaggerDirection === dir
-                                                    ? 'bg-[rgba(45,212,191,0.12)] text-[#2dd4bf]'
-                                                    : 'text-[#64748b] hover:text-[#8fa6c7]',
-                                            )}
-                                        >
-                                            {dir.charAt(0).toUpperCase() + dir.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ) : null}
-                </div>
-            ) : null}
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
         </div>
     );
 }
