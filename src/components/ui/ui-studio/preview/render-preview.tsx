@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap, Mail, MessageCircle, PhoneCall, Check, X, Minus, Heart, Ban, Slash, Star } from 'lucide-react';
 import { Checkbox as CheckboxPrimitive, Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback, AvatarGroup } from '@/components/ui/avatar';
 import { DataTable } from '@/components/ui/data-table';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -166,17 +166,6 @@ interface AvatarPopoverUser {
     role: string;
     image?: string;
 }
-
-const AVATAR_DEMO_USERS: AvatarPopoverUser[] = [
-    { name: 'Casey North', initials: 'CN', role: 'Designer' },
-    { name: 'Lara Reed', initials: 'LR', role: 'Engineer' },
-    { name: 'Evan Ross', initials: 'ER', role: 'Product' },
-    { name: 'Nia Holt', initials: 'NH', role: 'Marketing' },
-    { name: 'Alex Kim', initials: 'AK', role: 'Sales' },
-    { name: 'Sam Chen', initials: 'SC', role: 'Support' },
-    { name: 'Jo Park', initials: 'JP', role: 'Analytics' },
-    { name: 'Max Wu', initials: 'MW', role: 'DevOps' },
-];
 
 function jsxText(value: string): string {
     return `{${JSON.stringify(value)}}`;
@@ -376,7 +365,7 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
     if (s.avatarFontFamily) loadGoogleFont(s.avatarFontFamily);
     if (s.avatarPopoverFontFamily) loadGoogleFont(s.avatarPopoverFontFamily);
 
-    const visibleUsers = AVATAR_DEMO_USERS.slice(0, s.avatarGroupCount);
+    const visibleUsers = s.avatarGroupItems.slice(0, s.avatarGroupCount);
     const hasImage = !!s.avatarSrc;
     const avatarProps = buildAvatarProps(s);
     const popoverStyle = buildAvatarPopoverStyle(s);
@@ -459,15 +448,6 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
     return (
         <AvatarGroup spacing={s.avatarGroupSpacing}>
             {visibleUsers.map((user, i) => renderGroupAvatar(user, i))}
-            {visibleUsers.length < AVATAR_DEMO_USERS.length && (
-                <AvatarGroupCount
-                    size={s.avatarCustomSize}
-                    radius={s.avatarRadius}
-                    fontSize={s.avatarFontSize * 0.75}
-                >
-                    +{AVATAR_DEMO_USERS.length - visibleUsers.length}
-                </AvatarGroupCount>
-            )}
         </AvatarGroup>
     );
 }
@@ -949,9 +929,10 @@ export function componentSnippet(
                 instance.style.avatarShowBadge ? `badge badgeColor="${instance.style.avatarBadgeColor}"` : '',
                 instance.style.avatarStrokeWeight > 0 ? `strokeWeight={${instance.style.avatarStrokeWeight}} strokeColor="${instance.style.avatarStrokeColor}"` : '',
             ].filter(Boolean).join(' ');
-            const fallbackSnippet = `\n    <AvatarFallback>JD</AvatarFallback>`;
-            const singleAvatar = `  <Avatar ${avatarPropsSnippet}>${fallbackSnippet}\n  </Avatar>`;
-            const avatars = Array.from({ length: instance.style.avatarGroupCount }, () => singleAvatar).join('\n');
+            const avatars = instance.style.avatarGroupItems
+                .slice(0, instance.style.avatarGroupCount)
+                .map((item) => `  <Avatar ${avatarPropsSnippet}>\n    <AvatarFallback>${item.initials}</AvatarFallback>\n  </Avatar>`)
+                .join('\n');
             return `${declarations ? `${declarations}\n\n` : ''}<AvatarGroup spacing={${instance.style.avatarGroupSpacing}}>\n${avatars}\n</AvatarGroup>`;
         }
         case 'badge': {

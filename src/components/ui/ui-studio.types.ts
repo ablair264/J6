@@ -141,6 +141,13 @@ export interface StudioAccordionItem {
   content: string;
 }
 
+export interface StudioAvatarGroupItem {
+  id: string;
+  name: string;
+  initials: string;
+  role: string;
+}
+
 export interface ComponentInfo {
   kind: UIComponentKind;
   label: string;
@@ -485,6 +492,7 @@ export interface ComponentStyleConfig {
   avatarGroupEnabled: boolean;
   avatarGroupCount: number;
   avatarGroupSpacing: number;
+  avatarGroupItems: StudioAvatarGroupItem[];
   // Avatar Popover
   avatarPopoverEnabled: boolean;
   avatarPopoverDelay: number;

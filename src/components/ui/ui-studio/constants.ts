@@ -24,6 +24,7 @@ import type {
     PrimitiveSide,
     ProgressVariant,
     SizeOption,
+    StudioAvatarGroupItem,
     StaggerDirection,
     StudioAccordionItem,
     StudioTextItem,
@@ -248,6 +249,17 @@ export const DEFAULT_ACCORDION_ITEMS: StudioAccordionItem[] = [
     },
 ];
 
+export const DEFAULT_AVATAR_GROUP_ITEMS: StudioAvatarGroupItem[] = [
+    { id: 'avatar-casey', name: 'Casey North', initials: 'CN', role: 'Designer' },
+    { id: 'avatar-lara', name: 'Lara Reed', initials: 'LR', role: 'Engineer' },
+    { id: 'avatar-evan', name: 'Evan Ross', initials: 'ER', role: 'Product' },
+    { id: 'avatar-nia', name: 'Nia Holt', initials: 'NH', role: 'Marketing' },
+    { id: 'avatar-alex', name: 'Alex Kim', initials: 'AK', role: 'Sales' },
+    { id: 'avatar-sam', name: 'Sam Chen', initials: 'SC', role: 'Support' },
+    { id: 'avatar-jo', name: 'Jo Park', initials: 'JP', role: 'Analytics' },
+    { id: 'avatar-max', name: 'Max Wu', initials: 'MW', role: 'DevOps' },
+];
+
 function normalizeStudioTextItems(
     items: StudioTextItem[] | undefined,
     defaults: StudioTextItem[],
@@ -296,6 +308,35 @@ function normalizeStudioAccordionItems(
             title: typeof source?.title === 'string' ? source.title : fallback.title,
             subtitle: typeof source?.subtitle === 'string' ? source.subtitle : fallback.subtitle,
             content: typeof source?.content === 'string' ? source.content : fallback.content,
+        };
+    });
+}
+
+function normalizeStudioAvatarGroupItems(
+    items: StudioAvatarGroupItem[] | undefined,
+    count: number,
+): StudioAvatarGroupItem[] {
+    const usedIds = new Set<string>();
+    return Array.from({ length: count }, (_, index) => {
+        const source = items?.[index];
+        const fallback = DEFAULT_AVATAR_GROUP_ITEMS[index] ?? {
+            id: `avatar-item-${index + 1}`,
+            name: `User ${index + 1}`,
+            initials: `U${index + 1}`,
+            role: 'Team',
+        };
+        let id = typeof source?.id === 'string' && source.id.trim() ? source.id : fallback.id;
+        let duplicateIndex = 1;
+        while (usedIds.has(id)) {
+            id = `${fallback.id}-${duplicateIndex}`;
+            duplicateIndex += 1;
+        }
+        usedIds.add(id);
+        return {
+            id,
+            name: typeof source?.name === 'string' ? source.name : fallback.name,
+            initials: typeof source?.initials === 'string' ? source.initials : fallback.initials,
+            role: typeof source?.role === 'string' ? source.role : fallback.role,
         };
     });
 }
@@ -676,6 +717,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     avatarGroupEnabled: false,
     avatarGroupCount: 4,
     avatarGroupSpacing: -8,
+    avatarGroupItems: DEFAULT_AVATAR_GROUP_ITEMS.slice(0, 4).map((item) => ({ ...item })),
     avatarPopoverEnabled: false,
     avatarPopoverDelay: 220,
     avatarPopoverPadding: 12,
@@ -931,11 +973,14 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
     };
     const normalizedTabsCount = Math.max(2, Math.min(6, Number.isFinite(merged.tabsCount) ? merged.tabsCount : DEFAULT_STYLE.tabsCount));
     const normalizedAccordionCount = Math.max(1, Math.min(8, Number.isFinite(merged.accordionItemCount) ? merged.accordionItemCount : DEFAULT_STYLE.accordionItemCount));
+    const normalizedAvatarGroupCount = Math.max(2, Math.min(8, Number.isFinite(merged.avatarGroupCount) ? merged.avatarGroupCount : DEFAULT_STYLE.avatarGroupCount));
     const normalizedNavCount = Math.max(2, Math.min(5, Number.isFinite(merged.navMenuItemCount) ? merged.navMenuItemCount : DEFAULT_STYLE.navMenuItemCount));
     merged.tabsItems = normalizeStudioTextItems(merged.tabsItems, DEFAULT_TABS_ITEMS, normalizedTabsCount);
     merged.tabsCount = merged.tabsItems.length;
     merged.accordionItems = normalizeStudioAccordionItems(merged.accordionItems, normalizedAccordionCount);
     merged.accordionItemCount = merged.accordionItems.length;
+    merged.avatarGroupItems = normalizeStudioAvatarGroupItems(merged.avatarGroupItems, normalizedAvatarGroupCount);
+    merged.avatarGroupCount = merged.avatarGroupItems.length;
     merged.navMenuItems = normalizeStudioTextItems(merged.navMenuItems, DEFAULT_NAV_MENU_ITEMS, normalizedNavCount);
     merged.navMenuItemCount = merged.navMenuItems.length;
     if (style) {

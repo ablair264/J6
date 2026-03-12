@@ -41,10 +41,12 @@ import type {
     IconOptionId,
     CardFeatureItem,
     StudioAccordionItem,
+    StudioAvatarGroupItem,
     StudioTextItem,
 } from '@/components/ui/ui-studio.types';
 import {
     DEFAULT_ACCORDION_ITEMS,
+    DEFAULT_AVATAR_GROUP_ITEMS,
     DEFAULT_NAV_MENU_ITEMS,
     DEFAULT_TABS_ITEMS,
     GOOGLE_FONTS,
@@ -572,6 +574,21 @@ export function InspectorPanel() {
             };
         });
 
+    const resizeAvatarGroupItems = (items: StudioAvatarGroupItem[], nextCount: number): StudioAvatarGroupItem[] =>
+        Array.from({ length: nextCount }, (_, index) => {
+            const existing = items[index];
+            if (existing) {
+                return existing;
+            }
+            const fallback = DEFAULT_AVATAR_GROUP_ITEMS[index];
+            return {
+                id: buildStudioItemId('avatar-item'),
+                name: fallback?.name ?? `User ${index + 1}`,
+                initials: fallback?.initials ?? `U${index + 1}`,
+                role: fallback?.role ?? 'Team',
+            };
+        });
+
     const updateTabsItems = (items: StudioTextItem[]) => {
         updateSelectedStyles({ tabsItems: items, tabsCount: items.length });
     };
@@ -582,6 +599,10 @@ export function InspectorPanel() {
 
     const updateAccordionItems = (items: StudioAccordionItem[]) => {
         updateSelectedStyles({ accordionItems: items, accordionItemCount: items.length });
+    };
+
+    const updateAvatarGroupItems = (items: StudioAvatarGroupItem[]) => {
+        updateSelectedStyles({ avatarGroupItems: items, avatarGroupCount: items.length });
     };
 
     useEffect(() => {
@@ -1817,8 +1838,64 @@ export function InspectorPanel() {
                                 )}
                                 {selectedInstance.kind === 'avatar-group' && (
                                     <>
-                                        <FlatUnitField label="Count" value={selectedStyle.avatarGroupCount} min={2} max={8} unit="" onChange={(value) => updateSelectedStyle('avatarGroupCount', value)} />
+                                        <FlatUnitField
+                                            label="Count"
+                                            value={selectedStyle.avatarGroupCount}
+                                            min={2}
+                                            max={8}
+                                            unit=""
+                                            onChange={(value) => updateAvatarGroupItems(resizeAvatarGroupItems(selectedStyle.avatarGroupItems, value))}
+                                        />
                                         <FlatUnitField label="Spacing" value={selectedStyle.avatarGroupSpacing} min={-20} max={20} unit="px" onChange={(value) => updateSelectedStyle('avatarGroupSpacing', value)} />
+                                        <FlatElementSubsection title="People" defaultOpen={false}>
+                                            <SortableItemEditor
+                                                items={selectedStyle.avatarGroupItems}
+                                                minItems={2}
+                                                maxItems={8}
+                                                helperText="Drag to reorder the avatar stack and edit the names shown in the popover preview."
+                                                addLabel="Add person"
+                                                onChange={updateAvatarGroupItems}
+                                                createItem={(index) => ({
+                                                    id: buildStudioItemId('avatar-item'),
+                                                    name: DEFAULT_AVATAR_GROUP_ITEMS[index]?.name ?? `User ${index + 1}`,
+                                                    initials: DEFAULT_AVATAR_GROUP_ITEMS[index]?.initials ?? `U${index + 1}`,
+                                                    role: DEFAULT_AVATAR_GROUP_ITEMS[index]?.role ?? 'Team',
+                                                })}
+                                                renderFields={(item, _index, updateItem) => (
+                                                    <div className="space-y-2">
+                                                        <FlatField label="Name" stacked>
+                                                            <input
+                                                                type="text"
+                                                                value={item.name}
+                                                                onChange={(event) => updateItem({ name: event.target.value })}
+                                                                className={studioInputClass}
+                                                                placeholder="Name"
+                                                            />
+                                                        </FlatField>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <FlatField label="Initials" stacked>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.initials}
+                                                                    onChange={(event) => updateItem({ initials: event.target.value.toUpperCase().slice(0, 3) })}
+                                                                    className={studioInputClass}
+                                                                    placeholder="AB"
+                                                                />
+                                                            </FlatField>
+                                                            <FlatField label="Role" stacked>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.role}
+                                                                    onChange={(event) => updateItem({ role: event.target.value })}
+                                                                    className={studioInputClass}
+                                                                    placeholder="Role"
+                                                                />
+                                                            </FlatField>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            />
+                                        </FlatElementSubsection>
                                     </>
                                 )}
                             </FlatInspectorSection>
