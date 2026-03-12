@@ -63,44 +63,11 @@ export type PrimitiveAlign = 'start' | 'center' | 'end';
 export type MotionTransitionType = 'tween' | 'spring';
 export type MotionEaseOption = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'anticipate' | 'backIn' | 'backOut' | 'backInOut' | 'circIn' | 'circOut' | 'circInOut' | 'cubicBezier';
 export type StyleableState = 'hover' | 'active' | 'disabled' | 'focus';
-export type MotionAuthoringMode = 'simple' | 'timeline';
-export type MotionCategory = 'feedback' | 'transition' | 'attention' | 'hierarchy' | 'ambient';
-export type MotionRelationshipScope = 'self' | 'children' | 'siblings' | 'group';
 export type MotionPreviewMode = 'idle' | 'hover' | 'tap' | 'playOnce' | 'loop' | 'scrub';
 export type MotionTrigger = 'entry' | 'hover' | 'tap' | 'exit' | 'loop' | 'scroll';
 export type MotionGroupStrategy = 'none' | 'stagger' | 'queue';
 export type MotionGroupOrigin = 'first' | 'last' | 'center';
 export type MotionScrollMode = 'enter' | 'replay' | 'progress';
-export type MotionKeyframeValue = number | string | Array<number | string>;
-
-export interface MotionStepValues {
-  opacity?: MotionKeyframeValue;
-  x?: MotionKeyframeValue;
-  y?: MotionKeyframeValue;
-  scale?: MotionKeyframeValue;
-  rotate?: MotionKeyframeValue;
-  filter?: MotionKeyframeValue;
-  transformOrigin?: string;
-}
-
-export interface MotionTimelineStep {
-  id: string;
-  trigger: MotionTrigger;
-  label: string;
-  from?: MotionStepValues;
-  to?: MotionStepValues;
-  duration: number;
-  delay: number;
-  transitionType: MotionTransitionType;
-  ease: MotionEaseOption;
-  customBezier?: [number, number, number, number];
-  stiffness?: number;
-  damping?: number;
-  mass?: number;
-  repeat?: number;
-  repeatDelay?: number;
-  at?: number;
-}
 
 export interface StateOverrides {
   hover?:    Partial<ComponentStyleConfig>;
@@ -302,6 +269,8 @@ export interface ComponentStyleConfig {
   motionTapStiffness: number;
   motionTapDamping: number;
   motionTapMass: number;
+  motionHoverTransitionOverride: boolean;
+  motionTapTransitionOverride: boolean;
   inputAutocompleteBgColor: string;
   inputAutocompleteBorderColor: string;
   inputAutocompleteTextColor: string;
@@ -373,16 +342,13 @@ export interface ComponentStyleConfig {
   effectPulseRingEnabled: boolean;
   effectPulseRingSpeed: number;
   effectPulseRingColor: string;
-  tooltipBodyMotionPresetId: string;
-  tooltipTextMotionPresetId: string;
-  dialogBodyMotionPresetId: string;
-  dialogTextMotionPresetId: string;
-  popoverBodyMotionPresetId: string;
-  popoverTextMotionPresetId: string;
+  tooltipMotionPresetId: string;
+  dialogMotionPresetId: string;
+  popoverMotionPresetId: string;
   popoverSide: 'top' | 'right' | 'bottom' | 'left';
   popoverAlign: 'start' | 'center' | 'end';
   popoverContentVariant: 'default' | 'profile';
-  dropdownBodyMotionPresetId: string;
+  dropdownMotionPresetId: string;
   dropdownOptionHoverEnabled: boolean;
   dropdownOptionHoverScale: number;
   dropdownOptionHoverY: number;
@@ -390,7 +356,7 @@ export interface ComponentStyleConfig {
   dropdownOptionTapScale: number;
   dropdownOptionTapY: number;
   inputAutocompleteEnabled: boolean;
-  inputAutocompleteBodyMotionPresetId: string;
+  inputAutocompleteMotionPresetId: string;
   tabsVariant: TabsVariant;
   tabsCount: number;
   tabsItems: StudioTextItem[];
@@ -400,8 +366,7 @@ export interface ComponentStyleConfig {
   tabsActiveTextColor: string;
   tabsInactiveTextColor: string;
   tabsUnderlineMotionEnabled: boolean;
-  tabsBodyMotionPresetId: string;
-  tabsTextMotionPresetId: string;
+  tabsMotionPresetId: string;
   // Tabs — extended controls
   tabsFullWidth: boolean;           // stretch TabsList to fill container width
   tabsShowIcons: boolean;           // show icons in tab triggers
@@ -535,7 +500,7 @@ export interface ComponentStyleConfig {
   drawerSide: DrawerSide;
   drawerWidth: number;
   drawerOverlayBlur: number;
-  drawerBodyMotionPresetId: string;
+  drawerMotionPresetId: string;
   // Navigation Menu
   navMenuOrientation: NavMenuOrientation;
   navMenuActiveIndicator: boolean;
@@ -780,16 +745,10 @@ export interface ComponentStyleConfig {
   motionStaggerEnabled: boolean;
   motionStaggerDelay: number;
   motionStaggerDirection: StaggerDirection;
-  motionAuthoringMode: MotionAuthoringMode;
-  motionCategory: MotionCategory;
-  motionRelationshipScope: MotionRelationshipScope;
   motionPreviewMode: MotionPreviewMode;
-  motionTimelineEnabled: boolean;
-  motionTimelineSteps: MotionTimelineStep[];
   motionGroupStrategy: MotionGroupStrategy;
   motionGroupOrigin: MotionGroupOrigin;
   motionGroupInterval: number;
-  motionGroupScope: MotionRelationshipScope;
   motionScrollEnabled: boolean;
   motionScrollMode: MotionScrollMode;
   motionScrollStart: number;
