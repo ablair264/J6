@@ -8,6 +8,7 @@ import Register from '@/pages/Register';
 import Projects from '@/pages/Projects';
 import Profile from '@/pages/Profile';
 import LandingPage from '@/pages/LandingPage';
+import ComponentLibrary from '@/pages/ComponentLibrary';
 
 export default function App() {
   const [isBootLoading, setIsBootLoading] = useState(true);
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/library" element={<ComponentLibrary />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
