@@ -1,17 +1,45 @@
 import { useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
 import { motion, useMotionValue, useMotionTemplate, useSpring } from 'motion/react';
 import { normalizeStyleConfig, MOTION_COMPONENT_PRESETS, SURFACE_MOTION_PRESET_IDS } from './constants';
-import { buildLegacyMotionTimeline } from './motion-schema';
 import type {
     ComponentStyleConfig,
     MotionEaseOption,
-    MotionKeyframeValue,
-    MotionStepValues,
-    MotionTimelineStep,
     MotionTransitionType,
     MotionTrigger,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
+
+// Internal-only types (not exported)
+type MotionKeyframeValue = number | string | Array<number | string>;
+
+interface MotionStepValues {
+    opacity?: MotionKeyframeValue;
+    x?: MotionKeyframeValue;
+    y?: MotionKeyframeValue;
+    scale?: MotionKeyframeValue;
+    rotate?: MotionKeyframeValue;
+    filter?: MotionKeyframeValue;
+    transformOrigin?: string;
+}
+
+interface MotionTimelineStep {
+    id: string;
+    trigger: MotionTrigger;
+    label: string;
+    from?: MotionStepValues;
+    to?: MotionStepValues;
+    duration: number;
+    delay: number;
+    transitionType: MotionTransitionType;
+    ease: MotionEaseOption;
+    customBezier?: [number, number, number, number];
+    stiffness?: number;
+    damping?: number;
+    mass?: number;
+    repeat?: number;
+    repeatDelay?: number;
+    at?: number;
+}
 
 export type MotionTransitionScope = 'entry' | 'hover' | 'tap';
 
@@ -83,10 +111,6 @@ export interface PreviewMotionProps {
     style?: CSSProperties;
 }
 
-function resolveRelationshipScope(config: ComponentStyleConfig): ComponentStyleConfig['motionRelationshipScope'] {
-    return config.motionGroupScope !== 'self' ? config.motionGroupScope : config.motionRelationshipScope;
-}
-
 export function resolveEase(ease: MotionEaseOption, customBezier?: [number, number, number, number]): MotionEasingValue {
     switch (ease) {
         case 'linear': return 'linear';
@@ -152,12 +176,204 @@ function collectTransformOrigin(step: MotionTimelineStep): string | undefined {
     return step.to?.transformOrigin ?? step.from?.transformOrigin;
 }
 
-function getMotionTimeline(config: ComponentStyleConfig): MotionTimelineStep[] {
-    const explicitSteps = config.motionTimelineSteps?.filter(Boolean) ?? [];
-    if (explicitSteps.length > 0) {
-        return explicitSteps;
+// ─── Step Builders ───────────────────────────────────────────────────────
+
+function buildEntryStep(config: ComponentStyleConfig): MotionTimelineStep | null {
+    if (!config.motionEntryEnabled) {
+        return null;
     }
-    return buildLegacyMotionTimeline(config);
+
+    const initialScale = config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
+    const animateScale = config.motionAnimateScale !== 100
+        ? [config.motionAnimateScale / 100, 1]
+        : initialScale !== undefined ? 1 : undefined;
+    const hasFilter = Boolean(config.motionInitialFilter || config.motionAnimateFilter);
+
+    return {
+        id: 'entry',
+        trigger: 'entry',
+        label: 'Entry',
+        from: {
+            opacity: config.motionInitialOpacity / 100,
+            x: config.motionInitialX,
+            y: config.motionInitialY,
+            ...(initialScale !== undefined ? { scale: initialScale } : {}),
+            ...(config.motionInitialFilter ? { filter: config.motionInitialFilter } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        to: {
+            opacity: config.motionAnimateOpacity / 100,
+            x: config.motionAnimateX === 0 ? 0 : [config.motionAnimateX, 0],
+            y: config.motionAnimateY === 0 ? 0 : [config.motionAnimateY, 0],
+            rotate: config.motionAnimateRotate === 0 ? 0 : [config.motionAnimateRotate, 0],
+            ...(animateScale !== undefined ? { scale: animateScale } : {}),
+            ...(hasFilter ? { filter: config.motionAnimateFilter || 'blur(0px)' } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        duration: config.motionDuration,
+        delay: config.motionDelay,
+        transitionType: config.motionTransitionType,
+        ease: config.motionEase,
+        ...(config.motionEase === 'cubicBezier' ? { customBezier: config.motionCustomBezier } : {}),
+        ...(config.motionTransitionType === 'spring'
+            ? {
+                stiffness: config.motionStiffness,
+                damping: config.motionDamping,
+                mass: config.motionMass,
+            }
+            : {}),
+    };
+}
+
+function buildHoverStep(config: ComponentStyleConfig): MotionTimelineStep | null {
+    if (!config.motionHoverEnabled) return null;
+    const useOverride = config.motionHoverTransitionOverride;
+    return {
+        id: 'hover',
+        trigger: 'hover',
+        label: 'Hover',
+        to: {
+            scale: config.motionHoverScale / 100,
+            x: config.motionHoverX,
+            y: config.motionHoverY,
+            rotate: config.motionHoverRotate,
+            opacity: config.motionHoverOpacity / 100,
+        },
+        duration: useOverride ? config.motionHoverDuration : config.motionDuration,
+        delay: useOverride ? config.motionHoverDelay : config.motionDelay,
+        transitionType: useOverride ? config.motionHoverTransitionType : config.motionTransitionType,
+        ease: useOverride ? config.motionHoverEase : config.motionEase,
+        ...(config.motionCustomBezier ? { customBezier: config.motionCustomBezier } : {}),
+        ...((useOverride ? config.motionHoverTransitionType : config.motionTransitionType) === 'spring'
+            ? {
+                stiffness: useOverride ? config.motionHoverStiffness : config.motionStiffness,
+                damping: useOverride ? config.motionHoverDamping : config.motionDamping,
+                mass: useOverride ? config.motionHoverMass : config.motionMass,
+            }
+            : {}),
+    };
+}
+
+function buildTapStep(config: ComponentStyleConfig): MotionTimelineStep | null {
+    if (!config.motionTapEnabled) return null;
+    const useOverride = config.motionTapTransitionOverride;
+    return {
+        id: 'tap',
+        trigger: 'tap',
+        label: 'Tap',
+        to: {
+            scale: config.motionTapScale / 100,
+            x: config.motionTapX,
+            y: config.motionTapY,
+            rotate: config.motionTapRotate,
+            opacity: config.motionTapOpacity / 100,
+        },
+        duration: useOverride ? config.motionTapDuration : config.motionDuration,
+        delay: useOverride ? config.motionTapDelay : config.motionDelay,
+        transitionType: useOverride ? config.motionTapTransitionType : config.motionTransitionType,
+        ease: useOverride ? config.motionTapEase : config.motionEase,
+        ...(config.motionCustomBezier ? { customBezier: config.motionCustomBezier } : {}),
+        ...((useOverride ? config.motionTapTransitionType : config.motionTransitionType) === 'spring'
+            ? {
+                stiffness: useOverride ? config.motionTapStiffness : config.motionStiffness,
+                damping: useOverride ? config.motionTapDamping : config.motionDamping,
+                mass: useOverride ? config.motionTapMass : config.motionMass,
+            }
+            : {}),
+    };
+}
+
+function buildExitStep(config: ComponentStyleConfig): MotionTimelineStep | null {
+    if (!config.motionExitEnabled) {
+        return null;
+    }
+
+    return {
+        id: 'exit',
+        trigger: 'exit',
+        label: 'Exit',
+        to: {
+            opacity: config.motionInitialOpacity / 100,
+            x: config.motionInitialX,
+            y: config.motionInitialY,
+            scale: config.motionInitialScale / 100,
+            rotate: config.motionAnimateRotate === 0 ? 0 : config.motionAnimateRotate,
+            ...(config.motionInitialFilter ? { filter: config.motionInitialFilter } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        duration: config.motionDuration,
+        delay: 0,
+        transitionType: config.motionTransitionType,
+        ease: config.motionEase,
+        ...(config.motionEase === 'cubicBezier' ? { customBezier: config.motionCustomBezier } : {}),
+        ...(config.motionTransitionType === 'spring'
+            ? {
+                stiffness: config.motionStiffness,
+                damping: config.motionDamping,
+                mass: config.motionMass,
+            }
+            : {}),
+    };
+}
+
+function buildScrollStep(config: ComponentStyleConfig): MotionTimelineStep | null {
+    if (!config.motionScrollEnabled) {
+        return null;
+    }
+
+    const fallbackOffset = config.motionScrollParallax !== 0 ? config.motionScrollParallax : 24;
+    const hasEntryMotion = config.motionEntryEnabled;
+    const initialScale = hasEntryMotion && config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
+    const targetScale = hasEntryMotion && (config.motionAnimateScale !== 100 || initialScale !== undefined)
+        ? config.motionAnimateScale / 100
+        : undefined;
+    const hasFilter = hasEntryMotion && Boolean(config.motionInitialFilter || config.motionAnimateFilter);
+
+    return {
+        id: 'scroll',
+        trigger: 'scroll',
+        label: config.motionScrollMode === 'progress' ? 'Scroll Progress' : 'Scroll Enter',
+        from: {
+            ...(hasEntryMotion ? { opacity: config.motionInitialOpacity / 100 } : {}),
+            x: hasEntryMotion ? config.motionInitialX : 0,
+            y: hasEntryMotion
+                ? (config.motionInitialY !== 0 ? config.motionInitialY : fallbackOffset)
+                : fallbackOffset,
+            ...(initialScale !== undefined ? { scale: initialScale } : {}),
+            ...(hasFilter ? { filter: config.motionInitialFilter } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        to: {
+            ...(hasEntryMotion ? { opacity: config.motionAnimateOpacity / 100 } : {}),
+            x: hasEntryMotion ? config.motionAnimateX : 0,
+            y: hasEntryMotion ? config.motionAnimateY : 0,
+            ...(targetScale !== undefined ? { scale: targetScale } : {}),
+            ...(hasFilter ? { filter: config.motionAnimateFilter || 'blur(0px)' } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        duration: config.motionDuration,
+        delay: config.motionDelay,
+        transitionType: config.motionTransitionType,
+        ease: config.motionEase,
+        ...(config.motionEase === 'cubicBezier' ? { customBezier: config.motionCustomBezier } : {}),
+        ...(config.motionTransitionType === 'spring'
+            ? {
+                stiffness: config.motionStiffness,
+                damping: config.motionDamping,
+                mass: config.motionMass,
+            }
+            : {}),
+    };
+}
+
+function getMotionTimeline(config: ComponentStyleConfig): MotionTimelineStep[] {
+    return [
+        buildEntryStep(config),
+        buildHoverStep(config),
+        buildTapStep(config),
+        buildExitStep(config),
+        buildScrollStep(config),
+    ].filter((step): step is MotionTimelineStep => Boolean(step));
 }
 
 function compileMotionStep(step: MotionTimelineStep, config: ComponentStyleConfig): MotionCompiledStep {
@@ -445,10 +661,10 @@ export function buildRelationshipMotionProps(
     },
 ): PreviewMotionProps {
     const base = buildPreviewMotionProps(config, { allowEntry: false, allowInteraction: true });
-    const scope = resolveRelationshipScope(config);
+    const hasGroupScope = config.motionStaggerEnabled || config.motionGroupStrategy !== 'none';
     const axis = options.axis ?? 'x';
 
-    if (options.activeIndex === null || options.total <= 1 || scope === 'self') {
+    if (options.activeIndex === null || options.total <= 1 || !hasGroupScope) {
         return base;
     }
     if (options.currentIndex === options.activeIndex) {
@@ -459,31 +675,11 @@ export function buildRelationshipMotionProps(
     const hoverTarget = stripGestureTransition(hoverGesture);
     const hoverTransition = (hoverGesture as Record<string, any> | undefined)?.transition ?? base.transition;
 
-    if (scope === 'group') {
-        return {
-            ...base,
-            animate: hoverTarget ?? base.animate,
-            transition: hoverTransition,
-        };
-    }
-
-    if (scope === 'children') {
-        return {
-            ...base,
-            animate: buildChildrenFollowerTarget(hoverTarget, axis, options.currentIndex, options.activeIndex) ?? base.animate,
-            transition: hoverTransition,
-        };
-    }
-
-    if (scope === 'siblings') {
-        return {
-            ...base,
-            animate: buildSiblingFollowerTarget(hoverTarget, axis, options.currentIndex, options.activeIndex),
-            transition: hoverTransition,
-        };
-    }
-
-    return base;
+    return {
+        ...base,
+        animate: buildChildrenFollowerTarget(hoverTarget, axis, options.currentIndex, options.activeIndex) ?? base.animate,
+        transition: hoverTransition,
+    };
 }
 
 export function getMotionTransitionValues(config: ComponentStyleConfig, scope: MotionTransitionScope) {
@@ -881,15 +1077,9 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
 
     const compiled = compileMotionConfig(config);
     const groupStrategy = resolveGroupStrategy(config);
-    const relationshipScope = resolveRelationshipScope(config);
     const scrollViewport = {
         once: !config.motionScrollReplay,
         amount: Math.max(0, Math.min(1, config.motionScrollStart / 100)),
-    };
-    const relationshipNotes: Partial<Record<NonNullable<ComponentStyleConfig['motionRelationshipScope']>, string>> = {
-        siblings: '// Sibling items react when one item is hovered.',
-        children: '// Child items partially follow the hovered item.',
-        group: '// The whole group shares the same hover target.',
     };
     const groupInterval = config.motionGroupInterval > 0 ? config.motionGroupInterval : config.motionStaggerDelay;
     const groupChildMotion = buildGroupChildMotion(config);
@@ -952,10 +1142,6 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
 
     if (timelineGroups) {
         snippet += `\n\nconst motionTimeline = {\n${timelineGroups}\n};`;
-    }
-
-    if (relationshipScope !== 'self') {
-        snippet += `\n\n${relationshipNotes[relationshipScope] ?? '// Related elements respond together.'}\nconst motionRelationshipScope = '${relationshipScope}';`;
     }
 
     const motionWrapperProps = scrollMotionEntries.length ? '{...motionProps} {...scrollMotion}' : '{...motionProps}';

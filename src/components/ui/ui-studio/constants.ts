@@ -32,7 +32,7 @@ import type {
     TextTransformOption,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
-import { normalizeMotionSchemaFields } from '@/components/ui/ui-studio/motion-schema';
+
 
 export const COMPONENTS: ComponentInfo[] = [
     {
@@ -1110,7 +1110,6 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
     merged.effectAnimatedBorderColorCount = Math.max(2, Math.min(5, Math.round(merged.effectAnimatedBorderColorCount)));
     merged.sliderThumbHoverScale = Math.max(0.8, Math.min(1.6, merged.sliderThumbHoverScale));
     merged.sliderBarScale = Math.max(0.8, Math.min(1.6, merged.sliderBarScale));
-    Object.assign(merged, normalizeMotionSchemaFields(style, merged));
     return merged;
 }
 
