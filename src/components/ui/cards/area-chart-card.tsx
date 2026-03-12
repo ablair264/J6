@@ -140,7 +140,7 @@ export function AreaChartCard({
               className="overflow-visible"
               accessibilityLayer
               data={data}
-              onMouseMove={(state) => {
+              onMouseMove={(state: any) => {
                 const x = state.activeCoordinate?.x;
                 const v = state.activePayload?.[0]?.value;
                 if (x !== undefined && v !== undefined) {

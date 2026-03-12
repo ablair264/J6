@@ -20,6 +20,14 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger as NavMenuTrigger, NavigationMenuContent, NavigationMenuLink } from '@/components/ui/navigation-menu';
 import { MagnifyingGlassIcon, ClipboardIcon, ArrowTopRightOnSquareIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import { AreaChartCard } from '@/components/ui/cards/area-chart-card';
+import { BarChartCard } from '@/components/ui/cards/bar-chart-card';
+import { LineChartCard } from '@/components/ui/cards/line-chart-card';
+import { MetricCard } from '@/components/ui/cards/metric-card';
+import { RadialChartCard } from '@/components/ui/cards/radial-chart-card';
+import { RoundedPieChartCard } from '@/components/ui/cards/rounded-pie-chart-card';
+import { DottedMultiLineChartCard } from '@/components/ui/cards/dotted-multi-line-chart-card';
+import { LiveActivityCompactCard, NextEventCompactCard, WhosOnlineCompactCard, SparkStatsCompactCard } from '@/components/ui/cards/compact-sm-variants';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Theme tokens (dark mode from ui-studio.theme)
@@ -1021,6 +1029,203 @@ function buildComponents(): ComponentEntry[] {
         },
 
         /* ── Animated Text ── */
+        {
+            slug: 'chart-cards',
+            name: 'Chart Cards',
+            description: 'Interactive chart cards with area, bar, line, radial, pie, and multi-line sparklines.',
+            thumbnail: (
+                <div className="flex gap-0.5">
+                    <div className="w-3 rounded-sm" style={{ height: 12, background: T.brand, opacity: 0.3 }} />
+                    <div className="w-3 rounded-sm" style={{ height: 18, background: T.brand, opacity: 0.6 }} />
+                    <div className="w-3 rounded-sm" style={{ height: 10, background: T.brand }} />
+                    <div className="w-3 rounded-sm" style={{ height: 22, background: T.brand, opacity: 0.8 }} />
+                </div>
+            ),
+            examples: (() => {
+                const demoData = [
+                    { name: 'Jan', value: 186 }, { name: 'Feb', value: 305 }, { name: 'Mar', value: 237 },
+                    { name: 'Apr', value: 73 }, { name: 'May', value: 209 }, { name: 'Jun', value: 214 },
+                    { name: 'Jul', value: 320 },
+                ];
+                const pieData = [
+                    { name: 'Desktop', value: 450 }, { name: 'Mobile', value: 320 },
+                    { name: 'Tablet', value: 180 }, { name: 'Other', value: 50 },
+                ];
+                const multiLineData = [
+                    { name: 'Mon', primary: 186, secondary: 80 }, { name: 'Tue', primary: 305, secondary: 200 },
+                    { name: 'Wed', primary: 237, secondary: 120 }, { name: 'Thu', primary: 73, secondary: 190 },
+                    { name: 'Fri', primary: 209, secondary: 130 }, { name: 'Sat', primary: 214, secondary: 140 },
+                ];
+                return [
+                    {
+                        title: 'Area Chart Card',
+                        preview: (
+                            <div style={{ width: 320 }}>
+                                <AreaChartCard title="Revenue" total={1544} totalFormat="currency" subtitle="+12.5% from last month" data={demoData} color="hsl(142 76% 36%)" />
+                            </div>
+                        ),
+                        code: `<AreaChartCard title="Revenue" total={1544} totalFormat="currency" data={data} color="hsl(142 76% 36%)" />`,
+                    },
+                    {
+                        title: 'Bar Chart Card',
+                        preview: (
+                            <div style={{ width: 320 }}>
+                                <BarChartCard title="Orders" total={1234} totalFormat="number" subtitle="This week" data={demoData} color="hsl(221 83% 53%)" highlightStrategy="max" />
+                            </div>
+                        ),
+                        code: `<BarChartCard title="Orders" total={1234} data={data} highlightStrategy="max" />`,
+                    },
+                    {
+                        title: 'Line Chart Card',
+                        preview: (
+                            <div style={{ width: 320 }}>
+                                <LineChartCard title="Conversions" subtitle="Last 7 days" data={demoData} color="hsl(262 83% 58%)" curveType="bump" glowIntensity={8} />
+                            </div>
+                        ),
+                        code: `<LineChartCard title="Conversions" data={data} color="hsl(262 83% 58%)" curveType="bump" />`,
+                    },
+                    {
+                        title: 'Radial Chart Card',
+                        preview: (
+                            <div style={{ width: 360 }}>
+                                <RadialChartCard title="Traffic Sources" total={1000} data={pieData} showLegend />
+                            </div>
+                        ),
+                        code: `<RadialChartCard title="Traffic Sources" total={1000} data={data} showLegend />`,
+                    },
+                    {
+                        title: 'Pie Chart Card',
+                        preview: (
+                            <div style={{ width: 360 }}>
+                                <RoundedPieChartCard title="Device Breakdown" total={1000} data={pieData} showLegend />
+                            </div>
+                        ),
+                        code: `<RoundedPieChartCard title="Device Breakdown" total={1000} data={data} showLegend />`,
+                    },
+                    {
+                        title: 'Multi-Line Chart Card',
+                        preview: (
+                            <div style={{ width: 320 }}>
+                                <DottedMultiLineChartCard title="Revenue vs Expenses" total={1224} data={multiLineData} primaryLabel="Revenue" secondaryLabel="Expenses" />
+                            </div>
+                        ),
+                        code: `<DottedMultiLineChartCard title="Revenue vs Expenses" total={1224} data={data} />`,
+                    },
+                ];
+            })(),
+        },
+        {
+            slug: 'metric-cards',
+            name: 'Metric Cards',
+            description: 'KPI cards with sparklines, trend badges, CountUp animation, and 6 accent variants.',
+            thumbnail: (
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-[10px] font-bold" style={{ color: T.brand }}>£12.4K</div>
+                    <div className="w-full h-1 rounded-full" style={{ background: T.border }}><div className="w-3/5 h-full rounded-full" style={{ background: T.brand }} /></div>
+                </div>
+            ),
+            examples: (() => {
+                const sparkData = [
+                    { name: 'W1', value: 40 }, { name: 'W2', value: 65 }, { name: 'W3', value: 50 },
+                    { name: 'W4', value: 85 }, { name: 'W5', value: 70 }, { name: 'W6', value: 95 },
+                ];
+                return [
+                    {
+                        title: 'Small (Compact)',
+                        preview: (
+                            <div className="grid gap-3" style={{ width: 340 }}>
+                                <MetricCard size="sm" title="Active Users" value={2847} format="number" trend={{ value: 12, isPositive: true }} variant="accent-left" accentColor="hsl(142 76% 36%)" />
+                                <MetricCard size="sm" title="Revenue" value={12450} format="currency" trend={{ value: 8, isPositive: true }} variant="accent-left" accentColor="hsl(221 83% 53%)" icon={<span>£</span>} />
+                                <MetricCard size="sm" title="Churn" value={3.2} format="percentage" trend={{ value: 5, isPositive: false }} variant="bordered" accentColor="hsl(0 84% 60%)" />
+                            </div>
+                        ),
+                        code: `<MetricCard size="sm" title="Active Users" value={2847} format="number" trend={{ value: 12, isPositive: true }} variant="accent-left" />`,
+                    },
+                    {
+                        title: 'Medium with Sparkline',
+                        preview: (
+                            <div className="grid grid-cols-2 gap-3" style={{ width: 600 }}>
+                                <MetricCard size="md" title="Revenue" value={12450} format="currency" trend={{ value: 12, isPositive: true }} sparkline={{ data: sparkData, type: 'area' }} accentColor="hsl(142 76% 36%)" />
+                                <MetricCard size="md" title="Orders" value={847} format="number" trend={{ value: 5, isPositive: false }} sparkline={{ data: sparkData, type: 'bar' }} accentColor="hsl(221 83% 53%)" variant="accent-top" />
+                            </div>
+                        ),
+                        code: `<MetricCard size="md" title="Revenue" value={12450} format="currency" sparkline={{ data, type: 'area' }} />`,
+                    },
+                    {
+                        title: 'Large with CountUp',
+                        preview: (
+                            <div style={{ width: 320 }}>
+                                <MetricCard size="lg" title="Total Revenue" value={45200} format="currency" animate trend={{ value: 18, isPositive: true }} subtitle="Q1 2026 total" sparkline={{ data: sparkData, type: 'line' }} accentColor="hsl(262 83% 58%)" variant="glass" />
+                            </div>
+                        ),
+                        code: `<MetricCard size="lg" title="Total Revenue" value={45200} format="currency" animate sparkline={{ data, type: 'line' }} />`,
+                    },
+                ];
+            })(),
+        },
+        {
+            slug: 'compact-cards',
+            name: 'Compact Cards',
+            description: 'Activity feeds, event previews, online presence, and spark stats in compact form.',
+            thumbnail: (
+                <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ background: T.success }} /><span className="text-[9px]" style={{ color: T.textMuted }}>Live</span></div>
+                    <div className="text-[10px] font-semibold" style={{ color: T.text }}>Activity</div>
+                </div>
+            ),
+            examples: (() => {
+                const sparkPoints = [
+                    { name: '1', value: 40 }, { name: '2', value: 55 }, { name: '3', value: 48 },
+                    { name: '4', value: 70 }, { name: '5', value: 62 }, { name: '6', value: 85 },
+                    { name: '7', value: 78 }, { name: '8', value: 92 },
+                ];
+                const demoUsers = [
+                    { name: 'Ava Chen', role: 'Engineer' },
+                    { name: 'Kai Nakamura', role: 'Designer' },
+                    { name: 'Zara Osei', role: 'PM' },
+                    { name: 'Liam Torres', role: 'Backend Dev' },
+                    { name: 'Maya Singh', role: 'QA' },
+                ];
+                return [
+                    {
+                        title: 'Live Activity',
+                        preview: (
+                            <div style={{ width: 340 }}>
+                                <LiveActivityCompactCard latestUpdate="New deployment to production" footerHint="2 minutes ago" isLive />
+                            </div>
+                        ),
+                        code: `<LiveActivityCompactCard latestUpdate="New deployment to production" isLive />`,
+                    },
+                    {
+                        title: 'Next Event',
+                        preview: (
+                            <div style={{ width: 340 }}>
+                                <NextEventCompactCard eventName="Sprint Planning" eventTime="Thu · 14:00 – 15:00" status="Confirmed" isOnlineMeeting attendees={demoUsers.slice(0, 3)} location="Google Meet" />
+                            </div>
+                        ),
+                        code: `<NextEventCompactCard eventName="Sprint Planning" eventTime="Thu · 14:00 – 15:00" isOnlineMeeting />`,
+                    },
+                    {
+                        title: "Who's Online",
+                        preview: (
+                            <div style={{ width: 340 }}>
+                                <WhosOnlineCompactCard users={demoUsers} countLabel="5 active in workspace" />
+                            </div>
+                        ),
+                        code: `<WhosOnlineCompactCard users={users} countLabel="5 active in workspace" />`,
+                    },
+                    {
+                        title: 'Spark Stats',
+                        preview: (
+                            <div style={{ width: 340 }}>
+                                <SparkStatsCompactCard title="CPU Usage" value={72.4} format="percentage" statLabel="+0.6% over last 8 samples" data={sparkPoints} chartType="area" />
+                            </div>
+                        ),
+                        code: `<SparkStatsCompactCard title="CPU Usage" value={72.4} format="percentage" data={sparkPoints} />`,
+                    },
+                ];
+            })(),
+        },
         {
             slug: 'animated-text',
             name: 'Animated Text',
