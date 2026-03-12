@@ -115,7 +115,7 @@ export const INSPECTOR_REGISTRY: Record<UIComponentKind, InspectorLayout> = {
     },
     'stage-button': {
         sections: { presets: true, dimensions: true, componentConfig: false, appearance: true, typography: true, effects: true, advancedHover: false, motion: true },
-        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true, loading: false },
+        effects: { ...STANDARD_EFFECTS, neonGlow: false, pulseRing: true, loading: true },
         motion: FULL_MOTION,
         wrapperStyle: 'full',
         iconSelection: false, panelStyle: false, stateStyles: true, supportedStates: ['hover', 'active', 'disabled'], primitiveControls: false, motionPreset: true,

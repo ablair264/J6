@@ -711,7 +711,11 @@ export function componentSnippet(
             const popoverDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
             const popoverSideAttr = instance.style.popoverSide !== 'bottom' ? ` side="${instance.style.popoverSide}"` : '';
             const popoverAlignAttr = instance.style.popoverAlign !== 'center' ? ` align="${instance.style.popoverAlign}"` : '';
-            return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${popoverSideAttr}${popoverAlignAttr}${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</PopoverContent>\n</Popover>`;
+            const popoverContentSnippet = instance.style.popoverContentVariant === 'profile'
+                ? `\n    <div className="flex items-center gap-3 p-4 border-b">\n      <Avatar><AvatarFallback>AC</AvatarFallback></Avatar>\n      <div>\n        <p className="text-sm font-medium">Ava Chen</p>\n        <p className="text-xs text-muted-foreground">ava@company.io</p>\n      </div>\n    </div>\n    <div className="p-1.5">\n      <div className="px-3 py-1.5 rounded-md text-sm">View Profile</div>\n      <div className="px-3 py-1.5 rounded-md text-sm">Settings</div>\n      <div className="px-3 py-1.5 rounded-md text-sm text-red-400">Sign Out</div>\n    </div>\n  `
+                : '...';
+            const profileClassAttr = instance.style.popoverContentVariant === 'profile' ? ' className="w-56 p-0 overflow-hidden"' : '';
+            return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${popoverSideAttr}${popoverAlignAttr}${profileClassAttr || buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>${popoverContentSnippet}</PopoverContent>\n</Popover>`;
         }
         case 'input': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -836,8 +840,10 @@ export function componentSnippet(
             ].filter(Boolean).join(' ');
             const dropdownSnippet = nS.navMenuShowDropdown
                 ? `\n    <NavigationMenuItem>\n      <NavigationMenuTrigger variant="${nS.navMenuTriggerVariant}">About</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className="grid w-[340px] gap-2 p-3">\n          <li><NavigationMenuLink asChild><a href="#">Documentation</a></NavigationMenuLink></li>\n          <li><NavigationMenuLink asChild><a href="#">Team</a></NavigationMenuLink></li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>`
-                : `\n    <NavigationMenuItem>\n      <NavigationMenuLink>About</NavigationMenuLink>\n    </NavigationMenuItem>`;
+                : `\n    <NavigationMenuItem>\n      <NavigationMenuLink variant="${nS.navMenuTriggerVariant}" navigationItem>About</NavigationMenuLink>\n    </NavigationMenuItem>`;
             const linkProps = [
+                `variant="${nS.navMenuTriggerVariant}"`,
+                'navigationItem',
                 nS.navMenuActiveBg ? `activeBg="${nS.navMenuActiveBg}"` : '',
                 nS.navMenuActiveText ? `activeText="${nS.navMenuActiveText}"` : '',
             ].filter(Boolean).join(' ');
@@ -1300,9 +1306,14 @@ export function renderPreview(
 
         case 'stage-button': {
             const overflowClass = instance.style.effectPulseRingEnabled ? 'overflow-visible' : 'overflow-hidden';
+            const stageButtonState =
+                instance.style.buttonPreviewState === 'active' && instance.style.effectLoadingActiveEnabled
+                    ? instance.style.effectLoadingOutcome
+                    : 'idle';
             return (
                 <StatefulButton
                     disabled={instance.style.buttonPreviewState === 'disabled'}
+                    state={stageButtonState}
                     style={style}
                     className={cn('max-w-full', overflowClass, BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass, motionClassName)}
                 >
@@ -1564,21 +1575,48 @@ export function renderPreview(
                                     true,
                                 )}
                             </PopoverTrigger>
-                            <PopoverContent className="w-72" side={instance.style.popoverSide} align={instance.style.popoverAlign} style={panelStyle}>
-                                {renderEntryMotion(
-                                    <div className="space-y-2">
-                                        {renderEntryMotion(
-                                            <div className="space-y-2">
-                                                <PopoverHeader>
-                                                    <PopoverTitle>Popover preview</PopoverTitle>
-                                                    <PopoverDescription>Styled from the side controls.</PopoverDescription>
-                                                </PopoverHeader>
-                                                <p className="text-sm text-muted-foreground">Update fill, stroke, and effects to see this change in real time.</p>
-                                            </div>,
-                                            popoverTextMotion,
-                                        )}
-                                    </div>,
-                                    popoverBodyMotion,
+                            <PopoverContent className={instance.style.popoverContentVariant === 'profile' ? 'w-56 p-0 overflow-hidden' : 'w-72'} side={instance.style.popoverSide} align={instance.style.popoverAlign} style={panelStyle}>
+                                {instance.style.popoverContentVariant === 'profile' ? (
+                                    renderEntryMotion(
+                                        <div>
+                                            {renderEntryMotion(
+                                                <div>
+                                                    <div className="flex items-center gap-3 p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                                        <Avatar customSize={36} bgColor="#7c3aed">
+                                                            <AvatarFallback fontSize={13} fontColor="#fff" fontBold>AC</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-medium truncate">Ava Chen</p>
+                                                            <p className="text-xs text-muted-foreground truncate">ava@company.io</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-1.5">
+                                                        {['View Profile', 'Settings', 'Sign Out'].map((item) => (
+                                                            <div key={item} className={cn('px-3 py-1.5 rounded-md text-[13px] cursor-default', item === 'Sign Out' ? 'text-red-400' : 'text-muted-foreground')}>{item}</div>
+                                                        ))}
+                                                    </div>
+                                                </div>,
+                                                popoverTextMotion,
+                                            )}
+                                        </div>,
+                                        popoverBodyMotion,
+                                    )
+                                ) : (
+                                    renderEntryMotion(
+                                        <div className="space-y-2">
+                                            {renderEntryMotion(
+                                                <div className="space-y-2">
+                                                    <PopoverHeader>
+                                                        <PopoverTitle>Popover preview</PopoverTitle>
+                                                        <PopoverDescription>Styled from the side controls.</PopoverDescription>
+                                                    </PopoverHeader>
+                                                    <p className="text-sm text-muted-foreground">Update fill, stroke, and effects to see this change in real time.</p>
+                                                </div>,
+                                                popoverTextMotion,
+                                            )}
+                                        </div>,
+                                        popoverBodyMotion,
+                                    )
                                 )}
                             </PopoverContent>
                         </Popover>

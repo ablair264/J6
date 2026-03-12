@@ -77,7 +77,7 @@ export function NavigationMenuPreview({
             return (
                 <NavigationMenuItem key={label}>
                     {wrapLink(
-                        <NavigationMenuTrigger variant={triggerVariant}>
+                    <NavigationMenuTrigger variant={triggerVariant}>
                             {label}
                         </NavigationMenuTrigger>
                     )}
@@ -113,6 +113,8 @@ export function NavigationMenuPreview({
                 {wrapLink(
                     <NavigationMenuLink
                         active={isActive}
+                        variant={triggerVariant}
+                        navigationItem
                         activeBg={instanceStyle.navMenuActiveBg || undefined}
                         activeText={instanceStyle.navMenuActiveText || undefined}
                         onClick={(e: React.MouseEvent) => {

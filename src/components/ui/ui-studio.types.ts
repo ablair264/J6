@@ -324,6 +324,7 @@ export interface ComponentStyleConfig {
   popoverTextMotionPresetId: string;
   popoverSide: 'top' | 'right' | 'bottom' | 'left';
   popoverAlign: 'start' | 'center' | 'end';
+  popoverContentVariant: 'default' | 'profile';
   dropdownBodyMotionPresetId: string;
   dropdownOptionHoverEnabled: boolean;
   dropdownOptionHoverScale: number;

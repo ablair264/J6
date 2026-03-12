@@ -1,55 +1,68 @@
 'use client';
 
 import * as React from 'react';
-import { motion, useAnimate } from 'motion/react';
+import { AlertTriangle, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/lib/utils';
+
+export type StatefulButtonState = 'idle' | 'loading' | 'success' | 'failure' | 'warning';
+export type StatefulButtonResultState = Exclude<StatefulButtonState, 'idle' | 'loading'>;
 
 interface StatefulButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     className?: string;
     children: React.ReactNode;
+    state?: StatefulButtonState;
+    resultState?: StatefulButtonResultState;
+    resetDelayMs?: number;
 }
 
-export function StatefulButton({ className, children, onClick, disabled, ...buttonProps }: StatefulButtonProps) {
-    const [scope, animate] = useAnimate();
-    const [isRunning, setIsRunning] = React.useState(false);
+export function StatefulButton({
+    className,
+    children,
+    onClick,
+    disabled,
+    state,
+    resultState = 'success',
+    resetDelayMs = 1600,
+    ...buttonProps
+}: StatefulButtonProps) {
+    const [internalState, setInternalState] = React.useState<StatefulButtonState>('idle');
+    const resetTimerRef = React.useRef<number | null>(null);
 
-    const animateLoading = React.useCallback(async () => {
-        await animate(
-            '.loader',
-            { width: '20px', scale: 1, display: 'block' },
-            { duration: 0.2 },
-        );
-    }, [animate]);
+    const clearResetTimer = React.useCallback(() => {
+        if (resetTimerRef.current !== null) {
+            window.clearTimeout(resetTimerRef.current);
+            resetTimerRef.current = null;
+        }
+    }, []);
 
-    const animateSuccess = React.useCallback(async () => {
-        await animate(
-            '.loader',
-            { width: '0px', scale: 0, display: 'none' },
-            { duration: 0.2 },
-        );
-        await animate(
-            '.check',
-            { width: '20px', scale: 1, display: 'block' },
-            { duration: 0.2 },
-        );
-        await animate(
-            '.check',
-            { width: '0px', scale: 0, display: 'none' },
-            { delay: 1.6, duration: 0.2 },
-        );
-    }, [animate]);
+    React.useEffect(() => clearResetTimer, [clearResetTimer]);
+
+    const isControlled = state !== undefined;
+    const currentState = isControlled ? state : internalState;
+    const isRunning = currentState === 'loading';
 
     const handleClick = React.useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
         if (disabled || isRunning) return;
-        setIsRunning(true);
-        try {
-            await animateLoading();
+        if (isControlled) {
             await onClick?.(event);
-            await animateSuccess();
-        } finally {
-            setIsRunning(false);
+            return;
         }
-    }, [animateLoading, animateSuccess, disabled, isRunning, onClick]);
+        clearResetTimer();
+        setInternalState('loading');
+        try {
+            await onClick?.(event);
+            setInternalState(resultState);
+        } catch (error) {
+            setInternalState('failure');
+            throw error;
+        } finally {
+            resetTimerRef.current = window.setTimeout(() => {
+                setInternalState('idle');
+                resetTimerRef.current = null;
+            }, resetDelayMs);
+        }
+    }, [clearResetTimer, disabled, isControlled, isRunning, onClick, resetDelayMs, resultState]);
 
     const {
         onDrag,
@@ -64,8 +77,8 @@ export function StatefulButton({ className, children, onClick, disabled, ...butt
         <motion.button
             layout
             layoutId="stage-button"
-            ref={scope}
             disabled={disabled || isRunning}
+            data-state={currentState}
             className={cn(
                 'inline-flex min-w-[120px] items-center justify-center gap-2 rounded-full px-4 py-2 font-medium ring-offset-2 transition duration-200',
                 className,
@@ -74,23 +87,35 @@ export function StatefulButton({ className, children, onClick, disabled, ...butt
             {...safeButtonProps}
         >
             <motion.span layout className="inline-flex items-center gap-2">
-                <LoaderIcon />
-                <CheckIcon />
+                <ButtonStateIcon state={currentState} />
                 <span>{children}</span>
             </motion.span>
         </motion.button>
     );
 }
 
+function ButtonStateIcon({ state }: { state: StatefulButtonState }) {
+    return (
+        <AnimatePresence initial={false} mode="wait">
+            {state === 'loading' ? <LoaderIcon key="loading" /> : null}
+            {state === 'success' ? <CheckIcon key="success" /> : null}
+            {state === 'failure' ? <FailureIcon key="failure" /> : null}
+            {state === 'warning' ? <WarningIcon key="warning" /> : null}
+        </AnimatePresence>
+    );
+}
+
 function LoaderIcon() {
     return (
         <motion.svg
+            key="loader"
+            initial={{ opacity: 0, width: 0, scale: 0.6 }}
             animate={{ rotate: [0, 360] }}
-            initial={{ scale: 0, width: 0, display: 'none' }}
-            style={{ scale: 0.5, display: 'none' }}
+            exit={{ opacity: 0, width: 0, scale: 0.6 }}
+            style={{ scale: 1 }}
             transition={{ duration: 0.3, repeat: Infinity, ease: 'linear' }}
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
+            width="20"
             height="24"
             viewBox="0 0 24 24"
             fill="none"
@@ -109,10 +134,12 @@ function LoaderIcon() {
 function CheckIcon() {
     return (
         <motion.svg
-            initial={{ scale: 0, width: 0, display: 'none' }}
-            style={{ scale: 0.5, display: 'none' }}
+            key="check"
+            initial={{ opacity: 0, width: 0, scale: 0.6 }}
+            animate={{ opacity: 1, width: 20, scale: 1 }}
+            exit={{ opacity: 0, width: 0, scale: 0.6 }}
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
+            width="20"
             height="24"
             viewBox="0 0 24 24"
             fill="none"
@@ -126,6 +153,34 @@ function CheckIcon() {
             <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
             <path d="M9 12l2 2l4 -4" />
         </motion.svg>
+    );
+}
+
+function FailureIcon() {
+    return (
+        <motion.span
+            key="failure"
+            initial={{ opacity: 0, width: 0, scale: 0.6 }}
+            animate={{ opacity: 1, width: 20, scale: 1 }}
+            exit={{ opacity: 0, width: 0, scale: 0.6 }}
+            className="inline-flex shrink-0 items-center justify-center text-current"
+        >
+            <X className="size-4" />
+        </motion.span>
+    );
+}
+
+function WarningIcon() {
+    return (
+        <motion.span
+            key="warning"
+            initial={{ opacity: 0, width: 0, scale: 0.6 }}
+            animate={{ opacity: 1, width: 20, scale: 1 }}
+            exit={{ opacity: 0, width: 0, scale: 0.6 }}
+            className="inline-flex shrink-0 items-center justify-center text-current"
+        >
+            <AlertTriangle className="size-4" />
+        </motion.span>
     );
 }
 

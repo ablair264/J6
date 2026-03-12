@@ -87,6 +87,58 @@ const TABLE_BADGE_COLORS = {
     Offline: { bg: T.textMuted, text: '#f0ede8' },
 };
 
+/* ─── Avatar Hover Contact Card (mimics app's avatar popover) ─── */
+function AvatarHoverCard() {
+    const [hovered, setHovered] = useState(false);
+    return (
+        <div className="relative inline-block pb-4">
+            <div
+                className="cursor-pointer transition-transform duration-200"
+                style={{ transform: hovered ? 'translateY(-2px) scale(1.06)' : 'none' }}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+            >
+                <Avatar size="lg" bgColor={T.interactive} badge badgeColor={T.success}>
+                    <AvatarImage src="https://i.pravatar.cc/80?img=5" />
+                    <AvatarFallback fontColor="#fff" fontBold>KN</AvatarFallback>
+                </Avatar>
+            </div>
+            {hovered && (
+                <div
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 shadow-xl"
+                    style={{
+                        background: T.elevated,
+                        border: `1px solid ${T.border}`,
+                        borderRadius: 12,
+                        padding: 12,
+                        width: 200,
+                        backdropFilter: 'blur(8px)',
+                        opacity: 1,
+                    }}
+                    onMouseEnter={() => setHovered(true)}
+                    onMouseLeave={() => setHovered(false)}
+                >
+                    <div className="flex items-center gap-2.5">
+                        <Avatar customSize={36} bgColor={T.interactive}>
+                            <AvatarImage src="https://i.pravatar.cc/80?img=5" />
+                            <AvatarFallback fontColor="#fff" fontBold>KN</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate font-semibold leading-none text-[13px]" style={{ color: T.text }}>Kai Nakamura</p>
+                            <p className="mt-1 truncate text-[11px]" style={{ color: T.textMuted }}>Lead Designer</p>
+                            <div className="mt-1.5 flex items-center gap-2">
+                                {['💬', '✉️', '📞'].map((icon) => (
+                                    <button key={icon} className="p-1 rounded-md transition-opacity opacity-60 hover:opacity-100 text-[12px]">{icon}</button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 /* ─── Interactive Dialog Example (needs own state) ─── */
 function DialogExample() {
     const [open, setOpen] = useState(false);
@@ -288,7 +340,17 @@ function buildComponents(): ComponentEntry[] {
                     code: `<AvatarGroup spacing={-8}>\n  <Avatar size="md" strokeWeight={2} strokeColor="#7c3aed">\n    <AvatarImage src="..." />\n    <AvatarFallback>AC</AvatarFallback>\n  </Avatar>\n  {/* more avatars... */}\n  <AvatarGroupCount>+5</AvatarGroupCount>\n</AvatarGroup>`,
                 },
                 {
-                    title: 'With Popover',
+                    title: 'Hover Contact Card',
+                    preview: (
+                        <div className="pt-2">
+                            <AvatarHoverCard />
+                            <p className="text-[11px] mt-2" style={{ color: T.textMuted }}>Hover the avatar above</p>
+                        </div>
+                    ),
+                    code: `{/* Hover-activated contact card — matches the studio's avatar popover */}\n<Avatar size="lg" badge badgeColor="#34d399"\n  onMouseEnter={() => setHovered(true)}\n  onMouseLeave={() => setHovered(false)}\n>\n  <AvatarImage src="..." />\n  <AvatarFallback>KN</AvatarFallback>\n</Avatar>\n{hovered && (\n  <div className="popover-card">\n    <Avatar customSize={36} />\n    <p>Kai Nakamura</p>\n    <p>Lead Designer</p>\n    <div>{/* action icons: chat, email, phone */}</div>\n  </div>\n)}`,
+                },
+                {
+                    title: 'Profile Menu Popover',
                     preview: (
                         <Popover>
                             <PopoverTrigger asChild>
@@ -305,13 +367,13 @@ function buildComponents(): ComponentEntry[] {
                                 </div>
                                 <div className="p-2">
                                     {['View Profile', 'Settings', 'Sign Out'].map((item) => (
-                                        <div key={item} className="px-3 py-1.5 rounded-md text-[13px] cursor-pointer" style={{ color: item === 'Sign Out' ? T.error : T.textSec }}>{item}</div>
+                                        <div key={item} className="px-3 py-1.5 rounded-md text-[13px] cursor-pointer transition-colors" style={{ color: item === 'Sign Out' ? T.error : T.textSec }}>{item}</div>
                                     ))}
                                 </div>
                             </PopoverContent>
                         </Popover>
                     ),
-                    code: `<Popover>\n  <PopoverTrigger asChild>\n    <button>\n      <Avatar size="lg" badge badgeColor="#34d399">\n        <AvatarImage src="..." />\n        <AvatarFallback>AC</AvatarFallback>\n      </Avatar>\n    </button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p>Ava Chen</p>\n    <p>ava@company.io</p>\n  </PopoverContent>\n</Popover>`,
+                    code: `<Popover>\n  <PopoverTrigger asChild>\n    <button>\n      <Avatar size="lg" badge badgeColor="#34d399">\n        <AvatarImage src="..." />\n        <AvatarFallback>AC</AvatarFallback>\n      </Avatar>\n    </button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p>Ava Chen</p>\n    <p>ava@company.io</p>\n    <div>View Profile</div>\n    <div>Settings</div>\n    <div>Sign Out</div>\n  </PopoverContent>\n</Popover>`,
                 },
             ],
         },

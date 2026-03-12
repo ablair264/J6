@@ -1295,6 +1295,17 @@ export function InspectorPanel() {
                                         </FlatField>
                                     </div>
                                 </FlatElementSubsection>
+                                <FlatElementSubsection title="Content" defaultOpen>
+                                    <FlatField label="Variant">
+                                        <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
+                                            {(['default', 'profile'] as const).map((v) => (
+                                                <button key={v} type="button" onClick={() => updateSelectedStyle('popoverContentVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverContentVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </FlatField>
+                                </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>
                     ) : null}
