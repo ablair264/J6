@@ -523,9 +523,10 @@ export function buildPreviewMotionProps(
     options: {
         allowEntry?: boolean;
         allowInteraction?: boolean;
+        scrollProgress?: number;
     } = {},
 ): PreviewMotionProps {
-    const { allowEntry = true, allowInteraction = true } = options;
+    const { allowEntry = true, allowInteraction = true, scrollProgress } = options;
     const compiled = compileMotionConfig(config);
     const previewMode = config.motionPreviewMode;
     const transformOrigin = compiled.entry?.transformOrigin;
@@ -569,12 +570,29 @@ export function buildPreviewMotionProps(
         };
     }
 
-    if (previewMode === 'scrub' && compiled.scroll?.target) {
+    if (previewMode === 'scrub' && compiled.scroll) {
+        const progress = scrollProgress ?? 1;
+        const scrollFrom = compiled.scroll.initial;
+        const scrollTo = compiled.scroll.target;
+        const interpolated: Record<string, number> = {};
+
+        if (scrollFrom && scrollTo) {
+            for (const key of Object.keys(scrollTo) as Array<keyof MotionRuntimeValues>) {
+                const fromVal = typeof scrollFrom[key] === 'number' ? (scrollFrom[key] as number) : 0;
+                const toVal = typeof scrollTo[key] === 'number' ? (scrollTo[key] as number) : (key === 'opacity' || key === 'scale' ? 1 : 0);
+                interpolated[key] = fromVal + (toVal - fromVal) * progress;
+            }
+        } else if (scrollTo) {
+            for (const key of Object.keys(scrollTo) as Array<keyof MotionRuntimeValues>) {
+                const toVal = typeof scrollTo[key] === 'number' ? (scrollTo[key] as number) : 0;
+                interpolated[key] = toVal * progress;
+            }
+        }
+
         return {
-            animate: compiled.scroll.target,
-            transition: compiled.scroll.transition
-                ? { ...compiled.scroll.transition, duration: 0 }
-                : { type: 'tween' as const, duration: 0 },
+            initial: false,
+            animate: interpolated,
+            transition: { type: 'tween' as const, duration: 0 },
             ...(scrollStyle ? { style: scrollStyle } : {}),
         };
     }
@@ -800,11 +818,11 @@ function buildMotionExitValues(config: ComponentStyleConfig) {
     return compileMotionConfig(config).exit?.target;
 }
 
-export function renderEntryMotion(content: ReactNode, config: ComponentStyleConfig): ReactNode {
+export function renderEntryMotion(content: ReactNode, config: ComponentStyleConfig, scrollProgress?: number): ReactNode {
     if (!config.motionEntryEnabled && !config.motionScrollEnabled) {
         return content;
     }
-    const previewMotion = buildPreviewMotionProps(config, { allowEntry: true, allowInteraction: false });
+    const previewMotion = buildPreviewMotionProps(config, { allowEntry: true, allowInteraction: false, scrollProgress });
 
     return (
         <motion.div
@@ -826,6 +844,7 @@ export function renderWithMotionControls(
     config: ComponentStyleConfig,
     allowEntry = true,
     allowInteraction = true,
+    scrollProgress?: number,
 ): ReactNode {
     if (!hasAnyMotionEnabled(config) || content === null) {
         return content;
@@ -833,7 +852,7 @@ export function renderWithMotionControls(
     if (!allowEntry && !allowInteraction) {
         return content;
     }
-    const previewMotion = buildPreviewMotionProps(config, { allowEntry, allowInteraction });
+    const previewMotion = buildPreviewMotionProps(config, { allowEntry, allowInteraction, scrollProgress });
 
     return (
         <motion.div

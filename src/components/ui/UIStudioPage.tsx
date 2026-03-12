@@ -186,6 +186,8 @@ export function UIStudioComponentPage() {
     const setTokensLoading = useStudioStore((s) => s.setTokensLoading);
     const setSelectedInstanceId = useStudioStore((s) => s.setSelectedInstanceId);
     const replayMotion = useStudioStore((s) => s.replayMotion);
+    const motionScrollProgress = useStudioStore((s) => s.motionScrollProgress);
+    const setMotionScrollProgress = useStudioStore((s) => s.setMotionScrollProgress);
 
     // ─── Debounced preview ────────────────────────────────────────
     const [debouncedPreviewInstance, setDebouncedPreviewInstance] = useState<ComponentInstance | null>(null);
@@ -362,11 +364,10 @@ export function UIStudioComponentPage() {
         ['--ui-canvas-state-selected-ring' as string]: canvasDark ? 'rgba(126,254,240,0.16)' : 'rgba(19,96,151,0.24)',
         ['--ui-canvas-state-hover-bg' as string]: canvasDark ? 'rgba(255,255,255,0.03)' : 'rgba(13,42,74,0.08)',
     } satisfies CSSProperties), [canvasDark]);
-    const timelineSteps = selectedStyle?.motionTimelineSteps ?? [];
-    const hasHoverPreview = Boolean(selectedStyle && (selectedStyle.motionHoverEnabled || timelineSteps.some((step) => step.trigger === 'hover')));
-    const hasTapPreview = Boolean(selectedStyle && (selectedStyle.motionTapEnabled || timelineSteps.some((step) => step.trigger === 'tap')));
-    const hasLoopPreview = Boolean(selectedStyle && timelineSteps.some((step) => step.trigger === 'loop'));
-    const hasScrollPreview = Boolean(selectedStyle && (selectedStyle.motionScrollEnabled || timelineSteps.some((step) => step.trigger === 'scroll')));
+    const hasHoverPreview = Boolean(selectedStyle?.motionHoverEnabled);
+    const hasTapPreview = Boolean(selectedStyle?.motionTapEnabled);
+    const hasLoopPreview = false; // Loop requires timeline steps (removed)
+    const hasScrollPreview = Boolean(selectedStyle?.motionScrollEnabled);
     const canReplayStageMotion = Boolean(canReplayEntryMotion || hasLoopPreview || hasScrollPreview);
     const activeMotionPreviewMode = selectedStyle?.motionPreviewMode ?? 'idle';
     const previewModeOptions: Array<{ value: MotionPreviewMode; label: string; enabled: boolean }> = [
@@ -374,7 +375,7 @@ export function UIStudioComponentPage() {
         { value: 'hover', label: 'Hover', enabled: hasHoverPreview },
         { value: 'tap', label: 'Press', enabled: hasTapPreview },
         { value: 'loop', label: 'Loop', enabled: hasLoopPreview },
-        { value: 'scrub', label: hasScrollPreview ? 'In View' : 'Scroll', enabled: hasScrollPreview },
+        { value: 'scrub', label: 'Scroll', enabled: hasScrollPreview },
     ];
 
     useEffect(() => {
@@ -586,6 +587,25 @@ export function UIStudioComponentPage() {
                                                 </button>
                                             ))}
                                         </div>
+                                        {activeMotionPreviewMode === 'scrub' && hasScrollPreview && (
+                                            <div className="flex w-full items-center gap-3 border-t border-white/8 px-4 pt-2.5 pb-1">
+                                                <span className="text-[10px] font-medium text-[#64748b]">
+                                                    {selectedStyle?.motionScrollStart ?? 0}%
+                                                </span>
+                                                <input
+                                                    type="range"
+                                                    min={0}
+                                                    max={1}
+                                                    step={0.005}
+                                                    value={motionScrollProgress}
+                                                    onChange={(e) => setMotionScrollProgress(Number(e.target.value))}
+                                                    className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/[0.08] accent-[#2dd4bf] [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#2dd4bf]"
+                                                />
+                                                <span className="text-[10px] font-medium text-[#64748b]">
+                                                    {selectedStyle?.motionScrollEnd ?? 100}%
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : null}
                                 <div
