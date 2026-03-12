@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { SYSTEM_TOKEN_SET_ID, ensureTokenSetsWithSystem, sanitizeTokenSet } from '@/components/ui/token-sets';
 import type { StudioTokenSet } from '@/components/ui/token-sets';
 import { fetchTokenSetsFromApi } from '@/lib/token-set-api';
-import type { ButtonPreviewState, ComponentInstance, UIComponentKind } from '@/components/ui/ui-studio.types';
+import type { ButtonPreviewState, ComponentInstance, MotionPreviewMode, UIComponentKind } from '@/components/ui/ui-studio.types';
 import { COMPONENTS } from './ui-studio/constants';
 import {
     buildKindTitle,
@@ -102,6 +102,9 @@ export function UIStudioIndexPage() {
 
 const studioActionButtonClass =
     'inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-[#b7c8df] transition hover:bg-white/[0.1] hover:text-[#eef5ff]';
+
+const stagePreviewChipClass =
+    'inline-flex items-center justify-center rounded-full border px-2.5 py-1 text-[11px] font-medium transition';
 
 function parseCanvasColorToRgb(color: string): { r: number; g: number; b: number } | null {
     const value = color.trim();
@@ -360,6 +363,45 @@ export function UIStudioComponentPage() {
         ['--ui-canvas-state-selected-ring' as string]: canvasDark ? 'rgba(126,254,240,0.16)' : 'rgba(19,96,151,0.24)',
         ['--ui-canvas-state-hover-bg' as string]: canvasDark ? 'rgba(255,255,255,0.03)' : 'rgba(13,42,74,0.08)',
     } satisfies CSSProperties), [canvasDark]);
+    const timelineSteps = selectedStyle?.motionTimelineSteps ?? [];
+    const hasHoverPreview = Boolean(selectedStyle && (selectedStyle.motionHoverEnabled || timelineSteps.some((step) => step.trigger === 'hover')));
+    const hasTapPreview = Boolean(selectedStyle && (selectedStyle.motionTapEnabled || timelineSteps.some((step) => step.trigger === 'tap')));
+    const hasLoopPreview = Boolean(selectedStyle && timelineSteps.some((step) => step.trigger === 'loop'));
+    const hasScrollPreview = Boolean(selectedStyle && (selectedStyle.motionScrollEnabled || timelineSteps.some((step) => step.trigger === 'scroll')));
+    const canReplayStageMotion = Boolean(canReplayEntryMotion || hasLoopPreview || hasScrollPreview);
+    const activeMotionPreviewMode = selectedStyle?.motionPreviewMode ?? 'idle';
+    const previewModeOptions: Array<{ value: MotionPreviewMode; label: string; enabled: boolean }> = [
+        { value: 'idle', label: 'Auto', enabled: true },
+        { value: 'hover', label: 'Hover', enabled: hasHoverPreview },
+        { value: 'tap', label: 'Press', enabled: hasTapPreview },
+        { value: 'loop', label: 'Loop', enabled: hasLoopPreview },
+        { value: 'scrub', label: hasScrollPreview ? 'In View' : 'Scroll', enabled: hasScrollPreview },
+    ];
+
+    useEffect(() => {
+        if (!selectedStyle) {
+            return;
+        }
+        const previewAvailability: Partial<Record<MotionPreviewMode, boolean>> = {
+            hover: hasHoverPreview,
+            tap: hasTapPreview,
+            loop: hasLoopPreview,
+            scrub: hasScrollPreview,
+        };
+        if (
+            selectedStyle.motionPreviewMode === 'playOnce' ||
+            (selectedStyle.motionPreviewMode !== 'idle' && previewAvailability[selectedStyle.motionPreviewMode] === false)
+        ) {
+            updateSelectedStyle('motionPreviewMode', 'idle');
+        }
+    }, [
+        hasHoverPreview,
+        hasLoopPreview,
+        hasScrollPreview,
+        hasTapPreview,
+        selectedStyle,
+        updateSelectedStyle,
+    ]);
 
     // ─── Render ───────────────────────────────────────────────────
     return (
@@ -387,19 +429,6 @@ export function UIStudioComponentPage() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        {canReplayEntryMotion ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (isOverlayComponent && !pinOverlayPreviews) setPinOverlayPreviews(true);
-                                                    replayMotion();
-                                                }}
-                                                className={studioActionButtonClass}
-                                            >
-                                                <Play className="size-3.5 fill-current" />
-                                                Play Motion
-                                            </button>
-                                        ) : null}
                                         {isOverlayComponent ? (
                                             <button
                                                 type="button"
@@ -505,6 +534,61 @@ export function UIStudioComponentPage() {
                                         </button>
                                     </div>
                                 </header>
+                                {selectedInstance && selectedStyle ? (
+                                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-4 py-2.5">
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7f95b4]">Motion Preview</p>
+                                            <p className="text-[11px] text-[#8ea4c3]">
+                                                Use the stage controls here to preview hover, press, looping, and scroll states.
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={!canReplayStageMotion}
+                                                onClick={() => {
+                                                    if (!canReplayStageMotion) return;
+                                                    updateSelectedStyle('motionPreviewMode', 'idle');
+                                                    if (isOverlayComponent && !pinOverlayPreviews) setPinOverlayPreviews(true);
+                                                    replayMotion();
+                                                }}
+                                                className={cn(
+                                                    studioActionButtonClass,
+                                                    'rounded-full px-3 py-1.5',
+                                                    !canReplayStageMotion && 'cursor-not-allowed bg-white/[0.02] text-[#586a83] hover:bg-white/[0.02] hover:text-[#586a83]',
+                                                )}
+                                            >
+                                                <Play className="size-3.5 fill-current" />
+                                                Replay
+                                            </button>
+                                            {previewModeOptions.map((option) => (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    disabled={!option.enabled}
+                                                    onClick={() => {
+                                                        if (!option.enabled) return;
+                                                        updateSelectedStyle('motionPreviewMode', option.value);
+                                                        if (option.value === 'scrub' && isOverlayComponent && !pinOverlayPreviews) {
+                                                            setPinOverlayPreviews(true);
+                                                        }
+                                                    }}
+                                                    className={cn(
+                                                        stagePreviewChipClass,
+                                                        activeMotionPreviewMode === option.value
+                                                            ? 'border-[#63e8da]/40 bg-[#63e8da]/16 text-[#86fff1] shadow-[inset_0_0_0_1px_rgba(126,254,240,0.18)]'
+                                                            : option.enabled
+                                                                ? 'border-white/10 bg-white/[0.03] text-[#b7c8df] hover:bg-white/[0.08] hover:text-[#eef5ff]'
+                                                                : 'cursor-not-allowed border-white/[0.06] bg-white/[0.02] text-[#586a83]',
+                                                    )}
+                                                    aria-pressed={activeMotionPreviewMode === option.value}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : null}
                                 <div
                                     className="flex min-h-0 flex-1 flex-col"
                                     style={{

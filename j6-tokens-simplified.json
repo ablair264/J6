@@ -1,0 +1,100 @@
+{
+  "$description": "J6 Design Token System — Light + Dark mode (simplified)",
+  "$version": "2.0.0",
+
+  "primitive": {
+    "neutral": {
+      "0":   { "light": "#FFFFFF",  "dark": "#FFFFFF" },
+      "50":  { "light": "#FAFAF9",  "dark": "#F0EDE8" },
+      "100": { "light": "#F0EDE8",  "dark": "#D4D0CA" },
+      "200": { "light": "#C8C4BC",  "dark": "#9A9AA3" },
+      "300": { "light": "#8A8A94",  "dark": "#6B6B72" },
+      "400": { "light": "#5A5A64",  "dark": "#3A3A3F" },
+      "500": { "light": "#3A3A3F",  "dark": "#2A2A2E" },
+      "600": { "light": "#2A2A2E",  "dark": "#1A1A1D" },
+      "700": { "light": "#1A1A1D",  "dark": "#141416" },
+      "800": { "light": "#141416",  "dark": "#111113" },
+      "900": { "light": "#111113",  "dark": "#0A0A0B" },
+      "950": { "light": "#0A0A0B",  "dark": "#050506" }
+    },
+    "amber": {
+      "200": "#FFF0C8",
+      "300": "#FFDA80",
+      "400": { "light": "#FFBA4A",  "dark": "#FFBA4A" },
+      "500": { "light": "#D4890A",  "dark": "#F5A623" },
+      "600": { "light": "#B07008",  "dark": "#C4800A" },
+      "700": "#8A5800"
+    },
+    "violet": {
+      "200": "#E8DDFF",
+      "300": "#C4A8FF",
+      "400": "#9F72FF",
+      "500": { "light": "#6D28D9",  "dark": "#7C3AED" },
+      "600": "#5B21B6",
+      "700": "#3B0E87"
+    },
+    "accent": {
+      "cyan":    { "light": "#0891B2",  "dark": "#22D3EE" },
+      "rose":    { "light": "#E11D48",  "dark": "#FB7185" },
+      "emerald": { "light": "#059669",  "dark": "#34D399" },
+      "orange":  { "light": "#EA580C",  "dark": "#FB923C" },
+      "pink":    { "light": "#DB2777",  "dark": "#F472B6" },
+      "sky":     { "light": "#0284C7",  "dark": "#38BDF8" },
+      "lime":    { "light": "#65A30D",  "dark": "#A3E635" },
+      "yellow":  { "light": "#CA8A04",  "dark": "#FACC15" },
+      "indigo":  { "light": "#4338CA",  "dark": "#818CF8" }
+    }
+  },
+
+  "semantic": {
+    "bg": {
+      "base":     { "light": "{neutral.900}",  "dark": "{neutral.900}",  "description": "Page background" },
+      "subtle":   { "light": "{neutral.950}",  "dark": "{neutral.800}",  "description": "Slightly raised surface" },
+      "surface":  { "light": "{neutral.50}",   "dark": "{neutral.700}",  "description": "Card / panel" },
+      "elevated": { "light": "{neutral.0}",    "dark": "{neutral.600}",  "description": "Modal / popover" },
+      "overlay":  { "light": "rgba(0,0,0,0.48)", "dark": "rgba(0,0,0,0.72)", "description": "Dialog scrim" }
+    },
+    "border": {
+      "subtle":  { "light": "rgba(0,0,0,0.07)",  "dark": "rgba(255,255,255,0.06)" },
+      "default": { "light": "rgba(0,0,0,0.12)",  "dark": "rgba(255,255,255,0.10)" },
+      "strong":  { "light": "rgba(0,0,0,0.22)",  "dark": "rgba(255,255,255,0.18)" },
+      "focus":   { "light": "{amber.500}",        "dark": "{amber.500}" }
+    },
+    "text": {
+      "primary":   { "light": "{neutral.700}",  "dark": "{neutral.50}" },
+      "secondary": { "light": "{neutral.400}",  "dark": "{neutral.200}" },
+      "muted":     { "light": "{neutral.300}",  "dark": "{neutral.300}" },
+      "inverse":   { "light": "{neutral.50}",   "dark": "{neutral.900}" },
+      "link":      { "light": "{amber.500}",    "dark": "{amber.500}" }
+    },
+    "brand": {
+      "default": { "light": "{amber.500}",  "dark": "{amber.500}" },
+      "hover":   { "light": "{amber.400}",  "dark": "{amber.400}" },
+      "subtle":  { "light": "rgba({amber.500}, 0.10)", "dark": "rgba({amber.500}, 0.12)" },
+      "glow":    { "light": "rgba({amber.500}, 0.20)", "dark": "rgba({amber.500}, 0.25)" }
+    },
+    "interactive": {
+      "default": { "light": "{violet.500}",  "dark": "{violet.500}" },
+      "hover":   { "light": "{violet.400}",  "dark": "{violet.400}" },
+      "subtle":  { "light": "rgba({violet.500}, 0.10)", "dark": "rgba({violet.500}, 0.15)" }
+    },
+    "status": {
+      "success": { "light": "{accent.emerald}", "dark": "{accent.emerald}" },
+      "warning": { "light": "{accent.yellow}",  "dark": "{accent.yellow}" },
+      "error":   { "light": "{accent.rose}",    "dark": "{accent.rose}" },
+      "info":    { "light": "{accent.sky}",      "dark": "{accent.sky}" }
+    }
+  },
+
+  "showcase": {
+    "$description": "Named accent themes. Derive glow (base@0.35) and bg (base@0.10) at consumption time.",
+    "Electric":   { "base": "{accent.cyan}",    "text": "{neutral.900}" },
+    "Bloom":      { "base": "{accent.pink}",    "text": "{neutral.900}" },
+    "Acid":       { "base": "{accent.lime}",    "text": "{neutral.900}" },
+    "Plasma":     { "base": "{accent.indigo}",  "text": "{neutral.900}" },
+    "Inferno":    { "base": "{accent.orange}",  "text": "{neutral.900}" },
+    "Crimson":    { "base": "{accent.rose}",    "text": "{neutral.0}" },
+    "Spearmint":  { "base": "{accent.emerald}", "text": "{neutral.900}" },
+    "Solar":      { "base": "{accent.yellow}",  "text": "{neutral.900}" }
+  }
+}

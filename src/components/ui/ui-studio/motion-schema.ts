@@ -199,12 +199,63 @@ function buildExitStep(config: ComponentStyleConfig): MotionTimelineStep | null 
     };
 }
 
+function buildScrollStep(config: ComponentStyleConfig): MotionTimelineStep | null {
+    if (!config.motionScrollEnabled) {
+        return null;
+    }
+
+    const fallbackOffset = config.motionScrollParallax !== 0 ? config.motionScrollParallax : 24;
+    const hasEntryMotion = config.motionEntryEnabled;
+    const initialScale = hasEntryMotion && config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
+    const targetScale = hasEntryMotion && (config.motionAnimateScale !== 100 || initialScale !== undefined)
+        ? config.motionAnimateScale / 100
+        : undefined;
+    const hasFilter = hasEntryMotion && Boolean(config.motionInitialFilter || config.motionAnimateFilter);
+
+    return {
+        id: 'legacy-scroll',
+        trigger: 'scroll',
+        label: config.motionScrollMode === 'progress' ? 'Scroll Progress' : 'Scroll Enter',
+        from: {
+            ...(hasEntryMotion ? { opacity: config.motionInitialOpacity / 100 } : {}),
+            x: hasEntryMotion ? config.motionInitialX : 0,
+            y: hasEntryMotion
+                ? (config.motionInitialY !== 0 ? config.motionInitialY : fallbackOffset)
+                : fallbackOffset,
+            ...(initialScale !== undefined ? { scale: initialScale } : {}),
+            ...(hasFilter ? { filter: config.motionInitialFilter } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        to: {
+            ...(hasEntryMotion ? { opacity: config.motionAnimateOpacity / 100 } : {}),
+            x: hasEntryMotion ? config.motionAnimateX : 0,
+            y: hasEntryMotion ? config.motionAnimateY : 0,
+            ...(targetScale !== undefined ? { scale: targetScale } : {}),
+            ...(hasFilter ? { filter: config.motionAnimateFilter || 'blur(0px)' } : {}),
+            ...(config.motionTransformOrigin ? { transformOrigin: config.motionTransformOrigin } : {}),
+        },
+        duration: config.motionDuration,
+        delay: config.motionDelay,
+        transitionType: config.motionTransitionType,
+        ease: config.motionEase,
+        ...(config.motionEase === 'cubicBezier' ? { customBezier: config.motionCustomBezier } : {}),
+        ...(config.motionTransitionType === 'spring'
+            ? {
+                stiffness: config.motionStiffness,
+                damping: config.motionDamping,
+                mass: config.motionMass,
+            }
+            : {}),
+    };
+}
+
 export function buildLegacyMotionTimeline(config: ComponentStyleConfig): MotionTimelineStep[] {
     return [
         buildEntryStep(config),
         buildHoverStep(config),
         buildTapStep(config),
         buildExitStep(config),
+        buildScrollStep(config),
     ].filter((step): step is MotionTimelineStep => Boolean(step));
 }
 

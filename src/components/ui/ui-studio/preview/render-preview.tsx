@@ -216,6 +216,7 @@ function buildAvatarMotionProps(s: ComponentStyleConfig): PreviewMotionProps {
     const previewMotion = buildPreviewMotionProps(s, { allowEntry: false, allowInteraction: true });
     if (
         previewMotion.animate ||
+        previewMotion.whileInView ||
         previewMotion.whileHover ||
         previewMotion.whileTap
     ) {
@@ -558,7 +559,7 @@ function TabsPreviewSurface({
                         total: tabLabels.length,
                         axis: 'x',
                     });
-                    const hasTabMotion = Boolean(tabMotionProps.animate || tabMotionProps.whileHover || tabMotionProps.whileTap);
+                    const hasTabMotion = Boolean(tabMotionProps.animate || tabMotionProps.whileInView || tabMotionProps.whileHover || tabMotionProps.whileTap);
 
                     return (
                         <TabsTrigger
@@ -579,9 +580,11 @@ function TabsPreviewSurface({
                                 <motion.button
                                     className="inline-flex w-full min-w-0 items-center justify-center"
                                     animate={tabMotionProps.animate}
+                                    whileInView={tabMotionProps.whileInView}
                                     whileHover={tabMotionProps.whileHover}
                                     whileTap={tabMotionProps.whileTap}
                                     transition={tabMotionProps.transition}
+                                    viewport={tabMotionProps.viewport}
                                     style={tabMotionProps.style}
                                     onHoverStart={() => setHoveredIndex(i)}
                                     onHoverEnd={() => setHoveredIndex((current) => (current === i ? null : current))}
@@ -666,7 +669,7 @@ function AccordionPreviewSurface({
             total: items.length,
             axis: 'y',
         });
-        const hasItemMotion = Boolean(itemMotionProps.animate || itemMotionProps.whileHover || itemMotionProps.whileTap);
+        const hasItemMotion = Boolean(itemMotionProps.animate || itemMotionProps.whileInView || itemMotionProps.whileHover || itemMotionProps.whileTap);
         const iconInfo = accordionIconData[index % accordionIconData.length];
         const IconComp = iconInfo.icon;
         const iconEl = showIcons ? (
@@ -708,9 +711,11 @@ function AccordionPreviewSurface({
                 <motion.div
                     key={itemData.id}
                     animate={itemMotionProps.animate}
+                    whileInView={itemMotionProps.whileInView}
                     whileHover={itemMotionProps.whileHover}
                     whileTap={itemMotionProps.whileTap}
                     transition={itemMotionProps.transition}
+                    viewport={itemMotionProps.viewport}
                     style={itemMotionProps.style}
                     onHoverStart={() => setHoveredIndex(index)}
                     onHoverEnd={() => setHoveredIndex((current) => (current === index ? null : current))}
@@ -1997,9 +2002,11 @@ export function renderPreview(
                                     motionClassName,
                                 )}
                                 animate={tooltipTriggerMotionProps.animate}
+                                whileInView={tooltipTriggerMotionProps.whileInView}
                                 whileHover={tooltipTriggerMotionProps.whileHover}
                                 whileTap={tooltipTriggerMotionProps.whileTap}
                                 transition={tooltipTriggerMotionProps.transition}
+                                viewport={tooltipTriggerMotionProps.viewport}
                                 style={{
                                     ...(style ?? {}),
                                     ...(tooltipTriggerMotionProps.style ?? {}),
@@ -2873,9 +2880,11 @@ export function renderPreview(
                 >
                     <motion.div
                         animate={switchMotionProps.animate}
+                        whileInView={switchMotionProps.whileInView}
                         whileHover={switchMotionProps.whileHover}
                         whileTap={switchMotionProps.whileTap}
                         transition={switchMotionProps.transition}
+                        viewport={switchMotionProps.viewport}
                         className={switchDecorClassName}
                         style={{
                             ...switchDecorStyle,

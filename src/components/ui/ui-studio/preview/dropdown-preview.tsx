@@ -207,6 +207,7 @@ export function InteractiveDropdownPreview({
                                 key={`${instanceId}-dropdown-menu`}
                                 initial={dropdownBodyPreviewMotion.initial}
                                 animate={dropdownBodyPreviewMotion.animate}
+                                whileInView={dropdownBodyPreviewMotion.whileInView}
                                 exit={
                                     motionConfig.motionExitEnabled
                                         ? {
@@ -228,6 +229,7 @@ export function InteractiveDropdownPreview({
                                             : undefined
                                 }
                                 transition={dropdownBodyPreviewMotion.transition}
+                                viewport={dropdownBodyPreviewMotion.viewport}
                                 style={dropdownBodyPreviewMotion.style}
                             >
                                 <ListBox
