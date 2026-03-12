@@ -105,6 +105,9 @@ const studioActionButtonClass =
 const stagePreviewChipClass =
     'inline-flex items-center justify-center rounded-full border px-2.5 py-1 text-[11px] font-medium transition';
 
+const stagePreviewChipClass =
+    'inline-flex items-center justify-center rounded-full border px-2.5 py-1 text-[11px] font-medium transition';
+
 function parseCanvasColorToRgb(color: string): { r: number; g: number; b: number } | null {
     const value = color.trim();
     const hex = value.startsWith('#') ? value.slice(1) : value;

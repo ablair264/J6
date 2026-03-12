@@ -1240,12 +1240,12 @@ export function MotionInspectorSection({
                         <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/group:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
-                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Strategy</p>
-                            <div className="mt-2">
-                                <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
+                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Strategy</p>
+                                <div className="mt-2">
+                                    <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
+                                </div>
                             </div>
-                        </div>
 
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
