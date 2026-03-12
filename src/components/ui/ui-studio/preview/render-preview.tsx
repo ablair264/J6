@@ -509,8 +509,8 @@ function TabsPreviewSurface({
         textAlign: instance.style.fontPosition,
     } satisfies CSSProperties;
     const fallbackTextColor = typeof style.color === 'string' ? style.color : undefined;
-    const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
-    const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsTextMotionPresetId);
+    const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsMotionPresetId);
+    const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsMotionPresetId);
     const listClassName = cn(
         instance.style.tabsFullWidth ? 'w-full' : undefined,
         (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : undefined,
@@ -1674,8 +1674,8 @@ export function renderPreview(
 
         case 'dialog':
             {
-                const dialogBodyMotion = buildEntryPresetMotionConfig('dialog', instance.style, instance.style.dialogBodyMotionPresetId);
-                const dialogTextMotion = buildEntryPresetMotionConfig('dialog', instance.style, instance.style.dialogTextMotionPresetId);
+                const dialogBodyMotion = buildEntryPresetMotionConfig('dialog', instance.style, instance.style.dialogMotionPresetId);
+                const dialogTextMotion = buildEntryPresetMotionConfig('dialog', instance.style, instance.style.dialogMotionPresetId);
                 const dialogBody = renderEntryMotion(
                 <div className="space-y-3 p-5">
                     {renderEntryMotion(
@@ -1843,8 +1843,8 @@ export function renderPreview(
 
         case 'popover':
             {
-                const popoverBodyMotion = buildEntryPresetMotionConfig('popover', instance.style, instance.style.popoverBodyMotionPresetId);
-                const popoverTextMotion = buildEntryPresetMotionConfig('popover', instance.style, instance.style.popoverTextMotionPresetId);
+                const popoverBodyMotion = buildEntryPresetMotionConfig('popover', instance.style, instance.style.popoverMotionPresetId);
+                const popoverTextMotion = buildEntryPresetMotionConfig('popover', instance.style, instance.style.popoverMotionPresetId);
                 return (
                     <div onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
                         <Popover open={pinOverlayOpen ? true : undefined}>
@@ -1915,7 +1915,7 @@ export function renderPreview(
 
         case 'input':
             {
-                const autocompleteMotion = buildEntryPresetMotionConfig('input', instance.style, instance.style.inputAutocompleteBodyMotionPresetId);
+                const autocompleteMotion = buildEntryPresetMotionConfig('input', instance.style, instance.style.inputAutocompleteMotionPresetId);
                 const inputHasIcon = instance.style.inputShowIcon && icon;
                 const inputIconLeft = inputHasIcon && instance.style.inputIconPosition === 'left';
                 const inputIconRight = inputHasIcon && instance.style.inputIconPosition === 'right';
@@ -1988,8 +1988,8 @@ export function renderPreview(
 
         case 'tooltip':
             {
-                const tooltipBodyMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipBodyMotionPresetId);
-                const tooltipTextMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipTextMotionPresetId);
+                const tooltipBodyMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipMotionPresetId);
+                const tooltipTextMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipMotionPresetId);
                 const tooltipTriggerMotionProps = buildPreviewMotionProps(instance.style, { allowEntry: false, allowInteraction: true });
                 return (
                     <div onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>

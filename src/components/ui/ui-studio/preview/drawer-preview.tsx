@@ -27,7 +27,7 @@ export function DrawerPreview({
     motionClassName?: string;
     pinnedOpen: boolean;
 }) {
-    const drawerBodyMotion = buildEntryPresetMotionConfig('drawer', instanceStyle, instanceStyle.drawerBodyMotionPresetId);
+    const drawerBodyMotion = buildEntryPresetMotionConfig('drawer', instanceStyle, instanceStyle.drawerMotionPresetId);
     const drawerSide = instanceStyle.drawerSide;
     const isH = drawerSide === 'left' || drawerSide === 'right';
     const drawerPanelW = Math.min(instanceStyle.drawerWidth, 240);

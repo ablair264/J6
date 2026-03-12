@@ -49,7 +49,7 @@ export function InteractiveDropdownPreview({
     const shareItemRef = useRef<HTMLDivElement | null>(null);
     const menuOpen = pinnedOpen || isOpen;
     const buttonPreviewStateClass = buildButtonPreviewStateClass(motionConfig.buttonPreviewState);
-    const dropdownBodyMotionConfig = buildEntryPresetMotionConfig('dropdown', motionConfig, motionConfig.dropdownBodyMotionPresetId);
+    const dropdownBodyMotionConfig = buildEntryPresetMotionConfig('dropdown', motionConfig, motionConfig.dropdownMotionPresetId);
     const dropdownOptionMotionConfig = normalizeStyleConfig({
         ...motionConfig,
         motionEntryEnabled: false,
