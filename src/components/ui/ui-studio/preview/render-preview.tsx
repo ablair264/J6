@@ -675,7 +675,14 @@ export function componentSnippet(
         }
         case 'stage-button': {
             const declarations = [previewBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
-            return `${declarations ? `${declarations}\n\n` : ''}<StatefulButton${buttonClassNameSnippet}${previewStyleSnippet}>${buttonText}</StatefulButton>`;
+            const stageButtonProps = [
+                instance.style.effectLoadingActiveEnabled ? `resultState="${instance.style.effectLoadingOutcome}"` : '',
+                instance.style.effectLoadingActiveEnabled && instance.style.effectLoadingPosition !== 'left'
+                    ? `loadingPosition="${instance.style.effectLoadingPosition}"`
+                    : '',
+            ].filter(Boolean).join(' ');
+            const stageButtonAttr = stageButtonProps ? ` ${stageButtonProps}` : '';
+            return `${declarations ? `${declarations}\n\n` : ''}<StatefulButton${stageButtonAttr}${buttonClassNameSnippet}${previewStyleSnippet}>${buttonText}</StatefulButton>`;
         }
         case 'checkbox': {
             const cbLabel = instance.style.checkboxLabel || 'Enable notifications';
@@ -1306,14 +1313,15 @@ export function renderPreview(
 
         case 'stage-button': {
             const overflowClass = instance.style.effectPulseRingEnabled ? 'overflow-visible' : 'overflow-hidden';
-            const stageButtonState =
-                instance.style.buttonPreviewState === 'active' && instance.style.effectLoadingActiveEnabled
-                    ? instance.style.effectLoadingOutcome
-                    : 'idle';
+            const shouldAutoplayStageButton =
+                instance.style.buttonPreviewState === 'active' && instance.style.effectLoadingActiveEnabled;
             return (
                 <StatefulButton
                     disabled={instance.style.buttonPreviewState === 'disabled'}
-                    state={stageButtonState}
+                    resultState={instance.style.effectLoadingOutcome}
+                    loadingPosition={instance.style.effectLoadingPosition}
+                    autoPlay={shouldAutoplayStageButton}
+                    autoPlayKey={`${instance.id}:${instance.style.buttonPreviewState}:${instance.style.effectLoadingOutcome}:${instance.style.effectLoadingPosition}`}
                     style={style}
                     className={cn('max-w-full', overflowClass, BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass, motionClassName)}
                 >

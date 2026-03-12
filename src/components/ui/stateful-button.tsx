@@ -14,6 +14,10 @@ interface StatefulButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
     state?: StatefulButtonState;
     resultState?: StatefulButtonResultState;
     resetDelayMs?: number;
+    loadingDurationMs?: number;
+    loadingPosition?: 'left' | 'right';
+    autoPlay?: boolean;
+    autoPlayKey?: string | number;
 }
 
 export function StatefulButton({
@@ -24,10 +28,15 @@ export function StatefulButton({
     state,
     resultState = 'success',
     resetDelayMs = 1600,
+    loadingDurationMs = 600,
+    loadingPosition = 'left',
+    autoPlay = false,
+    autoPlayKey,
     ...buttonProps
 }: StatefulButtonProps) {
     const [internalState, setInternalState] = React.useState<StatefulButtonState>('idle');
     const resetTimerRef = React.useRef<number | null>(null);
+    const autoplayTokenRef = React.useRef<string | number | null>(null);
 
     const clearResetTimer = React.useCallback(() => {
         if (resetTimerRef.current !== null) {
@@ -42,18 +51,38 @@ export function StatefulButton({
     const currentState = isControlled ? state : internalState;
     const isRunning = currentState === 'loading';
 
+    const runSequence = React.useCallback(async (nextResultState: StatefulButtonResultState) => {
+        clearResetTimer();
+        setInternalState('loading');
+        await new Promise((resolve) => window.setTimeout(resolve, loadingDurationMs));
+        setInternalState(nextResultState);
+        resetTimerRef.current = window.setTimeout(() => {
+            setInternalState('idle');
+            resetTimerRef.current = null;
+        }, resetDelayMs);
+    }, [clearResetTimer, loadingDurationMs, resetDelayMs]);
+
     const handleClick = React.useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
         if (disabled || isRunning) return;
         if (isControlled) {
             await onClick?.(event);
             return;
         }
+        const startedAt = Date.now();
         clearResetTimer();
         setInternalState('loading');
         try {
             await onClick?.(event);
+            const remainingLoadingMs = Math.max(0, loadingDurationMs - (Date.now() - startedAt));
+            if (remainingLoadingMs > 0) {
+                await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingMs));
+            }
             setInternalState(resultState);
         } catch (error) {
+            const remainingLoadingMs = Math.max(0, loadingDurationMs - (Date.now() - startedAt));
+            if (remainingLoadingMs > 0) {
+                await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingMs));
+            }
             setInternalState('failure');
             throw error;
         } finally {
@@ -62,7 +91,20 @@ export function StatefulButton({
                 resetTimerRef.current = null;
             }, resetDelayMs);
         }
-    }, [clearResetTimer, disabled, isControlled, isRunning, onClick, resetDelayMs, resultState]);
+    }, [clearResetTimer, disabled, isControlled, isRunning, loadingDurationMs, onClick, resetDelayMs, resultState]);
+
+    React.useEffect(() => {
+        if (isControlled || disabled || !autoPlay) {
+            autoplayTokenRef.current = null;
+            return;
+        }
+        const token = autoPlayKey ?? resultState;
+        if (autoplayTokenRef.current === token) {
+            return;
+        }
+        autoplayTokenRef.current = token;
+        void runSequence(resultState);
+    }, [autoPlay, autoPlayKey, disabled, isControlled, resultState, runSequence]);
 
     const {
         onDrag,
@@ -86,7 +128,13 @@ export function StatefulButton({
             onClick={handleClick}
             {...safeButtonProps}
         >
-            <motion.span layout className="inline-flex items-center gap-2">
+            <motion.span
+                layout
+                className={cn(
+                    'inline-flex items-center gap-2',
+                    loadingPosition === 'right' ? 'flex-row-reverse' : 'flex-row',
+                )}
+            >
                 <ButtonStateIcon state={currentState} />
                 <span>{children}</span>
             </motion.span>
@@ -110,10 +158,14 @@ function LoaderIcon() {
         <motion.svg
             key="loader"
             initial={{ opacity: 0, width: 0, scale: 0.6 }}
-            animate={{ rotate: [0, 360] }}
+            animate={{ opacity: 1, width: 20, scale: 1, rotate: 360 }}
             exit={{ opacity: 0, width: 0, scale: 0.6 }}
-            style={{ scale: 1 }}
-            transition={{ duration: 0.3, repeat: Infinity, ease: 'linear' }}
+            transition={{
+                opacity: { duration: 0.18, ease: 'easeOut' },
+                width: { duration: 0.18, ease: 'easeOut' },
+                scale: { duration: 0.18, ease: 'easeOut' },
+                rotate: { duration: 0.8, repeat: Infinity, ease: 'linear' },
+            }}
             xmlns="http://www.w3.org/2000/svg"
             width="20"
             height="24"
