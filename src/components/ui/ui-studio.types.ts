@@ -63,6 +63,44 @@ export type PrimitiveAlign = 'start' | 'center' | 'end';
 export type MotionTransitionType = 'tween' | 'spring';
 export type MotionEaseOption = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'anticipate' | 'backIn' | 'backOut' | 'backInOut' | 'circIn' | 'circOut' | 'circInOut' | 'cubicBezier';
 export type StyleableState = 'hover' | 'active' | 'disabled' | 'focus';
+export type MotionAuthoringMode = 'simple' | 'timeline';
+export type MotionCategory = 'feedback' | 'transition' | 'attention' | 'hierarchy' | 'ambient';
+export type MotionRelationshipScope = 'self' | 'children' | 'siblings' | 'group';
+export type MotionPreviewMode = 'idle' | 'hover' | 'tap' | 'playOnce' | 'loop' | 'scrub';
+export type MotionTrigger = 'entry' | 'hover' | 'tap' | 'exit' | 'loop' | 'scroll';
+export type MotionGroupStrategy = 'none' | 'stagger' | 'queue';
+export type MotionGroupOrigin = 'first' | 'last' | 'center';
+export type MotionScrollMode = 'enter' | 'replay' | 'progress';
+export type MotionKeyframeValue = number | string | Array<number | string>;
+
+export interface MotionStepValues {
+  opacity?: MotionKeyframeValue;
+  x?: MotionKeyframeValue;
+  y?: MotionKeyframeValue;
+  scale?: MotionKeyframeValue;
+  rotate?: MotionKeyframeValue;
+  filter?: MotionKeyframeValue;
+  transformOrigin?: string;
+}
+
+export interface MotionTimelineStep {
+  id: string;
+  trigger: MotionTrigger;
+  label: string;
+  from?: MotionStepValues;
+  to?: MotionStepValues;
+  duration: number;
+  delay: number;
+  transitionType: MotionTransitionType;
+  ease: MotionEaseOption;
+  customBezier?: [number, number, number, number];
+  stiffness?: number;
+  damping?: number;
+  mass?: number;
+  repeat?: number;
+  repeatDelay?: number;
+  at?: number;
+}
 
 export interface StateOverrides {
   hover?:    Partial<ComponentStyleConfig>;
@@ -89,6 +127,18 @@ export type StaggerDirection = 'forward' | 'reverse';
 export interface CardFeatureItem {
   id: string;
   label: string;
+}
+
+export interface StudioTextItem {
+  id: string;
+  label: string;
+}
+
+export interface StudioAccordionItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  content: string;
 }
 
 export interface ComponentInfo {
@@ -336,6 +386,7 @@ export interface ComponentStyleConfig {
   inputAutocompleteBodyMotionPresetId: string;
   tabsVariant: TabsVariant;
   tabsCount: number;
+  tabsItems: StudioTextItem[];
   tabsListBg: string;
   tabsActiveBg: string;
   tabsIndicatorColor: string;
@@ -380,6 +431,7 @@ export interface ComponentStyleConfig {
   accordionCollapsible: boolean;
   accordionAllowMultiple: boolean;
   accordionItemCount: number;
+  accordionItems: StudioAccordionItem[];
   accordionPaddingH: number;
   accordionPaddingW: number;
   accordionSpacing: number;
@@ -480,6 +532,7 @@ export interface ComponentStyleConfig {
   navMenuOrientation: NavMenuOrientation;
   navMenuActiveIndicator: boolean;
   navMenuItemCount: number;
+  navMenuItems: StudioTextItem[];
   navMenuTriggerVariant: 'default' | 'ghost';
   navMenuHoverBg: string;
   navMenuHoverText: string;
@@ -719,6 +772,22 @@ export interface ComponentStyleConfig {
   motionStaggerEnabled: boolean;
   motionStaggerDelay: number;
   motionStaggerDirection: StaggerDirection;
+  motionAuthoringMode: MotionAuthoringMode;
+  motionCategory: MotionCategory;
+  motionRelationshipScope: MotionRelationshipScope;
+  motionPreviewMode: MotionPreviewMode;
+  motionTimelineEnabled: boolean;
+  motionTimelineSteps: MotionTimelineStep[];
+  motionGroupStrategy: MotionGroupStrategy;
+  motionGroupOrigin: MotionGroupOrigin;
+  motionGroupInterval: number;
+  motionGroupScope: MotionRelationshipScope;
+  motionScrollEnabled: boolean;
+  motionScrollMode: MotionScrollMode;
+  motionScrollStart: number;
+  motionScrollEnd: number;
+  motionScrollReplay: boolean;
+  motionScrollParallax: number;
 }
 
 export interface ComponentInstance {

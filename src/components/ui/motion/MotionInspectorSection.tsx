@@ -7,8 +7,17 @@ import { FlatSelect } from '@/components/ui/ui-studio/inspector';
 import { cn } from '@/lib/utils';
 import type {
     ComponentStyleConfig,
+    MotionAuthoringMode,
+    MotionCategory,
     MotionEaseOption,
+    MotionGroupOrigin,
+    MotionGroupStrategy,
+    MotionPreviewMode,
+    MotionRelationshipScope,
+    MotionScrollMode,
+    MotionTimelineStep,
     MotionTransitionType,
+    MotionTrigger,
     StaggerDirection,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
@@ -17,6 +26,89 @@ import { supportsStaggerMotion } from '@/components/ui/ui-studio/utilities';
 export type MotionPresetOption = { id: string; label: string; description: string; values?: Partial<ComponentStyleConfig> };
 
 type MotionTriggerTab = 'hover' | 'tap' | 'overlay';
+
+const MOTION_AUTHORING_OPTIONS: Array<{ value: MotionAuthoringMode; label: string; description: string }> = [
+    { value: 'simple', label: 'Simple', description: 'Use the current direct controls for entry, hover, and tap.' },
+    { value: 'timeline', label: 'Timeline', description: 'Author motion as ordered steps that later phases will run directly.' },
+];
+
+const MOTION_CATEGORY_OPTIONS: Array<{ value: MotionCategory; label: string }> = [
+    { value: 'feedback', label: 'Feedback' },
+    { value: 'transition', label: 'Transition' },
+    { value: 'attention', label: 'Attention' },
+    { value: 'hierarchy', label: 'Hierarchy' },
+    { value: 'ambient', label: 'Ambient' },
+];
+
+const MOTION_RELATIONSHIP_OPTIONS: Array<{ value: MotionRelationshipScope; label: string }> = [
+    { value: 'self', label: 'This Element' },
+    { value: 'children', label: 'Children' },
+    { value: 'siblings', label: 'Siblings' },
+    { value: 'group', label: 'Whole Group' },
+];
+
+const MOTION_PREVIEW_OPTIONS: Array<{ value: MotionPreviewMode; label: string }> = [
+    { value: 'idle', label: 'Idle' },
+    { value: 'hover', label: 'Hover' },
+    { value: 'tap', label: 'Tap' },
+    { value: 'playOnce', label: 'Play Once' },
+    { value: 'loop', label: 'Loop' },
+    { value: 'scrub', label: 'Scrub' },
+];
+
+const MOTION_GROUP_STRATEGY_OPTIONS: Array<{ value: MotionGroupStrategy; label: string }> = [
+    { value: 'none', label: 'None' },
+    { value: 'stagger', label: 'Stagger' },
+    { value: 'queue', label: 'Queue' },
+];
+
+const MOTION_GROUP_ORIGIN_OPTIONS: Array<{ value: MotionGroupOrigin; label: string }> = [
+    { value: 'first', label: 'First' },
+    { value: 'last', label: 'Last' },
+    { value: 'center', label: 'Center' },
+];
+
+const MOTION_SCROLL_MODE_OPTIONS: Array<{ value: MotionScrollMode; label: string }> = [
+    { value: 'enter', label: 'Enter' },
+    { value: 'replay', label: 'Replay' },
+    { value: 'progress', label: 'Progress' },
+];
+
+const TIMELINE_TRIGGER_OPTIONS: Array<{ value: MotionTrigger; label: string }> = [
+    { value: 'entry', label: 'Entry' },
+    { value: 'hover', label: 'Hover' },
+    { value: 'tap', label: 'Tap' },
+    { value: 'exit', label: 'Exit' },
+    { value: 'loop', label: 'Loop' },
+    { value: 'scroll', label: 'Scroll' },
+];
+
+const SIMPLE_EASE_OPTIONS: Array<{ value: MotionEaseOption; label: string }> = [
+    { value: 'linear', label: 'Linear' },
+    { value: 'easeIn', label: 'Ease In' },
+    { value: 'easeOut', label: 'Ease Out' },
+    { value: 'easeInOut', label: 'Ease In Out' },
+    { value: 'anticipate', label: 'Anticipate' },
+    { value: 'backIn', label: 'Back In' },
+    { value: 'backOut', label: 'Back Out' },
+    { value: 'backInOut', label: 'Back In Out' },
+    { value: 'circIn', label: 'Circ In' },
+    { value: 'circOut', label: 'Circ Out' },
+    { value: 'circInOut', label: 'Circ In Out' },
+    { value: 'cubicBezier', label: 'Custom Bezier' },
+];
+
+function createTimelineStep(trigger: MotionTrigger, index: number): MotionTimelineStep {
+    return {
+        id: `timeline-${trigger}-${index}`,
+        trigger,
+        label: `${trigger.charAt(0).toUpperCase()}${trigger.slice(1)} Step`,
+        duration: 0.2,
+        delay: 0,
+        transitionType: 'tween',
+        ease: 'easeInOut',
+    };
+}
 
 interface MotionControlTuning {
     hoverScaleMin: number;
@@ -596,6 +688,45 @@ function MotionColorField({
     );
 }
 
+function SchemaButtonGroup<T extends string>({
+    options,
+    value,
+    onChange,
+    columns = 2,
+}: {
+    options: Array<{ value: T; label: string; description?: string }>;
+    value: T;
+    onChange: (value: T) => void;
+    columns?: 1 | 2 | 3;
+}) {
+    return (
+        <div
+            className="grid gap-1.5"
+            style={{
+                gridTemplateColumns:
+                    columns === 1 ? '1fr' : columns === 3 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
+            }}
+        >
+            {options.map((option) => (
+                <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => onChange(option.value)}
+                    className={cn(
+                        'rounded-md border px-2 py-2 text-left transition-colors',
+                        value === option.value
+                            ? 'border-[#2dd4bf]/40 bg-[rgba(45,212,191,0.1)]'
+                            : 'border-white/[0.08] bg-[#111827] hover:bg-[#162235]',
+                    )}
+                >
+                    <p className={cn('text-[10px] font-semibold', value === option.value ? 'text-[#2dd4bf]' : 'text-[#dbe7f8]')}>{option.label}</p>
+                    {option.description ? <p className="mt-0.5 text-[10px] leading-relaxed text-[#64748b]">{option.description}</p> : null}
+                </button>
+            ))}
+        </div>
+    );
+}
+
 export function MotionInspectorSection({
     selectedStyle,
     componentKind,
@@ -790,6 +921,83 @@ export function MotionInspectorSection({
         selectedStyle.motionHoverTiltEnabled ||
         selectedStyle.motionHoverGlareEnabled ||
         selectedStyle.motionHoverSpotlightEnabled;
+    const timelineSteps = selectedStyle.motionTimelineSteps ?? [];
+    const [selectedTimelineStepId, setSelectedTimelineStepId] = useState<string | null>(timelineSteps[0]?.id ?? null);
+    const selectedTimelineStep = timelineSteps.find((step) => step.id === selectedTimelineStepId) ?? timelineSteps[0] ?? null;
+
+    const updateTimelineSteps = (nextSteps: MotionTimelineStep[]) => {
+        updateSelectedStyle('motionTimelineSteps', nextSteps);
+        updateSelectedStyle('motionTimelineEnabled', nextSteps.length > 0 || selectedStyle.motionAuthoringMode === 'timeline');
+    };
+
+    const updateTimelineStep = (stepId: string, patch: Partial<MotionTimelineStep>) => {
+        updateTimelineSteps(timelineSteps.map((step) => (step.id === stepId ? { ...step, ...patch } : step)));
+    };
+
+    const addTimelineStep = (trigger: MotionTrigger) => {
+        const nextStep = createTimelineStep(trigger, timelineSteps.length + 1);
+        const nextSteps = [...timelineSteps, nextStep];
+        updateSelectedStyle('motionAuthoringMode', 'timeline');
+        updateSelectedStyle('motionTimelineEnabled', true);
+        updateSelectedStyle('motionTimelineSteps', nextSteps);
+        setSelectedTimelineStepId(nextStep.id);
+    };
+
+    const removeTimelineStep = (stepId: string) => {
+        const nextSteps = timelineSteps.filter((step) => step.id !== stepId);
+        updateTimelineSteps(nextSteps);
+        setSelectedTimelineStepId((current) => (current === stepId ? nextSteps[0]?.id ?? null : current));
+    };
+
+    const applyMotionAuthoringMode = (mode: MotionAuthoringMode) => {
+        updateSelectedStyle('motionAuthoringMode', mode);
+        updateSelectedStyle('motionTimelineEnabled', mode === 'timeline' || timelineSteps.length > 0);
+    };
+
+    const applyGlobalEase = (ease: MotionEaseOption) => {
+        updateSelectedStyle('motionEase', ease);
+        updateSelectedStyle('motionHoverEase', ease);
+        updateSelectedStyle('motionTapEase', ease);
+        if (selectedStyle.motionTransitionType === 'spring' && ease !== 'cubicBezier') {
+            updateSelectedStyle('motionTransitionType', 'tween');
+        }
+        if (selectedStyle.motionHoverTransitionType === 'spring' && ease !== 'cubicBezier') {
+            updateSelectedStyle('motionHoverTransitionType', 'tween');
+        }
+        if (selectedStyle.motionTapTransitionType === 'spring' && ease !== 'cubicBezier') {
+            updateSelectedStyle('motionTapTransitionType', 'tween');
+        }
+        updateTimelineSteps(
+            timelineSteps.map((step) => ({
+                ...step,
+                ease,
+                ...(ease === 'cubicBezier' ? {} : { customBezier: undefined }),
+            })),
+        );
+    };
+
+    const applyGroupStrategy = (strategy: MotionGroupStrategy) => {
+        updateSelectedStyle('motionGroupStrategy', strategy);
+        updateSelectedStyle('motionStaggerEnabled', strategy !== 'none');
+    };
+
+    const applyGroupOrigin = (origin: MotionGroupOrigin) => {
+        updateSelectedStyle('motionGroupOrigin', origin);
+        updateSelectedStyle('motionStaggerDirection', origin === 'last' ? 'reverse' : 'forward');
+    };
+
+    useEffect(() => {
+        if (!timelineSteps.length) {
+            if (selectedTimelineStepId !== null) {
+                setSelectedTimelineStepId(null);
+            }
+            return;
+        }
+        if (!selectedTimelineStepId || !timelineSteps.some((step) => step.id === selectedTimelineStepId)) {
+            setSelectedTimelineStepId(timelineSteps[0].id);
+        }
+    }, [selectedTimelineStepId, timelineSteps]);
+
     useEffect(() => {
         if (!supportsEntryMotion && !hasSplitOverlayMotion && activeTab === 'overlay') {
             setActiveTab('hover');
@@ -801,6 +1009,360 @@ export function MotionInspectorSection({
 
     return (
         <div className="min-w-0 space-y-2.5">
+            <Collapsible defaultOpen>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/motion-model flex w-full items-center justify-between text-left">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Motion Model</p>
+                            <p className="text-[11px] text-[#64748b]">Set the motion category, authoring mode, and interaction scope.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/motion-model:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Authoring Mode</p>
+                            <div className="mt-2">
+                                <SchemaButtonGroup options={MOTION_AUTHORING_OPTIONS} value={selectedStyle.motionAuthoringMode} onChange={applyMotionAuthoringMode} />
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Motion Category</p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-[#64748b]">This helps group presets and keeps motion intent clear for developers.</p>
+                            <div className="mt-2">
+                                <SchemaButtonGroup options={MOTION_CATEGORY_OPTIONS} value={selectedStyle.motionCategory} onChange={(value) => updateSelectedStyle('motionCategory', value)} columns={2} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Relationship Scope</p>
+                                <div className="mt-2">
+                                    <SchemaButtonGroup
+                                        options={MOTION_RELATIONSHIP_OPTIONS}
+                                        value={selectedStyle.motionRelationshipScope}
+                                        onChange={(value) => {
+                                            updateSelectedStyle('motionRelationshipScope', value);
+                                            updateSelectedStyle('motionGroupScope', value);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Preview Mode</p>
+                                <div className="mt-2">
+                                    <SchemaButtonGroup options={MOTION_PREVIEW_OPTIONS} value={selectedStyle.motionPreviewMode} onChange={(value) => updateSelectedStyle('motionPreviewMode', value)} />
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
+
+            <Collapsible defaultOpen={selectedStyle.motionAuthoringMode === 'timeline' || selectedStyle.motionTimelineEnabled}>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/timeline flex w-full items-center justify-between text-left">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Timeline</p>
+                            <p className="text-[11px] text-[#64748b]">Build ordered motion steps now, even while preview still runs the current simple engine.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/timeline:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-[12px] text-[#e2e8f0]">Timeline authoring</p>
+                                    <p className="text-[11px] text-[#64748b]">Use timeline steps for entry, hover, tap, exit, loop, or scroll triggers.</p>
+                                </div>
+                                <Switch.Root
+                                    checked={selectedStyle.motionTimelineEnabled}
+                                    onCheckedChange={(checked) => updateSelectedStyle('motionTimelineEnabled', checked)}
+                                    aria-label="Enable timeline authoring"
+                                    className={cn(
+                                        'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                        selectedStyle.motionTimelineEnabled ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
+                                    )}
+                                >
+                                    <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.motionTimelineEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
+                                </Switch.Root>
+                            </div>
+
+                            <div className="mt-2 grid grid-cols-2 gap-1.5">
+                                {TIMELINE_TRIGGER_OPTIONS.map((trigger) => (
+                                    <button
+                                        key={trigger.value}
+                                        type="button"
+                                        onClick={() => addTimelineStep(trigger.value)}
+                                        className="rounded-md border border-white/[0.08] bg-[#111827] px-2 py-1.5 text-left text-[10px] font-semibold text-[#dbe7f8] transition hover:bg-[#162235]"
+                                    >
+                                        Add {trigger.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {timelineSteps.length ? (
+                            <>
+                                <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                    <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Timeline Steps</p>
+                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                        {timelineSteps.map((step, index) => (
+                                            <button
+                                                key={step.id}
+                                                type="button"
+                                                onClick={() => setSelectedTimelineStepId(step.id)}
+                                                className={cn(
+                                                    'rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors',
+                                                    selectedTimelineStep?.id === step.id
+                                                        ? 'border-[#2dd4bf]/40 bg-[rgba(45,212,191,0.1)] text-[#2dd4bf]'
+                                                        : 'border-white/[0.08] bg-[#111827] text-[#8fa6c7] hover:text-[#dbe7f8]',
+                                                )}
+                                            >
+                                                {index + 1}. {step.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {selectedTimelineStep ? (
+                                    <div className="space-y-2.5 rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p className="text-[12px] text-[#e2e8f0]">{selectedTimelineStep.label}</p>
+                                                <p className="text-[11px] text-[#64748b]">Step ids stay stable so export and later runtime phases can reference them.</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeTimelineStep(selectedTimelineStep.id)}
+                                                className="rounded border border-rose-400/20 px-2 py-1 text-[10px] font-semibold text-rose-300 transition hover:bg-rose-400/10"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <span className="text-[11px] text-[#8fa6c7]">Label</span>
+                                                <input
+                                                    type="text"
+                                                    value={selectedTimelineStep.label}
+                                                    onChange={(event) => updateTimelineStep(selectedTimelineStep.id, { label: event.target.value })}
+                                                    className="h-8 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <span className="text-[11px] text-[#8fa6c7]">Trigger</span>
+                                                <FlatSelect
+                                                    value={selectedTimelineStep.trigger}
+                                                    onValueChange={(value) => updateTimelineStep(selectedTimelineStep.id, { trigger: value as MotionTrigger })}
+                                                    ariaLabel="Timeline trigger"
+                                                >
+                                                    {TIMELINE_TRIGGER_OPTIONS.map((trigger) => (
+                                                        <option key={trigger.value} value={trigger.value}>
+                                                            {trigger.label}
+                                                        </option>
+                                                    ))}
+                                                </FlatSelect>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <MotionParamRow
+                                                label="Start At"
+                                                value={selectedTimelineStep.at ?? 0}
+                                                min={0}
+                                                max={5}
+                                                step={0.05}
+                                                unit="s"
+                                                onChange={(value) => updateTimelineStep(selectedTimelineStep.id, { at: value })}
+                                            />
+                                            <MotionParamRow
+                                                label="Repeat Delay"
+                                                value={selectedTimelineStep.repeatDelay ?? 0}
+                                                min={0}
+                                                max={3}
+                                                step={0.05}
+                                                unit="s"
+                                                onChange={(value) => updateTimelineStep(selectedTimelineStep.id, { repeatDelay: value })}
+                                            />
+                                        </div>
+                                        <MotionParamRow
+                                            label="Repeat Count"
+                                            value={selectedTimelineStep.repeat ?? 0}
+                                            min={0}
+                                            max={8}
+                                            step={1}
+                                            onChange={(value) => updateTimelineStep(selectedTimelineStep.id, { repeat: value })}
+                                        />
+
+                                        <MotionTransitionCard
+                                            transitionType={selectedTimelineStep.transitionType}
+                                            ease={selectedTimelineStep.ease}
+                                            duration={selectedTimelineStep.duration}
+                                            delay={selectedTimelineStep.delay}
+                                            stiffness={selectedTimelineStep.stiffness ?? 160}
+                                            damping={selectedTimelineStep.damping ?? 18}
+                                            mass={selectedTimelineStep.mass ?? 1}
+                                            customBezier={selectedTimelineStep.customBezier}
+                                            onTransitionTypeChange={(value) => updateTimelineStep(selectedTimelineStep.id, { transitionType: value })}
+                                            onEaseChange={(value) =>
+                                                updateTimelineStep(selectedTimelineStep.id, {
+                                                    ease: value,
+                                                    ...(value === 'cubicBezier' ? {} : { customBezier: undefined }),
+                                                })
+                                            }
+                                            onDurationChange={(value) => updateTimelineStep(selectedTimelineStep.id, { duration: value })}
+                                            onDelayChange={(value) => updateTimelineStep(selectedTimelineStep.id, { delay: value })}
+                                            onStiffnessChange={(value) => updateTimelineStep(selectedTimelineStep.id, { stiffness: value })}
+                                            onDampingChange={(value) => updateTimelineStep(selectedTimelineStep.id, { damping: value })}
+                                            onMassChange={(value) => updateTimelineStep(selectedTimelineStep.id, { mass: value })}
+                                            onCustomBezierChange={(value) => updateTimelineStep(selectedTimelineStep.id, { customBezier: value })}
+                                        />
+                                    </div>
+                                ) : null}
+                            </>
+                        ) : (
+                            <div className="rounded-lg border border-dashed border-white/[0.08] bg-[#0b1220]/40 px-3 py-4 text-[11px] leading-relaxed text-[#64748b]">
+                                No explicit timeline steps yet. Add one above to start building the next-generation motion model.
+                            </div>
+                        )}
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
+
+            <Collapsible defaultOpen={false}>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/easing flex w-full items-center justify-between text-left">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Easing</p>
+                            <p className="text-[11px] text-[#64748b]">Apply one easing family across entry, hover, tap, and timeline steps.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/easing:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                        <SchemaButtonGroup options={SIMPLE_EASE_OPTIONS} value={selectedStyle.motionEase} onChange={applyGlobalEase} columns={2} />
+                        <p className="text-[11px] leading-relaxed text-[#64748b]">This is a schema-level shortcut. The legacy detail controls below can still override individual hover or tap transitions.</p>
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
+
+            <Collapsible defaultOpen={supportsStaggerMotion(componentKind)}>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/group flex w-full items-center justify-between text-left">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group</p>
+                            <p className="text-[11px] text-[#64748b]">Prepare stagger and queue behavior for repeated children and grouped interactions.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/group:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                        <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Strategy</p>
+                            <div className="mt-2">
+                                <SchemaButtonGroup options={MOTION_GROUP_STRATEGY_OPTIONS} value={selectedStyle.motionGroupStrategy} onChange={applyGroupStrategy} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Origin</p>
+                                <div className="mt-2">
+                                    <SchemaButtonGroup options={MOTION_GROUP_ORIGIN_OPTIONS} value={selectedStyle.motionGroupOrigin} onChange={applyGroupOrigin} columns={3} />
+                                </div>
+                            </div>
+                            <div className="rounded-lg border border-white/[0.08] bg-[#0b1220]/60 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Group Scope</p>
+                                <div className="mt-2">
+                                    <SchemaButtonGroup options={MOTION_RELATIONSHIP_OPTIONS} value={selectedStyle.motionGroupScope} onChange={(value) => updateSelectedStyle('motionGroupScope', value)} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <MotionParamRow
+                            label="Group Interval"
+                            value={selectedStyle.motionGroupInterval}
+                            min={0.01}
+                            max={0.4}
+                            step={0.01}
+                            unit="s"
+                            onChange={(value) => {
+                                updateSelectedStyle('motionGroupInterval', value);
+                                updateSelectedStyle('motionStaggerDelay', value);
+                            }}
+                        />
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
+
+            <Collapsible defaultOpen={false}>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/scroll flex w-full items-center justify-between text-left">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Scroll</p>
+                            <p className="text-[11px] text-[#64748b]">Capture scroll-triggered intent now. Runtime support lands in a later phase.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/scroll:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
+                        <div className="flex items-center justify-between rounded-lg border border-white/[0.08] bg-[#0b1220]/60 px-2.5 py-2">
+                            <div>
+                                <p className="text-[12px] text-[#e2e8f0]">Enable scroll motion</p>
+                                <p className="text-[11px] text-[#64748b]">Use for enter, replay, or progress-based motion later.</p>
+                            </div>
+                            <Switch.Root
+                                checked={selectedStyle.motionScrollEnabled}
+                                onCheckedChange={(checked) => updateSelectedStyle('motionScrollEnabled', checked)}
+                                aria-label="Enable scroll motion"
+                                className={cn(
+                                    'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                    selectedStyle.motionScrollEnabled ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
+                                )}
+                            >
+                                <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.motionScrollEnabled ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
+                            </Switch.Root>
+                        </div>
+                        {selectedStyle.motionScrollEnabled ? (
+                            <>
+                                <SchemaButtonGroup options={MOTION_SCROLL_MODE_OPTIONS} value={selectedStyle.motionScrollMode} onChange={(value) => updateSelectedStyle('motionScrollMode', value)} columns={3} />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <MotionParamRow label="Start" value={selectedStyle.motionScrollStart} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('motionScrollStart', value)} />
+                                    <MotionParamRow label="End" value={selectedStyle.motionScrollEnd} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('motionScrollEnd', value)} />
+                                </div>
+                                <MotionParamRow label="Parallax" value={selectedStyle.motionScrollParallax} min={0} max={200} unit="px" onChange={(value) => updateSelectedStyle('motionScrollParallax', value)} />
+                                <div className="flex items-center justify-between rounded-lg border border-white/[0.08] bg-[#0b1220]/40 px-2.5 py-2">
+                                    <div>
+                                        <p className="text-[12px] text-[#e2e8f0]">Replay on re-entry</p>
+                                        <p className="text-[11px] text-[#64748b]">Useful for sections that should animate every time they enter the viewport.</p>
+                                    </div>
+                                    <Switch.Root
+                                        checked={selectedStyle.motionScrollReplay}
+                                        onCheckedChange={(checked) => updateSelectedStyle('motionScrollReplay', checked)}
+                                        aria-label="Replay on scroll re-entry"
+                                        className={cn(
+                                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 outline-none',
+                                            selectedStyle.motionScrollReplay ? 'border-[#2dd4bf]/40 bg-[#2dd4bf]/20' : 'border-white/[0.12] bg-[#13161b]',
+                                        )}
+                                    >
+                                        <Switch.Thumb className={cn('block size-3.5 rounded-full transition-transform duration-200', selectedStyle.motionScrollReplay ? 'translate-x-[18px] bg-[#2dd4bf]' : 'translate-x-[2px] bg-[#64748b]')} />
+                                    </Switch.Root>
+                                </div>
+                            </>
+                        ) : null}
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
+
+            <Collapsible defaultOpen={false}>
+                <div className="space-y-2">
+                    <CollapsibleTrigger className="group/simple-motion flex w-full items-center justify-between text-left">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#3d4f66]">Simple Controls</p>
+                            <p className="text-[11px] text-[#64748b]">Compatibility controls that still drive the current preview runtime.</p>
+                        </div>
+                        <ChevronDown className="size-3 text-[#526784] transition-transform duration-200 group-data-[state=open]/simple-motion:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2.5 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:duration-150 data-[state=open]:duration-150">
             {showTriggerTabs ? (
                 <div className="grid min-w-0 gap-1 py-1" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
                     {tabs.map((tab) => (
@@ -1643,6 +2205,9 @@ export function MotionInspectorSection({
                     ) : null}
                 </div>
             ) : null}
+                    </CollapsibleContent>
+                </div>
+            </Collapsible>
         </div>
     );
 }

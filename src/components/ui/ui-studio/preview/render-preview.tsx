@@ -71,8 +71,10 @@ import {
 import {
     AdvancedHoverWrapper,
     buildEntryPresetMotionConfig,
-    buildMotionTransition,
+    buildPreviewMotionProps,
+    buildRelationshipMotionProps,
     hasAdvancedHoverEnabled,
+    type PreviewMotionProps,
     renderEntryMotion,
     renderStaggeredChildren,
     renderWithMotionControls,
@@ -176,6 +178,10 @@ const AVATAR_DEMO_USERS: AvatarPopoverUser[] = [
     { name: 'Max Wu', initials: 'MW', role: 'DevOps' },
 ];
 
+function jsxText(value: string): string {
+    return `{${JSON.stringify(value)}}`;
+}
+
 function buildAvatarPopoverStyle(s: ComponentStyleConfig): CSSProperties {
     const popoverBgAlpha = s.avatarPopoverBgOpacity / 100;
     const popoverBg = s.avatarPopoverBgMode === 'gradient'
@@ -217,35 +223,21 @@ function buildAvatarProps(s: ComponentStyleConfig) {
     };
 }
 
-function buildAvatarHoverMotion(s: ComponentStyleConfig) {
-    if (s.motionHoverEnabled) {
-        return {
-            scale: s.motionHoverScale / 100,
-            x: s.motionHoverX,
-            y: s.motionHoverY,
-            rotate: s.motionHoverRotate,
-            opacity: s.motionHoverOpacity / 100,
-            transition: buildMotionTransition(s, 'hover'),
-        };
+function buildAvatarMotionProps(s: ComponentStyleConfig): PreviewMotionProps {
+    const previewMotion = buildPreviewMotionProps(s, { allowEntry: false, allowInteraction: true });
+    if (
+        previewMotion.animate ||
+        previewMotion.whileHover ||
+        previewMotion.whileTap
+    ) {
+        return previewMotion;
     }
     if (s.avatarPopoverEnabled) {
-        return { y: -2, scale: 1.06 };
-    }
-    return undefined;
-}
-
-function buildAvatarTapMotion(s: ComponentStyleConfig) {
-    if (s.motionTapEnabled) {
         return {
-            scale: s.motionTapScale / 100,
-            x: s.motionTapX,
-            y: s.motionTapY,
-            rotate: s.motionTapRotate,
-            opacity: s.motionTapOpacity / 100,
-            transition: buildMotionTransition(s, 'tap'),
+            whileHover: { y: -2, scale: 1.06 },
         };
     }
-    return undefined;
+    return {};
 }
 
 // ─── Single Avatar Preview (with popover support) ───────────────────────────
@@ -282,13 +274,13 @@ function AvatarSinglePreview({ instance, motionClassName }: { instance: Componen
     const hasImage = !!s.avatarSrc;
     const avatarProps = buildAvatarProps(s);
     const popoverStyle = buildAvatarPopoverStyle(s);
+    const avatarMotionProps = buildAvatarMotionProps(s);
 
     return (
         <motion.div
             className="relative"
-            whileHover={buildAvatarHoverMotion(s)}
-            whileTap={buildAvatarTapMotion(s)}
-            transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+            {...avatarMotionProps}
+            transition={avatarMotionProps.transition ?? { type: 'spring', stiffness: 360, damping: 18 }}
             onMouseEnter={() => s.avatarPopoverEnabled && openCard()}
             onMouseLeave={() => s.avatarPopoverEnabled && closeCardWithDelay()}
         >
@@ -388,6 +380,7 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
     const hasImage = !!s.avatarSrc;
     const avatarProps = buildAvatarProps(s);
     const popoverStyle = buildAvatarPopoverStyle(s);
+    const avatarMotionProps = buildAvatarMotionProps(s);
 
     const renderGroupAvatar = (user: AvatarPopoverUser, index: number) => {
         const userImage = index === 0 && s.avatarSrc ? s.avatarSrc : user.image;
@@ -397,9 +390,8 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
             <motion.div
                 key={user.name}
                 className="relative"
-                whileHover={buildAvatarHoverMotion(s)}
-                whileTap={buildAvatarTapMotion(s)}
-                transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                {...avatarMotionProps}
+                transition={avatarMotionProps.transition ?? { type: 'spring', stiffness: 360, damping: 18 }}
                 onMouseEnter={() => s.avatarPopoverEnabled && openCard(user.name)}
                 onMouseLeave={() => s.avatarPopoverEnabled && closeCardWithDelay(user.name)}
             >
@@ -477,6 +469,299 @@ function AvatarGroupPreview({ instance, motionClassName }: { instance: Component
                 </AvatarGroupCount>
             )}
         </AvatarGroup>
+    );
+}
+
+function TabsPreviewSurface({
+    instance,
+    style,
+}: {
+    instance: ComponentInstance;
+    style: CSSProperties;
+}) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const tabTextStyle = extractTextStyle(style);
+    delete tabTextStyle.color;
+    const activeIndicatorColor = instance.style.tabsVariant === 'line'
+        ? (instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor || undefined)
+        : undefined;
+    const activeTabBackground = instance.style.tabsVariant === 'line'
+        ? undefined
+        : (instance.style.tabsActiveBg || undefined);
+    const tabLabels = instance.style.tabsItems.slice(0, instance.style.tabsCount);
+    const showTabIcons = instance.style.tabsShowIcons && instance.style.icon !== 'none';
+
+    const listStyle: CSSProperties = {
+        borderRadius: `${instance.style.tabsListRadius}px`,
+        paddingInline: `${instance.style.tabsListPaddingX}px`,
+        paddingBlock: `${instance.style.tabsListPaddingY}px`,
+        gap: `${instance.style.tabsGap}px`,
+        fontSize: `${instance.style.tabsListFontSize}px`,
+        fontWeight: instance.style.tabsListFontWeight,
+        ...(instance.style.tabsListBorderWidth > 0
+            ? {
+                borderStyle: 'solid',
+                borderWidth: `${instance.style.tabsListBorderWidth}px`,
+                borderColor: instance.style.tabsListBorderColor || '#e2e8f0',
+            }
+            : {}),
+        ...(instance.style.tabsShadow
+            ? { boxShadow: '0 8px 18px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.14)' }
+            : {}),
+        ...(instance.style.tabsInactiveBg ? { ['--tabs-inactive-bg' as string]: instance.style.tabsInactiveBg } : {}),
+        ...(instance.style.tabsHoverBg ? { ['--tabs-hover-bg' as string]: instance.style.tabsHoverBg } : {}),
+        ...(instance.style.tabsHoverTextColor ? { ['--tabs-hover-text' as string]: instance.style.tabsHoverTextColor } : {}),
+    };
+    const triggerStyle = {
+        ...tabTextStyle,
+        fontSize: `${instance.style.tabsListFontSize}px`,
+        fontWeight: instance.style.tabsListFontWeight,
+        borderRadius: `${instance.style.tabsTabRadius}px`,
+        paddingInline: `${instance.style.tabsTabPaddingX}px`,
+        minHeight: `${Math.round(32 * SIZE_SCALE[instance.style.size])}px`,
+        justifyContent:
+            instance.style.fontPosition === 'left'
+                ? 'flex-start'
+                : instance.style.fontPosition === 'right'
+                    ? 'flex-end'
+                    : 'center',
+        textAlign: instance.style.fontPosition,
+    } satisfies CSSProperties;
+    const fallbackTextColor = typeof style.color === 'string' ? style.color : undefined;
+    const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
+    const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsTextMotionPresetId);
+    const listClassName = cn(
+        instance.style.tabsFullWidth ? 'w-full' : undefined,
+        (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : undefined,
+        instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : undefined,
+        'overflow-x-auto',
+    );
+
+    const renderTabLabel = (label: string) => {
+        if (!showTabIcons) {
+            return label;
+        }
+        const tabIcon = renderConfiguredIcon(instance.style, 'size-4 shrink-0');
+        return (
+            <>
+                {instance.style.tabsIconPosition === 'right' ? (
+                    <>
+                        {label}
+                        {tabIcon}
+                    </>
+                ) : (
+                    <>
+                        {tabIcon}
+                        {label}
+                    </>
+                )}
+            </>
+        );
+    };
+
+    return (
+        <Tabs
+            defaultValue="tab-0"
+            className={cn(instance.style.tabsFullWidth ? 'w-full' : 'max-w-md')}
+        >
+            <TabsList
+                variant={instance.style.tabsVariant}
+                listBg={instance.style.tabsListBg || undefined}
+                fullWidth={instance.style.tabsFullWidth}
+                className={listClassName}
+                style={listStyle}
+            >
+                {tabLabels.map((item, i) => {
+                    const tabMotionProps = buildRelationshipMotionProps(instance.style, {
+                        activeIndex: hoveredIndex,
+                        currentIndex: i,
+                        total: tabLabels.length,
+                        axis: 'x',
+                    });
+                    const hasTabMotion = Boolean(tabMotionProps.animate || tabMotionProps.whileHover || tabMotionProps.whileTap);
+
+                    return (
+                        <TabsTrigger
+                            key={item.id}
+                            value={`tab-${i}`}
+                            style={triggerStyle}
+                            activeBg={activeTabBackground}
+                            indicatorColor={activeIndicatorColor}
+                            activeTextColor={instance.style.tabsActiveTextColor || fallbackTextColor}
+                            inactiveTextColor={instance.style.tabsInactiveTextColor || fallbackTextColor}
+                            className={cn(
+                                'min-w-0',
+                                instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : undefined,
+                            )}
+                            asChild={hasTabMotion}
+                        >
+                            {hasTabMotion ? (
+                                <motion.button
+                                    className="inline-flex w-full min-w-0 items-center justify-center"
+                                    animate={tabMotionProps.animate}
+                                    whileHover={tabMotionProps.whileHover}
+                                    whileTap={tabMotionProps.whileTap}
+                                    transition={tabMotionProps.transition}
+                                    style={tabMotionProps.style}
+                                    onHoverStart={() => setHoveredIndex(i)}
+                                    onHoverEnd={() => setHoveredIndex((current) => (current === i ? null : current))}
+                                >
+                                    <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+                                        {renderTabLabel(item.label)}
+                                    </span>
+                                </motion.button>
+                            ) : (
+                                <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+                                    {renderTabLabel(item.label)}
+                                </span>
+                            )}
+                        </TabsTrigger>
+                    );
+                })}
+            </TabsList>
+            {tabLabels.map((item, i) => (
+                <TabsContent key={i} value={`tab-${i}`} className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
+                    {renderEntryMotion(
+                        renderEntryMotion(<span>{item.label} tab body</span>, tabsTextMotion),
+                        tabsBodyMotion,
+                    )}
+                </TabsContent>
+            ))}
+        </Tabs>
+    );
+}
+
+function AccordionPreviewSurface({
+    instance,
+    style,
+    motionClassName,
+}: {
+    instance: ComponentInstance;
+    style: CSSProperties;
+    motionClassName?: string;
+}) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const items = instance.style.accordionItems.slice(0, instance.style.accordionItemCount);
+    const defaultAccordionValue = items[0]?.id ?? 'item-1';
+    const accordionProps = instance.style.accordionAllowMultiple
+        ? { type: 'multiple' as const, defaultValue: [defaultAccordionValue] }
+        : { type: 'single' as const, collapsible: instance.style.accordionCollapsible, defaultValue: defaultAccordionValue };
+
+    const triggerTypoStyle: React.CSSProperties = {
+        ...(instance.style.accordionTriggerFontFamily ? { fontFamily: instance.style.accordionTriggerFontFamily } : {}),
+        fontSize: instance.style.accordionTriggerFontSize,
+        fontWeight: instance.style.accordionTriggerFontBold ? 700 : instance.style.accordionTriggerFontWeight,
+        ...(instance.style.accordionTriggerFontColor ? { color: instance.style.accordionTriggerFontColor } : {}),
+        ...(instance.style.accordionTriggerFontItalic ? { fontStyle: 'italic' } : {}),
+        ...(instance.style.accordionTriggerFontUnderline ? { textDecoration: 'underline' } : {}),
+    };
+
+    const contentTypoStyle: React.CSSProperties = {
+        ...(instance.style.accordionContentFontFamily ? { fontFamily: instance.style.accordionContentFontFamily } : {}),
+        fontSize: instance.style.accordionContentFontSize,
+        fontWeight: instance.style.accordionContentFontBold ? 700 : instance.style.accordionContentFontWeight,
+        ...(instance.style.accordionContentFontColor ? { color: instance.style.accordionContentFontColor } : {}),
+        ...(instance.style.accordionContentFontItalic ? { fontStyle: 'italic' } : {}),
+        ...(instance.style.accordionContentFontUnderline ? { textDecoration: 'underline' } : {}),
+    };
+
+    const accordionIconData = [
+        { icon: FileText, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', label: 'Documents', subtitle: 'Manage your files', content: 'View, upload, and organize all your documents in one place.' },
+        { icon: FolderOpen, color: '#fb923c', bg: 'rgba(251,146,60,0.1)', label: 'Projects', subtitle: 'Organize your work', content: 'Group related files and tasks into projects.' },
+        { icon: Settings, color: '#2dd4bf', bg: 'rgba(45,212,191,0.1)', label: 'Settings', subtitle: 'Customize your experience', content: 'Adjust preferences, update account details, and configure behavior.' },
+        { icon: Users, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Team Members', subtitle: 'Manage users and roles', content: 'Invite new members, assign roles, and control access permissions.' },
+        { icon: Bookmark, color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', label: 'Bookmarks', subtitle: 'Save for later', content: 'Organize and manage your saved items.' },
+        { icon: Globe, color: '#22d3ee', bg: 'rgba(34,211,238,0.1)', label: 'Integrations', subtitle: 'Connect services', content: 'Link external tools and automate workflows.' },
+        { icon: Shield, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Security', subtitle: 'Protect your data', content: 'Configure security settings and manage access controls.' },
+        { icon: Zap, color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Automation', subtitle: 'Speed up tasks', content: 'Set up automated workflows and triggers.' },
+    ];
+
+    const showIcons = instance.style.accordionShowIcons;
+    const iconPos = instance.style.accordionIconPosition;
+
+    const accordionItems = items.map((itemData, index) => {
+        const itemMotionProps = buildRelationshipMotionProps(instance.style, {
+            activeIndex: hoveredIndex,
+            currentIndex: index,
+            total: items.length,
+            axis: 'y',
+        });
+        const hasItemMotion = Boolean(itemMotionProps.animate || itemMotionProps.whileHover || itemMotionProps.whileTap);
+        const iconInfo = accordionIconData[index % accordionIconData.length];
+        const IconComp = iconInfo.icon;
+        const iconEl = showIcons ? (
+            <div
+                className="flex shrink-0 items-center justify-center rounded-xl p-2.5"
+                style={{ backgroundColor: iconInfo.bg, color: iconInfo.color }}
+            >
+                <IconComp size={20} />
+            </div>
+        ) : null;
+
+        const triggerContent = showIcons ? (
+            <div className={cn('flex items-center gap-3', iconPos === 'right' && 'flex-row-reverse')}>
+                {iconEl}
+                <div className="flex flex-col items-start text-left">
+                    <span>{itemData.title}</span>
+                    <span className="text-sm opacity-60">{itemData.subtitle}</span>
+                </div>
+            </div>
+        ) : (
+            <>{itemData.title}</>
+        );
+
+        const item = (
+            <AccordionItem key={itemData.id} value={itemData.id}>
+                <AccordionTrigger triggerStyle={triggerTypoStyle}>{triggerContent}</AccordionTrigger>
+                <AccordionContent contentStyle={contentTypoStyle}>
+                    {showIcons ? (
+                        <p style={iconPos === 'left' ? { paddingLeft: 52 } : undefined}>{itemData.content}</p>
+                    ) : (
+                        <>{itemData.content}</>
+                    )}
+                </AccordionContent>
+            </AccordionItem>
+        );
+
+        if (hasItemMotion) {
+            return (
+                <motion.div
+                    key={itemData.id}
+                    animate={itemMotionProps.animate}
+                    whileHover={itemMotionProps.whileHover}
+                    whileTap={itemMotionProps.whileTap}
+                    transition={itemMotionProps.transition}
+                    style={itemMotionProps.style}
+                    onHoverStart={() => setHoveredIndex(index)}
+                    onHoverEnd={() => setHoveredIndex((current) => (current === index ? null : current))}
+                >
+                    {item}
+                </motion.div>
+            );
+        }
+        return item;
+    });
+
+    const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
+    return renderWithMotionControls(
+        <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
+            <Accordion
+                {...accordionProps}
+                dividerColor={instance.style.accordionDividerColor || undefined}
+                dividerEnabled={instance.style.accordionDividerEnabled}
+                dividerWeight={instance.style.accordionDividerWeight}
+                paddingH={instance.style.accordionPaddingH}
+                paddingW={instance.style.accordionPaddingW}
+                spacing={instance.style.accordionSpacing}
+                style={{ color: style.color }}
+                className={cn(motionClassName)}
+            >
+                {staggeredItems}
+            </Accordion>
+        </div>,
+        instance.style,
+        true,
+        false,
     );
 }
 
@@ -617,7 +902,11 @@ export function componentSnippet(
                 instance.style.accordionSpacing ? `spacing={${instance.style.accordionSpacing}}` : '',
                 classNameSnippet.trim(),
             ].filter(Boolean).join('\n  ');
-            return `${declarations ? `${declarations}\n\n` : ''}<Accordion\n  ${accProps}${previewStyleSnippet}\n>\n  <AccordionItem value="item-1">\n    <AccordionTrigger>Section 1</AccordionTrigger>\n    <AccordionContent>Content for section 1.</AccordionContent>\n  </AccordionItem>\n</Accordion>`;
+            const accordionItems = instance.style.accordionItems
+                .slice(0, instance.style.accordionItemCount)
+                .map((item) => `  <AccordionItem value="${item.id}">\n    <AccordionTrigger>${jsxText(item.title)}</AccordionTrigger>\n    <AccordionContent>${jsxText(item.content)}</AccordionContent>\n  </AccordionItem>`)
+                .join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<Accordion\n  ${accProps}${previewStyleSnippet}\n>\n${accordionItems}\n</Accordion>`;
         }
         case 'alert': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -737,7 +1026,7 @@ export function componentSnippet(
         }
         case 'tabs': {
             const tabDeclarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
-            const tabLabels = ['Style', 'Effects', 'Layout', 'Preview', 'Settings', 'Export'].slice(0, Math.max(2, Math.min(6, instance.style.tabsCount)));
+            const tabItems = instance.style.tabsItems.slice(0, instance.style.tabsCount);
             const activeIndicatorColor = instance.style.tabsVariant === 'line'
                 ? (instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor)
                 : '';
@@ -795,11 +1084,11 @@ export function componentSnippet(
             const triggerClassName = instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : '';
             const tabPrefixIcon = instance.style.tabsShowIcons && instance.style.icon !== 'none' && instance.style.tabsIconPosition === 'left' ? iconLeft : '';
             const tabSuffixIcon = instance.style.tabsShowIcons && instance.style.icon !== 'none' && instance.style.tabsIconPosition === 'right' ? iconRight : '';
-            const triggerLines = tabLabels
-                .map((label, index) => `    <TabsTrigger value="tab-${index}"${triggerAttr}${triggerClassName ? ` className="${triggerClassName}"` : ''} style={tabsTriggerStyle}><span className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap">${tabPrefixIcon}${label}${tabSuffixIcon}</span></TabsTrigger>`)
+            const triggerLines = tabItems
+                .map((item, index) => `    <TabsTrigger value="tab-${index}"${triggerAttr}${triggerClassName ? ` className="${triggerClassName}"` : ''} style={tabsTriggerStyle}><span className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap">${tabPrefixIcon}${jsxText(item.label)}${tabSuffixIcon}</span></TabsTrigger>`)
                 .join('\n');
-            const contentLines = tabLabels
-                .map((label, index) => `  <TabsContent value="tab-${index}">${label} tab body</TabsContent>`)
+            const contentLines = tabItems
+                .map((item, index) => `  <TabsContent value="tab-${index}">${jsxText(`${item.label} tab body`)}</TabsContent>`)
                 .join('\n');
             return `${tabDeclarations ? `${tabDeclarations}\n\n` : ''}const tabsListStyle = ${listStyleCode};\nconst tabsTriggerStyle = ${triggerStyleCode};\n\n<Tabs defaultValue="tab-0"${instance.style.tabsFullWidth ? ' className="w-full"' : ''}${classNameSnippet}${previewStyleSnippet}>\n  <TabsList${listAttr}${listClassName ? ` className="${listClassName}"` : ''} style={tabsListStyle}>\n${triggerLines}\n  </TabsList>\n${contentLines}\n</Tabs>`;
         }
@@ -838,6 +1127,7 @@ export function componentSnippet(
         case 'navigation-menu': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
             const nS = instance.style;
+            const navItems = nS.navMenuItems.slice(0, nS.navMenuItemCount);
             const navProps = [
                 `orientation="${nS.navMenuOrientation}"`,
                 nS.navMenuHoverBg ? `hoverBg="${nS.navMenuHoverBg}"` : '',
@@ -845,9 +1135,6 @@ export function componentSnippet(
                 nS.navMenuActiveBg ? `activeBg="${nS.navMenuActiveBg}"` : '',
                 nS.navMenuActiveText ? `activeText="${nS.navMenuActiveText}"` : '',
             ].filter(Boolean).join(' ');
-            const dropdownSnippet = nS.navMenuShowDropdown
-                ? `\n    <NavigationMenuItem>\n      <NavigationMenuTrigger variant="${nS.navMenuTriggerVariant}">About</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className="grid w-[340px] gap-2 p-3">\n          <li><NavigationMenuLink asChild><a href="#">Documentation</a></NavigationMenuLink></li>\n          <li><NavigationMenuLink asChild><a href="#">Team</a></NavigationMenuLink></li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>`
-                : `\n    <NavigationMenuItem>\n      <NavigationMenuLink variant="${nS.navMenuTriggerVariant}" navigationItem>About</NavigationMenuLink>\n    </NavigationMenuItem>`;
             const linkProps = [
                 `variant="${nS.navMenuTriggerVariant}"`,
                 'navigationItem',
@@ -855,7 +1142,15 @@ export function componentSnippet(
                 nS.navMenuActiveText ? `activeText="${nS.navMenuActiveText}"` : '',
             ].filter(Boolean).join(' ');
             const linkAttr = linkProps ? ` ${linkProps}` : '';
-            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu ${navProps}${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuLink active${linkAttr}>Home</NavigationMenuLink>\n    </NavigationMenuItem>${dropdownSnippet}\n  </NavigationMenuList>\n</NavigationMenu>`;
+            const menuItems = navItems
+                .map((item, index) => {
+                    if (nS.navMenuShowDropdown && index === 1) {
+                        return `    <NavigationMenuItem>\n      <NavigationMenuTrigger variant="${nS.navMenuTriggerVariant}">${jsxText(item.label)}</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className="grid w-[340px] gap-2 p-3">\n          <li><NavigationMenuLink asChild><a href="#">Documentation</a></NavigationMenuLink></li>\n          <li><NavigationMenuLink asChild><a href="#">Team</a></NavigationMenuLink></li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>`;
+                    }
+                    return `    <NavigationMenuItem>\n      <NavigationMenuLink${index === 0 ? ' active' : ''}${linkAttr}>${jsxText(item.label)}</NavigationMenuLink>\n    </NavigationMenuItem>`;
+                })
+                .join('\n');
+            return `${declarations ? `${declarations}\n\n` : ''}<NavigationMenu ${navProps}${classNameSnippet}${previewStyleSnippet}>\n  <NavigationMenuList>\n${menuItems}\n  </NavigationMenuList>\n</NavigationMenu>`;
         }
         case 'progress': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1702,192 +1997,32 @@ export function renderPreview(
             }
 
         case 'tabs': {
-            const tabTextStyle = extractTextStyle(style);
-            delete tabTextStyle.color;
-            const activeIndicatorColor = instance.style.tabsVariant === 'line'
-                ? (instance.style.tabsActiveBorderColor || instance.style.tabsIndicatorColor || undefined)
-                : undefined;
-            const activeTabBackground = instance.style.tabsVariant === 'line'
-                ? undefined
-                : (instance.style.tabsActiveBg || undefined);
-            const tabCount = Math.max(2, Math.min(6, instance.style.tabsCount));
-            const tabLabels = ['Style', 'Effects', 'Layout', 'Preview', 'Settings', 'Export'].slice(0, tabCount);
-            const showTabIcons = instance.style.tabsShowIcons && instance.style.icon !== 'none';
-
-            const listStyle: CSSProperties = {
-                borderRadius: `${instance.style.tabsListRadius}px`,
-                paddingInline: `${instance.style.tabsListPaddingX}px`,
-                paddingBlock: `${instance.style.tabsListPaddingY}px`,
-                gap: `${instance.style.tabsGap}px`,
-                fontSize: `${instance.style.tabsListFontSize}px`,
-                fontWeight: instance.style.tabsListFontWeight,
-                ...(instance.style.tabsListBorderWidth > 0
-                    ? {
-                        borderStyle: 'solid',
-                        borderWidth: `${instance.style.tabsListBorderWidth}px`,
-                        borderColor: instance.style.tabsListBorderColor || '#e2e8f0',
-                    }
-                    : {}),
-                ...(instance.style.tabsShadow
-                    ? { boxShadow: '0 8px 18px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.14)' }
-                    : {}),
-                ...(instance.style.tabsInactiveBg ? { ['--tabs-inactive-bg' as string]: instance.style.tabsInactiveBg } : {}),
-                ...(instance.style.tabsHoverBg ? { ['--tabs-hover-bg' as string]: instance.style.tabsHoverBg } : {}),
-                ...(instance.style.tabsHoverTextColor ? { ['--tabs-hover-text' as string]: instance.style.tabsHoverTextColor } : {}),
-            };
-            const triggerStyle = {
-                ...tabTextStyle,
-                fontSize: `${instance.style.tabsListFontSize}px`,
-                fontWeight: instance.style.tabsListFontWeight,
-                borderRadius: `${instance.style.tabsTabRadius}px`,
-                paddingInline: `${instance.style.tabsTabPaddingX}px`,
-                minHeight: `${Math.round(32 * SIZE_SCALE[instance.style.size])}px`,
-                justifyContent:
-                    instance.style.fontPosition === 'left'
-                        ? 'flex-start'
-                        : instance.style.fontPosition === 'right'
-                            ? 'flex-end'
-                            : 'center',
-                textAlign: instance.style.fontPosition,
-            } satisfies CSSProperties;
-            const fallbackTextColor = typeof style.color === 'string' ? style.color : undefined;
-            const tabsBodyMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsBodyMotionPresetId);
-            const tabsTextMotion = buildEntryPresetMotionConfig('tabs', instance.style, instance.style.tabsTextMotionPresetId);
-            const listClassName = cn(
-                instance.style.tabsFullWidth ? 'w-full' : undefined,
-                (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : undefined,
-                instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : undefined,
-                'overflow-x-auto',
-            );
-
-            const hasHoverOrTap = instance.style.motionHoverEnabled || instance.style.motionTapEnabled;
-            const tabHover = instance.style.motionHoverEnabled ? {
-                scale: instance.style.motionHoverScale / 100,
-                x: instance.style.motionHoverX,
-                y: instance.style.motionHoverY,
-                rotate: instance.style.motionHoverRotate,
-                opacity: instance.style.motionHoverOpacity / 100,
-            } : undefined;
-            const tabTap = instance.style.motionTapEnabled ? {
-                scale: instance.style.motionTapScale / 100,
-                x: instance.style.motionTapX,
-                y: instance.style.motionTapY,
-                rotate: instance.style.motionTapRotate,
-                opacity: instance.style.motionTapOpacity / 100,
-            } : undefined;
-
-            const renderTabLabel = (label: string) => {
-                if (!showTabIcons) {
-                    return label;
-                }
-                const tabIcon = renderConfiguredIcon(instance.style, 'size-4 shrink-0');
-                return (
-                    <>
-                        {instance.style.tabsIconPosition === 'right' ? (
-                            <>
-                                {label}
-                                {tabIcon}
-                            </>
-                        ) : (
-                            <>
-                                {tabIcon}
-                                {label}
-                            </>
-                        )}
-                    </>
-                );
-            };
-
-            return (
-                <Tabs
-                    defaultValue="tab-0"
-                    className={cn(instance.style.tabsFullWidth ? 'w-full' : 'max-w-md')}
-                >
-                    <TabsList
-                        variant={instance.style.tabsVariant}
-                        listBg={instance.style.tabsListBg || undefined}
-                        fullWidth={instance.style.tabsFullWidth}
-                        className={listClassName}
-                        style={listStyle}
-                    >
-                        {tabLabels.map((label, i) => (
-                            <TabsTrigger
-                                key={i}
-                                value={`tab-${i}`}
-                                style={triggerStyle}
-                                activeBg={activeTabBackground}
-                                indicatorColor={activeIndicatorColor}
-                                activeTextColor={instance.style.tabsActiveTextColor || fallbackTextColor}
-                                inactiveTextColor={instance.style.tabsInactiveTextColor || fallbackTextColor}
-                                className={cn(
-                                    'min-w-0',
-                                    instance.style.tabsInactiveBg ? 'data-[state=inactive]:bg-[var(--tabs-inactive-bg)]' : undefined,
-                                )}
-                                asChild={hasHoverOrTap}
-                            >
-                                {hasHoverOrTap ? (
-                                    <motion.button className="inline-flex w-full min-w-0 items-center justify-center" whileHover={tabHover} whileTap={tabTap}>
-                                        <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
-                                            {renderTabLabel(label)}
-                                        </span>
-                                    </motion.button>
-                                ) : (
-                                    <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
-                                        {renderTabLabel(label)}
-                                    </span>
-                                )}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                    {tabLabels.map((label, i) => (
-                        <TabsContent key={i} value={`tab-${i}`} className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
-                            {renderEntryMotion(
-                                renderEntryMotion(<span>{label} tab body</span>, tabsTextMotion),
-                                tabsBodyMotion,
-                            )}
-                        </TabsContent>
-                    ))}
-                </Tabs>
-            );
+            return <TabsPreviewSurface instance={instance} style={style} />;
         }
 
         case 'tooltip':
             {
                 const tooltipBodyMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipBodyMotionPresetId);
                 const tooltipTextMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipTextMotionPresetId);
-                const tooltipTriggerHover = instance.style.motionHoverEnabled
-                    ? {
-                        scale: instance.style.motionHoverScale / 100,
-                        x: instance.style.motionHoverX,
-                        y: instance.style.motionHoverY,
-                        rotate: instance.style.motionHoverRotate,
-                        opacity: instance.style.motionHoverOpacity / 100,
-                        transition: buildMotionTransition(instance.style, 'hover'),
-                    }
-                    : undefined;
-                const tooltipTriggerTap = instance.style.motionTapEnabled
-                    ? {
-                        scale: instance.style.motionTapScale / 100,
-                        x: instance.style.motionTapX,
-                        y: instance.style.motionTapY,
-                        rotate: instance.style.motionTapRotate,
-                        opacity: instance.style.motionTapOpacity / 100,
-                        transition: buildMotionTransition(instance.style, 'tap'),
-                    }
-                    : undefined;
+                const tooltipTriggerMotionProps = buildPreviewMotionProps(instance.style, { allowEntry: false, allowInteraction: true });
                 return (
                     <div onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
                         <Tooltip delay={instance.style.tooltipDelay} isOpen={pinOverlayOpen ? true : undefined}>
                             <MotionTooltipTrigger
-                                style={style}
                                 className={cn(
                                     'inline-flex min-w-0 max-w-full items-center overflow-hidden rounded-lg border border-border px-3 py-2',
                                     BUTTON_STATE_CLASS_NAME,
                                     buttonPreviewStateClass,
                                     motionClassName,
                                 )}
-                                whileHover={tooltipTriggerHover}
-                                whileTap={tooltipTriggerTap}
+                                animate={tooltipTriggerMotionProps.animate}
+                                whileHover={tooltipTriggerMotionProps.whileHover}
+                                whileTap={tooltipTriggerMotionProps.whileTap}
+                                transition={tooltipTriggerMotionProps.transition}
+                                style={{
+                                    ...(style ?? {}),
+                                    ...(tooltipTriggerMotionProps.style ?? {}),
+                                }}
                             >
                                 <span className="inline-flex min-w-0 max-w-full items-center overflow-hidden">
                                     {withIcon('Hover for tooltip', icon, instance.style.iconPosition)}
@@ -1923,135 +2058,7 @@ export function renderPreview(
         }
 
         case 'accordion': {
-            const items = Array.from({ length: instance.style.accordionItemCount }, (_, i) => i + 1);
-            const accordionProps = instance.style.accordionAllowMultiple
-                ? { type: 'multiple' as const, defaultValue: ['item-1'] }
-                : { type: 'single' as const, collapsible: instance.style.accordionCollapsible, defaultValue: 'item-1' };
-
-            const triggerTypoStyle: React.CSSProperties = {
-                ...(instance.style.accordionTriggerFontFamily ? { fontFamily: instance.style.accordionTriggerFontFamily } : {}),
-                fontSize: instance.style.accordionTriggerFontSize,
-                fontWeight: instance.style.accordionTriggerFontBold ? 700 : instance.style.accordionTriggerFontWeight,
-                ...(instance.style.accordionTriggerFontColor ? { color: instance.style.accordionTriggerFontColor } : {}),
-                ...(instance.style.accordionTriggerFontItalic ? { fontStyle: 'italic' } : {}),
-                ...(instance.style.accordionTriggerFontUnderline ? { textDecoration: 'underline' } : {}),
-            };
-
-            const contentTypoStyle: React.CSSProperties = {
-                ...(instance.style.accordionContentFontFamily ? { fontFamily: instance.style.accordionContentFontFamily } : {}),
-                fontSize: instance.style.accordionContentFontSize,
-                fontWeight: instance.style.accordionContentFontBold ? 700 : instance.style.accordionContentFontWeight,
-                ...(instance.style.accordionContentFontColor ? { color: instance.style.accordionContentFontColor } : {}),
-                ...(instance.style.accordionContentFontItalic ? { fontStyle: 'italic' } : {}),
-                ...(instance.style.accordionContentFontUnderline ? { textDecoration: 'underline' } : {}),
-            };
-
-            const accordionIconData = [
-                { icon: FileText, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', label: 'Documents', subtitle: 'Manage your files', content: 'View, upload, and organize all your documents in one place.' },
-                { icon: FolderOpen, color: '#fb923c', bg: 'rgba(251,146,60,0.1)', label: 'Projects', subtitle: 'Organize your work', content: 'Group related files and tasks into projects.' },
-                { icon: Settings, color: '#2dd4bf', bg: 'rgba(45,212,191,0.1)', label: 'Settings', subtitle: 'Customize your experience', content: 'Adjust preferences, update account details, and configure behavior.' },
-                { icon: Users, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Team Members', subtitle: 'Manage users and roles', content: 'Invite new members, assign roles, and control access permissions.' },
-                { icon: Bookmark, color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', label: 'Bookmarks', subtitle: 'Save for later', content: 'Organize and manage your saved items.' },
-                { icon: Globe, color: '#22d3ee', bg: 'rgba(34,211,238,0.1)', label: 'Integrations', subtitle: 'Connect services', content: 'Link external tools and automate workflows.' },
-                { icon: Shield, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Security', subtitle: 'Protect your data', content: 'Configure security settings and manage access controls.' },
-                { icon: Zap, color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Automation', subtitle: 'Speed up tasks', content: 'Set up automated workflows and triggers.' },
-            ];
-
-            const showIcons = instance.style.accordionShowIcons;
-            const iconPos = instance.style.accordionIconPosition;
-
-            // Build per-item hover/tap motion props
-            const itemWhileHover = instance.style.motionHoverEnabled
-                ? {
-                    scale: instance.style.motionHoverScale / 100,
-                    x: instance.style.motionHoverX,
-                    y: instance.style.motionHoverY,
-                    rotate: instance.style.motionHoverRotate,
-                    opacity: instance.style.motionHoverOpacity / 100,
-                    transition: buildMotionTransition(instance.style, 'hover'),
-                }
-                : undefined;
-            const itemWhileTap = instance.style.motionTapEnabled
-                ? {
-                    scale: instance.style.motionTapScale / 100,
-                    x: instance.style.motionTapX,
-                    y: instance.style.motionTapY,
-                    rotate: instance.style.motionTapRotate,
-                    opacity: instance.style.motionTapOpacity / 100,
-                    transition: buildMotionTransition(instance.style, 'tap'),
-                }
-                : undefined;
-            const hasItemMotion = !!(itemWhileHover || itemWhileTap);
-
-            const accordionItems = items.map((n) => {
-                const iconInfo = accordionIconData[(n - 1) % accordionIconData.length];
-                const IconComp = iconInfo.icon;
-                const iconEl = showIcons ? (
-                    <div
-                        className="flex shrink-0 items-center justify-center rounded-xl p-2.5"
-                        style={{ backgroundColor: iconInfo.bg, color: iconInfo.color }}
-                    >
-                        <IconComp size={20} />
-                    </div>
-                ) : null;
-
-                const triggerContent = showIcons ? (
-                    <div className={cn('flex items-center gap-3', iconPos === 'right' && 'flex-row-reverse')}>
-                        {iconEl}
-                        <div className="flex flex-col items-start text-left">
-                            <span>{iconInfo.label}</span>
-                            <span className="text-sm opacity-60">{iconInfo.subtitle}</span>
-                        </div>
-                    </div>
-                ) : (
-                    <>Section {n}</>
-                );
-
-                const item = (
-                    <AccordionItem key={n} value={`item-${n}`}>
-                        <AccordionTrigger triggerStyle={triggerTypoStyle}>{triggerContent}</AccordionTrigger>
-                        <AccordionContent contentStyle={contentTypoStyle}>
-                            {showIcons ? (
-                                <p style={iconPos === 'left' ? { paddingLeft: 52 } : undefined}>{iconInfo.content}</p>
-                            ) : (
-                                <>Content for section {n}.</>
-                            )}
-                        </AccordionContent>
-                    </AccordionItem>
-                );
-
-                // Wrap each item with hover/tap motion individually
-                if (hasItemMotion) {
-                    return (
-                        <motion.div key={n} whileHover={itemWhileHover} whileTap={itemWhileTap}>
-                            {item}
-                        </motion.div>
-                    );
-                }
-                return item;
-            });
-            const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
-            // Entry motion on whole accordion, hover/tap handled per-item above
-            return renderWithMotionControls(
-                <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
-                    <Accordion
-                        {...accordionProps}
-                        dividerColor={instance.style.accordionDividerColor || undefined}
-                        dividerEnabled={instance.style.accordionDividerEnabled}
-                        dividerWeight={instance.style.accordionDividerWeight}
-                        paddingH={instance.style.accordionPaddingH}
-                        paddingW={instance.style.accordionPaddingW}
-                        spacing={instance.style.accordionSpacing}
-                        style={{ color: style.color }}
-                        className={cn(motionClassName)}
-                    >
-                        {staggeredItems}
-                    </Accordion>
-                </div>,
-                instance.style,
-                true,
-                false, // interaction handled per-item
-            );
+            return <AccordionPreviewSurface instance={instance} style={style} motionClassName={motionClassName} />;
         }
 
         case 'alert':
@@ -2780,26 +2787,7 @@ export function renderPreview(
 
         case 'switch': {
             const switchId = `${instance.id}-switch`;
-            const switchHover = instance.style.motionHoverEnabled
-                ? {
-                    scale: instance.style.motionHoverScale / 100,
-                    x: instance.style.motionHoverX,
-                    y: instance.style.motionHoverY,
-                    rotate: instance.style.motionHoverRotate,
-                    opacity: instance.style.motionHoverOpacity / 100,
-                    transition: buildMotionTransition(instance.style, 'hover'),
-                }
-                : undefined;
-            const switchTap = instance.style.motionTapEnabled
-                ? {
-                    scale: instance.style.motionTapScale / 100,
-                    x: instance.style.motionTapX,
-                    y: instance.style.motionTapY,
-                    rotate: instance.style.motionTapRotate,
-                    opacity: instance.style.motionTapOpacity / 100,
-                    transition: buildMotionTransition(instance.style, 'tap'),
-                }
-                : undefined;
+            const switchMotionProps = buildPreviewMotionProps(instance.style, { allowEntry: false, allowInteraction: true });
             const switchSize = instance.style.size === 'sm' ? 'sm' : 'default';
             const defaultTrackWidth = switchSize === 'sm' ? 24 : 32;
             const defaultTrackHeight = switchSize === 'sm' ? 14 : 18;
@@ -2902,7 +2890,17 @@ export function renderPreview(
                     )}
                     style={wrapperStyle}
                 >
-                    <motion.div whileHover={switchHover} whileTap={switchTap} className={switchDecorClassName} style={switchDecorStyle}>
+                    <motion.div
+                        animate={switchMotionProps.animate}
+                        whileHover={switchMotionProps.whileHover}
+                        whileTap={switchMotionProps.whileTap}
+                        transition={switchMotionProps.transition}
+                        className={switchDecorClassName}
+                        style={{
+                            ...switchDecorStyle,
+                            ...(switchMotionProps.style ?? {}),
+                        }}
+                    >
                         <Switch
                             id={switchId}
                             key={`${switchId}-${instance.style.switchChecked}-${instance.style.switchDisabled}`}

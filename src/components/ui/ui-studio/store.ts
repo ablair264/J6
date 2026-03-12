@@ -659,7 +659,7 @@ export const useStudioStore = create<StudioState>()(
                 set((state) => ({
                     instances: state.instances.map((instance) =>
                         instance.id === selectedInstanceId
-                            ? { ...instance, style: { ...instance.style, [key]: value } }
+                            ? { ...instance, style: normalizeStyleConfig({ ...instance.style, [key]: value }) }
                             : instance,
                     ),
                 }));
@@ -671,7 +671,7 @@ export const useStudioStore = create<StudioState>()(
                 set((state) => ({
                     instances: state.instances.map((instance) =>
                         instance.id === selectedInstanceId
-                            ? { ...instance, style: { ...instance.style, ...updates } }
+                            ? { ...instance, style: normalizeStyleConfig({ ...instance.style, ...updates }) }
                             : instance,
                     ),
                 }));
@@ -739,12 +739,12 @@ export const useStudioStore = create<StudioState>()(
                         instance.id === selectedInstanceId
                             ? {
                                 ...instance,
-                                style: {
+                                style: normalizeStyleConfig({
                                     ...instance.style,
                                     size,
                                     customHeight: sizeToken.height,
                                     customWidth: typeof sizeToken.width === 'number' ? sizeToken.width : 0,
-                                },
+                                }),
                             }
                             : instance,
                     ),
@@ -782,7 +782,7 @@ export const useStudioStore = create<StudioState>()(
                 if (!source) return;
                 const duplicate = createInstance(source.kind, nextInstanceIndex);
                 duplicate.name = `${source.name} Copy`;
-                duplicate.style = { ...source.style };
+                duplicate.style = normalizeStyleConfig(source.style);
                 if (source.stateOverrides) {
                     duplicate.stateOverrides = JSON.parse(JSON.stringify(source.stateOverrides));
                 }
@@ -827,8 +827,8 @@ export const useStudioStore = create<StudioState>()(
                                 return {
                                     ...instance,
                                     style: supportsEntryMotion(instance.kind)
-                                        ? mergedStyle
-                                        : { ...mergedStyle, motionEntryEnabled: false },
+                                        ? normalizeStyleConfig(mergedStyle)
+                                        : normalizeStyleConfig({ ...mergedStyle, motionEntryEnabled: false }),
                                 };
                             })()
                             : instance,
@@ -856,7 +856,7 @@ export const useStudioStore = create<StudioState>()(
                                 };
                                 return {
                                     ...instance,
-                                    style: mergedStyle,
+                                    style: normalizeStyleConfig(mergedStyle),
                                     stateOverrides: undefined,
                                 };
                             })()
@@ -878,8 +878,8 @@ export const useStudioStore = create<StudioState>()(
                             ? {
                                 ...instance,
                                 style: supportsEntryMotion(instance.kind)
-                                    ? { ...instance.style, ...preset.values }
-                                    : { ...instance.style, ...preset.values, motionEntryEnabled: false },
+                                    ? normalizeStyleConfig({ ...instance.style, ...preset.values })
+                                    : normalizeStyleConfig({ ...instance.style, ...preset.values, motionEntryEnabled: false }),
                             }
                             : instance,
                     ),

@@ -478,6 +478,29 @@ function buildComponents(): ComponentEntry[] {
                     ),
                     code: `<Button disabled>Primary</Button>\n<Button disabled variant="outline">Outline</Button>`,
                 },
+                {
+                    title: 'Studio — Gradient',
+                    preview: (
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Button style={{ background: 'linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 12, fontWeight: 500, minHeight: 28, height: 28, paddingInline: 12 }}>Small</Button>
+                            <Button style={{ background: 'linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 38, height: 38, paddingInline: 14 }}>Medium</Button>
+                            <Button style={{ background: 'linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 17, fontWeight: 500, minHeight: 44, height: 44, paddingInline: 17 }}>Large</Button>
+                            <Button style={{ background: 'linear-gradient(135deg, rgba(227,85,230,1) 0%, rgba(227,85,230,1) 55%, rgba(82,13,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 12, fontWeight: 500, minHeight: 34, height: 34, paddingInline: 12 }}>Purple</Button>
+                        </div>
+                    ),
+                    code: `/* Blue Gradient — Small */\n.studio-button-1 {\n  background: linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%);\n  border-radius: 5px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 12px;\n  font-weight: 500;\n  min-height: 28px;\n  height: 28px;\n  padding-inline: 12px;\n}\n\n/* Blue Gradient — Medium */\n.studio-button-2 {\n  background: linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%);\n  border-radius: 5px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 14px;\n  font-weight: 500;\n  min-height: 38px;\n  height: 38px;\n  padding-inline: 14px;\n}\n\n/* Blue Gradient — Large */\n.studio-button-3 {\n  background: linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%);\n  border-radius: 5px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 17px;\n  font-weight: 500;\n  min-height: 44px;\n  height: 44px;\n  padding-inline: 17px;\n}\n\n/* Purple Gradient */\n.studio-button-4 {\n  background: linear-gradient(135deg, rgba(227,85,230,1) 0%, rgba(227,85,230,1) 55%, rgba(82,13,89,1) 100%);\n  border-radius: 5px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 12px;\n  font-weight: 500;\n  min-height: 34px;\n  height: 34px;\n  padding-inline: 12px;\n}`,
+                },
+                {
+                    title: 'Studio — Dark & Glow',
+                    preview: (
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Button style={{ background: 'linear-gradient(135deg, rgba(59,56,56,1) 0%, rgba(59,56,56,1) 55%, rgba(41,40,40,1) 100%)', border: '0.5px solid rgba(255,255,255,0.23)', borderRadius: 9, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 32, height: 32, paddingInline: 14, boxShadow: 'inset 6px 7px 4px -4px rgba(0,0,0,0.26)' }}>Inset Shadow</Button>
+                            <Button style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.23)', borderRadius: 9, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 32, height: 32, paddingInline: 14 }}>Ghost</Button>
+                            <Button style={{ background: 'radial-gradient(100% 100% at 50% 50%, rgba(27,17,214,0.45) 0%, transparent 70%), rgba(0,0,0,1)', border: '1.5px solid rgba(255,255,255,0)', borderRadius: 9, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 32, height: 32, paddingInline: 14 }}>Radial Glow</Button>
+                        </div>
+                    ),
+                    code: `/* Dark Inset Shadow */\n.studio-button-inset {\n  background: linear-gradient(135deg, rgba(59,56,56,1) 0%, rgba(59,56,56,1) 55%, rgba(41,40,40,1) 100%);\n  border: 0.5px solid rgba(255,255,255,0.23);\n  border-radius: 9px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 14px;\n  font-weight: 500;\n  min-height: 32px;\n  height: 32px;\n  padding-inline: 14px;\n  box-shadow: inset 6px 7px 4px -4px rgba(0,0,0,0.26);\n}\n.studio-button-inset:hover {\n  border-color: rgba(255,255,255,0.21);\n}\n\n/* Ghost Outline */\n.studio-button-ghost {\n  border: 1.5px solid rgba(255,255,255,0.23);\n  border-radius: 9px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 14px;\n  font-weight: 500;\n  min-height: 32px;\n  height: 32px;\n  padding-inline: 14px;\n}\n.studio-button-ghost:hover {\n  border-color: rgba(255,255,255,0.48);\n}\n\n/* Radial Glow */\n.studio-button-glow {\n  background: radial-gradient(100% 100% at 50% 50%, rgba(27,17,214,0.45) 0%, transparent 70%), rgba(0,0,0,1);\n  border: 1.5px solid rgba(255,255,255,0);\n  border-radius: 9px;\n  color: rgba(232,229,224,1);\n  font-family: Open Sans;\n  font-size: 14px;\n  font-weight: 500;\n  min-height: 32px;\n  height: 32px;\n  padding-inline: 14px;\n}\n.studio-button-glow:hover {\n  border-color: rgba(255,255,255,0.48);\n}`,
+                },
             ],
         },
 

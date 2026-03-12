@@ -1,7 +1,17 @@
-import { useRef, useCallback, type ReactNode } from 'react';
+import { useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
 import { motion, useMotionValue, useMotionTemplate, useSpring } from 'motion/react';
 import { normalizeStyleConfig, MOTION_COMPONENT_PRESETS, SURFACE_MOTION_PRESET_IDS } from './constants';
-import type { ComponentStyleConfig, MotionEaseOption, UIComponentKind } from '@/components/ui/ui-studio.types';
+import { buildLegacyMotionTimeline } from './motion-schema';
+import type {
+    ComponentStyleConfig,
+    MotionEaseOption,
+    MotionKeyframeValue,
+    MotionStepValues,
+    MotionTimelineStep,
+    MotionTransitionType,
+    MotionTrigger,
+    UIComponentKind,
+} from '@/components/ui/ui-studio.types';
 
 export type MotionTransitionScope = 'entry' | 'hover' | 'tap';
 
@@ -12,7 +22,65 @@ type MotionEasingValue =
     | 'circIn' | 'circOut' | 'circInOut'
     | 'backIn' | 'backOut' | 'backInOut'
     | 'anticipate'
-    | [number, number, number, number];
+    | [number, number, number, number]
+    | Array<'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'circIn' | 'circOut' | 'circInOut' | 'backIn' | 'backOut' | 'backInOut' | 'anticipate' | [number, number, number, number]>;
+
+type MotionRuntimeValues = Partial<Record<Exclude<keyof MotionStepValues, 'transformOrigin'>, MotionKeyframeValue>>;
+
+interface MotionCompiledStep {
+    id: string;
+    trigger: MotionTrigger;
+    label: string;
+    from?: MotionRuntimeValues;
+    to?: MotionRuntimeValues;
+    transition: {
+        type: 'spring' | 'tween';
+        duration: number;
+        delay: number;
+        ease?: MotionEasingValue;
+        stiffness?: number;
+        damping?: number;
+        mass?: number;
+        times?: number[];
+    };
+    at?: number;
+    repeat?: number;
+    repeatDelay?: number;
+    transformOrigin?: string;
+}
+
+interface MotionCompiledTrigger {
+    trigger: MotionTrigger;
+    steps: MotionCompiledStep[];
+    initial?: MotionRuntimeValues;
+    target?: MotionRuntimeValues;
+    transition?: MotionCompiledStep['transition'];
+    transformOrigin?: string;
+}
+
+interface MotionCompiledConfig {
+    entry?: MotionCompiledTrigger;
+    hover?: MotionCompiledTrigger;
+    tap?: MotionCompiledTrigger;
+    exit?: MotionCompiledTrigger;
+    loop?: MotionCompiledTrigger;
+    scroll?: MotionCompiledTrigger;
+}
+
+export type PreviewGestureMotion = any;
+
+export interface PreviewMotionProps {
+    initial?: any;
+    animate?: any;
+    whileHover?: PreviewGestureMotion;
+    whileTap?: PreviewGestureMotion;
+    transition?: any;
+    style?: CSSProperties;
+}
+
+function resolveRelationshipScope(config: ComponentStyleConfig): ComponentStyleConfig['motionRelationshipScope'] {
+    return config.motionGroupScope !== 'self' ? config.motionGroupScope : config.motionRelationshipScope;
+}
 
 export function resolveEase(ease: MotionEaseOption, customBezier?: [number, number, number, number]): MotionEasingValue {
     switch (ease) {
@@ -30,6 +98,370 @@ export function resolveEase(ease: MotionEaseOption, customBezier?: [number, numb
         case 'cubicBezier': return customBezier ?? [0.4, 0, 0.2, 1] as [number, number, number, number];
         default: return 'easeInOut';
     }
+}
+
+function buildTransitionFromValues(
+    transitionType: MotionTransitionType,
+    ease: MotionEaseOption,
+    duration: number,
+    delay: number,
+    stiffness: number,
+    damping: number,
+    mass: number,
+    customBezier?: [number, number, number, number],
+): MotionCompiledStep['transition'] {
+    const resolvedEase = resolveEase(ease, customBezier);
+    return transitionType === 'spring'
+        ? {
+            type: 'spring',
+            duration,
+            delay,
+            stiffness,
+            damping,
+            mass,
+        }
+        : {
+            type: 'tween',
+            duration,
+            delay,
+            ease: resolvedEase,
+        };
+}
+
+function stripUndefinedValues(values?: MotionStepValues): MotionRuntimeValues | undefined {
+    if (!values) {
+        return undefined;
+    }
+
+    const next: MotionRuntimeValues = {};
+    if (values.opacity !== undefined) next.opacity = values.opacity;
+    if (values.x !== undefined) next.x = values.x;
+    if (values.y !== undefined) next.y = values.y;
+    if (values.scale !== undefined) next.scale = values.scale;
+    if (values.rotate !== undefined) next.rotate = values.rotate;
+    if (values.filter !== undefined) next.filter = values.filter;
+    return Object.keys(next).length ? next : undefined;
+}
+
+function collectTransformOrigin(step: MotionTimelineStep): string | undefined {
+    return step.to?.transformOrigin ?? step.from?.transformOrigin;
+}
+
+function getMotionTimeline(config: ComponentStyleConfig): MotionTimelineStep[] {
+    const explicitSteps = config.motionTimelineSteps?.filter(Boolean) ?? [];
+    if (explicitSteps.length > 0) {
+        return explicitSteps;
+    }
+    return buildLegacyMotionTimeline(config);
+}
+
+function compileMotionStep(step: MotionTimelineStep, config: ComponentStyleConfig): MotionCompiledStep {
+    return {
+        id: step.id,
+        trigger: step.trigger,
+        label: step.label,
+        from: stripUndefinedValues(step.from),
+        to: stripUndefinedValues(step.to),
+        transition: buildTransitionFromValues(
+            step.transitionType,
+            step.ease,
+            step.duration,
+            step.delay,
+            step.stiffness ?? config.motionStiffness,
+            step.damping ?? config.motionDamping,
+            step.mass ?? config.motionMass,
+            step.customBezier ?? config.motionCustomBezier,
+        ),
+        at: step.at,
+        repeat: step.repeat,
+        repeatDelay: step.repeatDelay,
+        transformOrigin: collectTransformOrigin(step),
+    };
+}
+
+function buildTriggerTimeline(steps: MotionCompiledStep[]): MotionCompiledTrigger | undefined {
+    if (!steps.length) {
+        return undefined;
+    }
+
+    const firstStep = steps[0];
+    if (steps.length === 1) {
+        return {
+            trigger: firstStep.trigger,
+            steps,
+            initial: firstStep.from,
+            target: firstStep.to,
+            transition: firstStep.transition,
+            transformOrigin: firstStep.transformOrigin,
+        };
+    }
+
+    const keys = new Set<keyof MotionRuntimeValues>();
+    steps.forEach((step) => {
+        Object.keys(step.from ?? {}).forEach((key) => keys.add(key as keyof MotionRuntimeValues));
+        Object.keys(step.to ?? {}).forEach((key) => keys.add(key as keyof MotionRuntimeValues));
+    });
+
+    const totalDuration = steps.reduce((max, step) => Math.max(max, (step.at ?? 0) + step.transition.delay + step.transition.duration), 0) || 0.001;
+    const target: MotionRuntimeValues = {};
+    const transitionEase: Array<Exclude<MotionEasingValue, MotionEasingValue[]>> = [];
+    const transitionTimes: number[] = [];
+
+    keys.forEach((key) => {
+        const values: Array<string | number> = [];
+
+        steps.forEach((step) => {
+            const fromValue = step.from?.[key];
+            const toValue = step.to?.[key];
+            if (values.length === 0 && fromValue !== undefined) {
+                values.push(...(Array.isArray(fromValue) ? fromValue : [fromValue]));
+            }
+            if (toValue !== undefined) {
+                values.push(...(Array.isArray(toValue) ? toValue : [toValue]));
+            }
+        });
+
+        if (!values.length) {
+            return;
+        }
+
+        target[key] = values.length === 1 ? values[0] : values;
+    });
+
+    steps.forEach((step, index) => {
+        const easeValue = step.transition.ease;
+        const segmentEnd = ((step.at ?? 0) + step.transition.delay + step.transition.duration) / totalDuration;
+        if (index === 0) {
+            transitionTimes.push(0);
+        }
+        transitionTimes.push(Math.min(1, Number(segmentEnd.toFixed(4))));
+        if (easeValue !== undefined) {
+            transitionEase.push(easeValue as Exclude<MotionEasingValue, MotionEasingValue[]>);
+        }
+    });
+
+    return {
+        trigger: firstStep.trigger,
+        steps,
+        initial: firstStep.from,
+        target: Object.keys(target).length ? target : undefined,
+        transition: {
+            type: 'tween',
+            duration: totalDuration,
+            delay: 0,
+            ...(transitionEase.length ? { ease: transitionEase.length === 1 ? transitionEase[0] : transitionEase } : {}),
+            ...(transitionTimes.length > 1 ? { times: transitionTimes } : {}),
+        },
+        transformOrigin: steps.find((step) => step.transformOrigin)?.transformOrigin,
+    };
+}
+
+export function compileMotionConfig(config: ComponentStyleConfig): MotionCompiledConfig {
+    const steps = getMotionTimeline(config).map((step) => compileMotionStep(step, config));
+    const stepsByTrigger = steps.reduce<Record<MotionTrigger, MotionCompiledStep[]>>(
+        (acc, step) => {
+            acc[step.trigger].push(step);
+            return acc;
+        },
+        { entry: [], hover: [], tap: [], exit: [], loop: [], scroll: [] },
+    );
+    const entry = buildTriggerTimeline(stepsByTrigger.entry);
+    const exit = buildTriggerTimeline(stepsByTrigger.exit) ?? (entry?.initial
+        ? {
+            trigger: 'exit',
+            steps: [],
+            target: entry.initial,
+            transition: entry.transition,
+            transformOrigin: entry.transformOrigin,
+        }
+        : undefined);
+
+    return {
+        entry,
+        hover: buildTriggerTimeline(stepsByTrigger.hover),
+        tap: buildTriggerTimeline(stepsByTrigger.tap),
+        exit,
+        loop: buildTriggerTimeline(stepsByTrigger.loop),
+        scroll: buildTriggerTimeline(stepsByTrigger.scroll),
+    };
+}
+
+export function buildMotionGesture(config: ComponentStyleConfig, trigger: 'hover' | 'tap'): PreviewGestureMotion | undefined {
+    const compiled = compileMotionConfig(config)[trigger];
+    if (!compiled?.target) {
+        return undefined;
+    }
+    return {
+        ...compiled.target,
+        ...(compiled.transition ? { transition: compiled.transition } : {}),
+    };
+}
+
+export function buildPreviewMotionProps(
+    config: ComponentStyleConfig,
+    options: {
+        allowEntry?: boolean;
+        allowInteraction?: boolean;
+    } = {},
+): PreviewMotionProps {
+    const { allowEntry = true, allowInteraction = true } = options;
+    const compiled = compileMotionConfig(config);
+    const previewMode = config.motionPreviewMode;
+    const transformOrigin = compiled.entry?.transformOrigin;
+
+    if (previewMode === 'hover' && allowInteraction && compiled.hover?.target) {
+        return {
+            animate: compiled.hover.target,
+            transition: compiled.hover.transition,
+            ...(transformOrigin ? { style: { transformOrigin } } : {}),
+        };
+    }
+
+    if (previewMode === 'tap' && allowInteraction && compiled.tap?.target) {
+        return {
+            animate: compiled.tap.target,
+            transition: compiled.tap.transition,
+            ...(transformOrigin ? { style: { transformOrigin } } : {}),
+        };
+    }
+
+    if (previewMode === 'loop' && compiled.loop?.target) {
+        const loopStep = compiled.loop.steps[0];
+        return {
+            initial: allowEntry && config.motionEntryEnabled ? compiled.entry?.initial : undefined,
+            animate: compiled.loop.target,
+            transition: compiled.loop.transition
+                ? {
+                    ...compiled.loop.transition,
+                    repeat: loopStep?.repeat && loopStep.repeat > 0 ? loopStep.repeat : Infinity,
+                    repeatDelay: loopStep?.repeatDelay ?? 0,
+                }
+                : undefined,
+            ...(transformOrigin ? { style: { transformOrigin } } : {}),
+        };
+    }
+
+    if (previewMode === 'scrub' && compiled.scroll?.target) {
+        return {
+            animate: compiled.scroll.target,
+            transition: compiled.scroll.transition
+                ? { ...compiled.scroll.transition, duration: 0 }
+                : { type: 'tween' as const, duration: 0 },
+            ...(transformOrigin ? { style: { transformOrigin } } : {}),
+        };
+    }
+
+    return {
+        initial: allowEntry && config.motionEntryEnabled ? compiled.entry?.initial : undefined,
+        animate: allowEntry && config.motionEntryEnabled ? compiled.entry?.target : undefined,
+        whileHover: allowInteraction ? buildMotionGesture(config, 'hover') : undefined,
+        whileTap: allowInteraction ? buildMotionGesture(config, 'tap') : undefined,
+        transition: allowEntry ? compiled.entry?.transition : undefined,
+        ...(transformOrigin ? { style: { transformOrigin } } : {}),
+    };
+}
+
+function stripGestureTransition(gesture: PreviewGestureMotion | undefined): Record<string, any> | undefined {
+    if (!gesture) {
+        return undefined;
+    }
+    const { transition: _transition, ...target } = gesture as Record<string, any>;
+    return Object.keys(target).length ? target : undefined;
+}
+
+function scaleTowardDefault(value: unknown, factor: number, defaultValue: number): unknown {
+    if (typeof value !== 'number') {
+        return value ?? defaultValue;
+    }
+    return defaultValue + (value - defaultValue) * factor;
+}
+
+function buildChildrenFollowerTarget(
+    hoverTarget: Record<string, any> | undefined,
+    axis: 'x' | 'y',
+    currentIndex: number,
+    activeIndex: number,
+): Record<string, any> | undefined {
+    if (!hoverTarget) {
+        return undefined;
+    }
+
+    const direction = currentIndex < activeIndex ? -1 : 1;
+    return {
+        ...(hoverTarget.scale !== undefined ? { scale: scaleTowardDefault(hoverTarget.scale, 0.45, 1) } : { scale: 1.01 }),
+        ...(hoverTarget.opacity !== undefined ? { opacity: Math.max(0.8, Number(scaleTowardDefault(hoverTarget.opacity, 0.45, 1))) } : { opacity: 0.9 }),
+        ...(hoverTarget.rotate !== undefined ? { rotate: scaleTowardDefault(hoverTarget.rotate, 0.4, 0) } : {}),
+        ...(axis === 'x'
+            ? { x: hoverTarget.x !== undefined ? scaleTowardDefault(hoverTarget.x, 0.35, 0) : direction * 3 }
+            : { y: hoverTarget.y !== undefined ? scaleTowardDefault(hoverTarget.y, 0.35, 0) : direction * 3 }),
+    };
+}
+
+function buildSiblingFollowerTarget(
+    hoverTarget: Record<string, any> | undefined,
+    axis: 'x' | 'y',
+    currentIndex: number,
+    activeIndex: number,
+): Record<string, any> {
+    const direction = currentIndex < activeIndex ? -1 : 1;
+    return {
+        opacity: hoverTarget?.opacity !== undefined ? Math.max(0.58, Number(scaleTowardDefault(hoverTarget.opacity, 0.2, 1))) : 0.7,
+        scale: hoverTarget?.scale !== undefined && typeof hoverTarget.scale === 'number' && hoverTarget.scale < 1
+            ? scaleTowardDefault(hoverTarget.scale, 0.2, 1)
+            : 0.98,
+        ...(axis === 'x' ? { x: direction * 6 } : { y: direction * 4 }),
+    };
+}
+
+export function buildRelationshipMotionProps(
+    config: ComponentStyleConfig,
+    options: {
+        activeIndex: number | null;
+        currentIndex: number;
+        total: number;
+        axis?: 'x' | 'y';
+    },
+): PreviewMotionProps {
+    const base = buildPreviewMotionProps(config, { allowEntry: false, allowInteraction: true });
+    const scope = resolveRelationshipScope(config);
+    const axis = options.axis ?? 'x';
+
+    if (options.activeIndex === null || options.total <= 1 || scope === 'self') {
+        return base;
+    }
+    if (options.currentIndex === options.activeIndex) {
+        return base;
+    }
+
+    const hoverGesture = buildMotionGesture(config, 'hover');
+    const hoverTarget = stripGestureTransition(hoverGesture);
+    const hoverTransition = (hoverGesture as Record<string, any> | undefined)?.transition ?? base.transition;
+
+    if (scope === 'group') {
+        return {
+            ...base,
+            animate: hoverTarget ?? base.animate,
+            transition: hoverTransition,
+        };
+    }
+
+    if (scope === 'children') {
+        return {
+            ...base,
+            animate: buildChildrenFollowerTarget(hoverTarget, axis, options.currentIndex, options.activeIndex) ?? base.animate,
+            transition: hoverTransition,
+        };
+    }
+
+    if (scope === 'siblings') {
+        return {
+            ...base,
+            animate: buildSiblingFollowerTarget(hoverTarget, axis, options.currentIndex, options.activeIndex),
+            transition: hoverTransition,
+        };
+    }
+
+    return base;
 }
 
 export function getMotionTransitionValues(config: ComponentStyleConfig, scope: MotionTransitionScope) {
@@ -68,22 +500,16 @@ export function getMotionTransitionValues(config: ComponentStyleConfig, scope: M
 
 export function buildMotionTransition(config: ComponentStyleConfig, scope: MotionTransitionScope = 'entry') {
     const transition = getMotionTransitionValues(config, scope);
-    const ease = resolveEase(transition.ease, config.motionCustomBezier);
-    return transition.transitionType === 'spring'
-        ? {
-            type: 'spring' as const,
-            duration: transition.duration,
-            delay: transition.delay,
-            stiffness: transition.stiffness,
-            damping: transition.damping,
-            mass: transition.mass,
-        }
-        : {
-            type: 'tween' as const,
-            duration: transition.duration,
-            delay: transition.delay,
-            ease,
-        };
+    return buildTransitionFromValues(
+        transition.transitionType,
+        transition.ease,
+        transition.duration,
+        transition.delay,
+        transition.stiffness,
+        transition.damping,
+        transition.mass,
+        config.motionCustomBezier,
+    );
 }
 
 export function buildMotionTransitionSnippet(config: ComponentStyleConfig, scope: MotionTransitionScope = 'entry'): string {
@@ -141,55 +567,33 @@ export function buildEntryPresetMotionConfig(
 }
 
 export function hasAnyMotionEnabled(config: ComponentStyleConfig): boolean {
-    return config.motionEntryEnabled || config.motionExitEnabled || config.motionHoverEnabled || config.motionTapEnabled;
+    return (
+        config.motionEntryEnabled ||
+        config.motionExitEnabled ||
+        config.motionHoverEnabled ||
+        config.motionTapEnabled ||
+        config.motionStaggerEnabled ||
+        config.motionGroupStrategy !== 'none'
+    );
 }
 
 function buildMotionExitValues(config: ComponentStyleConfig) {
-    return {
-        opacity: config.motionInitialOpacity / 100,
-        x: config.motionInitialX,
-        y: config.motionInitialY,
-        scale: config.motionInitialScale / 100,
-        rotate: config.motionAnimateRotate === 0 ? 0 : config.motionAnimateRotate,
-        ...(config.motionInitialFilter && { filter: config.motionInitialFilter }),
-    };
+    return compileMotionConfig(config).exit?.target;
 }
 
 export function renderEntryMotion(content: ReactNode, config: ComponentStyleConfig): ReactNode {
     if (!config.motionEntryEnabled) {
         return content;
     }
-
-    const animateX = config.motionAnimateX === 0 ? 0 : [config.motionAnimateX, 0];
-    const animateY = config.motionAnimateY === 0 ? 0 : [config.motionAnimateY, 0];
-    const animateRotate = config.motionAnimateRotate === 0 ? 0 : [config.motionAnimateRotate, 0];
-    const initialScale = config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
-    const animateScale = config.motionAnimateScale !== 100
-        ? [config.motionAnimateScale / 100, 1]
-        : initialScale !== undefined ? 1 : undefined;
-    const hasFilter = !!(config.motionInitialFilter || config.motionAnimateFilter);
-    const hasTransformOrigin = !!config.motionTransformOrigin;
+    const previewMotion = buildPreviewMotionProps(config, { allowEntry: true, allowInteraction: false });
 
     return (
         <motion.div
-            initial={{
-                opacity: config.motionInitialOpacity / 100,
-                x: config.motionInitialX,
-                y: config.motionInitialY,
-                ...(initialScale !== undefined && { scale: initialScale }),
-                ...(hasFilter && config.motionInitialFilter && { filter: config.motionInitialFilter }),
-            }}
-            animate={{
-                opacity: config.motionAnimateOpacity / 100,
-                x: animateX,
-                y: animateY,
-                rotate: animateRotate,
-                ...(animateScale !== undefined && { scale: animateScale }),
-                ...(hasFilter && { filter: config.motionAnimateFilter || 'blur(0px)' }),
-            }}
+            initial={previewMotion.initial}
+            animate={previewMotion.animate}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
-            transition={buildMotionTransition(config, 'entry')}
-            {...(hasTransformOrigin && { style: { transformOrigin: config.motionTransformOrigin } })}
+            transition={previewMotion.transition}
+            {...(previewMotion.style ? { style: previewMotion.style } : {})}
         >
             {content}
         </motion.div>
@@ -208,70 +612,18 @@ export function renderWithMotionControls(
     if (!allowEntry && !allowInteraction) {
         return content;
     }
-
-    const animateX = config.motionAnimateX === 0 ? 0 : [config.motionAnimateX, 0];
-    const animateY = config.motionAnimateY === 0 ? 0 : [config.motionAnimateY, 0];
-    const animateRotate = config.motionAnimateRotate === 0 ? 0 : [config.motionAnimateRotate, 0];
-    const initialScale = config.motionInitialScale !== 100 ? config.motionInitialScale / 100 : undefined;
-    const animateScale = config.motionAnimateScale !== 100
-        ? [config.motionAnimateScale / 100, 1]
-        : initialScale !== undefined ? 1 : undefined;
-    const hasFilter = !!(config.motionInitialFilter || config.motionAnimateFilter);
-    const hasTransformOrigin = !!config.motionTransformOrigin;
-
-    const whileHover = allowInteraction && config.motionHoverEnabled
-        ? {
-            scale: config.motionHoverScale / 100,
-            x: config.motionHoverX,
-            y: config.motionHoverY,
-            rotate: config.motionHoverRotate,
-            opacity: config.motionHoverOpacity / 100,
-            transition: buildMotionTransition(config, 'hover'),
-        }
-        : undefined;
-
-    const whileTap = allowInteraction && config.motionTapEnabled
-        ? {
-            scale: config.motionTapScale / 100,
-            x: config.motionTapX,
-            y: config.motionTapY,
-            rotate: config.motionTapRotate,
-            opacity: config.motionTapOpacity / 100,
-            transition: buildMotionTransition(config, 'tap'),
-        }
-        : undefined;
+    const previewMotion = buildPreviewMotionProps(config, { allowEntry, allowInteraction });
 
     return (
         <motion.div
             className="w-full"
-            initial={
-                allowEntry && config.motionEntryEnabled
-                    ? {
-                        opacity: config.motionInitialOpacity / 100,
-                        x: config.motionInitialX,
-                        y: config.motionInitialY,
-                        ...(initialScale !== undefined && { scale: initialScale }),
-                        ...(hasFilter && config.motionInitialFilter && { filter: config.motionInitialFilter }),
-                    }
-                    : undefined
-            }
-            animate={
-                allowEntry && config.motionEntryEnabled
-                    ? {
-                        opacity: config.motionAnimateOpacity / 100,
-                        x: animateX,
-                        y: animateY,
-                        rotate: animateRotate,
-                        ...(animateScale !== undefined && { scale: animateScale }),
-                        ...(hasFilter && { filter: config.motionAnimateFilter || 'blur(0px)' }),
-                    }
-                    : undefined
-            }
-            whileHover={whileHover}
-            whileTap={whileTap}
+            initial={previewMotion.initial}
+            animate={previewMotion.animate}
+            whileHover={previewMotion.whileHover}
+            whileTap={previewMotion.whileTap}
             exit={config.motionExitEnabled ? buildMotionExitValues(config) : undefined}
-            transition={allowEntry ? buildMotionTransition(config, 'entry') : undefined}
-            {...(hasTransformOrigin && { style: { transformOrigin: config.motionTransformOrigin } })}
+            transition={previewMotion.transition}
+            {...(previewMotion.style ? { style: previewMotion.style } : {})}
         >
             {content}
         </motion.div>
@@ -280,29 +632,107 @@ export function renderWithMotionControls(
 
 // ─── Stagger Wrapper ──────────────────────────────────────────────────────
 
+function resolveGroupStrategy(config: ComponentStyleConfig): 'none' | 'stagger' | 'queue' {
+    if (config.motionGroupStrategy !== 'none') {
+        return config.motionGroupStrategy;
+    }
+    return config.motionStaggerEnabled ? 'stagger' : 'none';
+}
+
+function buildCenterOriginOrder(total: number): number[] {
+    if (total <= 0) {
+        return [];
+    }
+
+    const order: number[] = [];
+    const leftCenter = Math.floor((total - 1) / 2);
+    const rightCenter = Math.ceil((total - 1) / 2);
+
+    order.push(leftCenter);
+    if (rightCenter !== leftCenter) {
+        order.push(rightCenter);
+    }
+
+    let offset = 1;
+    while (order.length < total) {
+        const left = leftCenter - offset;
+        const right = rightCenter + offset;
+        if (left >= 0) {
+            order.push(left);
+        }
+        if (right < total) {
+            order.push(right);
+        }
+        offset += 1;
+    }
+
+    return order;
+}
+
+function buildGroupOrder(total: number, origin: ComponentStyleConfig['motionGroupOrigin']): number[] {
+    if (origin === 'last') {
+        return Array.from({ length: total }, (_, index) => total - 1 - index);
+    }
+    if (origin === 'center') {
+        return buildCenterOriginOrder(total);
+    }
+    return Array.from({ length: total }, (_, index) => index);
+}
+
+function buildGroupDelayRanks(total: number, origin: ComponentStyleConfig['motionGroupOrigin']): number[] {
+    const order = buildGroupOrder(total, origin);
+    const ranks = Array.from({ length: total }, () => 0);
+    order.forEach((childIndex, rank) => {
+        ranks[childIndex] = rank;
+    });
+    return ranks;
+}
+
+function buildGroupChildMotion(config: ComponentStyleConfig) {
+    const compiled = compileMotionConfig(config);
+    const previewMotion = buildPreviewMotionProps(config, { allowEntry: true, allowInteraction: false });
+    const entryTransition = compiled.entry?.transition ?? previewMotion.transition ?? { type: 'tween', duration: 0.25, ease: 'easeOut' };
+    const entryDuration =
+        typeof entryTransition?.duration === 'number' && entryTransition.duration > 0
+            ? entryTransition.duration
+            : 0.25;
+
+    return {
+        initial: compiled.entry?.initial ?? previewMotion.initial ?? { opacity: 0, y: 8 },
+        animate: compiled.entry?.target ?? previewMotion.animate ?? { opacity: 1, y: 0 },
+        transition: entryTransition,
+        duration: entryDuration,
+        style: compiled.entry?.transformOrigin ? { transformOrigin: compiled.entry.transformOrigin } : previewMotion.style,
+    };
+}
+
 export function renderStaggeredChildren(
     children: ReactNode[],
     config: ComponentStyleConfig,
 ): ReactNode[] {
-    if (!config.motionStaggerEnabled) {
+    const strategy = resolveGroupStrategy(config);
+    if (strategy === 'none') {
         return children;
     }
-
-    const direction = config.motionStaggerDirection;
-    const delay = config.motionStaggerDelay;
+    const interval = config.motionGroupInterval > 0 ? config.motionGroupInterval : config.motionStaggerDelay;
+    const ranks = buildGroupDelayRanks(children.length, config.motionGroupOrigin);
+    const childMotion = buildGroupChildMotion(config);
 
     return children.map((child, index) => {
-        const staggerIndex = direction === 'reverse' ? children.length - 1 - index : index;
+        const orderIndex = ranks[index] ?? index;
+        const delay = strategy === 'queue'
+            ? orderIndex * (childMotion.duration + interval)
+            : orderIndex * interval;
         return (
             <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={childMotion.initial}
+                animate={childMotion.animate}
                 transition={{
-                    delay: staggerIndex * delay,
-                    duration: 0.25,
-                    ease: 'easeOut',
+                    ...(childMotion.transition ?? {}),
+                    delay: (childMotion.transition?.delay ?? 0) + delay,
                 }}
+                style={childMotion.style}
             >
                 {child}
             </motion.div>
@@ -418,47 +848,67 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
         return '';
     }
 
-    const animateX = config.motionAnimateX === 0 ? '0' : `[${config.motionAnimateX}, 0]`;
-    const animateY = config.motionAnimateY === 0 ? '0' : `[${config.motionAnimateY}, 0]`;
-    const animateRotate = config.motionAnimateRotate === 0 ? '0' : `[${config.motionAnimateRotate}, 0]`;
-    const entryTransitionSnippet = buildMotionTransitionSnippet(config, 'entry');
-    const hoverTransitionSnippet = buildMotionTransitionSnippet(config, 'hover');
-    const tapTransitionSnippet = buildMotionTransitionSnippet(config, 'tap');
+    const compiled = compileMotionConfig(config);
+    const groupStrategy = resolveGroupStrategy(config);
+    const relationshipScope = resolveRelationshipScope(config);
+    const relationshipNotes: Partial<Record<NonNullable<ComponentStyleConfig['motionRelationshipScope']>, string>> = {
+        siblings: '// Sibling items react when one item is hovered.',
+        children: '// Child items partially follow the hovered item.',
+        group: '// The whole group shares the same hover target.',
+    };
+    const groupInterval = config.motionGroupInterval > 0 ? config.motionGroupInterval : config.motionStaggerDelay;
+    const groupChildMotion = buildGroupChildMotion(config);
+    const serializeValue = (value: unknown): string => {
+        if (value === undefined) return 'undefined';
+        if (Array.isArray(value)) return `[${value.map((item) => serializeValue(item)).join(', ')}]`;
+        if (value && typeof value === 'object') {
+            return `{ ${Object.entries(value)
+                .filter(([, entry]) => entry !== undefined)
+                .map(([key, entry]) => `${key}: ${serializeValue(entry)}`)
+                .join(', ')} }`;
+        }
+        if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`;
+        return String(value);
+    };
 
-    const hasScale = config.motionInitialScale !== 100 || config.motionAnimateScale !== 100;
-    const scaleInitial = hasScale ? `, scale: ${(config.motionInitialScale / 100).toFixed(2)}` : '';
-    const scaleAnimate = config.motionAnimateScale !== 100
-        ? `, scale: [${(config.motionAnimateScale / 100).toFixed(2)}, 1]`
-        : config.motionInitialScale !== 100 ? ', scale: 1' : '';
+    const motionPropsEntries = [
+        config.motionEntryEnabled && compiled.entry?.initial ? `initial: ${serializeValue(compiled.entry.initial)}` : null,
+        config.motionEntryEnabled && compiled.entry?.target ? `animate: ${serializeValue(compiled.entry.target)}` : null,
+        config.motionHoverEnabled ? `whileHover: ${serializeValue(buildMotionGesture(config, 'hover'))}` : null,
+        config.motionTapEnabled ? `whileTap: ${serializeValue(buildMotionGesture(config, 'tap'))}` : null,
+        config.motionExitEnabled && compiled.exit?.target ? `exit: ${serializeValue(compiled.exit.target)}` : null,
+        compiled.entry?.transition ? `transition: ${serializeValue(compiled.entry.transition)}` : null,
+        compiled.entry?.transformOrigin ? `style: ${serializeValue({ transformOrigin: compiled.entry.transformOrigin })}` : null,
+    ].filter(Boolean);
 
-    const filterInitial = config.motionInitialFilter ? `, filter: '${config.motionInitialFilter}'` : '';
-    const filterAnimate = (config.motionInitialFilter || config.motionAnimateFilter)
-        ? `, filter: '${config.motionAnimateFilter || 'blur(0px)'}'`
-        : '';
-    const filterExit = config.motionInitialFilter ? `, filter: '${config.motionInitialFilter}'` : '';
+    const timelineGroups = Object.entries(compiled)
+        .filter(([, trigger]) => trigger?.steps.length)
+        .map(([trigger, value]) => `  ${trigger}: ${serializeValue((value?.steps ?? []).map((step: MotionCompiledStep) => ({
+            id: step.id,
+            label: step.label,
+            from: step.from,
+            to: step.to,
+            transition: step.transition,
+            at: step.at,
+            repeat: step.repeat,
+            repeatDelay: step.repeatDelay,
+        })))}`)
+        .join(',\n');
 
-    const entrySnippet = config.motionEntryEnabled
-        ? `\n  initial: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial}${filterInitial} },\n  animate: { opacity: ${(config.motionAnimateOpacity / 100).toFixed(2)}, x: ${animateX}, y: ${animateY}, rotate: ${animateRotate}${scaleAnimate}${filterAnimate} },`
-        : '';
-    const exitSnippet = config.motionExitEnabled
-        ? `\n  exit: { opacity: ${(config.motionInitialOpacity / 100).toFixed(2)}, x: ${config.motionInitialX}, y: ${config.motionInitialY}${scaleInitial}${filterExit}, rotate: ${config.motionAnimateRotate === 0 ? '0' : config.motionAnimateRotate} },`
-        : '';
+    let snippet = `const motionProps = {\n  ${motionPropsEntries.join(',\n  ')}\n};`;
 
-    const hoverSnippet = config.motionHoverEnabled
-        ? `\n  whileHover: { scale: ${(config.motionHoverScale / 100).toFixed(2)}, x: ${config.motionHoverX}, y: ${config.motionHoverY}, rotate: ${config.motionHoverRotate}, opacity: ${(config.motionHoverOpacity / 100).toFixed(2)}, transition: ${hoverTransitionSnippet} },`
-        : '';
-    const tapSnippet = config.motionTapEnabled
-        ? `\n  whileTap: { scale: ${(config.motionTapScale / 100).toFixed(2)}, x: ${config.motionTapX}, y: ${config.motionTapY}, rotate: ${config.motionTapRotate}, opacity: ${(config.motionTapOpacity / 100).toFixed(2)}, transition: ${tapTransitionSnippet} },`
-        : '';
+    if (timelineGroups) {
+        snippet += `\n\nconst motionTimeline = {\n${timelineGroups}\n};`;
+    }
 
-    const transformOriginStyle = config.motionTransformOrigin
-        ? `\n  style: { transformOrigin: '${config.motionTransformOrigin}' },`
-        : '';
+    if (relationshipScope !== 'self') {
+        snippet += `\n\n${relationshipNotes[relationshipScope] ?? '// Related elements respond together.'}\nconst motionRelationshipScope = '${relationshipScope}';`;
+    }
 
-    let snippet = `const motionProps = {${entrySnippet}${exitSnippet}${hoverSnippet}${tapSnippet}\n  transition: ${entryTransitionSnippet},${transformOriginStyle}\n};\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
+    snippet += `\n\n// Wrap your component preview with motion\n<motion.div {...motionProps}>\n  {/* component */}\n</motion.div>`;
 
-    if (config.motionStaggerEnabled) {
-        snippet += `\n\n// Stagger children\nconst staggerDelay = ${config.motionStaggerDelay};\n{items.map((item, i) => (\n  <motion.div\n    key={item.id}\n    initial={{ opacity: 0, y: 8 }}\n    animate={{ opacity: 1, y: 0 }}\n    transition={{ delay: i * staggerDelay, duration: 0.25, ease: 'easeOut' }}\n  >\n    {item.content}\n  </motion.div>\n))}`;
+    if (groupStrategy !== 'none') {
+        snippet += `\n\n// Group children\nconst groupStrategy = '${groupStrategy}';\nconst groupOrigin = '${config.motionGroupOrigin}';\nconst groupInterval = ${groupInterval};\nconst getGroupOrder = (index, total) => {\n  if (groupOrigin === 'last') return total - 1 - index;\n  if (groupOrigin === 'center') {\n    const center = (total - 1) / 2;\n    return Array.from({ length: total }, (_, childIndex) => childIndex)\n      .sort((a, b) => Math.abs(a - center) - Math.abs(b - center) || a - b)\n      .indexOf(index);\n  }\n  return index;\n};\n{items.map((item, index) => {\n  const orderIndex = getGroupOrder(index, items.length);\n  const delay = groupStrategy === 'queue'\n    ? orderIndex * (${groupChildMotion.duration} + groupInterval)\n    : orderIndex * groupInterval;\n  return (\n    <motion.div\n      key={item.id}\n      initial={${serializeValue(groupChildMotion.initial)}}\n      animate={${serializeValue(groupChildMotion.animate)}}\n      transition={{ ...${serializeValue(groupChildMotion.transition)}, delay }}\n      ${groupChildMotion.style ? `style={${serializeValue(groupChildMotion.style)}}` : ''}\n    >\n      {item.content}\n    </motion.div>\n  );\n})}`;
     }
 
     if (hasAdvancedHoverEnabled(config)) {

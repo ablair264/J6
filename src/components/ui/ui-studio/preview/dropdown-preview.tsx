@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import { BUTTON_STATE_CLASS_NAME } from '../constants';
 import { buildButtonPreviewStateClass } from '../constants';
-import { buildMotionTransition, buildEntryPresetMotionConfig, renderWithMotionControls } from '../motion';
+import { buildPreviewMotionProps, buildEntryPresetMotionConfig, renderWithMotionControls } from '../motion';
 import { normalizeStyleConfig } from '../constants';
 import { withIcon } from '../utilities';
 import type { ComponentStyleConfig } from '@/components/ui/ui-studio.types';
@@ -135,6 +135,7 @@ export function InteractiveDropdownPreview({
     const panelFontColor = panelStyle.color as string | undefined;
     const iconColorStyle: CSSProperties | undefined = panelFontColor ? { color: panelFontColor } : undefined;
     const iconSize = 'size-4';
+    const dropdownBodyPreviewMotion = buildPreviewMotionProps(dropdownBodyMotionConfig, { allowEntry: true, allowInteraction: false });
 
     const renderItemContent = (label: string, icon?: React.ReactNode, keyboard?: string) => {
         const content = showIcons && icon ? (
@@ -204,34 +205,8 @@ export function InteractiveDropdownPreview({
                         <div style={menuStyle}>
                             <motion.div
                                 key={`${instanceId}-dropdown-menu`}
-                                initial={
-                                    dropdownBodyMotionConfig.motionEntryEnabled
-                                        ? {
-                                            opacity: dropdownBodyMotionConfig.motionInitialOpacity / 100,
-                                            x: dropdownBodyMotionConfig.motionInitialX,
-                                            y: dropdownBodyMotionConfig.motionInitialY,
-                                        }
-                                        : undefined
-                                }
-                                animate={
-                                    dropdownBodyMotionConfig.motionEntryEnabled
-                                        ? {
-                                            opacity: dropdownBodyMotionConfig.motionAnimateOpacity / 100,
-                                            x:
-                                                dropdownBodyMotionConfig.motionAnimateX !== 0
-                                                    ? [dropdownBodyMotionConfig.motionAnimateX, 0]
-                                                    : 0,
-                                            y:
-                                                dropdownBodyMotionConfig.motionAnimateY !== 0
-                                                    ? [dropdownBodyMotionConfig.motionAnimateY, 0]
-                                                    : 0,
-                                            rotate:
-                                                dropdownBodyMotionConfig.motionAnimateRotate !== 0
-                                                    ? [dropdownBodyMotionConfig.motionAnimateRotate, 0]
-                                                    : 0,
-                                        }
-                                        : undefined
-                                }
+                                initial={dropdownBodyPreviewMotion.initial}
+                                animate={dropdownBodyPreviewMotion.animate}
                                 exit={
                                     motionConfig.motionExitEnabled
                                         ? {
@@ -252,7 +227,8 @@ export function InteractiveDropdownPreview({
                                             }
                                             : undefined
                                 }
-                                transition={buildMotionTransition(dropdownBodyMotionConfig)}
+                                transition={dropdownBodyPreviewMotion.transition}
+                                style={dropdownBodyPreviewMotion.style}
                             >
                                 <ListBox
                                     aria-label="Dropdown preview"

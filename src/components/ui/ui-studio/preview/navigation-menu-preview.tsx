@@ -10,12 +10,9 @@ import {
     NavigationMenuTrigger,
     NavigationMenuContent,
 } from '@/components/ui/navigation-menu';
-import { cn } from '@/lib/utils';
-import { renderStaggeredChildren } from '../motion';
-import type { ComponentStyleConfig } from '@/components/ui/ui-studio.types';
+import { buildRelationshipMotionProps, renderStaggeredChildren } from '../motion';
+import type { ComponentStyleConfig, StudioTextItem } from '@/components/ui/ui-studio.types';
 import { buildComponentWrapperStyle } from '../utilities';
-
-const NAV_ITEMS = ['Home', 'About', 'Services', 'Contact', 'Blog'];
 
 const DROPDOWN_ITEMS = [
     { label: 'Documentation', description: 'Learn how to get started', icon: FileText },
@@ -34,7 +31,8 @@ export function NavigationMenuPreview({
     motionClassName?: string;
 }) {
     const [activeIndex, setActiveIndex] = useState(0);
-    const navItems = NAV_ITEMS.slice(0, instanceStyle.navMenuItemCount);
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const navItems = instanceStyle.navMenuItems.slice(0, instanceStyle.navMenuItemCount);
     const showDropdown = instanceStyle.navMenuShowDropdown;
     const triggerVariant = instanceStyle.navMenuTriggerVariant || 'ghost';
 
@@ -47,39 +45,39 @@ export function NavigationMenuPreview({
     };
 
     // Per-item hover/tap motion
-    const hasHoverOrTap = instanceStyle.motionHoverEnabled || instanceStyle.motionTapEnabled;
-    const itemHover = instanceStyle.motionHoverEnabled ? {
-        scale: instanceStyle.motionHoverScale / 100,
-        x: instanceStyle.motionHoverX,
-        y: instanceStyle.motionHoverY,
-        rotate: instanceStyle.motionHoverRotate,
-        opacity: instanceStyle.motionHoverOpacity / 100,
-    } : undefined;
-    const itemTap = instanceStyle.motionTapEnabled ? {
-        scale: instanceStyle.motionTapScale / 100,
-        x: instanceStyle.motionTapX,
-        y: instanceStyle.motionTapY,
-        rotate: instanceStyle.motionTapRotate,
-        opacity: instanceStyle.motionTapOpacity / 100,
-    } : undefined;
-
-    const wrapLink = (content: React.ReactNode) => {
+    const wrapLink = (content: React.ReactNode, index: number) => {
+        const itemMotionProps = buildRelationshipMotionProps(instanceStyle, {
+            activeIndex: hoveredIndex,
+            currentIndex: index,
+            total: navItems.length,
+            axis: instanceStyle.navMenuOrientation === 'vertical' ? 'y' : 'x',
+        });
+        const hasHoverOrTap = Boolean(itemMotionProps.animate || itemMotionProps.whileHover || itemMotionProps.whileTap);
         if (!hasHoverOrTap) return content;
         return (
-            <motion.div whileHover={itemHover} whileTap={itemTap}>
+            <motion.div
+                animate={itemMotionProps.animate}
+                whileHover={itemMotionProps.whileHover}
+                whileTap={itemMotionProps.whileTap}
+                transition={itemMotionProps.transition}
+                style={itemMotionProps.style}
+                onHoverStart={() => setHoveredIndex(index)}
+                onHoverEnd={() => setHoveredIndex((current) => (current === index ? null : current))}
+            >
                 {content}
             </motion.div>
         );
     };
 
-    const menuItems = navItems.map((label, idx) => {
+    const menuItems = navItems.map((item: StudioTextItem, idx) => {
         if (showDropdown && idx === 1) {
             return (
-                <NavigationMenuItem key={label}>
+                <NavigationMenuItem key={item.id}>
                     {wrapLink(
-                    <NavigationMenuTrigger variant={triggerVariant}>
-                            {label}
-                        </NavigationMenuTrigger>
+                        <NavigationMenuTrigger variant={triggerVariant}>
+                            {item.label}
+                        </NavigationMenuTrigger>,
+                        idx,
                     )}
                     <NavigationMenuContent>
                         <ul className="grid w-[340px] gap-1 p-2" style={dropdownPanelStyle}>
@@ -109,7 +107,7 @@ export function NavigationMenuPreview({
         const isActive = instanceStyle.navMenuActiveIndicator && idx === activeIndex;
 
         return (
-            <NavigationMenuItem key={label}>
+            <NavigationMenuItem key={item.id}>
                 {wrapLink(
                     <NavigationMenuLink
                         active={isActive}
@@ -123,8 +121,9 @@ export function NavigationMenuPreview({
                         }}
                         style={{ cursor: 'pointer' }}
                     >
-                        {label}
-                    </NavigationMenuLink>
+                        {item.label}
+                    </NavigationMenuLink>,
+                    idx,
                 )}
             </NavigationMenuItem>
         );

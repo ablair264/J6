@@ -25,10 +25,13 @@ import type {
     ProgressVariant,
     SizeOption,
     StaggerDirection,
+    StudioAccordionItem,
+    StudioTextItem,
     StylePreset,
     TextTransformOption,
     UIComponentKind,
 } from '@/components/ui/ui-studio.types';
+import { normalizeMotionSchemaFields } from '@/components/ui/ui-studio/motion-schema';
 
 export const COMPONENTS: ComponentInfo[] = [
     {
@@ -176,6 +179,126 @@ export const COMPONENTS: ComponentInfo[] = [
         summary: 'Assistive context on hover or focus.',
     },
 ];
+
+export const DEFAULT_TABS_ITEMS: StudioTextItem[] = [
+    { id: 'tab-style', label: 'Style' },
+    { id: 'tab-effects', label: 'Effects' },
+    { id: 'tab-layout', label: 'Layout' },
+    { id: 'tab-preview', label: 'Preview' },
+    { id: 'tab-settings', label: 'Settings' },
+    { id: 'tab-export', label: 'Export' },
+];
+
+export const DEFAULT_NAV_MENU_ITEMS: StudioTextItem[] = [
+    { id: 'nav-home', label: 'Home' },
+    { id: 'nav-about', label: 'About' },
+    { id: 'nav-services', label: 'Services' },
+    { id: 'nav-contact', label: 'Contact' },
+    { id: 'nav-blog', label: 'Blog' },
+];
+
+export const DEFAULT_ACCORDION_ITEMS: StudioAccordionItem[] = [
+    {
+        id: 'accordion-documents',
+        title: 'Documents',
+        subtitle: 'Manage your files',
+        content: 'View, upload, and organize all your documents in one place.',
+    },
+    {
+        id: 'accordion-projects',
+        title: 'Projects',
+        subtitle: 'Organize your work',
+        content: 'Group related files and tasks into projects.',
+    },
+    {
+        id: 'accordion-settings',
+        title: 'Settings',
+        subtitle: 'Customize your experience',
+        content: 'Adjust preferences, update account details, and configure behavior.',
+    },
+    {
+        id: 'accordion-team',
+        title: 'Team Members',
+        subtitle: 'Manage users and roles',
+        content: 'Invite new members, assign roles, and control access permissions.',
+    },
+    {
+        id: 'accordion-bookmarks',
+        title: 'Bookmarks',
+        subtitle: 'Save for later',
+        content: 'Organize and manage your saved items.',
+    },
+    {
+        id: 'accordion-integrations',
+        title: 'Integrations',
+        subtitle: 'Connect services',
+        content: 'Link external tools and automate workflows.',
+    },
+    {
+        id: 'accordion-security',
+        title: 'Security',
+        subtitle: 'Protect your data',
+        content: 'Configure security settings and manage access controls.',
+    },
+    {
+        id: 'accordion-automation',
+        title: 'Automation',
+        subtitle: 'Speed up tasks',
+        content: 'Set up automated workflows and triggers.',
+    },
+];
+
+function normalizeStudioTextItems(
+    items: StudioTextItem[] | undefined,
+    defaults: StudioTextItem[],
+    count: number,
+): StudioTextItem[] {
+    const usedIds = new Set<string>();
+    return Array.from({ length: count }, (_, index) => {
+        const source = items?.[index];
+        const fallback = defaults[index] ?? { id: `item-${index + 1}`, label: `Item ${index + 1}` };
+        let id = typeof source?.id === 'string' && source.id.trim() ? source.id : fallback.id;
+        let duplicateIndex = 1;
+        while (usedIds.has(id)) {
+            id = `${fallback.id}-${duplicateIndex}`;
+            duplicateIndex += 1;
+        }
+        usedIds.add(id);
+        return {
+            id,
+            label: typeof source?.label === 'string' ? source.label : fallback.label,
+        };
+    });
+}
+
+function normalizeStudioAccordionItems(
+    items: StudioAccordionItem[] | undefined,
+    count: number,
+): StudioAccordionItem[] {
+    const usedIds = new Set<string>();
+    return Array.from({ length: count }, (_, index) => {
+        const source = items?.[index];
+        const fallback = DEFAULT_ACCORDION_ITEMS[index] ?? {
+            id: `accordion-item-${index + 1}`,
+            title: `Section ${index + 1}`,
+            subtitle: `Section ${index + 1} subtitle`,
+            content: `Content for section ${index + 1}.`,
+        };
+        let id = typeof source?.id === 'string' && source.id.trim() ? source.id : fallback.id;
+        let duplicateIndex = 1;
+        while (usedIds.has(id)) {
+            id = `${fallback.id}-${duplicateIndex}`;
+            duplicateIndex += 1;
+        }
+        usedIds.add(id);
+        return {
+            id,
+            title: typeof source?.title === 'string' ? source.title : fallback.title,
+            subtitle: typeof source?.subtitle === 'string' ? source.subtitle : fallback.subtitle,
+            content: typeof source?.content === 'string' ? source.content : fallback.content,
+        };
+    });
+}
 
 export const SIZE_SCALE: Record<SizeOption, number> = {
     sm: 0.86,
@@ -452,6 +575,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     inputAutocompleteBodyMotionPresetId: 'dropdown-down',
     tabsVariant: 'default',
     tabsCount: 3,
+    tabsItems: DEFAULT_TABS_ITEMS.slice(0, 3).map((item) => ({ ...item })),
     tabsListBg: '',
     tabsActiveBg: '',
     tabsIndicatorColor: '',
@@ -503,6 +627,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     accordionCollapsible: true,
     accordionAllowMultiple: false,
     accordionItemCount: 3,
+    accordionItems: DEFAULT_ACCORDION_ITEMS.slice(0, 3).map((item) => ({ ...item })),
     accordionPaddingH: 16,
     accordionPaddingW: 16,
     accordionSpacing: 8,
@@ -594,6 +719,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     navMenuOrientation: 'horizontal',
     navMenuActiveIndicator: true,
     navMenuItemCount: 4,
+    navMenuItems: DEFAULT_NAV_MENU_ITEMS.slice(0, 4).map((item) => ({ ...item })),
     navMenuTriggerVariant: 'ghost',
     navMenuHoverBg: '',
     navMenuHoverText: '',
@@ -780,6 +906,22 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     motionStaggerEnabled: false,
     motionStaggerDelay: 0.05,
     motionStaggerDirection: 'forward',
+    motionAuthoringMode: 'simple',
+    motionCategory: 'transition',
+    motionRelationshipScope: 'self',
+    motionPreviewMode: 'idle',
+    motionTimelineEnabled: false,
+    motionTimelineSteps: [],
+    motionGroupStrategy: 'none',
+    motionGroupOrigin: 'first',
+    motionGroupInterval: 0.05,
+    motionGroupScope: 'self',
+    motionScrollEnabled: false,
+    motionScrollMode: 'enter',
+    motionScrollStart: 0,
+    motionScrollEnd: 100,
+    motionScrollReplay: false,
+    motionScrollParallax: 0,
 };
 
 export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | undefined): ComponentStyleConfig {
@@ -787,6 +929,15 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
         ...DEFAULT_STYLE,
         ...(style ?? {}),
     };
+    const normalizedTabsCount = Math.max(2, Math.min(6, Number.isFinite(merged.tabsCount) ? merged.tabsCount : DEFAULT_STYLE.tabsCount));
+    const normalizedAccordionCount = Math.max(1, Math.min(8, Number.isFinite(merged.accordionItemCount) ? merged.accordionItemCount : DEFAULT_STYLE.accordionItemCount));
+    const normalizedNavCount = Math.max(2, Math.min(5, Number.isFinite(merged.navMenuItemCount) ? merged.navMenuItemCount : DEFAULT_STYLE.navMenuItemCount));
+    merged.tabsItems = normalizeStudioTextItems(merged.tabsItems, DEFAULT_TABS_ITEMS, normalizedTabsCount);
+    merged.tabsCount = merged.tabsItems.length;
+    merged.accordionItems = normalizeStudioAccordionItems(merged.accordionItems, normalizedAccordionCount);
+    merged.accordionItemCount = merged.accordionItems.length;
+    merged.navMenuItems = normalizeStudioTextItems(merged.navMenuItems, DEFAULT_NAV_MENU_ITEMS, normalizedNavCount);
+    merged.navMenuItemCount = merged.navMenuItems.length;
     if (style) {
         if (style.cardToggleText === undefined && style.cardShowToggle) {
             merged.cardToggleText = 'Enable feature';
@@ -880,6 +1031,7 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
     merged.effectAnimatedBorderColorCount = Math.max(2, Math.min(5, Math.round(merged.effectAnimatedBorderColorCount)));
     merged.sliderThumbHoverScale = Math.max(0.8, Math.min(1.6, merged.sliderThumbHoverScale));
     merged.sliderBarScale = Math.max(0.8, Math.min(1.6, merged.sliderBarScale));
+    Object.assign(merged, normalizeMotionSchemaFields(style, merged));
     return merged;
 }
 

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent as ReactDragEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, ChevronDown, ChevronUp, Minus, SlidersHorizontal, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, GripVertical, Minus, SlidersHorizontal, X } from 'lucide-react';
 import {
     Config,
     Delete,
@@ -40,8 +40,13 @@ import type {
     IconLibrary,
     IconOptionId,
     CardFeatureItem,
+    StudioAccordionItem,
+    StudioTextItem,
 } from '@/components/ui/ui-studio.types';
 import {
+    DEFAULT_ACCORDION_ITEMS,
+    DEFAULT_NAV_MENU_ITEMS,
+    DEFAULT_TABS_ITEMS,
     GOOGLE_FONTS,
     ICON_LIBRARY_OPTIONS,
     LUCIDE_ICON_OPTIONS,
@@ -265,6 +270,181 @@ function CardTypographyControls({
     );
 }
 
+function buildStudioItemId(prefix: string) {
+    return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) {
+        return items;
+    }
+    const next = [...items];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    return next;
+}
+
+type SortableItemEditorProps<T extends { id: string }> = {
+    items: T[];
+    minItems: number;
+    maxItems: number;
+    helperText?: string;
+    addLabel: string;
+    onChange: (items: T[]) => void;
+    createItem: (index: number) => T;
+    renderFields: (item: T, index: number, updateItem: (updates: Partial<T>) => void) => ReactNode;
+};
+
+function SortableItemEditor<T extends { id: string }>({
+    items,
+    minItems,
+    maxItems,
+    helperText,
+    addLabel,
+    onChange,
+    createItem,
+    renderFields,
+}: SortableItemEditorProps<T>) {
+    const [draggedId, setDraggedId] = useState<string | null>(null);
+    const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+    const reorderById = (fromId: string, toId: string) => {
+        const fromIndex = items.findIndex((item) => item.id === fromId);
+        const toIndex = items.findIndex((item) => item.id === toId);
+        if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+        onChange(moveItem(items, fromIndex, toIndex));
+    };
+
+    const updateItem = (id: string, updates: Partial<T>) => {
+        onChange(items.map((item) => (item.id === id ? { ...item, ...updates } : item)));
+    };
+
+    const moveByOffset = (id: string, offset: number) => {
+        const currentIndex = items.findIndex((item) => item.id === id);
+        if (currentIndex === -1) return;
+        const nextIndex = Math.min(items.length - 1, Math.max(0, currentIndex + offset));
+        if (currentIndex === nextIndex) return;
+        onChange(moveItem(items, currentIndex, nextIndex));
+    };
+
+    const removeItem = (id: string) => {
+        if (items.length <= minItems) return;
+        onChange(items.filter((item) => item.id !== id));
+    };
+
+    const addItem = () => {
+        if (items.length >= maxItems) return;
+        onChange([...items, createItem(items.length)]);
+    };
+
+    const handleDragStart = (event: ReactDragEvent<HTMLButtonElement>, id: string) => {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', id);
+        setDraggedId(id);
+        setDragOverId(id);
+    };
+
+    const handleDrop = (event: ReactDragEvent<HTMLDivElement>, targetId: string) => {
+        event.preventDefault();
+        const sourceId = draggedId ?? event.dataTransfer.getData('text/plain');
+        if (sourceId) {
+            reorderById(sourceId, targetId);
+        }
+        setDraggedId(null);
+        setDragOverId(null);
+    };
+
+    return (
+        <div className="space-y-2">
+            {helperText ? <p className="text-[11px] text-[var(--inspector-muted-text)]">{helperText}</p> : null}
+            {items.map((item, index) => {
+                const canMoveUp = index > 0;
+                const canMoveDown = index < items.length - 1;
+                const canRemove = items.length > minItems;
+                const isDropTarget = dragOverId === item.id && draggedId !== item.id;
+                return (
+                    <div
+                        key={item.id}
+                        className={cn(
+                            'rounded-lg border border-white/8 bg-white/[0.02] p-2 transition-colors',
+                            isDropTarget && 'border-[#63e8da]/40 bg-[#63e8da]/8',
+                        )}
+                        onDragOver={(event) => {
+                            event.preventDefault();
+                            if (dragOverId !== item.id) {
+                                setDragOverId(item.id);
+                            }
+                        }}
+                        onDrop={(event) => handleDrop(event, item.id)}
+                    >
+                        <div className="flex items-start gap-2">
+                            <button
+                                type="button"
+                                draggable
+                                onDragStart={(event) => handleDragStart(event, item.id)}
+                                onDragEnd={() => {
+                                    setDraggedId(null);
+                                    setDragOverId(null);
+                                }}
+                                className="mt-0.5 inline-flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-md border border-white/8 bg-white/[0.04] text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] active:cursor-grabbing"
+                                aria-label={`Reorder item ${index + 1}`}
+                            >
+                                <GripVertical className="size-4" />
+                            </button>
+                            <div className="min-w-0 flex-1 space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--inspector-muted-text)]">
+                                        Item {index + 1}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => moveByOffset(item.id, -1)}
+                                            disabled={!canMoveUp}
+                                            className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/8 text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:cursor-not-allowed disabled:opacity-35"
+                                            aria-label={`Move item ${index + 1} up`}
+                                        >
+                                            <ChevronUp className="size-3.5" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => moveByOffset(item.id, 1)}
+                                            disabled={!canMoveDown}
+                                            className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/8 text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:cursor-not-allowed disabled:opacity-35"
+                                            aria-label={`Move item ${index + 1} down`}
+                                        >
+                                            <ChevronDown className="size-3.5" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeItem(item.id)}
+                                            disabled={!canRemove}
+                                            className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/8 text-[var(--inspector-muted-text)] transition hover:text-[var(--inspector-text)] disabled:cursor-not-allowed disabled:opacity-35"
+                                            aria-label={`Remove item ${index + 1}`}
+                                        >
+                                            <X className="size-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                                {renderFields(item, index, (updates) => updateItem(item.id, updates))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+            <button
+                type="button"
+                onClick={addItem}
+                disabled={items.length >= maxItems}
+                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-white/10 px-2 text-[11px] font-medium text-[var(--inspector-muted-text)] transition hover:border-white/20 hover:text-[var(--inspector-text)] disabled:cursor-not-allowed disabled:opacity-35"
+            >
+                <Plus className="size-3.5" />
+                {addLabel}
+            </button>
+        </div>
+    );
+}
+
 export function InspectorPanel() {
     const selectedInstance = useStudioStore(selectSelectedInstance);
     const selectedStyle = useStudioStore(selectSelectedStyle);
@@ -358,6 +538,50 @@ export function InspectorPanel() {
         }
 
         updateSelectedStyles(nextUpdates);
+    };
+
+    const resizeTextItems = (
+        items: StudioTextItem[],
+        nextCount: number,
+        defaults: StudioTextItem[],
+        prefix: string,
+    ): StudioTextItem[] => Array.from({ length: nextCount }, (_, index) => {
+        const existing = items[index];
+        if (existing) {
+            return existing;
+        }
+        const fallback = defaults[index];
+        return {
+            id: buildStudioItemId(prefix),
+            label: fallback?.label ?? `Item ${index + 1}`,
+        };
+    });
+
+    const resizeAccordionItems = (items: StudioAccordionItem[], nextCount: number): StudioAccordionItem[] =>
+        Array.from({ length: nextCount }, (_, index) => {
+            const existing = items[index];
+            if (existing) {
+                return existing;
+            }
+            const fallback = DEFAULT_ACCORDION_ITEMS[index];
+            return {
+                id: buildStudioItemId('accordion'),
+                title: fallback?.title ?? `Section ${index + 1}`,
+                subtitle: fallback?.subtitle ?? `Section ${index + 1} subtitle`,
+                content: fallback?.content ?? `Content for section ${index + 1}.`,
+            };
+        });
+
+    const updateTabsItems = (items: StudioTextItem[]) => {
+        updateSelectedStyles({ tabsItems: items, tabsCount: items.length });
+    };
+
+    const updateNavMenuItems = (items: StudioTextItem[]) => {
+        updateSelectedStyles({ navMenuItems: items, navMenuItemCount: items.length });
+    };
+
+    const updateAccordionItems = (items: StudioAccordionItem[]) => {
+        updateSelectedStyles({ accordionItems: items, accordionItemCount: items.length });
     };
 
     useEffect(() => {
@@ -1333,11 +1557,43 @@ export function InspectorPanel() {
                                             ))}
                                         </div>
                                     </FlatField>
-                                    <FlatUnitField label="Items" value={selectedStyle.navMenuItemCount} min={2} max={5} unit="" onChange={(value) => updateSelectedStyle('navMenuItemCount', value)} />
+                                    <FlatUnitField
+                                        label="Items"
+                                        value={selectedStyle.navMenuItemCount}
+                                        min={2}
+                                        max={5}
+                                        unit=""
+                                        onChange={(value) => updateNavMenuItems(resizeTextItems(selectedStyle.navMenuItems, value, DEFAULT_NAV_MENU_ITEMS, 'nav-item'))}
+                                    />
                                     <div className="space-y-1.5">
                                         <FlatSwitchRow label="Active Indicator" checked={selectedStyle.navMenuActiveIndicator} onCheckedChange={(value) => updateSelectedStyle('navMenuActiveIndicator', value)} />
                                         <FlatSwitchRow label="Show Dropdown" checked={selectedStyle.navMenuShowDropdown} onCheckedChange={(value) => updateSelectedStyle('navMenuShowDropdown', value)} />
                                     </div>
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Items" defaultOpen={false}>
+                                    <SortableItemEditor
+                                        items={selectedStyle.navMenuItems}
+                                        minItems={2}
+                                        maxItems={5}
+                                        helperText="Drag to reorder the navigation labels used in preview and export."
+                                        addLabel="Add nav item"
+                                        onChange={updateNavMenuItems}
+                                        createItem={(index) => ({
+                                            id: buildStudioItemId('nav-item'),
+                                            label: DEFAULT_NAV_MENU_ITEMS[index]?.label ?? `Item ${index + 1}`,
+                                        })}
+                                        renderFields={(item, _index, updateItem) => (
+                                            <FlatField label="Label" stacked>
+                                                <input
+                                                    type="text"
+                                                    value={item.label}
+                                                    onChange={(event) => updateItem({ label: event.target.value })}
+                                                    className={studioInputClass}
+                                                    placeholder="Navigation label"
+                                                />
+                                            </FlatField>
+                                        )}
+                                    />
                                 </FlatElementSubsection>
                                 <FlatElementSubsection title="Colors" defaultOpen={false}>
                                     <FlatColorControl label="Hover Background" value={selectedStyle.navMenuHoverBg} onChange={(value) => updateSelectedStyle('navMenuHoverBg', value)} tokens={activeTokenSet.tokens} />
@@ -1365,7 +1621,14 @@ export function InspectorPanel() {
                                         <FlatSwitchRow label="Collapsible" checked={selectedStyle.accordionCollapsible} onCheckedChange={(value) => updateSelectedStyle('accordionCollapsible', value)} />
                                         <FlatSwitchRow label="Allow Multiple" checked={selectedStyle.accordionAllowMultiple} onCheckedChange={(value) => updateSelectedStyle('accordionAllowMultiple', value)} />
                                     </div>
-                                    <FlatUnitField label="Items" value={selectedStyle.accordionItemCount} min={1} max={8} unit="" onChange={(value) => updateSelectedStyle('accordionItemCount', value)} />
+                                    <FlatUnitField
+                                        label="Items"
+                                        value={selectedStyle.accordionItemCount}
+                                        min={1}
+                                        max={8}
+                                        unit=""
+                                        onChange={(value) => updateAccordionItems(resizeAccordionItems(selectedStyle.accordionItems, value))}
+                                    />
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatUnitField label="Padding (H)" value={selectedStyle.accordionPaddingH} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingH', value)} />
                                         <FlatUnitField label="Padding (W)" value={selectedStyle.accordionPaddingW} min={0} max={48} unit="px" onChange={(value) => updateSelectedStyle('accordionPaddingW', value)} />
@@ -1380,6 +1643,52 @@ export function InspectorPanel() {
                                             </div>
                                         )}
                                     </div>
+                                </FlatElementSubsection>
+                                <FlatElementSubsection title="Items" defaultOpen={false}>
+                                    <SortableItemEditor
+                                        items={selectedStyle.accordionItems}
+                                        minItems={1}
+                                        maxItems={8}
+                                        helperText="Reorder the accordion sections and adjust the copy each item uses in preview and export."
+                                        addLabel="Add accordion item"
+                                        onChange={updateAccordionItems}
+                                        createItem={(index) => ({
+                                            id: buildStudioItemId('accordion'),
+                                            title: DEFAULT_ACCORDION_ITEMS[index]?.title ?? `Section ${index + 1}`,
+                                            subtitle: DEFAULT_ACCORDION_ITEMS[index]?.subtitle ?? `Section ${index + 1} subtitle`,
+                                            content: DEFAULT_ACCORDION_ITEMS[index]?.content ?? `Content for section ${index + 1}.`,
+                                        })}
+                                        renderFields={(item, _index, updateItem) => (
+                                            <div className="space-y-2">
+                                                <FlatField label="Title" stacked>
+                                                    <input
+                                                        type="text"
+                                                        value={item.title}
+                                                        onChange={(event) => updateItem({ title: event.target.value })}
+                                                        className={studioInputClass}
+                                                        placeholder="Section title"
+                                                    />
+                                                </FlatField>
+                                                <FlatField label="Subtitle" stacked>
+                                                    <input
+                                                        type="text"
+                                                        value={item.subtitle}
+                                                        onChange={(event) => updateItem({ subtitle: event.target.value })}
+                                                        className={studioInputClass}
+                                                        placeholder="Section subtitle"
+                                                    />
+                                                </FlatField>
+                                                <FlatField label="Body" stacked>
+                                                    <textarea
+                                                        value={item.content}
+                                                        onChange={(event) => updateItem({ content: event.target.value })}
+                                                        className={cn(studioInputClass, 'min-h-[72px] resize-y py-2')}
+                                                        placeholder="Section content"
+                                                    />
+                                                </FlatField>
+                                            </div>
+                                        )}
+                                    />
                                 </FlatElementSubsection>
                                 <FlatElementSubsection title="Icons" defaultOpen={false}>
                                     <FlatSwitchRow label="Show Icons" checked={selectedStyle.accordionShowIcons} onCheckedChange={(value) => updateSelectedStyle('accordionShowIcons', value)} />
@@ -2001,7 +2310,14 @@ export function InspectorPanel() {
                                         </div>
                                     </FlatField>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        <FlatUnitField label="Tab Count" value={selectedStyle.tabsCount} min={2} max={6} unit="" onChange={(value) => updateSelectedStyle('tabsCount', value)} />
+                                        <FlatUnitField
+                                            label="Tab Count"
+                                            value={selectedStyle.tabsCount}
+                                            min={2}
+                                            max={6}
+                                            unit=""
+                                            onChange={(value) => updateTabsItems(resizeTextItems(selectedStyle.tabsItems, value, DEFAULT_TABS_ITEMS, 'tab-item'))}
+                                        />
                                         <FlatSwitchRow label="Full Width" checked={selectedStyle.tabsFullWidth} onCheckedChange={(value) => updateSelectedStyle('tabsFullWidth', value)} />
                                         <FlatUnitField label="Font Size" value={selectedStyle.tabsListFontSize} min={10} max={20} unit="px" onChange={(value) => updateSelectedStyle('tabsListFontSize', value)} />
                                         <FlatField label="Weight">
@@ -2012,6 +2328,32 @@ export function InspectorPanel() {
                                             </FlatSelect>
                                         </FlatField>
                                     </div>
+                                </FlatElementSubsection>
+
+                                <FlatElementSubsection title="Tab Labels" defaultOpen={false}>
+                                    <SortableItemEditor
+                                        items={selectedStyle.tabsItems}
+                                        minItems={2}
+                                        maxItems={6}
+                                        helperText="Drag to reorder the tabs and rename each label used in preview and export."
+                                        addLabel="Add tab"
+                                        onChange={updateTabsItems}
+                                        createItem={(index) => ({
+                                            id: buildStudioItemId('tab-item'),
+                                            label: DEFAULT_TABS_ITEMS[index]?.label ?? `Tab ${index + 1}`,
+                                        })}
+                                        renderFields={(item, _index, updateItem) => (
+                                            <FlatField label="Label" stacked>
+                                                <input
+                                                    type="text"
+                                                    value={item.label}
+                                                    onChange={(event) => updateItem({ label: event.target.value })}
+                                                    className={studioInputClass}
+                                                    placeholder="Tab label"
+                                                />
+                                            </FlatField>
+                                        )}
+                                    />
                                 </FlatElementSubsection>
 
                                 <FlatElementSubsection title="Colors" defaultOpen={false}>

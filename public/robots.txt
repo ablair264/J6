@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /build/
+
+Sitemap: https://j6-ui.netlify.app/sitemap.xml
