@@ -596,16 +596,13 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     neumorphicInset: false,
     neumorphicDarkOpacity: 42,
     neumorphicLightOpacity: 30,
-    tooltipBodyMotionPresetId: 'fade-in',
-    tooltipTextMotionPresetId: 'fade-in',
-    dialogBodyMotionPresetId: 'fade-scale',
-    dialogTextMotionPresetId: 'fade-in',
-    popoverBodyMotionPresetId: 'fade-scale',
-    popoverTextMotionPresetId: 'fade-in',
+    tooltipMotionPresetId: 'fade-in',
+    dialogMotionPresetId: 'fade-scale',
+    popoverMotionPresetId: 'fade-scale',
     popoverSide: 'bottom',
     popoverAlign: 'center',
     popoverContentVariant: 'default',
-    dropdownBodyMotionPresetId: 'dropdown-down',
+    dropdownMotionPresetId: 'dropdown-down',
     dropdownOptionHoverEnabled: true,
     dropdownOptionHoverScale: 102,
     dropdownOptionHoverY: -1,
@@ -613,7 +610,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     dropdownOptionTapScale: 98,
     dropdownOptionTapY: 0,
     inputAutocompleteEnabled: false,
-    inputAutocompleteBodyMotionPresetId: 'dropdown-down',
+    inputAutocompleteMotionPresetId: 'dropdown-down',
     tabsVariant: 'default',
     tabsCount: 3,
     tabsItems: DEFAULT_TABS_ITEMS.slice(0, 3).map((item) => ({ ...item })),
@@ -623,8 +620,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     tabsActiveTextColor: '',
     tabsInactiveTextColor: '',
     tabsUnderlineMotionEnabled: true,
-    tabsBodyMotionPresetId: 'fade-in',
-    tabsTextMotionPresetId: 'fade-in',
+    tabsMotionPresetId: 'fade-in',
     tabsFullWidth: false,
     tabsShowIcons: false,
     tabsIconPosition: 'left',
@@ -757,7 +753,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     drawerSide: 'right',
     drawerWidth: 320,
     drawerOverlayBlur: 2,
-    drawerBodyMotionPresetId: 'sheet-content',
+    drawerMotionPresetId: 'sheet-content',
     navMenuOrientation: 'horizontal',
     navMenuActiveIndicator: true,
     navMenuItemCount: 4,
@@ -948,16 +944,12 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     motionStaggerEnabled: false,
     motionStaggerDelay: 0.05,
     motionStaggerDirection: 'forward',
-    motionAuthoringMode: 'simple',
-    motionCategory: 'transition',
-    motionRelationshipScope: 'self',
+    motionHoverTransitionOverride: false,
+    motionTapTransitionOverride: false,
     motionPreviewMode: 'idle',
-    motionTimelineEnabled: false,
-    motionTimelineSteps: [],
     motionGroupStrategy: 'none',
     motionGroupOrigin: 'first',
     motionGroupInterval: 0.05,
-    motionGroupScope: 'self',
     motionScrollEnabled: false,
     motionScrollMode: 'enter',
     motionScrollStart: 0,
@@ -983,51 +975,93 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
     merged.avatarGroupCount = merged.avatarGroupItems.length;
     merged.navMenuItems = normalizeStudioTextItems(merged.navMenuItems, DEFAULT_NAV_MENU_ITEMS, normalizedNavCount);
     merged.navMenuItemCount = merged.navMenuItems.length;
+
+    // ─── Migration: timeline steps → flat fields ─────────────────────
+    const rawSteps = (style as any)?.motionTimelineSteps as any[] | undefined;
+    if (rawSteps?.length) {
+        for (const step of rawSteps) {
+            if (!step?.trigger) continue;
+            if (step.trigger === 'entry' && step.to) {
+                if (step.to.opacity !== undefined) merged.motionAnimateOpacity = step.to.opacity * 100;
+                if (step.from?.opacity !== undefined) merged.motionInitialOpacity = step.from.opacity * 100;
+                if (step.from?.x !== undefined) merged.motionInitialX = step.from.x;
+                if (step.from?.y !== undefined) merged.motionInitialY = step.from.y;
+                if (step.duration !== undefined) merged.motionDuration = step.duration;
+                if (step.delay !== undefined) merged.motionDelay = step.delay;
+                if (step.transitionType) merged.motionTransitionType = step.transitionType;
+                if (step.ease) merged.motionEase = step.ease;
+                merged.motionEntryEnabled = true;
+            }
+            if (step.trigger === 'hover' && step.to) {
+                if (step.to.scale !== undefined) merged.motionHoverScale = step.to.scale * 100;
+                if (step.to.x !== undefined) merged.motionHoverX = step.to.x;
+                if (step.to.y !== undefined) merged.motionHoverY = step.to.y;
+                if (step.to.rotate !== undefined) merged.motionHoverRotate = step.to.rotate;
+                if (step.to.opacity !== undefined) merged.motionHoverOpacity = step.to.opacity * 100;
+                if (step.duration !== undefined) merged.motionHoverDuration = step.duration;
+                if (step.transitionType) merged.motionHoverTransitionType = step.transitionType;
+                if (step.ease) merged.motionHoverEase = step.ease;
+                merged.motionHoverEnabled = true;
+            }
+            if (step.trigger === 'tap' && step.to) {
+                if (step.to.scale !== undefined) merged.motionTapScale = step.to.scale * 100;
+                if (step.to.x !== undefined) merged.motionTapX = step.to.x;
+                if (step.to.y !== undefined) merged.motionTapY = step.to.y;
+                if (step.to.rotate !== undefined) merged.motionTapRotate = step.to.rotate;
+                if (step.to.opacity !== undefined) merged.motionTapOpacity = step.to.opacity * 100;
+                if (step.duration !== undefined) merged.motionTapDuration = step.duration;
+                if (step.transitionType) merged.motionTapTransitionType = step.transitionType;
+                if (step.ease) merged.motionTapEase = step.ease;
+                merged.motionTapEnabled = true;
+            }
+        }
+    }
+
+    // ─── Migration: detect per-trigger transition overrides ──────────
+    if (style) {
+        const hasHoverOverride =
+            (style.motionHoverTransitionType !== undefined && style.motionHoverTransitionType !== merged.motionTransitionType) ||
+            (style.motionHoverEase !== undefined && style.motionHoverEase !== merged.motionEase) ||
+            (style.motionHoverDuration !== undefined && style.motionHoverDuration !== merged.motionDuration);
+        if (hasHoverOverride) {
+            merged.motionHoverTransitionOverride = true;
+        }
+        const hasTapOverride =
+            (style.motionTapTransitionType !== undefined && style.motionTapTransitionType !== merged.motionTransitionType) ||
+            (style.motionTapEase !== undefined && style.motionTapEase !== merged.motionEase) ||
+            (style.motionTapDuration !== undefined && style.motionTapDuration !== merged.motionDuration);
+        if (hasTapOverride) {
+            merged.motionTapTransitionOverride = true;
+        }
+    }
+
+    // ─── Migration: overlay preset consolidation ─────────────────────
+    const raw = style as any;
+    if (raw?.tooltipBodyMotionPresetId && !style?.tooltipMotionPresetId) {
+        merged.tooltipMotionPresetId = raw.tooltipBodyMotionPresetId;
+    }
+    if (raw?.dialogBodyMotionPresetId && !style?.dialogMotionPresetId) {
+        merged.dialogMotionPresetId = raw.dialogBodyMotionPresetId;
+    }
+    if (raw?.popoverBodyMotionPresetId && !style?.popoverMotionPresetId) {
+        merged.popoverMotionPresetId = raw.popoverBodyMotionPresetId;
+    }
+    if (raw?.dropdownBodyMotionPresetId && !style?.dropdownMotionPresetId) {
+        merged.dropdownMotionPresetId = raw.dropdownBodyMotionPresetId;
+    }
+    if (raw?.drawerBodyMotionPresetId && !style?.drawerMotionPresetId) {
+        merged.drawerMotionPresetId = raw.drawerBodyMotionPresetId;
+    }
+    if (raw?.inputAutocompleteBodyMotionPresetId && !style?.inputAutocompleteMotionPresetId) {
+        merged.inputAutocompleteMotionPresetId = raw.inputAutocompleteBodyMotionPresetId;
+    }
+    if (raw?.tabsBodyMotionPresetId && !style?.tabsMotionPresetId) {
+        merged.tabsMotionPresetId = raw.tabsBodyMotionPresetId;
+    }
+
     if (style) {
         if (style.cardToggleText === undefined && style.cardShowToggle) {
             merged.cardToggleText = 'Enable feature';
-        }
-        if (style.motionHoverTransitionType === undefined) {
-            merged.motionHoverTransitionType = merged.motionTransitionType;
-        }
-        if (style.motionHoverEase === undefined) {
-            merged.motionHoverEase = merged.motionEase;
-        }
-        if (style.motionHoverDuration === undefined) {
-            merged.motionHoverDuration = merged.motionDuration;
-        }
-        if (style.motionHoverDelay === undefined) {
-            merged.motionHoverDelay = merged.motionDelay;
-        }
-        if (style.motionHoverStiffness === undefined) {
-            merged.motionHoverStiffness = merged.motionStiffness;
-        }
-        if (style.motionHoverDamping === undefined) {
-            merged.motionHoverDamping = merged.motionDamping;
-        }
-        if (style.motionHoverMass === undefined) {
-            merged.motionHoverMass = merged.motionMass;
-        }
-        if (style.motionTapTransitionType === undefined) {
-            merged.motionTapTransitionType = merged.motionTransitionType;
-        }
-        if (style.motionTapEase === undefined) {
-            merged.motionTapEase = merged.motionEase;
-        }
-        if (style.motionTapDuration === undefined) {
-            merged.motionTapDuration = merged.motionDuration;
-        }
-        if (style.motionTapDelay === undefined) {
-            merged.motionTapDelay = merged.motionDelay;
-        }
-        if (style.motionTapStiffness === undefined) {
-            merged.motionTapStiffness = merged.motionStiffness;
-        }
-        if (style.motionTapDamping === undefined) {
-            merged.motionTapDamping = merged.motionDamping;
-        }
-        if (style.motionTapMass === undefined) {
-            merged.motionTapMass = merged.motionMass;
         }
         if (style.motionHoverEnabled === undefined) {
             merged.motionHoverEnabled = merged.motionComponentEnabled;
