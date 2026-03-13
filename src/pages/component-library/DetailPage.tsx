@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { getBuilderRegistryComponent } from '@/registry/components';
+import { getLibraryRegistryComponent } from '@/registry/components';
 import { generatedProps } from '@/registry/generated-props';
 import { ComponentPreview } from '@/components/docs/ComponentPreview';
 import { PropsTable } from './PropsTable';
@@ -38,7 +38,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 export function DetailPage({ slug, examples }: DetailPageProps) {
     const navigate = useNavigate();
-    const component = getBuilderRegistryComponent(slug);
+    const component = getLibraryRegistryComponent(slug);
     const props = generatedProps[slug] ?? [];
 
     if (!component) {
@@ -100,7 +100,12 @@ export function DetailPage({ slug, examples }: DetailPageProps) {
             {/* Default preview */}
             {defaultExample && (
                 <div className="mb-12">
-                    <ComponentPreview code={defaultExample.code}>
+                    <ComponentPreview
+                        code={defaultExample.code}
+                        className={defaultExample.frameClassName}
+                        previewClassName={defaultExample.previewClassName}
+                        previewStyle={defaultExample.previewStyle}
+                    >
                         {defaultExample.preview}
                     </ComponentPreview>
                 </div>
@@ -165,7 +170,12 @@ function ExampleItem({ example }: { example: LibraryExample }) {
             <p className="text-[13px] font-medium mb-2" style={{ color: T.textSec }}>
                 {example.title}
             </p>
-            <ComponentPreview code={example.code}>
+            <ComponentPreview
+                code={example.code}
+                className={example.frameClassName}
+                previewClassName={example.previewClassName}
+                previewStyle={example.previewStyle}
+            >
                 {example.preview}
             </ComponentPreview>
         </div>

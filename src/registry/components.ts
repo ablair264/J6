@@ -496,6 +496,21 @@ export const BUILDER_REGISTRY: RegistryComponent[] = REGISTRY.filter((component)
   BUILDER_SUPPORTED_REGISTRY_NAMES.has(component.name),
 );
 
+const LIBRARY_ONLY_REGISTRY_NAMES = new Set([
+  'area-chart-card',
+  'bar-chart-card',
+  'line-chart-card',
+  'metric-card',
+  'radial-chart-card',
+  'rounded-pie-chart-card',
+  'dotted-multi-line-chart-card',
+  'compact-sm-variants',
+]);
+
+export const LIBRARY_REGISTRY: RegistryComponent[] = REGISTRY.filter((component) =>
+  BUILDER_SUPPORTED_REGISTRY_NAMES.has(component.name) || LIBRARY_ONLY_REGISTRY_NAMES.has(component.name),
+);
+
 // ---------------------------------------------------------------------------
 // Helper functions
 // ---------------------------------------------------------------------------
@@ -506,6 +521,10 @@ export function getRegistryComponent(name: string): RegistryComponent | undefine
 
 export function getBuilderRegistryComponent(name: string): RegistryComponent | undefined {
   return BUILDER_REGISTRY.find((c) => c.name === name);
+}
+
+export function getLibraryRegistryComponent(name: string): RegistryComponent | undefined {
+  return LIBRARY_REGISTRY.find((c) => c.name === name);
 }
 
 export function getComponentSources(name: string): Record<string, string> | undefined {

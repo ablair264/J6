@@ -118,7 +118,6 @@ export function StatefulButton({
     return (
         <motion.button
             layout
-            layoutId="stage-button"
             disabled={disabled || isRunning}
             data-state={currentState}
             className={cn(

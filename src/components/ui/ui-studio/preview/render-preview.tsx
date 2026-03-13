@@ -728,8 +728,9 @@ function AccordionPreviewSurface({
     });
 
     const staggeredItems = renderStaggeredChildren(accordionItems, instance.style);
+    const accordionMaxWidth = instance.style.customWidth > 0 ? `${instance.style.customWidth}px` : '720px';
     return renderWithMotionControls(
-        <div className="w-full max-w-md" style={buildComponentWrapperStyle(style, 'accordion')}>
+        <div className="w-full" style={{ ...buildComponentWrapperStyle(style, 'accordion'), maxWidth: accordionMaxWidth }}>
             <Accordion
                 {...accordionProps}
                 dividerColor={instance.style.accordionDividerColor || undefined}
@@ -1104,7 +1105,7 @@ export function componentSnippet(
         }
         case 'dialog': {
             const dialogDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
-            return `${dialogDeclarations ? `${dialogDeclarations}\n\n` : ''}<DialogTrigger defaultOpen={${String(instance.style.dialogDefaultOpen)}}>\n  <Button intent="primary"${buttonClassNameSnippet}${previewStyleSnippet}>Open dialog</Button>\n  <ModalOverlay isDismissable={${String(!instance.style.dialogModal)}}>\n    <Modal>\n      <Dialog${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</Dialog>\n    </Modal>\n  </ModalOverlay>\n</DialogTrigger>`;
+            return `${dialogDeclarations ? `${dialogDeclarations}\n\n` : ''}<DialogTrigger defaultOpen={${String(instance.style.dialogDefaultOpen)}}>\n  <Button variant="default"${buttonClassNameSnippet}${previewStyleSnippet}>Open dialog</Button>\n  <ModalOverlay isDismissable={${String(!instance.style.dialogModal)}}>\n    <Modal>\n      <Dialog${buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>...</Dialog>\n    </Modal>\n  </ModalOverlay>\n</DialogTrigger>`;
         }
         case 'dropdown': {
             const dropdownDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations, `const dropdownPositionStyle = ${dropdownPositionStyleCode};`]

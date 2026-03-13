@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { BUILDER_REGISTRY } from '@/registry/components';
+import { LIBRARY_REGISTRY } from '@/registry/components';
 import { EXAMPLES } from './component-library/examples';
 import { DetailPage } from './component-library/DetailPage';
 
@@ -63,13 +63,13 @@ interface SidebarProps {
 function Sidebar({ activeSlug, onNavigate }: SidebarProps) {
     const [search, setSearch] = useState('');
 
-    const filtered = BUILDER_REGISTRY.filter((c) =>
+    const filtered = LIBRARY_REGISTRY.filter((c) =>
         c.label.toLowerCase().includes(search.toLowerCase()) ||
         c.name.toLowerCase().includes(search.toLowerCase())
     );
 
     // Group by category
-    const grouped = CATEGORY_ORDER.reduce<Record<string, typeof BUILDER_REGISTRY>>((acc, cat) => {
+    const grouped = CATEGORY_ORDER.reduce<Record<string, typeof LIBRARY_REGISTRY>>((acc, cat) => {
         const items = filtered.filter((c) => c.category === cat);
         if (items.length > 0) acc[cat] = items;
         return acc;
@@ -180,7 +180,7 @@ function IndexGrid({ onNavigate }: { onNavigate: (slug: string) => void }) {
             </div>
 
             {CATEGORY_ORDER.map((cat) => {
-                const items = BUILDER_REGISTRY.filter((c) => c.category === cat);
+                const items = LIBRARY_REGISTRY.filter((c) => c.category === cat);
                 if (items.length === 0) return null;
                 return (
                     <div key={cat} className="mb-10">

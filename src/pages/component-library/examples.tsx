@@ -1,29 +1,27 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Variation component imports
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-import { AccordionDarkAmber, AccordionLightSpaced, AccordionEntryBlurFade, AccordionMultipleOpen } from './examples/accordion-variations';
 import { AlertInfo, AlertSuccess, AlertWarningDismissible, AlertError, AlertEntryBlurFade, AlertEntryScaleUp } from './examples/alert-variations';
-import { AnimatedTextTypewriter, AnimatedTextBlurIn, AnimatedTextSplitEntrance, AnimatedTextGradientSweep, AnimatedTextShiny, AnimatedTextDecrypt, AnimatedTextCountingNumber, AnimatedTextWordRotate, AnimatedTextBounce } from './examples/animated-text-variations';
-import { AvatarProfileCardGroup, AvatarProfileCardViolet } from './examples/avatar-variations';
 import { BadgeSolidDestructive, BadgeOutline, BadgePillSky, BadgeGrainBell, BadgeGrainPlain, BadgeGrainIconOnly, BadgeStatusSuccess, BadgeStatusWarning, BadgeStatusError, BadgeStatusInfo, BadgeEntryBlurFade, BadgeTapSpring } from './examples/badge-variations';
 import { ButtonPrimaryHero, ButtonOutlineHover, ButtonGradientSlide, ButtonAnimatedBorder, ButtonRippleFill, ButtonShineBorder, ButtonPulseRing, ButtonGlass, ButtonBorderBeam, ButtonBorderBeamCompact, ButtonDarkMinimal, ButtonDestructive } from './examples/button-variations';
 import { CardDefault, CardElevatedAction, CardGlass, CardHoverLift, CardEntryScaleUp, CardBorderBeam } from './examples/card-variations';
-import { CheckboxDefault, CheckboxWithDescription, CheckboxGroup, CheckboxDisabled } from './examples/checkbox-variations';
 import { DataTableDarkStriped, DataTableAmberCompact, DataTableEntryBlurFade } from './examples/datatable-variations';
-import { DialogTriggerDark, DialogTriggerAmber, DialogTriggerDestructive } from './examples/dialog-variations';
 import { DrawerTriggerRight, DrawerTriggerSettings } from './examples/drawer-variations';
 import { DropdownMenuTriggerDark, DropdownMenuTriggerAmber, DropdownMenuTriggerEffect } from './examples/dropdown-menu-variations';
 import { InputDark, InputLight, InputEntryBlurFade, InputVioletFocus } from './examples/input-variations';
-import { NavigationMenuDarkAmber, NavigationMenuViolet, NavigationMenuVertical } from './examples/navigation-menu-variations';
-import { PopoverTriggerDark, PopoverTriggerAmber, PopoverTriggerVioletGrain } from './examples/popover-variations';
 import { ProgressLinearAmber, ProgressLinearWithLabel, ProgressCircularViolet, ProgressCircularSmall, ProgressEntryBlurFade } from './examples/progress-variations';
 import { SliderDark, SliderRange, SliderEntryBlurFade } from './examples/slider-variations';
-import { StageButtonEmeraldSuccess, StageButtonAmberWarning, StageButtonRoseFailure, StageButtonVioletGrain } from './examples/stagebutton-variations';
 import { SwitchAmber, SwitchEmerald, SwitchVioletSmall, SwitchHoverScale } from './examples/switch-variations';
 import { TabsDefaultDark, TabsLineViolet, TabsPillEmerald, TabsSegmentEntry } from './examples/tabs-variations';
 import { TooltipDefault, TooltipInverse, TooltipNoArrow } from './examples/tooltip-variations';
+import { SYSTEM_TOKEN_SET } from '@/components/ui/token-sets';
+import { DEFAULT_STYLE, normalizeStyleConfig } from '@/components/ui/ui-studio/constants';
+import { buildNamedSnippetForInstance } from '@/components/ui/ui-studio/export/code-generators';
+import { renderPreview } from '@/components/ui/ui-studio/preview/render-preview';
+import type { ComponentInstance, ComponentStyleConfig, UIComponentKind } from '@/components/ui/ui-studio.types';
+import { buildPreviewPresentation, getComponentVisualPreset } from '@/components/ui/ui-studio/utilities';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Chart card imports (kept for inline examples)
@@ -44,6 +42,60 @@ export interface LibraryExample {
     title: string;
     preview: ReactNode;
     code: string;
+    frameClassName?: string;
+    previewClassName?: string;
+    previewStyle?: CSSProperties;
+}
+
+interface BuilderExampleConfig {
+    title: string;
+    kind: UIComponentKind;
+    presetId: string;
+    overrides?: Partial<ComponentStyleConfig>;
+    pinOverlayOpen?: boolean;
+    frameClassName?: string;
+    previewClassName?: string;
+    previewStyle?: CSSProperties;
+}
+
+function buildExampleId(kind: UIComponentKind, presetId: string, title: string): string {
+    return `library-${kind}-${presetId}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
+
+function createBuilderInstance({ kind, presetId, title, overrides }: BuilderExampleConfig): ComponentInstance {
+    const preset = getComponentVisualPreset(kind, presetId);
+    const style = normalizeStyleConfig({
+        ...DEFAULT_STYLE,
+        ...(preset?.values ?? {}),
+        ...(overrides ?? {}),
+        componentPreset: preset?.values.componentPreset ?? presetId,
+    });
+
+    return {
+        id: buildExampleId(kind, presetId, title),
+        kind,
+        name: title,
+        style,
+    };
+}
+
+function createBuilderExample(config: BuilderExampleConfig): LibraryExample {
+    const instance = createBuilderInstance(config);
+    const presentation = buildPreviewPresentation(instance);
+
+    return {
+        title: config.title,
+        preview: renderPreview(
+            instance,
+            presentation.style,
+            presentation.motionClassName,
+            config.pinOverlayOpen ? { pinOverlayOpen: true } : undefined,
+        ),
+        code: buildNamedSnippetForInstance(instance, 'inline', SYSTEM_TOKEN_SET),
+        frameClassName: config.frameClassName,
+        previewClassName: config.previewClassName,
+        previewStyle: config.previewStyle,
+    };
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -87,66 +139,113 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
 
     /* ── Accordion ── */
     accordion: [
-        {
-            title: 'Dark Amber',
-            preview: <AccordionDarkAmber />,
-            code: `<Accordion type="single" collapsible
-  dividerColor="var(--j6-amber-500-light)"
-  className="bg-[var(--j6-neutral-600-dark)] rounded-md"
->
-  <AccordionItem value="item-1">
-    <AccordionTrigger>What is UI Studio?</AccordionTrigger>
-    <AccordionContent>A visual component design tool.</AccordionContent>
-  </AccordionItem>
-</Accordion>`,
-        },
-        {
-            title: 'Light Spaced',
-            preview: <AccordionLightSpaced />,
-            code: `<Accordion type="single" collapsible
-  dividerEnabled={false}
-  spacing={8}
-  className="bg-[var(--j6-neutral-50-light)] rounded-md"
->
-  <AccordionItem value="item-1">
-    <AccordionTrigger>Features</AccordionTrigger>
-    <AccordionContent>Visual preview, live editing, and export.</AccordionContent>
-  </AccordionItem>
-</Accordion>`,
-        },
-        {
-            title: 'Entry Blur Fade',
-            preview: <AccordionEntryBlurFade />,
-            code: `<motion.div
-  initial={{ filter: 'blur(4px)', opacity: 0 }}
-  animate={{ filter: 'blur(0px)', opacity: 1 }}
-  transition={{ duration: 0.55, ease: 'easeInOut' }}
->
-  <Accordion type="single" collapsible dividerColor="#5a5a64">
-    <AccordionItem value="item-1">
-      <AccordionTrigger>Getting started</AccordionTrigger>
-      <AccordionContent>Install via pnpm and start designing.</AccordionContent>
-    </AccordionItem>
-  </Accordion>
-</motion.div>`,
-        },
-        {
+        createBuilderExample({
+            title: 'Knowledge Base',
+            kind: 'accordion',
+            presetId: 'icon-accordion',
+            overrides: {
+                customWidth: 980,
+                fillColor: '#111827',
+                strokeColor: '#475569',
+                strokeOpacity: 56,
+                fontColor: '#f8fafc',
+                accordionTriggerFontSize: 17,
+                accordionTriggerFontWeight: 600,
+                accordionContentFontColor: '#a5b4cc',
+                accordionContentFontSize: 15,
+                accordionItemCount: 3,
+                accordionItems: [
+                    {
+                        id: 'frameworks',
+                        title: 'What frameworks are supported?',
+                        subtitle: 'React, Vite, and Next-ready exports',
+                        content: 'Exported snippets are tuned for modern React apps and keep the styling aligned with the builder controls.',
+                    },
+                    {
+                        id: 'motion-system',
+                        title: 'How does the motion system work?',
+                        subtitle: 'Preset-driven entry, hover, and tap states',
+                        content: 'Motion presets map directly onto builder controls so previews and exported components stay visually consistent.',
+                    },
+                    {
+                        id: 'export-code',
+                        title: 'Can I customize the exported code?',
+                        subtitle: 'Start from the generated component',
+                        content: 'Yes. The library preview uses the same snippet generator as the builder, so what you inspect here is what the app can actually produce.',
+                    },
+                ],
+            },
+            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[340px]',
+        }),
+        createBuilderExample({
+            title: 'Minimal Collapse',
+            kind: 'accordion',
+            presetId: 'collapse-minimal',
+            overrides: {
+                customWidth: 760,
+                fillColor: '#0b1220',
+                fillOpacity: 100,
+                strokeColor: '#1f2937',
+                strokeOpacity: 100,
+                accordionTriggerFontSize: 16,
+                accordionContentFontColor: '#93a4bb',
+                accordionItemCount: 2,
+                accordionItems: [
+                    {
+                        id: 'builder-sync',
+                        title: 'Builder-backed examples',
+                        subtitle: 'Single source of truth',
+                        content: 'The examples on this page are rendered through the builder preview pipeline instead of a separate docs-only implementation.',
+                    },
+                    {
+                        id: 'style-controls',
+                        title: 'Professional defaults',
+                        subtitle: 'Color, type, motion, and spacing tuned together',
+                        content: 'Preset styling is still configurable, but the defaults are set up to read like production-ready component examples rather than placeholders.',
+                    },
+                ],
+            },
+            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[280px]',
+        }),
+        createBuilderExample({
             title: 'Multiple Open',
-            preview: <AccordionMultipleOpen />,
-            code: `<Accordion type="multiple"
-  dividerColor="var(--j6-violet-400)"
-  className="bg-[var(--j6-neutral-700-light)] rounded-md"
->
-  <AccordionItem value="item-1">
-    <AccordionTrigger>Design tokens</AccordionTrigger>
-    <AccordionContent>Primitives, semantics, and showcase themes.</AccordionContent>
-  </AccordionItem>
-  <AccordionItem value="item-2">
-    <AccordionTrigger>Motion system</AccordionTrigger>
-    <AccordionContent>Entry, hover, tap, and exit animations.</AccordionContent>
-  </AccordionItem>
-</Accordion>`,
-        },
+            kind: 'accordion',
+            presetId: 'default',
+            overrides: {
+                customWidth: 920,
+                accordionAllowMultiple: true,
+                accordionDividerColor: '#f59e0b',
+                accordionDividerWeight: 1,
+                fillColor: '#101014',
+                fillOpacity: 100,
+                strokeColor: '#3f3f46',
+                strokeOpacity: 78,
+                fontColor: '#f4f4f5',
+                accordionContentFontColor: '#c4b5fd',
+                accordionItemCount: 3,
+                accordionItems: [
+                    {
+                        id: 'presets',
+                        title: 'Entry and exit presets',
+                        subtitle: 'Preview the builder motion catalog',
+                        content: 'Choose from refined transitions without maintaining a second set of docs-specific motion wrappers.',
+                    },
+                    {
+                        id: 'borders',
+                        title: 'Border and outline effects',
+                        subtitle: 'Stroke treatments that export cleanly',
+                        content: 'The preview keeps border, fill, and radius settings in sync with the exported component code.',
+                    },
+                    {
+                        id: 'interactions',
+                        title: 'Advanced hover interactions',
+                        subtitle: 'Micro-motion without layout drift',
+                        content: 'Hover treatments stay local to the component so the docs page feels stable and the examples read like real product UI.',
+                    },
+                ],
+            },
+            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[320px]',
+        }),
     ],
 
     /* ── Alert ── */
@@ -215,148 +314,168 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
 
     /* ── Animated Text ── */
     'animated-text': [
-        {
-            title: 'Typewriter',
-            preview: <AnimatedTextTypewriter />,
-            code: `<AnimatedText
-  text="Welcome to UI Studio"
-  variant="typewriter"
-  speed={1.2}
-  style={{ color: 'var(--j6-amber-400-light)' }}
-/>`,
-        },
-        {
+        createBuilderExample({
             title: 'Blur In',
-            preview: <AnimatedTextBlurIn />,
-            code: `<AnimatedText
-  text="Design components visually"
-  variant="blur-in"
-  speed={0.3}
-  stagger={0.06}
-  splitBy="word"
-/>`,
-        },
-        {
-            title: 'Split Entrance',
-            preview: <AnimatedTextSplitEntrance />,
-            code: `<AnimatedText
-  text="Preview in real-time"
-  variant="split-entrance"
-  speed={0.3}
-  stagger={0.03}
-  splitBy="char"
-/>`,
-        },
-        {
-            title: 'Gradient Sweep',
-            preview: <AnimatedTextGradientSweep />,
-            code: `<AnimatedText
-  text="Export clean code"
-  variant="gradient-sweep"
-  speed={3}
-  gradientColor1="var(--j6-accent-cyan-light)"
-  gradientColor2="var(--j6-violet-400)"
-/>`,
-        },
-        {
-            title: 'Shiny',
-            preview: <AnimatedTextShiny />,
-            code: `<AnimatedText
-  text="Premium components"
-  variant="shiny-text"
-  speed={2}
-  gradientColor1="var(--j6-amber-500-light)"
-  gradientColor2="rgba(255,255,255,0.9)"
-/>`,
-        },
-        {
+            kind: 'animated-text',
+            presetId: 'default',
+            overrides: { animatedTextContent: 'Design components visually' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Typewriter',
+            kind: 'animated-text',
+            presetId: 'typewriter',
+            overrides: { animatedTextContent: 'Shipping polished UI faster' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
             title: 'Decrypt',
-            preview: <AnimatedTextDecrypt />,
-            code: `<AnimatedText
-  text="SYSTEM ONLINE"
-  variant="decrypt"
-  speed={1}
-  style={{ color: 'var(--j6-accent-emerald-light)', fontFamily: 'JetBrains Mono' }}
-/>`,
-        },
-        {
-            title: 'Counting Number',
-            preview: <AnimatedTextCountingNumber />,
-            code: `<AnimatedText
-  text="1247"
-  variant="counting-number"
-  speed={1.5}
-  className="text-3xl font-bold"
-  style={{ color: 'var(--j6-amber-400-light)' }}
-/>`,
-        },
-        {
+            kind: 'animated-text',
+            presetId: 'decrypt',
+            overrides: { animatedTextContent: 'SYSTEM ONLINE' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Gradient Sweep',
+            kind: 'animated-text',
+            presetId: 'gradient',
+            overrides: { animatedTextContent: 'Builder-backed previews' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Shiny',
+            kind: 'animated-text',
+            presetId: 'shiny',
+            overrides: { animatedTextContent: 'Premium component defaults' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
             title: 'Word Rotate',
-            preview: <AnimatedTextWordRotate />,
-            code: `<AnimatedText
-  text="Design, Preview, Export, Ship"
-  variant="word-rotate"
-  speed={2}
-/>`,
-        },
-        {
+            kind: 'animated-text',
+            presetId: 'word-rotate',
+            overrides: { animatedTextContent: 'Consistent,Precise,Exportable,Interactive' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Fade Up',
+            kind: 'animated-text',
+            presetId: 'fade-up',
+            overrides: { animatedTextContent: 'Motion that reads cleanly' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Letters Pull Up',
+            kind: 'animated-text',
+            presetId: 'letters-pull-up',
+            overrides: { animatedTextContent: 'Professional typography' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
             title: 'Bounce',
-            preview: <AnimatedTextBounce />,
-            code: `<AnimatedText
-  text="Hover me!"
-  variant="bounce"
-  style={{ color: 'var(--j6-violet-400)' }}
-/>`,
-        },
+            kind: 'animated-text',
+            presetId: 'bounce',
+            overrides: { animatedTextContent: 'Interactive feedback' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Bubble',
+            kind: 'animated-text',
+            presetId: 'bubble',
+            overrides: { animatedTextContent: 'Soft emphasis' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Disperse',
+            kind: 'animated-text',
+            presetId: 'disperse',
+            overrides: { animatedTextContent: 'Exit with intention' },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Pattern',
+            kind: 'animated-text',
+            presetId: 'pattern',
+            overrides: { animatedTextContent: 'UI' },
+            previewClassName: 'min-h-[220px]',
+        }),
     ],
 
     /* ── Avatar ── */
     avatar: [
-        {
-            title: 'Profile Card',
-            preview: <AvatarProfileCardViolet />,
-            code: `<div className="flex flex-col items-center gap-9">
-  <div className="w-full rounded-[30px] border border-[#4538cc] bg-[linear-gradient(180deg,#2c1d98_0%,#251784_100%)] px-6 py-6">
-    <div className="flex items-center gap-5">
-      <Avatar customSize={76} radius={999} bgColor="#3424b9" strokeWeight={1} strokeColor="#4b3dd4">
-        <AvatarFallback>JD</AvatarFallback>
-      </Avatar>
-      <div>
-        <p>JD</p>
-        <p>Team Member</p>
-        <div className="mt-4 flex items-center gap-3">{/* Message, Mail, Phone */}</div>
-      </div>
-    </div>
-  </div>
-  <Avatar customSize={116} radius={999} bgColor="#3424b9" strokeWeight={1} strokeColor="#4b3dd4">
-    <AvatarFallback>JD</AvatarFallback>
-  </Avatar>
-</div>`,
-        },
-        {
+        createBuilderExample({
+            title: 'Hover Profile',
+            kind: 'avatar',
+            presetId: 'circle',
+            overrides: {
+                avatarFallbackText: 'JD',
+                avatarCustomSize: 72,
+                avatarBgMode: 'gradient',
+                avatarBgColor: '#3424b9',
+                avatarBgColorTo: '#4338ca',
+                avatarStrokeWeight: 1,
+                avatarStrokeColor: '#4b3dd4',
+                avatarStrokeOpacity: 100,
+                avatarFontSize: 28,
+                avatarFontBold: true,
+                avatarFontColor: '#f8fafc',
+                avatarPopoverEnabled: true,
+                avatarPopoverDelay: 90,
+                avatarPopoverWidth: 360,
+                avatarPopoverPadding: 24,
+                avatarPopoverRadius: 28,
+                avatarPopoverBgMode: 'gradient',
+                avatarPopoverBgColor: '#2c1d98',
+                avatarPopoverBgColorTo: '#251784',
+                avatarPopoverBgOpacity: 100,
+                avatarPopoverStrokeWeight: 1,
+                avatarPopoverStrokeColor: '#4538cc',
+                avatarPopoverStrokeOpacity: 100,
+                avatarPopoverFontColor: '#f8fafc',
+                avatarPopoverFontSize: 16,
+                avatarPopoverIconColor: '#b9b5de',
+            },
+            previewClassName: 'items-start overflow-visible px-8 pt-44 pb-16 min-h-[400px]',
+        }),
+        createBuilderExample({
             title: 'Team Stack',
-            preview: <AvatarProfileCardGroup />,
-            code: `<div className="flex flex-col items-center gap-9">
-  <div className="w-full rounded-[30px] border border-[#3a3a42] bg-[linear-gradient(180deg,#1d1d22_0%,#15161a_100%)] px-6 py-6">
-    <div className="flex items-center gap-5">
-      <Avatar customSize={80} radius={999} bgColor="#f79a3e" strokeWeight={2} strokeColor="#f7c96a">
-        <AvatarFallback>ER</AvatarFallback>
-      </Avatar>
-      <div>
-        <p>Evan Ross</p>
-        <p>Product</p>
-        <div className="mt-4 flex items-center gap-3">{/* Message, Mail, Phone */}</div>
-      </div>
-    </div>
-  </div>
-  <AvatarGroup spacing={-12}>
-    <Avatar customSize={72} radius={999} bgColor="#f79a3e" strokeWeight={2} strokeColor="#f7c96a">
-      <AvatarFallback>CN</AvatarFallback>
-    </Avatar>
-    {/* LR, ER, NH */}
-  </AvatarGroup>
-</div>`,
-        },
+            kind: 'avatar-group',
+            presetId: 'overlap',
+            overrides: {
+                avatarCustomSize: 62,
+                avatarGroupSpacing: -14,
+                avatarBgMode: 'solid',
+                avatarBgColor: '#f79a3e',
+                avatarStrokeWeight: 2,
+                avatarStrokeColor: '#f7c96a',
+                avatarStrokeOpacity: 100,
+                avatarFontSize: 22,
+                avatarFontBold: true,
+                avatarFontColor: '#fff7ed',
+                avatarPopoverEnabled: true,
+                avatarPopoverDelay: 90,
+                avatarPopoverWidth: 360,
+                avatarPopoverPadding: 24,
+                avatarPopoverRadius: 28,
+                avatarPopoverBgMode: 'gradient',
+                avatarPopoverBgColor: '#1d1d22',
+                avatarPopoverBgColorTo: '#15161a',
+                avatarPopoverBgOpacity: 100,
+                avatarPopoverStrokeWeight: 1,
+                avatarPopoverStrokeColor: '#3a3a42',
+                avatarPopoverStrokeOpacity: 100,
+                avatarPopoverFontColor: '#f5f5f5',
+                avatarPopoverFontSize: 16,
+                avatarPopoverIconColor: '#9ca3af',
+                avatarGroupCount: 4,
+                avatarGroupItems: [
+                    { id: 'avatar-casey', name: 'Casey North', initials: 'CN', role: 'Design' },
+                    { id: 'avatar-lara', name: 'Lara Reed', initials: 'LR', role: 'Engineering' },
+                    { id: 'avatar-evan', name: 'Evan Ross', initials: 'ER', role: 'Product' },
+                    { id: 'avatar-nia', name: 'Nia Holt', initials: 'NH', role: 'Marketing' },
+                ],
+            },
+            previewClassName: 'items-start overflow-visible px-8 pt-44 pb-16 min-h-[400px]',
+        }),
     ],
 
     /* ── Badge ── */
@@ -716,61 +835,51 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
 
     /* ── Checkbox ── */
     checkbox: [
-        {
-            title: 'Default',
-            preview: <CheckboxDefault />,
-            code: `<div className="flex items-center gap-3">
-  <Checkbox
-    id="checkbox-default"
-    defaultChecked
-    className="size-5 rounded-[5px] border-[#404045] bg-[#141416]
-      data-[state=checked]:bg-[#f5a623] data-[state=checked]:border-[#f5a623]
-      data-[state=checked]:text-[#1a1a1d]"
-  />
-  <Label htmlFor="checkbox-default">Enable notifications</Label>
-</div>`,
-        },
-        {
-            title: 'With Description',
-            preview: <CheckboxWithDescription />,
-            code: `<div className="flex gap-3">
-  <Checkbox id="checkbox-desc" defaultChecked
-    className="size-5 rounded-[5px] border-[#404045] bg-[#141416]
-      data-[state=checked]:bg-[#10b981] data-[state=checked]:border-[#10b981]
-      data-[state=checked]:text-white mt-0.5" />
-  <div className="flex flex-col gap-1">
-    <Label htmlFor="checkbox-desc">Marketing emails</Label>
-    <span className="text-xs text-muted-foreground">
-      Receive updates about new features and promotions.
-    </span>
-  </div>
-</div>`,
-        },
-        {
-            title: 'Group',
-            preview: <CheckboxGroup />,
-            code: `<div className="flex flex-col gap-3.5">
-  {items.map((item) => (
-    <div key={item.id} className="flex items-center gap-3">
-      <Checkbox id={item.id} defaultChecked={item.checked}
-        className="size-5 rounded-[5px] border-[#404045] bg-[#141416]
-          data-[state=checked]:bg-[#8b5cf6]
-          data-[state=checked]:border-[#8b5cf6]
-          data-[state=checked]:text-white" />
-      <Label htmlFor={item.id}>{item.label}</Label>
-    </div>
-  ))}
-</div>`,
-        },
-        {
+        createBuilderExample({
+            title: 'Basic',
+            kind: 'checkbox',
+            presetId: 'basic',
+            overrides: {
+                checkboxLabel: 'Enable notifications',
+                checkboxState: 'checked',
+                fontColor: '#f4f4f5',
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Dark',
+            kind: 'checkbox',
+            presetId: 'dark',
+            overrides: {
+                checkboxLabel: 'Marketing emails',
+                checkboxState: 'checked',
+                fontColor: '#f4f4f5',
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Rounded',
+            kind: 'checkbox',
+            presetId: 'rounded',
+            overrides: {
+                checkboxLabel: 'Push notifications',
+                checkboxState: 'checked',
+                fontColor: '#f4f4f5',
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
             title: 'Disabled',
-            preview: <CheckboxDisabled />,
-            code: `<div className="flex items-center gap-3">
-  <Checkbox id="checkbox-disabled" disabled
-    className="size-5 rounded-[5px] border-[#303035] bg-[#0f0f11]" />
-  <Label htmlFor="checkbox-disabled">Accept terms (disabled)</Label>
-</div>`,
-        },
+            kind: 'checkbox',
+            presetId: 'pill',
+            overrides: {
+                checkboxLabel: 'SMS alerts',
+                checkboxState: 'unchecked',
+                checkboxDisabled: true,
+                fontColor: '#a1a1aa',
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
     ],
 
     /* ── Data Table ── */
@@ -818,73 +927,66 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
 
     /* ── Dialog ── */
     dialog: [
-        {
+        createBuilderExample({
             title: 'Publish Dialog',
-            preview: <DialogTriggerDark />,
-            code: `<DialogTrigger>
-  <AriaButton className="inline-flex h-10 items-center justify-center rounded-lg border border-[#303035] bg-[#1e1e22] px-5 text-[#e2e8f0] hover:bg-[#242429]">
-    Open Dialog
-  </AriaButton>
-  <ModalOverlay isDismissable className="bg-black/60">
-    <Modal className="max-w-[420px]">
-      <Dialog className="rounded-2xl border border-white/10 bg-[#141416] text-[#f0ede8]">
-        <DialogHeader title="Publish changes" description="Review before shipping." />
-        <DialogBody>Version 2.1 will replace the current draft.</DialogBody>
-        <DialogFooter>
-          <DialogClose intent="plain">Cancel</DialogClose>
-          <DialogClose intent="primary" className="bg-[#7c3aed] hover:bg-[#8b5cf6] text-white">
-            Publish
-          </DialogClose>
-        </DialogFooter>
-      </Dialog>
-    </Modal>
-  </ModalOverlay>
-</DialogTrigger>`,
-        },
-        {
+            kind: 'dialog',
+            presetId: 'contrast',
+            overrides: {
+                dialogTitleText: 'Publish changes',
+                dialogBodyText: 'Version 2.1 will replace the current draft and notify subscribers as soon as the release goes live.',
+                dialogActionButtonText: 'Publish',
+                dialogShowActionButton: true,
+                dialogShowCloseIcon: true,
+                panelCornerRadius: 24,
+                panelFillColor: '#141416',
+                panelFillOpacity: 100,
+                panelStrokeColor: '#303035',
+                panelStrokeOpacity: 100,
+                panelFontColor: '#f0ede8',
+            },
+            pinOverlayOpen: true,
+            previewClassName: 'overflow-hidden p-0 min-h-[420px]',
+        }),
+        createBuilderExample({
             title: 'Migration Confirm',
-            preview: <DialogTriggerAmber />,
-            code: `<DialogTrigger>
-  <AriaButton className="inline-flex h-10 items-center justify-center rounded-lg border bg-[#f5a623] px-5 text-[#1a1a1d] hover:bg-[#ffba4a]">
-    Confirm Action
-  </AriaButton>
-  <ModalOverlay isDismissable>
-    <Modal className="max-w-[440px]">
-      <Dialog className="rounded-[24px] border border-[#f5a623]/25 bg-[#141416] text-[#f0ede8]">
-        <DialogHeader title="Start migration?" description="Queue the release and notify the team." />
-        <DialogFooter>
-          <DialogClose intent="plain">Not now</DialogClose>
-          <DialogClose intent="primary" className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">
-            Start migration
-          </DialogClose>
-        </DialogFooter>
-      </Dialog>
-    </Modal>
-  </ModalOverlay>
-</DialogTrigger>`,
-        },
-        {
+            kind: 'dialog',
+            presetId: 'brand',
+            overrides: {
+                dialogTitleText: 'Start migration?',
+                dialogBodyText: 'Queue the release, apply the token rename, and notify the team once the final pass is complete.',
+                dialogActionButtonText: 'Start migration',
+                dialogShowActionButton: true,
+                panelCornerRadius: 24,
+                panelFillColor: '#171109',
+                panelFillOpacity: 98,
+                panelStrokeColor: '#8a5a14',
+                panelStrokeOpacity: 84,
+                dialogTitleColor: '#f8ecd8',
+                dialogBodyColor: '#d7c6ac',
+            },
+            pinOverlayOpen: true,
+            previewClassName: 'overflow-hidden p-0 min-h-[420px]',
+        }),
+        createBuilderExample({
             title: 'Destructive Confirm',
-            preview: <DialogTriggerDestructive />,
-            code: `<DialogTrigger>
-  <AriaButton className="inline-flex h-10 items-center justify-center rounded-lg border bg-[#e11d48] px-5 text-white hover:bg-[#be123c]">
-    Delete Item
-  </AriaButton>
-  <ModalOverlay isDismissable>
-    <Modal className="max-w-[420px]">
-      <Dialog className="rounded-2xl border border-[#fb7185]/20 bg-[#160c10] text-[#ffe4ea]">
-        <DialogHeader title="Delete this workspace?" description="This action cannot be undone." />
-        <DialogFooter>
-          <DialogClose intent="plain">Keep workspace</DialogClose>
-          <DialogClose intent="danger" className="bg-[#e11d48] hover:bg-[#be123c] text-white">
-            Delete forever
-          </DialogClose>
-        </DialogFooter>
-      </Dialog>
-    </Modal>
-  </ModalOverlay>
-</DialogTrigger>`,
-        },
+            kind: 'dialog',
+            presetId: 'sunset',
+            overrides: {
+                dialogTitleText: 'Delete this workspace?',
+                dialogBodyText: 'This action is irreversible. All component drafts, comments, and export history will be removed.',
+                dialogActionButtonText: 'Delete forever',
+                dialogShowActionButton: true,
+                panelCornerRadius: 24,
+                panelFillColor: '#160c10',
+                panelFillOpacity: 100,
+                panelStrokeColor: '#fb7185',
+                panelStrokeOpacity: 26,
+                dialogTitleColor: '#ffe4ea',
+                dialogBodyColor: '#fecdd3',
+            },
+            pinOverlayOpen: true,
+            previewClassName: 'overflow-hidden p-0 min-h-[420px]',
+        }),
     ],
 
     /* ── Drawer ── */
@@ -1037,114 +1139,97 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
 
     /* ── Navigation Menu ── */
     'navigation-menu': [
-        {
-            title: 'Dark Amber',
-            preview: <NavigationMenuDarkAmber />,
-            code: `<NavigationMenu hoverBg="rgba(245,166,35,0.12)" hoverText="#f5a623">
-  <NavigationMenuList>
-    <NavigationMenuItem>
-      <NavigationMenuLink href="#" navigationItem>Home</NavigationMenuLink>
-    </NavigationMenuItem>
-    <NavigationMenuItem>
-      <NavigationMenuTrigger variant="ghost">Components</NavigationMenuTrigger>
-      <NavigationMenuContent>
-        <ul className="grid w-[340px] gap-1 rounded-xl border border-white/10 bg-[#141416] p-2">
-          <li><NavigationMenuLink asChild><a href="#">Library</a></NavigationMenuLink></li>
-          <li><NavigationMenuLink asChild><a href="#">Docs</a></NavigationMenuLink></li>
-        </ul>
-      </NavigationMenuContent>
-    </NavigationMenuItem>
-  </NavigationMenuList>
-</NavigationMenu>`,
-        },
-        {
-            title: 'Violet',
-            preview: <NavigationMenuViolet />,
-            code: `<NavigationMenu hoverBg="rgba(139,92,246,0.12)" hoverText="#c4b5fd">
-  <NavigationMenuList>
-    <NavigationMenuItem>
-      <NavigationMenuLink href="#" navigationItem>Overview</NavigationMenuLink>
-    </NavigationMenuItem>
-    <NavigationMenuItem>
-      <NavigationMenuTrigger variant="ghost">Resources</NavigationMenuTrigger>
-      <NavigationMenuContent>
-        <ul className="grid w-[340px] gap-1 rounded-xl border border-[#8b5cf6]/20 bg-[#120d1d] p-2">
-          <li><NavigationMenuLink asChild><a href="#">Playbooks</a></NavigationMenuLink></li>
-          <li><NavigationMenuLink asChild><a href="#">Community</a></NavigationMenuLink></li>
-        </ul>
-      </NavigationMenuContent>
-    </NavigationMenuItem>
-  </NavigationMenuList>
-</NavigationMenu>`,
-        },
-        {
+        createBuilderExample({
+            title: 'Branded',
+            kind: 'navigation-menu',
+            presetId: 'branded',
+            overrides: {
+                customWidth: 760,
+                navMenuItemCount: 3,
+                navMenuItems: [
+                    { id: 'overview', label: 'Overview' },
+                    { id: 'resources', label: 'Resources' },
+                    { id: 'pricing', label: 'Pricing' },
+                ],
+                fillColor: '#05060a',
+                fillOpacity: 100,
+                strokeWeight: 0,
+                fontColor: '#f4f4f5',
+                fontSize: 16,
+                cornerRadius: 14,
+            },
+            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-24 min-h-[280px]',
+        }),
+        createBuilderExample({
+            title: 'Dropdown + Brand',
+            kind: 'navigation-menu',
+            presetId: 'dropdown-branded',
+            overrides: {
+                customWidth: 760,
+                navMenuItemCount: 3,
+                navMenuItems: [
+                    { id: 'overview', label: 'Overview' },
+                    { id: 'resources', label: 'Resources' },
+                    { id: 'pricing', label: 'Pricing' },
+                ],
+                fillColor: '#05060a',
+                fillOpacity: 100,
+                strokeWeight: 0,
+                fontColor: '#f4f4f5',
+                fontSize: 16,
+                cornerRadius: 14,
+            },
+            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-28 min-h-[320px]',
+        }),
+        createBuilderExample({
             title: 'Vertical',
-            preview: <NavigationMenuVertical />,
-            code: `<NavigationMenu orientation="vertical" hoverBg="rgba(16,185,129,0.1)" hoverText="#34d399">
-  <NavigationMenuList>
-    <NavigationMenuItem>
-      <NavigationMenuLink href="#" navigationItem>Dashboard</NavigationMenuLink>
-    </NavigationMenuItem>
-    <NavigationMenuItem>
-      <NavigationMenuLink href="#" navigationItem active
-        activeBg="rgba(52, 211, 153, 0.15)">Settings</NavigationMenuLink>
-    </NavigationMenuItem>
-  </NavigationMenuList>
-</NavigationMenu>`,
-        },
+            kind: 'navigation-menu',
+            presetId: 'vertical',
+            overrides: {
+                navMenuItemCount: 3,
+                navMenuItems: [
+                    { id: 'dashboard', label: 'Dashboard' },
+                    { id: 'settings', label: 'Settings' },
+                    { id: 'billing', label: 'Billing' },
+                ],
+                navMenuHoverBg: '#113227',
+                navMenuHoverText: '#d1fae5',
+                navMenuActiveBg: '#1d4f3f',
+                navMenuActiveText: '#ecfdf5',
+                fillColor: '#05060a',
+                fillOpacity: 100,
+                strokeWeight: 0,
+                fontColor: '#f4f4f5',
+                fontSize: 16,
+                cornerRadius: 14,
+            },
+            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[240px]',
+        }),
     ],
 
     /* ── Popover ── */
     popover: [
-        {
-            title: 'Info Card',
-            preview: <PopoverTriggerDark />,
-            code: `<Popover>
-  <PopoverTrigger asChild>
-    <Button className="bg-[#1e1e22] hover:bg-[#1e1e22] border border-[#303035] text-[#e2e8f0]">
-      More Info
-    </Button>
-  </PopoverTrigger>
-  <PopoverContent className="w-[280px] border-white/10 bg-[#141416] text-[#f0ede8]">
-    <PopoverHeader>
-      <PopoverTitle>Release note</PopoverTitle>
-      <PopoverDescription>Libraries were updated and tokens were normalized.</PopoverDescription>
-    </PopoverHeader>
-  </PopoverContent>
-</Popover>`,
-        },
-        {
-            title: 'Summary Card',
-            preview: <PopoverTriggerAmber />,
-            code: `<Popover>
-  <PopoverTrigger asChild>
-    <Button className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">Details</Button>
-  </PopoverTrigger>
-  <PopoverContent className="w-[300px] border-[#f5a623]/25 bg-[#1a1510] text-[#f8ecd8]">
-    <PopoverHeader>
-      <PopoverTitle>Migration snapshot</PopoverTitle>
-      <PopoverDescription>24 components updated with no regressions detected.</PopoverDescription>
-    </PopoverHeader>
-  </PopoverContent>
-</Popover>`,
-        },
-        {
-            title: 'Utility Panel',
-            preview: <PopoverTriggerVioletGrain />,
-            code: `<Popover>
-  <PopoverTrigger asChild>
-    <Button className="ui-studio-effect-grain bg-[#7c3aed] hover:bg-[#7c3aed] text-white">
-      Settings
-    </Button>
-  </PopoverTrigger>
-  <PopoverContent className="w-[280px] border-[#8b5cf6]/25 bg-[#120d1d] text-white">
-    <PopoverHeader>
-      <PopoverTitle>Automation</PopoverTitle>
-      <PopoverDescription>Keep approvals on and surface only high-signal alerts.</PopoverDescription>
-    </PopoverHeader>
-  </PopoverContent>
-</Popover>`,
-        },
+        createBuilderExample({
+            title: 'Migration Snapshot',
+            kind: 'popover',
+            presetId: 'migration-snapshot',
+            pinOverlayOpen: true,
+            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-16 min-h-[320px]',
+        }),
+        createBuilderExample({
+            title: 'Automation Panel',
+            kind: 'popover',
+            presetId: 'automation-panel',
+            pinOverlayOpen: true,
+            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-16 min-h-[360px]',
+        }),
+        createBuilderExample({
+            title: 'Profile Menu',
+            kind: 'popover',
+            presetId: 'profile-menu',
+            pinOverlayOpen: true,
+            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-16 min-h-[300px]',
+        }),
     ],
 
     /* ── Progress ── */
@@ -1245,57 +1330,58 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
 
     /* ── Stateful Button ── */
     'stateful-button': [
-        {
-            title: 'Emerald Success',
-            preview: <StageButtonEmeraldSuccess />,
-            code: `<StatefulButton
-  className="bg-[var(--j6-accent-emerald-light)] rounded-md"
-  autoPlay
-  resultState="success"
-  loadingDurationMs={600}
-  resetDelayMs={1600}
->
-  Submit
-</StatefulButton>`,
-        },
-        {
-            title: 'Amber Warning',
-            preview: <StageButtonAmberWarning />,
-            code: `<StatefulButton
-  className="bg-[var(--j6-amber-400-light)] rounded-md"
-  autoPlay
-  resultState="warning"
-  loadingDurationMs={800}
->
-  Validate
-</StatefulButton>`,
-        },
-        {
-            title: 'Rose Failure',
-            preview: <StageButtonRoseFailure />,
-            code: `<motion.div whileHover={{ y: -1, scale: 1.03 }}>
-  <StatefulButton
-    className="bg-[var(--j6-accent-rose-light)] rounded-md"
-    autoPlay
-    resultState="failure"
-    loadingDurationMs={500}
-  >
-    Delete
-  </StatefulButton>
-</motion.div>`,
-        },
-        {
-            title: 'Violet Grain',
-            preview: <StageButtonVioletGrain />,
-            code: `<StatefulButton
-  className="ui-studio-effect-grain bg-[var(--j6-violet-500-light)] rounded-md"
-  style={{ '--ui-effect-grain-opacity': '0.2', '--ui-effect-grain-size': '200' }}
-  autoPlay
-  resultState="success"
->
-  Confirm
-</StatefulButton>`,
-        },
+        createBuilderExample({
+            title: 'Brand Success',
+            kind: 'stage-button',
+            presetId: 'brand',
+            overrides: {
+                buttonPreviewState: 'active',
+                effectLoadingActiveEnabled: true,
+                effectLoadingOutcome: 'success',
+                effectLoadingPosition: 'left',
+                buttonShowText: true,
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Contrast Warning',
+            kind: 'stage-button',
+            presetId: 'contrast',
+            overrides: {
+                buttonPreviewState: 'active',
+                effectLoadingActiveEnabled: true,
+                effectLoadingOutcome: 'warning',
+                effectLoadingPosition: 'right',
+                buttonShowText: true,
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Sunset Failure',
+            kind: 'stage-button',
+            presetId: 'sunset',
+            overrides: {
+                buttonPreviewState: 'active',
+                effectLoadingActiveEnabled: true,
+                effectLoadingOutcome: 'failure',
+                effectLoadingPosition: 'left',
+                buttonShowText: true,
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
+        createBuilderExample({
+            title: 'Glass Success',
+            kind: 'stage-button',
+            presetId: 'glass',
+            overrides: {
+                buttonPreviewState: 'active',
+                effectLoadingActiveEnabled: true,
+                effectLoadingOutcome: 'success',
+                effectLoadingPosition: 'left',
+                buttonShowText: true,
+            },
+            previewClassName: 'min-h-[180px]',
+        }),
     ],
 
     /* ── Switch ── */

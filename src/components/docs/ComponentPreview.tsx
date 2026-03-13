@@ -1,10 +1,12 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { CodeBlock } from './CodeBlock';
 
 interface ComponentPreviewProps {
   children: ReactNode;
   code: string;
   className?: string;
+  previewClassName?: string;
+  previewStyle?: CSSProperties;
 }
 
 const T = {
@@ -18,7 +20,7 @@ const T = {
   border: 'rgba(255,255,255,0.08)',
 };
 
-export function ComponentPreview({ children, code, className }: ComponentPreviewProps) {
+export function ComponentPreview({ children, code, className, previewClassName, previewStyle }: ComponentPreviewProps) {
   const [showCode, setShowCode] = useState(false);
 
   return (
@@ -28,8 +30,8 @@ export function ComponentPreview({ children, code, className }: ComponentPreview
     >
       {/* Preview area */}
       <div
-        className="flex items-center justify-center p-10 min-h-[160px]"
-        style={{ background: T.subtle }}
+        className={`flex items-center justify-center p-10 min-h-[160px] ${previewClassName ?? ''}`.trim()}
+        style={{ background: T.subtle, ...previewStyle }}
       >
         {children}
       </div>
