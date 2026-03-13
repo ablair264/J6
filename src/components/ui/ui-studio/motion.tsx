@@ -1,6 +1,7 @@
 import { useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
 import { motion, useMotionValue, useMotionTemplate, useSpring } from 'motion/react';
 import { normalizeStyleConfig, MOTION_COMPONENT_PRESETS, SURFACE_MOTION_PRESET_IDS } from './constants';
+import { useStudioStore } from './store';
 import type {
     ComponentStyleConfig,
     MotionEaseOption,
@@ -571,7 +572,7 @@ export function buildPreviewMotionProps(
     }
 
     if (previewMode === 'scrub' && compiled.scroll) {
-        const progress = scrollProgress ?? 1;
+        const progress = scrollProgress ?? useStudioStore.getState().motionScrollProgress;
         const scrollFrom = compiled.scroll.initial;
         const scrollTo = compiled.scroll.target;
         const interpolated: Record<string, number> = {};

@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { SYSTEM_TOKEN_SET_ID, ensureTokenSetsWithSystem, sanitizeTokenSet } from '@/components/ui/token-sets';
 import type { StudioTokenSet } from '@/components/ui/token-sets';
 import { fetchTokenSetsFromApi } from '@/lib/token-set-api';
-import type { ButtonPreviewState, ComponentInstance, MotionPreviewMode, UIComponentKind } from '@/components/ui/ui-studio.types';
+import type { ButtonPreviewState, ComponentInstance, UIComponentKind } from '@/components/ui/ui-studio.types';
 import { COMPONENTS } from './ui-studio/constants';
 import {
     buildKindTitle,
@@ -364,44 +364,25 @@ export function UIStudioComponentPage() {
         ['--ui-canvas-state-selected-ring' as string]: canvasDark ? 'rgba(126,254,240,0.16)' : 'rgba(19,96,151,0.24)',
         ['--ui-canvas-state-hover-bg' as string]: canvasDark ? 'rgba(255,255,255,0.03)' : 'rgba(13,42,74,0.08)',
     } satisfies CSSProperties), [canvasDark]);
-    const hasHoverPreview = Boolean(selectedStyle?.motionHoverEnabled);
-    const hasTapPreview = Boolean(selectedStyle?.motionTapEnabled);
-    const hasLoopPreview = false; // Loop requires timeline steps (removed)
     const hasScrollPreview = Boolean(selectedStyle?.motionScrollEnabled);
-    const canReplayStageMotion = Boolean(canReplayEntryMotion || hasLoopPreview || hasScrollPreview);
+    const canReplayStageMotion = Boolean(canReplayEntryMotion || hasScrollPreview);
     const activeMotionPreviewMode = selectedStyle?.motionPreviewMode ?? 'idle';
-    const previewModeOptions: Array<{ value: MotionPreviewMode; label: string; enabled: boolean }> = [
-        { value: 'idle', label: 'Auto', enabled: true },
-        { value: 'hover', label: 'Hover', enabled: hasHoverPreview },
-        { value: 'tap', label: 'Press', enabled: hasTapPreview },
-        { value: 'loop', label: 'Loop', enabled: hasLoopPreview },
-        { value: 'scrub', label: 'Scroll', enabled: hasScrollPreview },
-    ];
+    const isScrollScrubbing = activeMotionPreviewMode === 'scrub' && hasScrollPreview;
 
     useEffect(() => {
-        if (!selectedStyle) {
-            return;
-        }
-        const previewAvailability: Partial<Record<MotionPreviewMode, boolean>> = {
-            hover: hasHoverPreview,
-            tap: hasTapPreview,
-            loop: hasLoopPreview,
-            scrub: hasScrollPreview,
-        };
-        if (
-            selectedStyle.motionPreviewMode === 'playOnce' ||
-            (selectedStyle.motionPreviewMode !== 'idle' && previewAvailability[selectedStyle.motionPreviewMode] === false)
-        ) {
+        if (!selectedStyle) return;
+        // Reset scrub mode if scroll was disabled
+        if (selectedStyle.motionPreviewMode === 'scrub' && !hasScrollPreview) {
             updateSelectedStyle('motionPreviewMode', 'idle');
         }
-    }, [
-        hasHoverPreview,
-        hasLoopPreview,
-        hasScrollPreview,
-        hasTapPreview,
-        selectedStyle,
-        updateSelectedStyle,
-    ]);
+        // Reset any legacy modes
+        if (selectedStyle.motionPreviewMode === 'playOnce' ||
+            selectedStyle.motionPreviewMode === 'hover' ||
+            selectedStyle.motionPreviewMode === 'tap' ||
+            selectedStyle.motionPreviewMode === 'loop') {
+            updateSelectedStyle('motionPreviewMode', 'idle');
+        }
+    }, [hasScrollPreview, selectedStyle, updateSelectedStyle]);
 
     // ─── Render ───────────────────────────────────────────────────
     return (
@@ -535,76 +516,64 @@ export function UIStudioComponentPage() {
                                     </div>
                                 </header>
                                 {selectedInstance && selectedStyle ? (
-                                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-4 py-2.5">
-                                        <div className="min-w-0">
-                                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7f95b4]">Motion Preview</p>
-                                            <p className="text-[11px] text-[#8ea4c3]">
-                                                Use the stage controls here to preview hover, press, looping, and scroll states.
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <button
-                                                type="button"
-                                                disabled={!canReplayStageMotion}
-                                                onClick={() => {
-                                                    if (!canReplayStageMotion) return;
-                                                    updateSelectedStyle('motionPreviewMode', 'idle');
-                                                    if (isOverlayComponent && !pinOverlayPreviews) setPinOverlayPreviews(true);
-                                                    replayMotion();
-                                                }}
-                                                className={cn(
-                                                    studioActionButtonClass,
-                                                    'rounded-full px-3 py-1.5',
-                                                    !canReplayStageMotion && 'cursor-not-allowed bg-white/[0.02] text-[#586a83] hover:bg-white/[0.02] hover:text-[#586a83]',
-                                                )}
-                                            >
-                                                <Play className="size-3.5 fill-current" />
-                                                Replay
-                                            </button>
-                                            {previewModeOptions.map((option) => (
+                                    <div className="flex items-center gap-3 border-b border-white/8 px-4 py-2">
+                                        <button
+                                            type="button"
+                                            disabled={!canReplayStageMotion}
+                                            onClick={() => {
+                                                if (!canReplayStageMotion) return;
+                                                updateSelectedStyle('motionPreviewMode', 'idle');
+                                                if (isOverlayComponent && !pinOverlayPreviews) setPinOverlayPreviews(true);
+                                                replayMotion();
+                                            }}
+                                            className={cn(
+                                                studioActionButtonClass,
+                                                'rounded-full px-3 py-1.5',
+                                                !canReplayStageMotion && 'cursor-not-allowed bg-white/[0.02] text-[#586a83] hover:bg-white/[0.02] hover:text-[#586a83]',
+                                            )}
+                                        >
+                                            <Play className="size-3.5 fill-current" />
+                                            Replay
+                                        </button>
+                                        {hasScrollPreview && (
+                                            <>
+                                                <div className="h-4 w-px bg-white/10" />
                                                 <button
-                                                    key={option.value}
                                                     type="button"
-                                                    disabled={!option.enabled}
                                                     onClick={() => {
-                                                        if (!option.enabled) return;
-                                                        updateSelectedStyle('motionPreviewMode', option.value);
-                                                        if (option.value === 'scrub' && isOverlayComponent && !pinOverlayPreviews) {
-                                                            setPinOverlayPreviews(true);
-                                                        }
+                                                        updateSelectedStyle('motionPreviewMode', isScrollScrubbing ? 'idle' : 'scrub');
+                                                        if (!isScrollScrubbing && isOverlayComponent && !pinOverlayPreviews) setPinOverlayPreviews(true);
                                                     }}
                                                     className={cn(
                                                         stagePreviewChipClass,
-                                                        activeMotionPreviewMode === option.value
+                                                        isScrollScrubbing
                                                             ? 'border-[#63e8da]/40 bg-[#63e8da]/16 text-[#86fff1] shadow-[inset_0_0_0_1px_rgba(126,254,240,0.18)]'
-                                                            : option.enabled
-                                                                ? 'border-white/10 bg-white/[0.03] text-[#b7c8df] hover:bg-white/[0.08] hover:text-[#eef5ff]'
-                                                                : 'cursor-not-allowed border-white/[0.06] bg-white/[0.02] text-[#586a83]',
+                                                            : 'border-white/10 bg-white/[0.03] text-[#b7c8df] hover:bg-white/[0.08] hover:text-[#eef5ff]',
                                                     )}
-                                                    aria-pressed={activeMotionPreviewMode === option.value}
+                                                    aria-pressed={isScrollScrubbing}
                                                 >
-                                                    {option.label}
+                                                    Scroll
                                                 </button>
-                                            ))}
-                                        </div>
-                                        {activeMotionPreviewMode === 'scrub' && hasScrollPreview && (
-                                            <div className="flex w-full items-center gap-3 border-t border-white/8 px-4 pt-2.5 pb-1">
-                                                <span className="text-[10px] font-medium text-[#64748b]">
-                                                    {selectedStyle?.motionScrollStart ?? 0}%
-                                                </span>
-                                                <input
-                                                    type="range"
-                                                    min={0}
-                                                    max={1}
-                                                    step={0.005}
-                                                    value={motionScrollProgress}
-                                                    onChange={(e) => setMotionScrollProgress(Number(e.target.value))}
-                                                    className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/[0.08] accent-[#2dd4bf] [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#2dd4bf]"
-                                                />
-                                                <span className="text-[10px] font-medium text-[#64748b]">
-                                                    {selectedStyle?.motionScrollEnd ?? 100}%
-                                                </span>
-                                            </div>
+                                                {isScrollScrubbing && (
+                                                    <div className="flex flex-1 items-center gap-2">
+                                                        <span className="text-[10px] font-medium text-[#64748b]">
+                                                            {selectedStyle.motionScrollStart}%
+                                                        </span>
+                                                        <input
+                                                            type="range"
+                                                            min={0}
+                                                            max={1}
+                                                            step={0.005}
+                                                            value={motionScrollProgress}
+                                                            onChange={(e) => setMotionScrollProgress(Number(e.target.value))}
+                                                            className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/[0.08] accent-[#2dd4bf] [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#2dd4bf]"
+                                                        />
+                                                        <span className="text-[10px] font-medium text-[#64748b]">
+                                                            {selectedStyle.motionScrollEnd}%
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 ) : null}
