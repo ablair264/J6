@@ -1669,7 +1669,14 @@ export function inferTokenCssVar(token: StudioColorToken): string {
         return token.cssVar;
     }
     const normalized = sanitizeTokenVarName(token.id);
-    return SEMANTIC_TOKEN_CSS_VARS[normalized] ?? `--ui-${normalized}`;
+    if (SEMANTIC_TOKEN_CSS_VARS[normalized]) {
+        return SEMANTIC_TOKEN_CSS_VARS[normalized];
+    }
+    // Strip the "primitive-" prefix from token IDs to match the simplified J6 token format.
+    // e.g. "primitive-neutral-0-light" → "--j6-neutral-0-light"
+    //      "primitive-accent-sky-light" → "--j6-accent-sky-light"
+    const stripped = normalized.replace(/^primitive-/, '');
+    return `--j6-${stripped}`;
 }
 
 function tryResolveSolidColorToHex(value: string): string | null {
@@ -2190,6 +2197,7 @@ export function buildExportClassBinding(
 ): { declarations: string; classNameVar?: string } {
     const declarations: string[] = [];
     const classNameParts: string[] = [];
+    const classNameVar = `${baseName}ClassName`;
 
     if (options.extraClassNames && options.extraClassNames.length > 0) {
         classNameParts.push(...options.extraClassNames.map((token) => toSnippetStringLiteral(token)));
@@ -2211,6 +2219,11 @@ export function buildExportClassBinding(
     }
 
     if (options.styleClassVarName) {
+        // If the style var has the same name as our output var, and it's the only part,
+        // just reuse it directly — no need to re-declare and cause a self-reference.
+        if (options.styleClassVarName === classNameVar && classNameParts.length === 0) {
+            return { declarations: declarations.join('\n'), classNameVar };
+        }
         classNameParts.push(options.styleClassVarName);
     }
 
@@ -2218,7 +2231,6 @@ export function buildExportClassBinding(
         return { declarations: declarations.join('\n') };
     }
 
-    const classNameVar = `${baseName}ClassName`;
     if (classNameParts.length === 1) {
         declarations.push(`const ${classNameVar} = ${classNameParts[0]};`);
     } else {

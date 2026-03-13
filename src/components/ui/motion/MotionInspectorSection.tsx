@@ -476,6 +476,28 @@ export function MotionInspectorSection({
         : componentKind === 'tabs' ? 'tabsMotionPresetId'
         : null;
 
+    /* ─── Overlay preset helpers ─── */
+    const applyOverlayPreset = (presetId: string) => {
+        if (!overlayPresetKey) return;
+        const preset = surfaceMotionPresets.find((p) => p.id === presetId);
+        if (!preset) return;
+        // Set the preset key so the preview renderer picks it up
+        updateSelectedStyle(overlayPresetKey, presetId as never);
+        // Apply preset values to flat entry fields so the controls reflect the preset
+        updateSelectedStyle('motionEntryEnabled', true);
+        (Object.entries(preset.values ?? {}) as Array<[keyof ComponentStyleConfig, ComponentStyleConfig[keyof ComponentStyleConfig]]>).forEach(([key, value]) => {
+            updateSelectedStyle(key, value);
+        });
+    };
+
+    /** Wraps updateSelectedStyle for entry fields — auto-switches overlay preset to "custom" */
+    const updateEntryField = <K extends keyof ComponentStyleConfig>(key: K, value: ComponentStyleConfig[K]) => {
+        updateSelectedStyle(key, value);
+        if (isOverlayComponent && overlayPresetKey && selectedStyle[overlayPresetKey] !== 'custom' && selectedStyle[overlayPresetKey] !== 'none') {
+            updateSelectedStyle(overlayPresetKey, 'custom' as never);
+        }
+    };
+
     /* ─── Advanced hover state ─── */
     const advancedHoverEnabled =
         selectedStyle.motionHoverTiltEnabled || selectedStyle.motionHoverGlareEnabled || selectedStyle.motionHoverSpotlightEnabled;
@@ -507,10 +529,19 @@ export function MotionInspectorSection({
                 {/* ────── Entry Tab ────── */}
                 {activeTab === 'entry' ? (
                     <motion.div key="entry" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.14, ease: 'easeOut' }} className="space-y-2.5">
-                        <MotionPresetStrip presets={visualMotionPresets} onSelect={applyVisualMotionPreset} title="Entry presets" />
+                        {isOverlayComponent ? (
+                            <>
+                                <MotionPresetStrip presets={surfaceMotionPresets} onSelect={applyOverlayPreset} title="Panel presets" />
+                                {overlayPresetKey && selectedStyle[overlayPresetKey] === 'custom' ? (
+                                    <p className="text-[10px] text-[#64748b] italic">Custom — values adjusted manually</p>
+                                ) : null}
+                            </>
+                        ) : (
+                            <MotionPresetStrip presets={visualMotionPresets} onSelect={applyVisualMotionPreset} title="Entry presets" />
+                        )}
 
-                        <AnimatedCheckbox checked={selectedStyle.motionEntryEnabled} onChange={(checked) => updateSelectedStyle('motionEntryEnabled', checked)} label="Enable entry motion" />
-                        <AnimatedCheckbox checked={selectedStyle.motionExitEnabled} onChange={(checked) => updateSelectedStyle('motionExitEnabled', checked)} label="Enable exit motion" />
+                        <AnimatedCheckbox checked={selectedStyle.motionEntryEnabled} onChange={(checked) => updateEntryField('motionEntryEnabled', checked)} label={isOverlayComponent ? 'Enable panel entry' : 'Enable entry motion'} />
+                        <AnimatedCheckbox checked={selectedStyle.motionExitEnabled} onChange={(checked) => updateEntryField('motionExitEnabled', checked)} label={isOverlayComponent ? 'Enable panel exit' : 'Enable exit motion'} />
 
                         <AnimatePresence initial={false}>
                             {selectedStyle.motionEntryEnabled || selectedStyle.motionExitEnabled ? (
@@ -520,11 +551,11 @@ export function MotionInspectorSection({
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
                                             <span className="text-[10px] text-[#64748b]">From</span>
-                                            <MotionParamRow label="" value={selectedStyle.motionInitialOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionInitialOpacity', v)} />
+                                            <MotionParamRow label="" value={selectedStyle.motionInitialOpacity} min={0} max={100} unit="%" onChange={(v) => updateEntryField('motionInitialOpacity', v)} />
                                         </div>
                                         <div className="space-y-1">
                                             <span className="text-[10px] text-[#64748b]">To</span>
-                                            <MotionParamRow label="" value={selectedStyle.motionAnimateOpacity} min={0} max={100} unit="%" onChange={(v) => updateSelectedStyle('motionAnimateOpacity', v)} />
+                                            <MotionParamRow label="" value={selectedStyle.motionAnimateOpacity} min={0} max={100} unit="%" onChange={(v) => updateEntryField('motionAnimateOpacity', v)} />
                                         </div>
                                     </div>
 
@@ -532,23 +563,23 @@ export function MotionInspectorSection({
                                     <SectionLabel>Transform</SectionLabel>
                                     <XYPad compact x={selectedStyle.motionInitialX} y={selectedStyle.motionInitialY}
                                         xMin={-tuning.overlayOffset} xMax={tuning.overlayOffset} yMin={-tuning.overlayOffset} yMax={tuning.overlayOffset}
-                                        onXChange={(v) => updateSelectedStyle('motionInitialX', v)} onYChange={(v) => updateSelectedStyle('motionInitialY', v)} />
+                                        onXChange={(v) => updateEntryField('motionInitialX', v)} onYChange={(v) => updateEntryField('motionInitialY', v)} />
                                     <div className="grid grid-cols-2 gap-2">
-                                        <MotionParamRow label="Scale From" value={selectedStyle.motionInitialScale} min={0} max={200} unit="%" onChange={(v) => updateSelectedStyle('motionInitialScale', v)} />
-                                        <MotionParamRow label="Scale To" value={selectedStyle.motionAnimateScale} min={0} max={200} unit="%" onChange={(v) => updateSelectedStyle('motionAnimateScale', v)} />
+                                        <MotionParamRow label="Scale From" value={selectedStyle.motionInitialScale} min={0} max={200} unit="%" onChange={(v) => updateEntryField('motionInitialScale', v)} />
+                                        <MotionParamRow label="Scale To" value={selectedStyle.motionAnimateScale} min={0} max={200} unit="%" onChange={(v) => updateEntryField('motionAnimateScale', v)} />
                                     </div>
-                                    <MotionParamRow label="Rotate" value={selectedStyle.motionAnimateRotate} min={-tuning.overlayRotateRange} max={tuning.overlayRotateRange} unit="°" onChange={(v) => updateSelectedStyle('motionAnimateRotate', v)} />
+                                    <MotionParamRow label="Rotate" value={selectedStyle.motionAnimateRotate} min={-tuning.overlayRotateRange} max={tuning.overlayRotateRange} unit="°" onChange={(v) => updateEntryField('motionAnimateRotate', v)} />
 
                                     {/* Filter */}
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
                                             <span className="text-[10px] text-[#64748b]">Filter from</span>
-                                            <input type="text" value={selectedStyle.motionInitialFilter} onChange={(e) => updateSelectedStyle('motionInitialFilter', e.target.value)}
+                                            <input type="text" value={selectedStyle.motionInitialFilter} onChange={(e) => updateEntryField('motionInitialFilter', e.target.value)}
                                                 placeholder="blur(8px)" className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label="Initial filter" />
                                         </div>
                                         <div className="space-y-1">
                                             <span className="text-[10px] text-[#64748b]">Filter to</span>
-                                            <input type="text" value={selectedStyle.motionAnimateFilter} onChange={(e) => updateSelectedStyle('motionAnimateFilter', e.target.value)}
+                                            <input type="text" value={selectedStyle.motionAnimateFilter} onChange={(e) => updateEntryField('motionAnimateFilter', e.target.value)}
                                                 placeholder="blur(0px)" className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label="Animate filter" />
                                         </div>
                                     </div>
@@ -556,7 +587,7 @@ export function MotionInspectorSection({
                                     {/* Transform origin */}
                                     <div className="space-y-1">
                                         <span className="text-[10px] text-[#64748b]">Transform Origin</span>
-                                        <input type="text" value={selectedStyle.motionTransformOrigin} onChange={(e) => updateSelectedStyle('motionTransformOrigin', e.target.value)}
+                                        <input type="text" value={selectedStyle.motionTransformOrigin} onChange={(e) => updateEntryField('motionTransformOrigin', e.target.value)}
                                             placeholder="center center" className="h-7 w-full rounded bg-[#111827] px-2 text-[11px] text-[#e2e8f0] outline-none focus:ring-1 focus:ring-[#2dd4bf]/40" aria-label="Transform origin" />
                                     </div>
 
@@ -565,15 +596,15 @@ export function MotionInspectorSection({
                                         transitionType={selectedStyle.motionTransitionType} ease={selectedStyle.motionEase}
                                         duration={selectedStyle.motionDuration} delay={selectedStyle.motionDelay}
                                         stiffness={selectedStyle.motionStiffness} damping={selectedStyle.motionDamping} mass={selectedStyle.motionMass}
-                                        onTransitionTypeChange={(v) => updateSelectedStyle('motionTransitionType', v)}
-                                        onEaseChange={(v) => updateSelectedStyle('motionEase', v)}
-                                        onDurationChange={(v) => updateSelectedStyle('motionDuration', v)}
-                                        onDelayChange={(v) => updateSelectedStyle('motionDelay', v)}
-                                        onStiffnessChange={(v) => updateSelectedStyle('motionStiffness', v)}
-                                        onDampingChange={(v) => updateSelectedStyle('motionDamping', v)}
-                                        onMassChange={(v) => updateSelectedStyle('motionMass', v)}
+                                        onTransitionTypeChange={(v) => updateEntryField('motionTransitionType', v)}
+                                        onEaseChange={(v) => updateEntryField('motionEase', v)}
+                                        onDurationChange={(v) => updateEntryField('motionDuration', v)}
+                                        onDelayChange={(v) => updateEntryField('motionDelay', v)}
+                                        onStiffnessChange={(v) => updateEntryField('motionStiffness', v)}
+                                        onDampingChange={(v) => updateEntryField('motionDamping', v)}
+                                        onMassChange={(v) => updateEntryField('motionMass', v)}
                                         customBezier={selectedStyle.motionCustomBezier}
-                                        onCustomBezierChange={(v) => updateSelectedStyle('motionCustomBezier', v)}
+                                        onCustomBezierChange={(v) => updateEntryField('motionCustomBezier', v)}
                                     />
 
                                     {/* Stagger (conditional) */}
@@ -765,8 +796,8 @@ export function MotionInspectorSection({
                 </div>
             </Collapsible>
 
-            {/* ── Overlay preset section (only for overlay component kinds) ── */}
-            {overlayPresetKey ? (
+            {/* ── Overlay preset section — only for non-overlay kinds that still have an overlay preset key (input autocomplete, tabs) ── */}
+            {overlayPresetKey && !isOverlayComponent ? (
                 <div className="space-y-2 border-t border-white/[0.08] pt-2">
                     <SectionLabel>{componentKind === 'input' ? 'Autocomplete Motion' : componentKind === 'tabs' ? 'Tab Panel Motion' : `${componentKind.charAt(0).toUpperCase()}${componentKind.slice(1)} Motion`}</SectionLabel>
                     <FlatSelect

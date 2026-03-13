@@ -1,0 +1,26 @@
+{
+  "name": "ui-studio",
+  "version": "0.1.0",
+  "description": "CLI for installing UI Studio components",
+  "type": "module",
+  "bin": {
+    "ui-studio": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsup src/index.ts --format esm --watch"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.0",
+    "prompts": "^2.4.2",
+    "fs-extra": "^11.2.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.0",
+    "@types/prompts": "^2.4.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}

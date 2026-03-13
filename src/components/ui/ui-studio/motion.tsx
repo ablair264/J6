@@ -1137,20 +1137,6 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
         ].filter(Boolean)
         : [];
 
-    const timelineGroups = Object.entries(compiled)
-        .filter(([, trigger]) => trigger?.steps.length)
-        .map(([trigger, value]) => `  ${trigger}: ${serializeValue((value?.steps ?? []).map((step: MotionCompiledStep) => ({
-            id: step.id,
-            label: step.label,
-            from: step.from,
-            to: step.to,
-            transition: step.transition,
-            at: step.at,
-            repeat: step.repeat,
-            repeatDelay: step.repeatDelay,
-        })))}`)
-        .join(',\n');
-
     let snippet = `const motionProps = {\n  ${motionPropsEntries.join(',\n  ')}\n};`;
 
     if (scrollMotionEntries.length) {
@@ -1158,10 +1144,6 @@ export function buildMotionComponentSnippet(config: ComponentStyleConfig): strin
         if (config.motionScrollMode === 'progress') {
             snippet += `\n\n// Progress mode uses an in-view fallback here. For continuous scrubbing, drive the same target with scrollYProgress.`;
         }
-    }
-
-    if (timelineGroups) {
-        snippet += `\n\nconst motionTimeline = {\n${timelineGroups}\n};`;
     }
 
     const motionWrapperProps = scrollMotionEntries.length ? '{...motionProps} {...scrollMotion}' : '{...motionProps}';
