@@ -8,9 +8,9 @@ import { AlertInfo, AlertSuccess, AlertWarningDismissible, AlertError, AlertEntr
 import { AnimatedTextTypewriter, AnimatedTextBlurIn, AnimatedTextSplitEntrance, AnimatedTextGradientSweep, AnimatedTextShiny, AnimatedTextDecrypt, AnimatedTextCountingNumber, AnimatedTextWordRotate, AnimatedTextBounce } from './examples/animated-text-variations';
 import { AvatarWithBadge, AvatarGroupStacked } from './examples/avatar-variations';
 import { BadgeSolidDestructive, BadgeOutline, BadgePillSky, BadgeGrainBell, BadgeGrainPlain, BadgeGrainIconOnly, BadgeStatusSuccess, BadgeStatusWarning, BadgeStatusError, BadgeStatusInfo, BadgeEntryBlurFade, BadgeTapSpring } from './examples/badge-variations';
-import { ButtonEntryScaleDown, ButtonEntryScaleUp, ButtonHoverLift, ButtonHoverTapCombo, ButtonGradientSlide, ButtonAnimatedBorder, ButtonRippleFill, ButtonBorderBeam, ButtonBorderBeamLarge, ButtonShineBorder, ButtonPulseRing, ButtonGlass } from './examples/button-variations';
+import { ButtonPrimaryHero, ButtonOutlineHover, ButtonGradientSlide, ButtonAnimatedBorder, ButtonRippleFill, ButtonShineBorder, ButtonPulseRing, ButtonGlass, ButtonBorderBeam, ButtonBorderBeamCompact, ButtonDarkMinimal, ButtonDestructive } from './examples/button-variations';
 import { CardDefault, CardElevatedAction, CardGlass, CardHoverLift, CardEntryScaleUp, CardBorderBeam } from './examples/card-variations';
-import { CheckboxDefault } from './examples/checkbox-variations';
+import { CheckboxDefault, CheckboxWithDescription, CheckboxGroup, CheckboxDisabled } from './examples/checkbox-variations';
 import { DataTableDarkStriped, DataTableAmberCompact, DataTableEntryBlurFade } from './examples/datatable-variations';
 import { DialogTriggerDark, DialogTriggerAmber, DialogTriggerDestructive } from './examples/dialog-variations';
 import { DrawerTriggerRight, DrawerTriggerSettings } from './examples/drawer-variations';
@@ -467,51 +467,26 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     /* ── Button ── */
     button: [
         {
-            title: 'Entry Scale Down',
-            preview: <ButtonEntryScaleDown />,
+            title: 'Primary Hero',
+            preview: <ButtonPrimaryHero />,
             code: `<motion.div
-  initial={{ scale: 1.11 }}
-  animate={{ scale: 1 }}
-  transition={{ duration: 0.55, ease: 'easeInOut' }}
+  initial={{ scale: 0.9, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+  whileHover={{ y: -2, scale: 1.03 }}
 >
-  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
-    Primary action
+  <Button className="rounded-xl h-[52px] px-8 bg-gradient-to-b from-[#f5a623] to-[#e8940c] text-[#1a1a1d]">
+    Get Started <ArrowRight size={18} />
   </Button>
 </motion.div>`,
         },
         {
-            title: 'Entry Scale Up',
-            preview: <ButtonEntryScaleUp />,
-            code: `<motion.div
-  initial={{ scale: 0.92 }}
-  animate={{ scale: 1 }}
-  transition={{ duration: 0.55, ease: 'easeInOut' }}
->
-  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
-    Primary action
-  </Button>
-</motion.div>`,
-        },
-        {
-            title: 'Hover Lift',
-            preview: <ButtonHoverLift />,
-            code: `<motion.div
-  whileHover={{ y: 1, scale: 1.04, transition: { type: 'spring', stiffness: 485, damping: 20 } }}
->
-  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
-    Primary action
-  </Button>
-</motion.div>`,
-        },
-        {
-            title: 'Hover + Tap Combo',
-            preview: <ButtonHoverTapCombo />,
-            code: `<motion.div
-  whileHover={{ y: 1, scale: 1.04 }}
-  whileTap={{ scale: 0.96 }}
->
-  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
-    Primary action
+            title: 'Outline Hover',
+            preview: <ButtonOutlineHover />,
+            code: `<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+  <Button variant="outline"
+    className="rounded-lg h-10 px-5 border-white/10 text-[#e2e8f0] hover:bg-white/[0.04]">
+    Learn More
   </Button>
 </motion.div>`,
         },
@@ -519,110 +494,122 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Gradient Slide',
             preview: <ButtonGradientSlide />,
             code: `<Button
-  className="ui-studio-effect-gradient-slide bg-[var(--j6-amber-400-light)] rounded-sm"
+  className="ui-studio-effect-gradient-slide rounded-xl h-11 px-6 bg-[#7c3aed] text-white"
   style={{
-    '--ui-motion-gradient-from': '#eb5a0c',
-    '--ui-motion-gradient-to': '#ff8a05',
-    '--ui-effect-gs-speed': '0.32s',
+    '--ui-motion-gradient-from': '#4f46e5',
+    '--ui-motion-gradient-to': '#9f72ff',
+    '--ui-effect-gs-speed': '0.35s',
   }}
 >
-  <Bookmark size={18} /> Primary action
-</Button>`,
-        },
-        {
-            title: 'Animated Border',
-            preview: <ButtonAnimatedBorder />,
-            code: `<Button
-  className="ui-studio-effect-animated-border border-2 rounded-sm"
-  style={{
-    '--ui-effect-border-speed': '2.8s',
-    '--ui-effect-border-1': '#6d28d9',
-    '--ui-effect-border-2': '#3b0e87',
-    '--ui-effect-border-3': '#9f72ff',
-  }}
->
-  <Bookmark size={18} /> Primary action
-</Button>`,
-        },
-        {
-            title: 'Ripple Fill',
-            preview: <ButtonRippleFill />,
-            code: `<Button
-  className="ui-studio-effect-ripple-fill bg-[var(--j6-violet-400)] rounded-sm"
-  style={{
-    '--ui-motion-ripple-color': '#3b0e87',
-    '--ui-effect-ripple-speed': '0.5s',
-  }}
->
-  Primary action
+  <Zap size={16} /> Activate
 </Button>`,
         },
         {
             title: 'Border Beam',
             preview: <ButtonBorderBeam />,
             code: `<Button
-  className="ui-studio-effect-border-beam bg-[var(--j6-neutral-600-dark)] rounded-sm"
+  className="ui-studio-effect-border-beam rounded-xl h-[52px] px-8 bg-[#0f0f11] text-[#f0ede8]"
   style={{
-    '--ui-effect-beam-speed': '6s',
+    '--ui-effect-beam-speed': '5s',
     '--ui-effect-beam-from': '#f472b6',
-    '--ui-effect-beam-to': '#db2777',
+    '--ui-effect-beam-to': '#ec4899',
   }}
 >
-  Primary action
+  <Sparkles size={18} /> Premium Plan
 </Button>`,
         },
         {
-            title: 'Border Beam Large',
-            preview: <ButtonBorderBeamLarge />,
+            title: 'Animated Border',
+            preview: <ButtonAnimatedBorder />,
             code: `<Button
-  className="ui-studio-effect-border-beam bg-[var(--j6-neutral-600-dark)] text-base min-h-[44px]"
+  className="ui-studio-effect-animated-border rounded-lg h-10 px-5 border-2 text-white"
   style={{
-    '--ui-effect-beam-speed': '6s',
-    '--ui-effect-beam-from': '#f472b6',
-    '--ui-effect-beam-to': '#db2777',
+    '--ui-effect-border-speed': '3s',
+    '--ui-effect-fill-base': '#7c3aed',
+    '--ui-effect-border-1': '#8b5cf6',
+    '--ui-effect-border-2': '#6d28d9',
+    '--ui-effect-border-3': '#a78bfa',
   }}
 >
-  Primary action
+  <Star size={15} /> Upgrade
+</Button>`,
+        },
+        {
+            title: 'Ripple Fill',
+            preview: <ButtonRippleFill />,
+            code: `<Button
+  className="ui-studio-effect-ripple-fill rounded-lg h-11 px-6 bg-[#059669] text-white"
+  style={{ '--ui-motion-ripple-color': '#047857', '--ui-effect-ripple-speed': '0.5s' }}
+>
+  <Download size={16} /> Download
 </Button>`,
         },
         {
             title: 'Shine Border',
             preview: <ButtonShineBorder />,
             code: `<Button
-  className="ui-studio-effect-shine-border bg-[var(--j6-accent-indigo-light)] rounded-sm"
-  style={{
-    '--ui-effect-shine-speed': '4s',
-    '--ui-effect-shine-color': '#ffffff',
-    '--ui-effect-shine-width': '2px',
-  }}
+  className="ui-studio-effect-shine-border rounded-lg h-8 px-4 bg-[#4338ca] text-white text-xs"
+  style={{ '--ui-effect-shine-speed': '3.5s', '--ui-effect-shine-color': '#ffffff' }}
 >
-  Primary action
+  <Shield size={13} /> Secure
 </Button>`,
         },
         {
             title: 'Pulse Ring',
             preview: <ButtonPulseRing />,
-            code: `<Button
-  className="ui-studio-effect-pulse-ring bg-[var(--j6-accent-sky-light)] rounded-sm"
-  style={{
-    '--ui-effect-pulse-speed': '1.5s',
-    '--ui-effect-pulse-color': '#22d3ee',
-  }}
+            code: `<motion.div
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ type: 'spring', stiffness: 200, damping: 18 }}
 >
-  Primary action
-</Button>`,
+  <Button
+    className="ui-studio-effect-pulse-ring rounded-xl h-11 px-6 bg-[#0284c7] text-white"
+    style={{ '--ui-effect-pulse-speed': '1.8s', '--ui-effect-pulse-color': '#38bdf8' }}
+  >
+    <Rocket size={16} /> Launch
+  </Button>
+</motion.div>`,
         },
         {
             title: 'Glass',
             preview: <ButtonGlass />,
-            code: `<motion.div whileHover={{ y: 1, scale: 1.04 }}>
-  <Button
-    className="bg-[#000000]/0 rounded-sm backdrop-[blur(40px)_saturate(160%)]"
-    style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.14)' }}
-  >
-    Primary action
+            code: `<motion.div whileHover={{ y: -2, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+  <Button className="rounded-xl h-11 px-6 bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] backdrop-blur-xl">
+    <Heart size={15} /> Favourite
   </Button>
 </motion.div>`,
+        },
+        {
+            title: 'Dark Minimal',
+            preview: <ButtonDarkMinimal />,
+            code: `<motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}>
+  <Button variant="ghost" className="rounded-md h-7 px-3 text-xs text-[#9a9aa3] hover:text-[#f0ede8]">
+    <Plus size={13} /> Add
+  </Button>
+</motion.div>`,
+        },
+        {
+            title: 'Destructive',
+            preview: <ButtonDestructive />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  whileHover={{ scale: 1.02 }}
+>
+  <Button variant="destructive" className="rounded-lg h-10 px-5 bg-[#e11d48] text-white">
+    Delete Project
+  </Button>
+</motion.div>`,
+        },
+        {
+            title: 'Border Beam Compact',
+            preview: <ButtonBorderBeamCompact />,
+            code: `<Button
+  className="ui-studio-effect-border-beam rounded-lg h-8 px-4 bg-[#0f0f11] text-[#e2e8f0] text-xs"
+  style={{ '--ui-effect-beam-speed': '4s', '--ui-effect-beam-from': '#22d3ee', '--ui-effect-beam-to': '#06b6d4' }}
+>
+  <Send size={12} /> Send
+</Button>`,
         },
     ],
 
@@ -712,13 +699,56 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
         {
             title: 'Default',
             preview: <CheckboxDefault />,
-            code: `<div className="flex items-center gap-2">
+            code: `<div className="flex items-center gap-3">
   <Checkbox
-    id="checkbox-demo"
+    id="checkbox-default"
     defaultChecked
-    style={{ '--ui-checkbox-selection-speed': '0.22s' }}
+    className="size-5 rounded-[5px] border-[#404045] bg-[#141416]
+      data-[state=checked]:bg-[#f5a623] data-[state=checked]:border-[#f5a623]
+      data-[state=checked]:text-[#1a1a1d]"
   />
-  <Label htmlFor="checkbox-demo">Enable notifications</Label>
+  <Label htmlFor="checkbox-default">Enable notifications</Label>
+</div>`,
+        },
+        {
+            title: 'With Description',
+            preview: <CheckboxWithDescription />,
+            code: `<div className="flex gap-3">
+  <Checkbox id="checkbox-desc" defaultChecked
+    className="size-5 rounded-[5px] border-[#404045] bg-[#141416]
+      data-[state=checked]:bg-[#10b981] data-[state=checked]:border-[#10b981]
+      data-[state=checked]:text-white mt-0.5" />
+  <div className="flex flex-col gap-1">
+    <Label htmlFor="checkbox-desc">Marketing emails</Label>
+    <span className="text-xs text-muted-foreground">
+      Receive updates about new features and promotions.
+    </span>
+  </div>
+</div>`,
+        },
+        {
+            title: 'Group',
+            preview: <CheckboxGroup />,
+            code: `<div className="flex flex-col gap-3.5">
+  {items.map((item) => (
+    <div key={item.id} className="flex items-center gap-3">
+      <Checkbox id={item.id} defaultChecked={item.checked}
+        className="size-5 rounded-[5px] border-[#404045] bg-[#141416]
+          data-[state=checked]:bg-[#8b5cf6]
+          data-[state=checked]:border-[#8b5cf6]
+          data-[state=checked]:text-white" />
+      <Label htmlFor={item.id}>{item.label}</Label>
+    </div>
+  ))}
+</div>`,
+        },
+        {
+            title: 'Disabled',
+            preview: <CheckboxDisabled />,
+            code: `<div className="flex items-center gap-3">
+  <Checkbox id="checkbox-disabled" disabled
+    className="size-5 rounded-[5px] border-[#303035] bg-[#0f0f11]" />
+  <Label htmlFor="checkbox-disabled">Accept terms (disabled)</Label>
 </div>`,
         },
     ],

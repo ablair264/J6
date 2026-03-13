@@ -1,29 +1,20 @@
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
+const font = "'Inter', system-ui, sans-serif";
+
 /** Default tooltip — standard overlay with arrow. */
 export function TooltipDefault() {
-  const buttonClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-sm',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const buttonStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Tooltip>
-      <TooltipTrigger className={buttonClassName} style={buttonStyle}>
+      <TooltipTrigger
+        className="rounded-lg border border-solid text-sm font-medium text-center justify-center h-9 px-4"
+        style={{
+          background: '#1e1e22',
+          borderColor: '#303035',
+          color: '#e2e8f0',
+          fontFamily: font,
+        }}
+      >
         Hover me
       </TooltipTrigger>
       <TooltipContent>
@@ -35,25 +26,16 @@ export function TooltipDefault() {
 
 /** Inverse tooltip — dark foreground on light. */
 export function TooltipInverse() {
-  const buttonClassName = [
-    'bg-[var(--j6-amber-400-light)]',
-    'rounded-sm',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const buttonStyle = {
-    color: 'var(--j6-neutral-600-dark)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Tooltip>
-      <TooltipTrigger className={buttonClassName} style={buttonStyle}>
+      <TooltipTrigger
+        className="rounded-lg text-sm font-medium text-center justify-center h-9 px-4"
+        style={{
+          background: 'linear-gradient(135deg, #f5a623, #e8940c)',
+          color: '#1a1a1d',
+          fontFamily: font,
+        }}
+      >
         Hover me
       </TooltipTrigger>
       <TooltipContent inverse>
@@ -65,25 +47,16 @@ export function TooltipInverse() {
 
 /** Tooltip without arrow. */
 export function TooltipNoArrow() {
-  const buttonClassName = [
-    'bg-[var(--j6-violet-500-light)]',
-    'rounded-sm',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const buttonStyle = {
-    color: 'var(--j6-neutral-0-light)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Tooltip>
-      <TooltipTrigger className={buttonClassName} style={buttonStyle}>
+      <TooltipTrigger
+        className="rounded-lg text-sm font-medium text-center justify-center h-9 px-4"
+        style={{
+          background: '#7c3aed',
+          color: '#ffffff',
+          fontFamily: font,
+        }}
+      >
         No arrow
       </TooltipTrigger>
       <TooltipContent arrow={false}>

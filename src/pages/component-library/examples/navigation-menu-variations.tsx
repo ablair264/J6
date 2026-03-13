@@ -1,22 +1,15 @@
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from '@/components/ui/navigation-menu';
 
-/** Horizontal nav — dark with amber hover. */
-export function NavigationMenuDarkAmber() {
-  const rootClassName = [
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
+const interFont = "'Inter', system-ui, sans-serif";
 
+/** Horizontal nav — dark with amber hover accent. */
+export function NavigationMenuDarkAmber() {
   return (
     <NavigationMenu
-      hoverBg="rgba(255, 186, 74, 0.15)"
-      hoverText="var(--j6-amber-400-light)"
-      className={rootClassName}
-      style={rootStyle}
+      hoverBg="rgba(245,166,35,0.12)"
+      hoverText="#f5a623"
+      className="text-sm font-medium"
+      style={{ color: '#e2e8f0', fontFamily: interFont }}
     >
       <NavigationMenuList>
         <NavigationMenuItem>
@@ -26,7 +19,15 @@ export function NavigationMenuDarkAmber() {
           <NavigationMenuLink href="#" navigationItem>Components</NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuLink href="#" navigationItem active activeBg="rgba(255, 186, 74, 0.2)" activeText="var(--j6-amber-400-light)">Docs</NavigationMenuLink>
+          <NavigationMenuLink
+            href="#"
+            navigationItem
+            active
+            activeBg="rgba(245,166,35,0.18)"
+            activeText="#f5a623"
+          >
+            Docs
+          </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
@@ -35,21 +36,12 @@ export function NavigationMenuDarkAmber() {
 
 /** Horizontal nav — violet accent. */
 export function NavigationMenuViolet() {
-  const rootClassName = [
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(200, 196, 188, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <NavigationMenu
-      hoverBg="rgba(159, 114, 255, 0.15)"
-      hoverText="var(--j6-violet-400)"
-      className={rootClassName}
-      style={rootStyle}
+      hoverBg="rgba(139,92,246,0.12)"
+      hoverText="#a78bfa"
+      className="text-sm font-medium"
+      style={{ color: '#c8c4bc', fontFamily: interFont }}
     >
       <NavigationMenuList>
         <NavigationMenuItem>
@@ -66,31 +58,30 @@ export function NavigationMenuViolet() {
   );
 }
 
-/** Vertical nav — dark with emerald active. */
+/** Vertical nav — emerald accent with active state. */
 export function NavigationMenuVertical() {
-  const rootClassName = [
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <NavigationMenu
       orientation="vertical"
-      hoverBg="rgba(52, 211, 153, 0.12)"
-      hoverText="var(--j6-accent-emerald-dark)"
-      className={rootClassName}
-      style={rootStyle}
+      hoverBg="rgba(16,185,129,0.1)"
+      hoverText="#34d399"
+      className="text-sm font-medium"
+      style={{ color: '#e2e8f0', fontFamily: interFont }}
     >
       <NavigationMenuList>
         <NavigationMenuItem>
           <NavigationMenuLink href="#" navigationItem>Dashboard</NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuLink href="#" navigationItem active activeBg="rgba(52, 211, 153, 0.15)" activeText="var(--j6-accent-emerald-dark)">Settings</NavigationMenuLink>
+          <NavigationMenuLink
+            href="#"
+            navigationItem
+            active
+            activeBg="rgba(16,185,129,0.15)"
+            activeText="#34d399"
+          >
+            Settings
+          </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink href="#" navigationItem>Account</NavigationMenuLink>

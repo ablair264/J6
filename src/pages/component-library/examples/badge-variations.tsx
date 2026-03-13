@@ -2,75 +2,48 @@ import { motion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Ban, Bell, Search, Check, Shield, X, Bookmark } from 'lucide-react';
 
+const font = "'Inter', system-ui, sans-serif";
+
 /* ── Static variants ─────────────────────────────────────────────────────── */
 
 /** Solid destructive badge with icon. */
 export function BadgeSolidDestructive() {
-  const rootClassName = [
-    'rounded-md',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(239, 68, 68, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><Ban size={12} /> Badge token</Badge>
+    <Badge
+      className="rounded-md text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      style={{ background: '#ef4444', color: '#ffffff', fontFamily: font }}
+    >
+      <Ban size={12} /> Rejected
+    </Badge>
   );
 }
 
 /** Outline badge — transparent bg with border. */
 export function BadgeOutline() {
-  const rootClassName = [
-    'bg-[#ffffff]/0',
-    'border-solid',
-    'border',
-    'rounded-md',
-    'text-[var(--j6-neutral-50-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    borderColor: 'rgba(203, 213, 225, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}>Badge token</Badge>
+    <Badge
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5"
+      style={{
+        background: 'transparent',
+        borderColor: '#505058',
+        color: '#e2e8f0',
+        fontFamily: font,
+      }}
+    >
+      Draft
+    </Badge>
   );
 }
 
 /** Pill badge — sky accent, full radius. */
 export function BadgePillSky() {
-  const rootComponentClassName = 'rounded-full';
-  const rootClassName = [
-    rootComponentClassName,
-    'bg-[var(--j6-accent-sky-light)]',
-    'rounded-3xl',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(248, 250, 252, 1.000)',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}>Badge token</Badge>
+    <Badge
+      className="rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-3"
+      style={{ background: '#0ea5e9', color: '#ffffff', fontFamily: font }}
+    >
+      New
+    </Badge>
   );
 }
 
@@ -78,79 +51,55 @@ export function BadgePillSky() {
 
 /** Pill badge with grain texture + bell icon. */
 export function BadgeGrainBell() {
-  const rootEffectClassName = 'ui-studio-effect-grain';
-  const rootClassName = [
-    'rounded-full',
-    rootEffectClassName,
-    'bg-[var(--j6-accent-sky-light)]',
-    'rounded-3xl',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(248, 250, 252, 1.000)',
-    '--ui-effect-grain-opacity': '0.25',
-    '--ui-effect-grain-size': '200',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><Bell size={11} /> Badge token</Badge>
+    <Badge
+      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-3 gap-1"
+      style={{
+        background: '#0ea5e9',
+        color: '#ffffff',
+        fontFamily: font,
+        '--ui-effect-grain-opacity': '0.25',
+        '--ui-effect-grain-size': '200',
+      } as React.CSSProperties}
+    >
+      <Bell size={12} /> 3 Updates
+    </Badge>
   );
 }
 
 /** Pill badge with grain — no icon. */
 export function BadgeGrainPlain() {
-  const rootEffectClassName = 'ui-studio-effect-grain';
-  const rootClassName = [
-    'rounded-full',
-    rootEffectClassName,
-    'bg-[var(--j6-accent-sky-light)]',
-    'rounded-3xl',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(248, 250, 252, 1.000)',
-    '--ui-effect-grain-opacity': '0.25',
-    '--ui-effect-grain-size': '200',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}>Badge token</Badge>
+    <Badge
+      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-3"
+      style={{
+        background: '#0ea5e9',
+        color: '#ffffff',
+        fontFamily: font,
+        '--ui-effect-grain-opacity': '0.25',
+        '--ui-effect-grain-size': '200',
+      } as React.CSSProperties}
+    >
+      Featured
+    </Badge>
   );
 }
 
 /** Grain icon-only badge — search icon. */
 export function BadgeGrainIconOnly() {
-  const rootEffectClassName = 'ui-studio-effect-grain';
-  const rootClassName = [
-    'rounded-full',
-    rootEffectClassName,
-    'bg-[var(--j6-accent-sky-light)]',
-    'rounded-3xl',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(248, 250, 252, 1.000)',
-    '--ui-effect-grain-opacity': '0.25',
-    '--ui-effect-grain-size': '200',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><Search size={11} /></Badge>
+    <Badge
+      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-2.5"
+      style={{
+        background: '#0ea5e9',
+        color: '#ffffff',
+        fontFamily: font,
+        '--ui-effect-grain-opacity': '0.25',
+        '--ui-effect-grain-size': '200',
+      } as React.CSSProperties}
+    >
+      <Search size={12} />
+    </Badge>
   );
 }
 
@@ -158,97 +107,69 @@ export function BadgeGrainIconOnly() {
 
 /** Success badge — green tint with check icon. */
 export function BadgeStatusSuccess() {
-  const rootClassName = [
-    'border-solid',
-    'border',
-    'border-[#059669]/30',
-    'rounded-md',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(236, 253, 245, 1.000)',
-    color: 'rgba(6, 95, 70, 1.000)',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><Check size={10} /> Badge token</Badge>
+    <Badge
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      style={{
+        background: '#ecfdf5',
+        borderColor: 'rgba(5, 150, 105, 0.3)',
+        color: '#065f46',
+        fontFamily: font,
+      }}
+    >
+      <Check size={11} /> Completed
+    </Badge>
   );
 }
 
 /** Warning badge — yellow tint with shield icon. */
 export function BadgeStatusWarning() {
-  const rootClassName = [
-    'border-solid',
-    'border',
-    'border-[#ca8a04]/30',
-    'rounded-md',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(254, 252, 232, 1.000)',
-    color: 'rgba(133, 77, 14, 1.000)',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><Shield size={13} /> Badge token</Badge>
+    <Badge
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      style={{
+        background: '#fefce8',
+        borderColor: 'rgba(202, 138, 4, 0.3)',
+        color: '#854d0e',
+        fontFamily: font,
+      }}
+    >
+      <Shield size={12} /> Review
+    </Badge>
   );
 }
 
 /** Error badge — red tint with X icon. */
 export function BadgeStatusError() {
-  const rootClassName = [
-    'border-solid',
-    'border',
-    'border-[#dc2626]/20',
-    'rounded-md',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(254, 242, 242, 1.000)',
-    color: 'rgba(153, 27, 27, 1.000)',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><X size={12} /> Badge token</Badge>
+    <Badge
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      style={{
+        background: '#fef2f2',
+        borderColor: 'rgba(220, 38, 38, 0.2)',
+        color: '#991b1b',
+        fontFamily: font,
+      }}
+    >
+      <X size={12} /> Failed
+    </Badge>
   );
 }
 
 /** Info badge — blue tint with bookmark icon. */
 export function BadgeStatusInfo() {
-  const rootClassName = [
-    'border-solid',
-    'border',
-    'border-[#3b82f6]/30',
-    'rounded-md',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(239, 246, 255, 1.000)',
-    color: 'rgba(30, 58, 138, 1.000)',
-  };
-
   return (
-    <Badge className={rootClassName} style={rootStyle}><Bookmark size={12} /> Badge token</Badge>
+    <Badge
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      style={{
+        background: '#eff6ff',
+        borderColor: 'rgba(59, 130, 246, 0.3)',
+        color: '#1e3a8a',
+        fontFamily: font,
+      }}
+    >
+      <Bookmark size={12} /> Updated
+    </Badge>
   );
 }
 
@@ -256,65 +177,47 @@ export function BadgeStatusInfo() {
 
 /** Info badge with blur-fade entry animation. */
 export function BadgeEntryBlurFade() {
-  const rootClassName = [
-    'border-solid',
-    'border',
-    'border-[#3b82f6]/30',
-    'rounded-md',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(239, 246, 255, 1.000)',
-    color: 'rgba(30, 58, 138, 1.000)',
-  };
-
-  const motionProps = {
-    initial: { filter: 'blur(4px)' },
-    animate: { filter: 'blur(0px)' },
-    transition: { type: 'tween' as const, duration: 0.65, ease: 'easeInOut' as const },
-  };
-
   return (
-    <motion.div {...motionProps}>
-      <Badge className={rootClassName} style={rootStyle}><Bookmark size={12} /> Badge token</Badge>
+    <motion.div
+      initial={{ opacity: 0, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, filter: 'blur(0px)' }}
+      transition={{ type: 'tween' as const, duration: 0.65, ease: 'easeInOut' as const }}
+    >
+      <Badge
+        className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+        style={{
+          background: '#eff6ff',
+          borderColor: 'rgba(59, 130, 246, 0.3)',
+          color: '#1e3a8a',
+          fontFamily: font,
+        }}
+      >
+        <Bookmark size={12} /> Updated
+      </Badge>
     </motion.div>
   );
 }
 
 /** Info badge with spring tap — squish on press. */
 export function BadgeTapSpring() {
-  const rootClassName = [
-    'border-solid',
-    'border',
-    'border-[#3b82f6]/30',
-    'rounded-md',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[24px]',
-    'px-[8px]',
-  ].join(' ');
-  const rootStyle = {
-    background: 'rgba(239, 246, 255, 1.000)',
-    color: 'rgba(30, 58, 138, 1.000)',
-  };
-
-  const motionProps = {
-    whileTap: {
-      scale: 0.96,
-      transition: { type: 'spring' as const, duration: 0.15, stiffness: 420, damping: 30, mass: 0.75 },
-    },
-  };
-
   return (
-    <motion.div {...motionProps}>
-      <Badge className={rootClassName} style={rootStyle}><Bookmark size={12} /> Badge token</Badge>
+    <motion.div
+      whileTap={{
+        scale: 0.96,
+        transition: { type: 'spring' as const, duration: 0.15, stiffness: 420, damping: 30, mass: 0.75 },
+      }}
+    >
+      <Badge
+        className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1 cursor-pointer"
+        style={{
+          background: '#eff6ff',
+          borderColor: 'rgba(59, 130, 246, 0.3)',
+          color: '#1e3a8a',
+          fontFamily: font,
+        }}
+      >
+        <Bookmark size={12} /> Updated
+      </Badge>
     </motion.div>
   );
 }

@@ -1,28 +1,19 @@
 import { Button } from '@/components/ui/button';
 
+const font = "'Inter', system-ui, sans-serif";
+
 /** Popover trigger — dark info button. */
 export function PopoverTriggerDark() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-sm',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <Button className={rootClassName} style={rootStyle}>
+    <Button
+      className="rounded-lg border border-solid text-sm font-medium text-center justify-center h-10 px-5"
+      style={{
+        background: '#1e1e22',
+        borderColor: '#303035',
+        color: '#e2e8f0',
+        fontFamily: font,
+      }}
+    >
       More Info
     </Button>
   );
@@ -30,24 +21,15 @@ export function PopoverTriggerDark() {
 
 /** Popover trigger — amber styled. */
 export function PopoverTriggerAmber() {
-  const rootClassName = [
-    'bg-[var(--j6-amber-400-light)]',
-    'rounded-sm',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'var(--j6-neutral-600-dark)',
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <Button className={rootClassName} style={rootStyle}>
+    <Button
+      className="rounded-lg text-sm font-medium text-center justify-center h-10 px-5"
+      style={{
+        background: 'linear-gradient(135deg, #f5a623, #e8940c)',
+        color: '#1a1a1d',
+        fontFamily: font,
+      }}
+    >
       Details
     </Button>
   );
@@ -55,28 +37,17 @@ export function PopoverTriggerAmber() {
 
 /** Popover trigger — violet with grain effect. */
 export function PopoverTriggerVioletGrain() {
-  const rootEffectClassName = 'ui-studio-effect-grain';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-violet-500-light)]',
-    'rounded-sm',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'var(--j6-neutral-0-light)',
-    fontFamily: 'Nunito',
-    '--ui-effect-grain-opacity': '0.2',
-    '--ui-effect-grain-size': '200',
-  };
-
   return (
-    <Button className={rootClassName} style={rootStyle}>
+    <Button
+      className="ui-studio-effect-grain rounded-lg text-sm font-medium text-center justify-center h-10 px-5"
+      style={{
+        background: '#7c3aed',
+        color: '#ffffff',
+        fontFamily: font,
+        '--ui-effect-grain-opacity': '0.2',
+        '--ui-effect-grain-size': '200',
+      } as React.CSSProperties}
+    >
       Settings
     </Button>
   );

@@ -2,61 +2,43 @@ import { motion } from 'motion/react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-/** Dark input — standard text input with amber focus ring. */
-export function InputDark() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-sm',
-    'text-sm',
-    'h-[38px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
+const font = "'Inter', system-ui, sans-serif";
 
+/** Dark input — professional dark theme with subtle border. */
+export function InputDark() {
   return (
     <div className="flex flex-col gap-2">
-      <Label style={{ color: '#8a8a94', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Email</Label>
+      <Label
+        className="text-xs font-medium tracking-wide"
+        style={{ color: '#9a9aa3', fontFamily: font }}
+      >
+        Email
+      </Label>
       <Input
         type="email"
         placeholder="name@example.com"
-        className={rootClassName}
-        style={rootStyle}
+        className="bg-[#141416] border-solid border border-[#303035] rounded-lg text-sm h-10 px-3 placeholder:text-[#5a5a64] focus:border-[#f5a623] focus:ring-[#f5a623]/20 focus:ring-2"
+        style={{ color: '#f0ede8', fontFamily: font }}
       />
     </div>
   );
 }
 
-/** Light input — clean with subtle border. */
+/** Lighter-on-dark input — elevated surface with softer contrast. */
 export function InputLight() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-0-light)]',
-    'border-solid',
-    'border',
-    'border-[#1f2937]/20',
-    'rounded-sm',
-    'text-sm',
-    'h-[38px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(42, 42, 46, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <div className="flex flex-col gap-2">
-      <Label style={{ color: '#5a5a64', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Username</Label>
+      <Label
+        className="text-xs font-medium tracking-wide"
+        style={{ color: '#9a9aa3', fontFamily: font }}
+      >
+        Username
+      </Label>
       <Input
         type="text"
         placeholder="Enter username"
-        className={rootClassName}
-        style={rootStyle}
+        className="bg-[#1e1e22] border-solid border border-[#404045] rounded-lg text-sm h-10 px-3 placeholder:text-[#5a5a64] focus:border-[#10b981] focus:ring-[#10b981]/20 focus:ring-2"
+        style={{ color: '#e2e8f0', fontFamily: font }}
       />
     </div>
   );
@@ -64,67 +46,44 @@ export function InputLight() {
 
 /** Input with blur-fade entry animation. */
 export function InputEntryBlurFade() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#3a3a3f]',
-    'rounded-sm',
-    'text-sm',
-    'h-[38px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
-  const motionProps = {
-    initial: { filter: 'blur(4px)', opacity: 0 },
-    animate: { filter: 'blur(0px)', opacity: 1 },
-    transition: { type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const },
-  };
-
   return (
-    <motion.div {...motionProps} className="flex flex-col gap-2">
-      <Label style={{ color: '#8a8a94', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Search</Label>
+    <motion.div
+      initial={{ filter: 'blur(4px)', opacity: 0 }}
+      animate={{ filter: 'blur(0px)', opacity: 1 }}
+      transition={{ type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const }}
+      className="flex flex-col gap-2"
+    >
+      <Label
+        className="text-xs font-medium tracking-wide"
+        style={{ color: '#9a9aa3', fontFamily: font }}
+      >
+        Search
+      </Label>
       <Input
         type="search"
         placeholder="Search components..."
-        className={rootClassName}
-        style={rootStyle}
+        className="bg-[#141416] border-solid border border-[#303035] rounded-lg text-sm h-10 px-3 placeholder:text-[#5a5a64] focus:border-[#0ea5e9] focus:ring-[#0ea5e9]/20 focus:ring-2"
+        style={{ color: '#f0ede8', fontFamily: font }}
       />
     </motion.div>
   );
 }
 
-/** Input with violet focus styling. */
+/** Input with violet focus ring styling. */
 export function InputVioletFocus() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-700-light)]',
-    'border-solid',
-    'border',
-    'border-[var(--j6-violet-500-light)]/30',
-    'rounded-sm',
-    'text-sm',
-    'h-[38px]',
-    'px-[12px]',
-    'focus:border-[var(--j6-violet-400)]',
-    'focus:ring-[var(--j6-violet-400)]/20',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(200, 196, 188, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <div className="flex flex-col gap-2">
-      <Label style={{ color: '#8a8a94', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Password</Label>
+      <Label
+        className="text-xs font-medium tracking-wide"
+        style={{ color: '#9a9aa3', fontFamily: font }}
+      >
+        Password
+      </Label>
       <Input
         type="password"
         placeholder="Enter password"
-        className={rootClassName}
-        style={rootStyle}
+        className="bg-[#141416] border-solid border border-[#303035] rounded-lg text-sm h-10 px-3 placeholder:text-[#5a5a64] focus:border-[#8b5cf6] focus:ring-[#8b5cf6]/25 focus:ring-2"
+        style={{ color: '#f0ede8', fontFamily: font }}
       />
     </div>
   );

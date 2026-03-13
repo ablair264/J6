@@ -1,115 +1,85 @@
 import { motion } from 'motion/react';
 import { Progress } from '@/components/ui/progress';
 
+const font = "'Inter', system-ui, sans-serif";
+
 /** Linear progress — amber indicator on dark track. */
 export function ProgressLinearAmber() {
-  const rootClassName = [
-    'w-[200px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Progress
       value={65}
-      trackColor="var(--j6-neutral-600-dark)"
-      indicatorColor="var(--j6-amber-400-light)"
-      size="md"
-      className={rootClassName}
-      style={rootStyle}
+      trackColor="#1e1e22"
+      indicatorColor="#f5a623"
+      size="lg"
+      className="w-[280px]"
+      style={{ fontFamily: font }}
     />
   );
 }
 
-/** Linear progress — with label. */
+/** Linear progress — emerald with visible label. */
 export function ProgressLinearWithLabel() {
-  const rootClassName = [
-    'w-[200px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    fontSize: '0.75rem',
-  };
-
   return (
     <Progress
       value={42}
       showLabel
-      trackColor="var(--j6-neutral-600-dark)"
-      indicatorColor="var(--j6-accent-emerald-light)"
-      labelColor="var(--j6-neutral-200-light)"
+      trackColor="#1e1e22"
+      indicatorColor="#10b981"
+      labelColor="#e2e8f0"
       size="lg"
-      className={rootClassName}
-      style={rootStyle}
+      className="w-[280px]"
+      style={{ fontFamily: font, fontSize: '0.8125rem' }}
     />
   );
 }
 
-/** Circular progress — violet ring. */
+/** Circular progress — violet ring with label. */
 export function ProgressCircularViolet() {
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Progress
       value={72}
       variant="circular"
-      circularSize={56}
-      circularStrokeWidth={5}
-      trackColor="#3a3a3f"
-      indicatorColor="var(--j6-violet-400)"
+      circularSize={72}
+      circularStrokeWidth={6}
+      trackColor="#1e1e22"
+      indicatorColor="#8b5cf6"
       showLabel
-      labelColor="#c4a8ff"
-      style={rootStyle}
+      labelColor="#c4b5fd"
+      style={{ fontFamily: font, fontSize: '0.875rem', fontWeight: 600 }}
     />
   );
 }
 
-/** Circular progress — small sky indicator. */
+/** Circular progress — small sky blue indicator. */
 export function ProgressCircularSmall() {
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Progress
       value={85}
       variant="circular"
-      circularSize={40}
-      circularStrokeWidth={3}
-      trackColor="#2a2a2e"
-      indicatorColor="var(--j6-accent-sky-light)"
-      style={rootStyle}
+      circularSize={48}
+      circularStrokeWidth={4}
+      trackColor="#1e1e22"
+      indicatorColor="#0ea5e9"
+      style={{ fontFamily: font }}
     />
   );
 }
 
-/** Progress with blur-fade entry. */
+/** Linear progress with blur-fade entry animation. */
 export function ProgressEntryBlurFade() {
-  const rootClassName = [
-    'w-[200px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
-  const motionProps = {
-    initial: { filter: 'blur(4px)', opacity: 0 },
-    animate: { filter: 'blur(0px)', opacity: 1 },
-    transition: { type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const },
-  };
-
   return (
-    <motion.div {...motionProps}>
+    <motion.div
+      initial={{ filter: 'blur(4px)', opacity: 0 }}
+      animate={{ filter: 'blur(0px)', opacity: 1 }}
+      transition={{ type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const }}
+    >
       <Progress
         value={55}
-        trackColor="#2a2a2e"
-        indicatorColor="var(--j6-accent-pink-light)"
-        size="md"
-        className={rootClassName}
-        style={rootStyle}
+        trackColor="#1e1e22"
+        indicatorColor="#f472b6"
+        size="lg"
+        className="w-[280px]"
+        style={{ fontFamily: font }}
       />
     </motion.div>
   );

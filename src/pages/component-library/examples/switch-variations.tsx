@@ -2,104 +2,108 @@ import { motion } from 'motion/react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-/** Amber switch — amber active track. */
-export function SwitchAmber() {
-  const rootClassName = [
-    'rounded-full',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
+const font = "'Inter', system-ui, sans-serif";
 
+/** Amber switch — bright amber active track. */
+export function SwitchAmber() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <Switch
         id="switch-amber"
-        trackColor="#3a3a3f"
-        trackActiveColor="var(--j6-amber-400-light)"
-        thumbColor="#e2e8f0"
-        className={rootClassName}
-        style={rootStyle}
+        defaultChecked={true}
+        trackColor="#2a2a2e"
+        trackActiveColor="#f5a623"
+        thumbColor="#ffffff"
+        thumbActiveColor="#ffffff"
+        style={{ fontFamily: font }}
       />
-      <Label htmlFor="switch-amber" style={{ color: '#e2e8f0', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Enable</Label>
+      <Label
+        htmlFor="switch-amber"
+        className="text-sm font-medium"
+        style={{ color: '#f0ede8', fontFamily: font }}
+      >
+        Dark mode
+      </Label>
     </div>
   );
 }
 
 /** Emerald switch — green active indicator. */
 export function SwitchEmerald() {
-  const rootClassName = [
-    'rounded-full',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <Switch
         id="switch-emerald"
-        trackColor="#3a3a3f"
-        trackActiveColor="var(--j6-accent-emerald-light)"
-        thumbColor="#e2e8f0"
-        className={rootClassName}
-        style={rootStyle}
+        defaultChecked={true}
+        trackColor="#2a2a2e"
+        trackActiveColor="#10b981"
+        thumbColor="#ffffff"
+        thumbActiveColor="#ffffff"
+        style={{ fontFamily: font }}
       />
-      <Label htmlFor="switch-emerald" style={{ color: '#e2e8f0', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Active</Label>
+      <Label
+        htmlFor="switch-emerald"
+        className="text-sm font-medium"
+        style={{ color: '#f0ede8', fontFamily: font }}
+      >
+        Notifications
+      </Label>
     </div>
   );
 }
 
-/** Violet switch — purple active track with small size. */
+/** Violet switch — purple active track with compact size. */
 export function SwitchVioletSmall() {
-  const rootClassName = [
-    'rounded-full',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <Switch
         id="switch-violet-sm"
+        defaultChecked={true}
         size="sm"
-        trackColor="#3a3a3f"
-        trackActiveColor="var(--j6-violet-500-light)"
-        thumbColor="#e2e8f0"
-        className={rootClassName}
-        style={rootStyle}
+        trackColor="#2a2a2e"
+        trackActiveColor="#8b5cf6"
+        thumbColor="#ffffff"
+        thumbActiveColor="#ffffff"
+        style={{ fontFamily: font }}
       />
-      <Label htmlFor="switch-violet-sm" style={{ color: '#e2e8f0', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Compact</Label>
+      <Label
+        htmlFor="switch-violet-sm"
+        className="text-xs font-medium"
+        style={{ color: '#c4b5fd', fontFamily: font }}
+      >
+        Compact toggle
+      </Label>
     </div>
   );
 }
 
-/** Switch with hover scale wrapper. */
+/** Switch with hover scale wrapper — sky blue active track. */
 export function SwitchHoverScale() {
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
-  const motionProps = {
-    whileHover: {
-      scale: 1.08,
-      transition: { type: 'spring' as const, stiffness: 400, damping: 20 },
-    },
-  };
-
   return (
-    <div className="flex items-center gap-2">
-      <motion.div {...motionProps}>
+    <div className="flex items-center gap-3">
+      <motion.div
+        whileHover={{
+          scale: 1.08,
+          transition: { type: 'spring' as const, stiffness: 400, damping: 20 },
+        }}
+      >
         <Switch
           id="switch-hover"
-          trackColor="#3a3a3f"
-          trackActiveColor="var(--j6-accent-sky-light)"
+          defaultChecked={true}
+          trackColor="#2a2a2e"
+          trackActiveColor="#0ea5e9"
           thumbColor="#ffffff"
-          style={rootStyle}
+          thumbActiveColor="#ffffff"
+          style={{ fontFamily: font }}
         />
       </motion.div>
-      <Label htmlFor="switch-hover" style={{ color: '#e2e8f0', fontFamily: 'Nunito', fontSize: '0.75rem' }}>Interactive</Label>
+      <Label
+        htmlFor="switch-hover"
+        className="text-sm font-medium"
+        style={{ color: '#f0ede8', fontFamily: font }}
+      >
+        Auto-save
+      </Label>
     </div>
   );
 }

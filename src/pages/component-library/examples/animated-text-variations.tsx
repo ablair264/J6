@@ -1,38 +1,23 @@
 import { AnimatedText } from '@/components/ui/animated-text';
 
-/** Typewriter — amber text on dark bg. */
-export function AnimatedTextTypewriter() {
-  const rootClassName = [
-    'text-lg',
-    'font-semibold',
-  ].join(' ');
-  const rootStyle = {
-    color: 'var(--j6-amber-400-light)',
-    fontFamily: 'Nunito',
-  };
+const interFont = "'Inter', system-ui, sans-serif";
+const monoFont = "'JetBrains Mono', monospace";
 
+/** Typewriter — amber text, large and bold. */
+export function AnimatedTextTypewriter() {
   return (
     <AnimatedText
-      text="Welcome to UI Studio"
+      text="Building the future of UI"
       variant="typewriter"
       speed={1.2}
-      className={rootClassName}
-      style={rootStyle}
+      className="text-2xl font-bold"
+      style={{ color: '#f5a623', fontFamily: interFont }}
     />
   );
 }
 
-/** Blur-in — word-by-word reveal. */
+/** Blur-in — word-by-word reveal, cool neutral. */
 export function AnimatedTextBlurIn() {
-  const rootClassName = [
-    'text-base',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
       text="Design components visually"
@@ -40,23 +25,14 @@ export function AnimatedTextBlurIn() {
       speed={0.3}
       stagger={0.06}
       splitBy="word"
-      className={rootClassName}
-      style={rootStyle}
+      className="text-xl font-semibold"
+      style={{ color: '#e2e8f0', fontFamily: interFont }}
     />
   );
 }
 
-/** Split entrance — character-level animation. */
+/** Split entrance — character-level animation, soft violet. */
 export function AnimatedTextSplitEntrance() {
-  const rootClassName = [
-    'text-base',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(200, 196, 188, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
       text="Preview in real-time"
@@ -64,141 +40,89 @@ export function AnimatedTextSplitEntrance() {
       speed={0.3}
       stagger={0.03}
       splitBy="char"
-      className={rootClassName}
-      style={rootStyle}
+      className="text-lg font-medium"
+      style={{ color: '#c4b5fd', fontFamily: interFont }}
     />
   );
 }
 
-/** Gradient sweep — cyan to violet. */
+/** Gradient sweep — cyan to violet animated gradient. */
 export function AnimatedTextGradientSweep() {
-  const rootClassName = [
-    'text-xl',
-    'font-bold',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
       text="Export clean code"
       variant="gradient-sweep"
       speed={3}
-      gradientColor1="var(--j6-accent-cyan-light)"
-      gradientColor2="var(--j6-violet-400)"
-      className={rootClassName}
-      style={rootStyle}
+      gradientColor1="#22d3ee"
+      gradientColor2="#8b5cf6"
+      className="text-2xl font-bold"
+      style={{ fontFamily: interFont }}
     />
   );
 }
 
-/** Shiny text — amber shimmer. */
+/** Shiny text — amber shimmer with white highlight. */
 export function AnimatedTextShiny() {
-  const rootClassName = [
-    'text-lg',
-    'font-semibold',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
       text="Premium components"
       variant="shiny-text"
       speed={2}
-      gradientColor1="var(--j6-amber-500-light)"
+      gradientColor1="#f5a623"
       gradientColor2="rgba(255,255,255,0.9)"
-      className={rootClassName}
-      style={rootStyle}
+      className="text-xl font-semibold"
+      style={{ fontFamily: interFont }}
     />
   );
 }
 
-/** Decrypt — code-style reveal. */
+/** Decrypt — terminal-style code reveal. */
 export function AnimatedTextDecrypt() {
-  const rootClassName = [
-    'text-base',
-    'font-mono',
-  ].join(' ');
-  const rootStyle = {
-    color: 'var(--j6-accent-emerald-light)',
-    fontFamily: 'JetBrains Mono, monospace',
-  };
-
   return (
     <AnimatedText
       text="SYSTEM ONLINE"
       variant="decrypt"
       speed={1}
-      className={rootClassName}
-      style={rootStyle}
+      className="text-lg font-mono"
+      style={{ color: '#34d399', fontFamily: monoFont }}
     />
   );
 }
 
-/** Counting number — large stat display. */
+/** Counting number — large animated stat display. */
 export function AnimatedTextCountingNumber() {
-  const rootClassName = [
-    'text-3xl',
-    'font-bold',
-  ].join(' ');
-  const rootStyle = {
-    color: 'var(--j6-amber-400-light)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
-      text="1247"
+      text="12,847"
       variant="counting-number"
       speed={1.5}
-      className={rootClassName}
-      style={rootStyle}
+      className="text-4xl font-bold"
+      style={{ color: '#f5a623', fontFamily: interFont }}
     />
   );
 }
 
-/** Word rotate — cycling words. */
+/** Word rotate — cycling through action words. */
 export function AnimatedTextWordRotate() {
-  const rootClassName = [
-    'text-lg',
-    'font-semibold',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
       text="Design, Preview, Export, Ship"
       variant="word-rotate"
       speed={2}
-      className={rootClassName}
-      style={rootStyle}
+      className="text-xl font-semibold"
+      style={{ color: '#e2e8f0', fontFamily: interFont }}
     />
   );
 }
 
-/** Bounce — hover-triggered bounce on chars. */
+/** Bounce — hover-triggered bounce on characters. */
 export function AnimatedTextBounce() {
-  const rootClassName = [
-    'text-lg',
-    'font-bold',
-  ].join(' ');
-  const rootStyle = {
-    color: 'var(--j6-violet-400)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <AnimatedText
       text="Hover me!"
       variant="bounce"
-      className={rootClassName}
-      style={rootStyle}
+      className="text-xl font-bold"
+      style={{ color: '#8b5cf6', fontFamily: interFont }}
     />
   );
 }

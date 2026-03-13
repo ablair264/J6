@@ -1,423 +1,318 @@
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
-import { Bookmark } from 'lucide-react';
+import { ArrowRight, Zap, Sparkles, Download, Send, Star, Shield, Rocket, Heart, Plus } from 'lucide-react';
 
-/* ── Entry motion variants ───────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUTTON VARIATIONS — Professional showcase with varying sizes, colors,
+   fonts, radii, motion effects, and CSS effects.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/** Primary brand button — scale-down entry (starts big, settles to 1). */
-export function ButtonEntryScaleDown() {
-  const rootClassName = [
-    'bg-[var(--j6-amber-400-light)]',
-    'border-solid',
-    'border',
-    'rounded-sm',
-    'text-[var(--j6-neutral-600-dark)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    borderColor: 'rgba(196, 128, 10, 0.530)',
-    fontFamily: 'Nunito',
-  };
+/* ── 1. Primary Brand — Large hero CTA with spring entry ─────────────── */
 
-  const motionProps = {
-    initial: { scale: 1.11 },
-    animate: { scale: 1 },
-    transition: { type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const },
-  };
-
+/** Large primary CTA — bold amber with scale-up entry and hover lift. */
+export function ButtonPrimaryHero() {
   return (
-    <motion.div {...motionProps}>
-      <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-        Primary action
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring' as const, stiffness: 300, damping: 20 }}
+      whileHover={{ y: -2, scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <Button
+        className="rounded-xl text-[15px] font-semibold tracking-[-0.01em] h-[52px] px-8 gap-3 bg-gradient-to-b from-[#f5a623] to-[#e8940c] border border-[#c4800a]/40 text-[#1a1a1d] shadow-[0_1px_2px_rgba(0,0,0,0.2),_inset_0_1px_0_rgba(255,255,255,0.25)]"
+        style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      >
+        Get Started <ArrowRight size={18} strokeWidth={2.5} />
       </Button>
     </motion.div>
   );
 }
 
-/** Primary brand button — scale-up entry (starts small, settles to 1). */
-export function ButtonEntryScaleUp() {
-  const rootClassName = [
-    'bg-[var(--j6-amber-400-light)]',
-    'border-solid',
-    'border',
-    'rounded-sm',
-    'text-[var(--j6-neutral-600-dark)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    borderColor: 'rgba(196, 128, 10, 0.530)',
-    fontFamily: 'Nunito',
-  };
+/* ── 2. Outline Ghost — Medium with subtle hover reveal ──────────────── */
 
-  const motionProps = {
-    initial: { scale: 0.92 },
-    animate: { scale: 1 },
-    transition: { type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const },
-  };
-
+/** Ghost outline — minimal with border reveal on hover. */
+export function ButtonOutlineHover() {
   return (
-    <motion.div {...motionProps}>
-      <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-        Primary action
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring' as const, stiffness: 400, damping: 25 }}
+    >
+      <Button
+        variant="outline"
+        className="rounded-lg text-sm font-medium h-10 px-5 border-[#ffffff]/10 text-[#e2e8f0] bg-transparent hover:bg-[#ffffff]/[0.04] hover:border-[#ffffff]/20 transition-all duration-200"
+        style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      >
+        Learn More
       </Button>
     </motion.div>
   );
 }
 
-/* ── Hover motion variants ───────────────────────────────────────────────── */
+/* ── 3. Gradient Slide — Violet-to-indigo sweep with icon ────────────── */
 
-/** Primary brand button — spring hover lift. */
-export function ButtonHoverLift() {
-  const rootClassName = [
-    'bg-[var(--j6-amber-400-light)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-600-dark)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
-  const motionProps = {
-    whileHover: {
-      y: 1,
-      scale: 1.04,
-      transition: { type: 'spring' as const, duration: 0.25, stiffness: 485, damping: 20, mass: 0.8 },
-    },
-  };
-
-  return (
-    <motion.div {...motionProps}>
-      <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-        Primary action
-      </Button>
-    </motion.div>
-  );
-}
-
-/** Primary brand button — hover + tap combo (lift on hover, squish on tap). */
-export function ButtonHoverTapCombo() {
-  const rootClassName = [
-    'bg-[var(--j6-amber-400-light)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-600-dark)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
-  const motionProps = {
-    whileHover: {
-      y: 1,
-      scale: 1.04,
-      transition: { type: 'spring' as const, duration: 0.25, stiffness: 485, damping: 20, mass: 0.8 },
-    },
-    whileTap: {
-      scale: 0.96,
-      transition: { type: 'spring' as const, duration: 0.15, stiffness: 420, damping: 30, mass: 0.75 },
-    },
-  };
-
-  return (
-    <motion.div {...motionProps}>
-      <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-        Primary action
-      </Button>
-    </motion.div>
-  );
-}
-
-/* ── Effect variants ─────────────────────────────────────────────────────── */
-
-/** Gradient slide button — orange-to-amber sweep with icon. */
+/** Gradient slide effect — violet sweep on hover with icon. */
 export function ButtonGradientSlide() {
   const rootEffectClassName = 'ui-studio-effect-gradient-slide ui-studio-effect-gradient-slide-left ui-studio-effect-gradient-slide-gradient';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-amber-400-light)]',
-    'border-solid',
-    'border-[0.5px]',
-    'border-[#c4800a]/75',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[29px]',
-    'h-[29px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-gradient-from': '#eb5a0c',
-    '--ui-motion-gradient-to': '#ff8a05',
-    '--ui-effect-gs-speed': '0.32s',
-  };
-
   return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      <Bookmark size={18} /> Primary action
+    <Button
+      className={[
+        rootEffectClassName,
+        'rounded-xl text-sm font-semibold h-11 px-6 gap-2',
+        'bg-[#7c3aed] text-white border border-[#6d28d9]/60',
+        'shadow-[0_2px_8px_rgba(124,58,237,0.3)]',
+      ].join(' ')}
+      style={{
+        fontFamily: "'Inter', system-ui, sans-serif",
+        '--ui-motion-gradient-from': '#4f46e5',
+        '--ui-motion-gradient-to': '#9f72ff',
+        '--ui-effect-gs-speed': '0.35s',
+      } as React.CSSProperties}
+    >
+      <Zap size={16} /> Activate
     </Button>
   );
 }
 
-/** Animated border — multi-color rotating border with icon. */
-export function ButtonAnimatedBorder() {
-  const rootEffectClassName = 'ui-studio-effect-animated-border ui-studio-effect-animated-border-state-default ui-studio-effect-animated-border-state-hover ui-studio-effect-animated-border-state-active';
-  const rootClassName = [
-    rootEffectClassName,
-    'border-solid',
-    'border-2',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[33px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-speed': '2.8s',
-    '--ui-motion-fill': 'rgba(159, 114, 255, 1.000)',
-    '--ui-effect-fill-base': 'rgba(159, 114, 255, 1.000)',
-    '--ui-effect-border-speed': '2.8s',
-    '--ui-effect-border-width': '3px',
-    '--ui-effect-border-1': '#6d28d9',
-    '--ui-effect-border-2': '#3b0e87',
-    '--ui-effect-border-3': '#9f72ff',
-    '--ui-effect-border-4': '#34d399',
-    '--ui-effect-border-5': '#f59e0b',
-    '--ui-effect-border-count': '3',
-  };
+/* ── 4. Border Beam — Dark premium with traveling pink beam ──────────── */
 
-  return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      <Bookmark size={18} /> Primary action
-    </Button>
-  );
-}
-
-/** Ripple fill — violet with click ripple effect. */
-export function ButtonRippleFill() {
-  const rootEffectClassName = 'ui-studio-effect-ripple-fill';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-violet-400)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[33px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-ripple-color': '#3b0e87',
-    '--ui-effect-ripple-speed': '0.5s',
-  };
-
-  return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      Primary action
-    </Button>
-  );
-}
-
-/** Border beam — dark bg with pink traveling beam. */
+/** Border beam — dark surface with animated pink border light. Large. */
 export function ButtonBorderBeam() {
   const rootEffectClassName = 'ui-studio-effect-border-beam';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-neutral-600-dark)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-sm',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[38px]',
-    'h-[38px]',
-    'px-[14px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-speed': '2.8s',
-    '--ui-motion-fill': 'rgba(26, 26, 29, 1.000)',
-    '--ui-effect-beam-speed': '6s',
-    '--ui-effect-beam-size': '80px',
-    '--ui-effect-beam-width': '2px',
-    '--ui-effect-beam-from': '#f472b6',
-    '--ui-effect-beam-to': '#db2777',
-  };
-
   return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      Primary action
+    <Button
+      className={[
+        rootEffectClassName,
+        'rounded-xl text-[15px] font-semibold h-[52px] px-8 gap-3',
+        'bg-[#0f0f11] text-[#f0ede8]',
+      ].join(' ')}
+      style={{
+        fontFamily: "'Inter', system-ui, sans-serif",
+        letterSpacing: '-0.01em',
+        '--ui-motion-speed': '2.8s',
+        '--ui-motion-fill': '#0f0f11',
+        '--ui-effect-beam-speed': '5s',
+        '--ui-effect-beam-size': '100px',
+        '--ui-effect-beam-width': '1.5px',
+        '--ui-effect-beam-from': '#f472b6',
+        '--ui-effect-beam-to': '#ec4899',
+      } as React.CSSProperties}
+    >
+      <Sparkles size={18} /> Premium Plan
     </Button>
   );
 }
 
-/** Border beam large — same effect at a bigger size. */
-export function ButtonBorderBeamLarge() {
-  const rootEffectClassName = 'ui-studio-effect-border-beam';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-neutral-600-dark)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-base',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[44px]',
-    'h-[44px]',
-    'px-[17px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-speed': '2.8s',
-    '--ui-motion-fill': 'rgba(26, 26, 29, 1.000)',
-    '--ui-effect-beam-speed': '6s',
-    '--ui-effect-beam-size': '80px',
-    '--ui-effect-beam-width': '2px',
-    '--ui-effect-beam-from': '#f472b6',
-    '--ui-effect-beam-to': '#db2777',
-  };
+/* ── 5. Animated Border — Multi-color rotating border ────────────────── */
 
+/** Animated border — violet base with rotating multi-color border. Medium. */
+export function ButtonAnimatedBorder() {
+  const rootEffectClassName = 'ui-studio-effect-animated-border ui-studio-effect-animated-border-state-default ui-studio-effect-animated-border-state-hover ui-studio-effect-animated-border-state-active';
   return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      Primary action
-    </Button>
-  );
-}
-
-/** Shine border — indigo with white light sweep. */
-export function ButtonShineBorder() {
-  const rootEffectClassName = 'ui-studio-effect-shine-border';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-accent-indigo-light)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[34px]',
-    'h-[34px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-speed': '2.8s',
-    '--ui-motion-fill': 'rgba(67, 56, 202, 1.000)',
-    '--ui-effect-shine-speed': '4s',
-    '--ui-effect-shine-color': '#ffffff',
-    '--ui-effect-shine-width': '2px',
-  };
-
-  return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      Primary action
-    </Button>
-  );
-}
-
-/** Pulse ring — sky accent with radiating pulse. */
-export function ButtonPulseRing() {
-  const rootEffectClassName = 'ui-studio-effect-pulse-ring';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-accent-sky-light)]',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[34px]',
-    'h-[34px]',
-    'px-[12px]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-    '--ui-motion-speed': '2.8s',
-    '--ui-motion-fill': 'rgba(2, 132, 199, 1.000)',
-    '--ui-effect-pulse-speed': '1.5s',
-    '--ui-effect-pulse-width': '2px',
-    '--ui-effect-pulse-color': '#22d3ee',
-  };
-
-  return (
-    <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-      Primary action
-    </Button>
-  );
-}
-
-/** Glass button — transparent with backdrop blur and hover lift. */
-export function ButtonGlass() {
-  const rootClassName = [
-    'bg-[#000000]/0',
-    'rounded-sm',
-    'text-[var(--j6-neutral-0-light)]',
-    'text-xs',
-    'font-medium',
-    'text-center',
-    'justify-center',
-    'min-h-[34px]',
-    'h-[34px]',
-    'px-[12px]',
-    'shadow-[0_2px_4px_rgba(0,0,0,0.14),_0_4px_8px_rgba(0,0,0,0.10),_0_1px_2px_rgba(0,0,0,0.08)]',
-    'backdrop-[blur(40px)_saturate(160%)]',
-  ].join(' ');
-  const rootStyle = {
-    fontFamily: 'Nunito',
-  };
-
-  const motionProps = {
-    whileHover: {
-      y: 1,
-      scale: 1.04,
-      transition: { type: 'spring' as const, duration: 0.25, stiffness: 485, damping: 20, mass: 0.8 },
-    },
-  };
-
-  return (
-    <motion.div {...motionProps}>
-      <Button variant="default" size="default" className={rootClassName} style={rootStyle}>
-        Primary action
+    <motion.div
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring' as const, stiffness: 400, damping: 25 }}
+    >
+      <Button
+        className={[
+          rootEffectClassName,
+          'rounded-lg text-sm font-semibold h-10 px-5 gap-2',
+          'border-2 text-white',
+        ].join(' ')}
+        style={{
+          fontFamily: "'Inter', system-ui, sans-serif",
+          '--ui-motion-speed': '3s',
+          '--ui-motion-fill': '#7c3aed',
+          '--ui-effect-fill-base': '#7c3aed',
+          '--ui-effect-border-speed': '3s',
+          '--ui-effect-border-width': '2px',
+          '--ui-effect-border-1': '#8b5cf6',
+          '--ui-effect-border-2': '#6d28d9',
+          '--ui-effect-border-3': '#a78bfa',
+          '--ui-effect-border-4': '#34d399',
+          '--ui-effect-border-5': '#f59e0b',
+          '--ui-effect-border-count': '3',
+        } as React.CSSProperties}
+      >
+        <Star size={15} /> Upgrade
       </Button>
     </motion.div>
+  );
+}
+
+/* ── 6. Ripple Fill — Emerald with click ripple ──────────────────────── */
+
+/** Ripple fill — emerald green with click ripple effect. */
+export function ButtonRippleFill() {
+  const rootEffectClassName = 'ui-studio-effect-ripple-fill';
+  return (
+    <Button
+      className={[
+        rootEffectClassName,
+        'rounded-lg text-sm font-semibold h-11 px-6 gap-2',
+        'bg-[#059669] text-white',
+        'shadow-[0_1px_3px_rgba(0,0,0,0.2),_inset_0_1px_0_rgba(255,255,255,0.1)]',
+      ].join(' ')}
+      style={{
+        fontFamily: "'Inter', system-ui, sans-serif",
+        '--ui-motion-ripple-color': '#047857',
+        '--ui-effect-ripple-speed': '0.5s',
+      } as React.CSSProperties}
+    >
+      <Download size={16} /> Download
+    </Button>
+  );
+}
+
+/* ── 7. Shine Border — Indigo with white light sweep ─────────────────── */
+
+/** Shine border — indigo with traveling white light sweep. Small. */
+export function ButtonShineBorder() {
+  const rootEffectClassName = 'ui-studio-effect-shine-border';
+  return (
+    <Button
+      className={[
+        rootEffectClassName,
+        'rounded-lg text-xs font-semibold h-8 px-4 gap-1.5',
+        'bg-[#4338ca] text-white',
+      ].join(' ')}
+      style={{
+        fontFamily: "'Inter', system-ui, sans-serif",
+        '--ui-motion-speed': '2.8s',
+        '--ui-motion-fill': '#4338ca',
+        '--ui-effect-shine-speed': '3.5s',
+        '--ui-effect-shine-color': '#ffffff',
+        '--ui-effect-shine-width': '1.5px',
+      } as React.CSSProperties}
+    >
+      <Shield size={13} /> Secure
+    </Button>
+  );
+}
+
+/* ── 8. Pulse Ring — Sky with radiating pulse. CTA attention-grabber ─── */
+
+/** Pulse ring — sky blue with radiating pulse ring. */
+export function ButtonPulseRing() {
+  const rootEffectClassName = 'ui-studio-effect-pulse-ring';
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring' as const, stiffness: 200, damping: 18, delay: 0.1 }}
+    >
+      <Button
+        className={[
+          rootEffectClassName,
+          'rounded-xl text-sm font-semibold h-11 px-6 gap-2',
+          'bg-[#0284c7] text-white',
+          'shadow-[0_2px_12px_rgba(2,132,199,0.35)]',
+        ].join(' ')}
+        style={{
+          fontFamily: "'Inter', system-ui, sans-serif",
+          '--ui-motion-speed': '2.8s',
+          '--ui-motion-fill': '#0284c7',
+          '--ui-effect-pulse-speed': '1.8s',
+          '--ui-effect-pulse-width': '2px',
+          '--ui-effect-pulse-color': '#38bdf8',
+        } as React.CSSProperties}
+      >
+        <Rocket size={16} /> Launch
+      </Button>
+    </motion.div>
+  );
+}
+
+/* ── 9. Glass Morphism — Frosted glass with hover lift ───────────────── */
+
+/** Glass — frosted translucent surface with spring hover. */
+export function ButtonGlass() {
+  return (
+    <motion.div
+      whileHover={{ y: -2, scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring' as const, stiffness: 400, damping: 22 }}
+    >
+      <Button
+        className="rounded-xl text-sm font-medium h-11 px-6 gap-2 bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] shadow-[0_4px_16px_rgba(0,0,0,0.15),_inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+        style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      >
+        <Heart size={15} /> Favourite
+      </Button>
+    </motion.div>
+  );
+}
+
+/* ── 10. Dark Minimal — Small compact action ─────────────────────────── */
+
+/** Dark minimal — compact secondary action with tap spring. */
+export function ButtonDarkMinimal() {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.94 }}
+      transition={{ type: 'spring' as const, stiffness: 500, damping: 25 }}
+    >
+      <Button
+        variant="ghost"
+        className="rounded-md text-xs font-medium h-7 px-3 gap-1.5 text-[#9a9aa3] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-colors"
+        style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      >
+        <Plus size={13} /> Add
+      </Button>
+    </motion.div>
+  );
+}
+
+/* ── 11. Destructive — Rose with blur-fade entry ─────────────────────── */
+
+/** Destructive — rose red with blur-fade entry animation. */
+export function ButtonDestructive() {
+  return (
+    <motion.div
+      initial={{ filter: 'blur(4px)', opacity: 0 }}
+      animate={{ filter: 'blur(0px)', opacity: 1 }}
+      transition={{ type: 'tween' as const, duration: 0.5, ease: 'easeOut' as const }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <Button
+        variant="destructive"
+        className="rounded-lg text-sm font-semibold h-10 px-5 gap-2 bg-[#e11d48] text-white border border-[#be123c]/40 shadow-[0_1px_3px_rgba(225,29,72,0.3)]"
+        style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      >
+        Delete Project
+      </Button>
+    </motion.div>
+  );
+}
+
+/* ── 12. Border Beam Small — Cyan beam on dark. Compact. ─────────────── */
+
+/** Border beam small — compact dark button with cyan traveling beam. */
+export function ButtonBorderBeamCompact() {
+  const rootEffectClassName = 'ui-studio-effect-border-beam';
+  return (
+    <Button
+      className={[
+        rootEffectClassName,
+        'rounded-lg text-xs font-semibold h-8 px-4 gap-1.5',
+        'bg-[#0f0f11] text-[#e2e8f0]',
+      ].join(' ')}
+      style={{
+        fontFamily: "'Inter', system-ui, sans-serif",
+        '--ui-motion-speed': '2.8s',
+        '--ui-motion-fill': '#0f0f11',
+        '--ui-effect-beam-speed': '4s',
+        '--ui-effect-beam-size': '60px',
+        '--ui-effect-beam-width': '1.5px',
+        '--ui-effect-beam-from': '#22d3ee',
+        '--ui-effect-beam-to': '#06b6d4',
+      } as React.CSSProperties}
+    >
+      <Send size={12} /> Send
+    </Button>
   );
 }

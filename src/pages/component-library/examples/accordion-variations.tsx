@@ -1,80 +1,86 @@
 import { motion } from 'motion/react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
+const interFont = "'Inter', system-ui, sans-serif";
+
 /** Dark accordion — single collapsible with amber dividers. */
 export function AccordionDarkAmber() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-md',
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Accordion
       type="single"
       collapsible
-      dividerColor="var(--j6-amber-500-light)"
+      dividerColor="#f5a623"
       dividerWeight={1}
-      paddingH={14}
-      paddingW={16}
-      className={rootClassName}
-      style={rootStyle}
+      dividerEnabled
+      paddingH={16}
+      paddingW={18}
+      className="bg-[#141416] border-solid border border-[#2a2a2e] rounded-xl text-sm font-medium"
+      style={{ color: '#f0ede8', fontFamily: interFont }}
     >
       <AccordionItem value="item-1">
-        <AccordionTrigger>What is UI Studio?</AccordionTrigger>
-        <AccordionContent>A visual component design tool for React and Tailwind.</AccordionContent>
+        <AccordionTrigger style={{ color: '#f0ede8' }}>
+          What frameworks are supported?
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#9a9aa3' }}>
+          UI Studio exports clean React components with Tailwind CSS classes. You can drop the generated code directly into any Vite, Next.js, or Remix project without additional configuration.
+        </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-2">
-        <AccordionTrigger>How does export work?</AccordionTrigger>
-        <AccordionContent>Components export as clean React + Tailwind code.</AccordionContent>
+        <AccordionTrigger style={{ color: '#f0ede8' }}>
+          How does the motion system work?
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#9a9aa3' }}>
+          Motion presets are powered by React Motion and include entry, exit, hover, and tap animations. Each preset exports as a standalone motion wrapper with no runtime dependencies beyond the motion library.
+        </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-3">
-        <AccordionTrigger>Is it open source?</AccordionTrigger>
-        <AccordionContent>Yes, the project is fully open source.</AccordionContent>
+        <AccordionTrigger style={{ color: '#f0ede8' }}>
+          Can I customize the exported code?
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#9a9aa3' }}>
+          Absolutely. All exported components use standard React props and Tailwind utilities. There are no proprietary abstractions locking you in — edit the output however you need.
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );
 }
 
-/** Light accordion — spaced items with no dividers. */
+/** Spaced accordion — no dividers, relaxed spacing. */
 export function AccordionLightSpaced() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-50-light)]',
-    'rounded-md',
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(58, 58, 63, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Accordion
       type="single"
       collapsible
       dividerEnabled={false}
       spacing={8}
-      paddingH={12}
-      paddingW={14}
-      className={rootClassName}
-      style={rootStyle}
+      paddingH={16}
+      paddingW={18}
+      className="bg-[#1a1a1d] rounded-xl text-sm font-medium"
+      style={{ color: '#e0ddd7', fontFamily: interFont }}
     >
       <AccordionItem value="item-1">
-        <AccordionTrigger>Features</AccordionTrigger>
-        <AccordionContent>Visual preview, live editing, and instant export.</AccordionContent>
+        <AccordionTrigger style={{ color: '#e0ddd7' }}>
+          Design tokens and theming
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#87878f' }}>
+          Components ship with a token system for colors, spacing, and typography. Override tokens at the theme level to match your brand without touching individual component styles.
+        </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-2">
-        <AccordionTrigger>Components</AccordionTrigger>
-        <AccordionContent>21+ components with motion and effects.</AccordionContent>
+        <AccordionTrigger style={{ color: '#e0ddd7' }}>
+          Accessibility and keyboard navigation
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#87878f' }}>
+          Built on Radix primitives, every component supports full keyboard navigation, ARIA attributes, and screen reader announcements out of the box.
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="item-3">
+        <AccordionTrigger style={{ color: '#e0ddd7' }}>
+          Component variants and effects
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#87878f' }}>
+          Each component includes multiple visual variants powered by CVA. Layer on effects like border-beam, neon-glow, or gradient-sweep for premium polish.
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );
@@ -82,24 +88,10 @@ export function AccordionLightSpaced() {
 
 /** Accordion with blur-fade entry animation. */
 export function AccordionEntryBlurFade() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#3a3a3f]',
-    'rounded-md',
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   const motionProps = {
-    initial: { filter: 'blur(4px)', opacity: 0 },
+    initial: { filter: 'blur(6px)', opacity: 0 },
     animate: { filter: 'blur(0px)', opacity: 1 },
-    transition: { type: 'tween' as const, duration: 0.55, ease: 'easeInOut' as const },
+    transition: { type: 'tween' as const, duration: 0.6, ease: 'easeOut' as const },
   };
 
   return (
@@ -107,62 +99,71 @@ export function AccordionEntryBlurFade() {
       <Accordion
         type="single"
         collapsible
-        dividerColor="#5a5a64"
-        paddingH={14}
-        paddingW={16}
-        className={rootClassName}
-        style={rootStyle}
+        dividerColor="#404045"
+        dividerWeight={1}
+        dividerEnabled
+        paddingH={16}
+        paddingW={18}
+        className="bg-[#111113] border-solid border border-[#1e1e22] rounded-xl text-sm font-medium"
+        style={{ color: '#e2e0db', fontFamily: interFont }}
       >
         <AccordionItem value="item-1">
-          <AccordionTrigger>Getting started</AccordionTrigger>
-          <AccordionContent>Install via pnpm and start designing.</AccordionContent>
+          <AccordionTrigger style={{ color: '#e2e0db' }}>
+            Getting started with UI Studio
+          </AccordionTrigger>
+          <AccordionContent style={{ color: '#8a8a93' }}>
+            Install the package with pnpm, open the visual editor, and start composing components. Changes reflect instantly in the live preview panel.
+          </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-2">
-          <AccordionTrigger>Token system</AccordionTrigger>
-          <AccordionContent>J6 tokens provide consistent color primitives.</AccordionContent>
+          <AccordionTrigger style={{ color: '#e2e0db' }}>
+            Exporting production-ready code
+          </AccordionTrigger>
+          <AccordionContent style={{ color: '#8a8a93' }}>
+            Once you are satisfied with the design, click Export to generate a clean React component with inline styles or Tailwind classes — your choice.
+          </AccordionContent>
         </AccordionItem>
       </Accordion>
     </motion.div>
   );
 }
 
-/** Accordion with multiple open items. */
+/** Accordion with multiple open items and violet accent. */
 export function AccordionMultipleOpen() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-700-light)]',
-    'border-solid',
-    'border',
-    'border-[var(--j6-violet-500-light)]/20',
-    'rounded-md',
-    'text-sm',
-    'font-medium',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(200, 196, 188, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
     <Accordion
       type="multiple"
-      dividerColor="var(--j6-violet-400)"
+      dividerColor="#8b5cf6"
       dividerWeight={1}
-      paddingH={14}
-      paddingW={16}
-      className={rootClassName}
-      style={rootStyle}
+      dividerEnabled
+      paddingH={16}
+      paddingW={18}
+      className="bg-[#141416] border-solid border border-[rgba(139,92,246,0.25)] rounded-xl text-sm font-medium"
+      style={{ color: '#d4d0ca', fontFamily: interFont }}
     >
       <AccordionItem value="item-1">
-        <AccordionTrigger>Design tokens</AccordionTrigger>
-        <AccordionContent>Primitives, semantics, and showcase themes.</AccordionContent>
+        <AccordionTrigger style={{ color: '#e8e5e0' }}>
+          Entry and exit presets
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#9a9aa3' }}>
+          Choose from blur-fade, slide-scale, drop-in, expand-x, and expand-y. Each preset is configurable with duration, easing, and delay parameters.
+        </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-2">
-        <AccordionTrigger>Motion system</AccordionTrigger>
-        <AccordionContent>Entry, hover, tap, and exit animations.</AccordionContent>
+        <AccordionTrigger style={{ color: '#e8e5e0' }}>
+          Border and outline effects
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#9a9aa3' }}>
+          Add border-beam, shine-border, neon-glow, or pulse-ring effects. These run on CSS animations and have zero JavaScript runtime cost.
+        </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-3">
-        <AccordionTrigger>Effects</AccordionTrigger>
-        <AccordionContent>Grain, gradient-slide, border-beam, and more.</AccordionContent>
+        <AccordionTrigger style={{ color: '#e8e5e0' }}>
+          Advanced hover interactions
+        </AccordionTrigger>
+        <AccordionContent style={{ color: '#9a9aa3' }}>
+          Enable 3D tilt, glare overlay, or spotlight tracking on hover. These mouse-tracking effects use requestAnimationFrame for smooth 60fps performance.
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );

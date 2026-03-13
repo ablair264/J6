@@ -2,198 +2,181 @@ import { motion } from 'motion/react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-/** Default card — simple border with content. */
-export function CardDefault() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-lg',
-    'text-sm',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
+const interFont = "'Inter', system-ui, sans-serif";
 
+/** Default card — clean dark surface with subtle border. */
+export function CardDefault() {
   return (
-    <Card className={rootClassName} style={rootStyle}>
+    <Card
+      className="bg-[#141416] border-solid border border-[#2a2a2e] rounded-xl text-sm"
+      style={{ color: '#c8c4bc', fontFamily: interFont }}
+    >
       <CardHeader>
-        <CardTitle>Card Title</CardTitle>
-        <CardDescription style={{ color: 'rgba(138, 138, 148, 1.000)' }}>A short description of this card content.</CardDescription>
+        <CardTitle style={{ color: '#f0ede8' }}>Component Inspector</CardTitle>
+        <CardDescription style={{ color: '#9a9aa3' }}>
+          Adjust styles, motion presets, and effects in real time with the visual inspector panel.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Card body content goes here.</p>
+        <p style={{ color: '#c8c4bc' }}>
+          Every property change reflects instantly in the preview. Fine-tune typography, spacing, colors, borders, and shadows without writing a single line of code.
+        </p>
       </CardContent>
     </Card>
   );
 }
 
-/** Elevated card — with shadow and footer action. */
+/** Elevated card — deeper shadow with footer action button. */
 export function CardElevatedAction() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-700-light)]',
-    'border-solid',
-    'border',
-    'border-[#3a3a3f]',
-    'rounded-lg',
-    'text-sm',
-    'shadow-lg',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <Card variant="elevated" className={rootClassName} style={rootStyle}>
+    <Card
+      variant="elevated"
+      className="bg-[#1a1a1d] border-solid border border-[#2a2a2e] rounded-xl text-sm shadow-lg"
+      style={{ color: '#c8c4bc', fontFamily: interFont }}
+    >
       <CardHeader>
-        <CardTitle>Elevated Card</CardTitle>
-        <CardDescription style={{ color: 'rgba(138, 138, 148, 1.000)' }}>Enhanced depth with shadow.</CardDescription>
+        <CardTitle style={{ color: '#f0ede8' }}>Export to Code</CardTitle>
+        <CardDescription style={{ color: '#9a9aa3' }}>
+          Generate production-ready React components with Tailwind classes or inline styles.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Content with a call-to-action below.</p>
+        <p style={{ color: '#c8c4bc' }}>
+          Exported code is clean and dependency-free. No proprietary wrappers, no CSS variable chains — just standard React and Tailwind you can ship as-is.
+        </p>
       </CardContent>
       <CardFooter>
-        <Button variant="default" size="sm">Action</Button>
+        <Button
+          variant="default"
+          size="sm"
+          style={{
+            fontFamily: interFont,
+            backgroundColor: '#8b5cf6',
+            color: '#ffffff',
+            borderRadius: '8px',
+          }}
+        >
+          Export Component
+        </Button>
       </CardFooter>
     </Card>
   );
 }
 
-/** Glass card — translucent with backdrop blur. */
+/** Glass card — translucent surface with backdrop blur. */
 export function CardGlass() {
-  const rootClassName = [
-    'bg-[#000000]/0',
-    'border-solid',
-    'border',
-    'border-[#ffffff]/20',
-    'rounded-lg',
-    'text-sm',
-    'backdrop-[blur(40px)_saturate(160%)]',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   return (
-    <Card variant="glass" className={rootClassName} style={rootStyle}>
+    <Card
+      variant="glass"
+      className="bg-white/[0.04] border-solid border border-white/[0.08] backdrop-blur-xl rounded-xl text-sm"
+      style={{ color: '#d4d0ca', fontFamily: interFont }}
+    >
       <CardHeader>
-        <CardTitle>Glass Card</CardTitle>
-        <CardDescription style={{ color: 'rgba(200, 196, 188, 1.000)' }}>Frosted glass effect.</CardDescription>
+        <CardTitle style={{ color: '#f0ede8' }}>Glass Morphism</CardTitle>
+        <CardDescription style={{ color: '#a3a3ab' }}>
+          Frosted translucent surface that blends with the background content behind it.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Transparent with backdrop blur.</p>
+        <p style={{ color: '#c8c4bc' }}>
+          Achieved with a low-opacity white background and a backdrop blur filter. Works best over gradients or textured backgrounds.
+        </p>
       </CardContent>
     </Card>
   );
 }
 
-/** Card with hover lift motion. */
+/** Card with hover lift — spring-animated Y translation and scale. */
 export function CardHoverLift() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-lg',
-    'text-sm',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   const motionProps = {
     whileHover: {
       y: -4,
       scale: 1.02,
-      transition: { type: 'spring' as const, duration: 0.3, stiffness: 400, damping: 25 },
+      transition: { type: 'spring' as const, stiffness: 400, damping: 25 },
     },
   };
 
   return (
-    <motion.div {...motionProps}>
-      <Card className={rootClassName} style={rootStyle}>
+    <motion.div {...motionProps} style={{ cursor: 'pointer' }}>
+      <Card
+        className="bg-[#141416] border-solid border border-[#2a2a2e] rounded-xl text-sm"
+        style={{ color: '#c8c4bc', fontFamily: interFont }}
+      >
         <CardHeader>
-          <CardTitle>Hover Card</CardTitle>
-          <CardDescription style={{ color: 'rgba(138, 138, 148, 1.000)' }}>Lifts on hover.</CardDescription>
+          <CardTitle style={{ color: '#f0ede8' }}>Hover Interaction</CardTitle>
+          <CardDescription style={{ color: '#9a9aa3' }}>
+            Spring-physics lift effect on mouse hover with smooth return.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Spring-animated hover interaction.</p>
+          <p style={{ color: '#c8c4bc' }}>
+            Hover over this card to see the lift animation. Uses spring physics with configurable stiffness and damping for natural-feeling motion.
+          </p>
         </CardContent>
       </Card>
     </motion.div>
   );
 }
 
-/** Card with scale-up entry animation. */
+/** Card with scale-up entry animation on mount. */
 export function CardEntryScaleUp() {
-  const rootClassName = [
-    'bg-[var(--j6-neutral-600-dark)]',
-    'border-solid',
-    'border',
-    'border-[#5a5a64]',
-    'rounded-lg',
-    'text-sm',
-  ].join(' ');
-  const rootStyle = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
-  };
-
   const motionProps = {
-    initial: { scale: 0.92, opacity: 0 },
+    initial: { scale: 0.9, opacity: 0 },
     animate: { scale: 1, opacity: 1 },
     transition: { type: 'tween' as const, duration: 0.5, ease: 'easeOut' as const },
   };
 
   return (
     <motion.div {...motionProps}>
-      <Card className={rootClassName} style={rootStyle}>
+      <Card
+        className="bg-[#141416] border-solid border border-[#2a2a2e] rounded-xl text-sm"
+        style={{ color: '#c8c4bc', fontFamily: interFont }}
+      >
         <CardHeader>
-          <CardTitle>Animated Card</CardTitle>
-          <CardDescription style={{ color: 'rgba(138, 138, 148, 1.000)' }}>Scales up on mount.</CardDescription>
+          <CardTitle style={{ color: '#f0ede8' }}>Entry Animation</CardTitle>
+          <CardDescription style={{ color: '#9a9aa3' }}>
+            Scales up smoothly from 90% when the component first mounts.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Smooth entry animation.</p>
+          <p style={{ color: '#c8c4bc' }}>
+            Entry presets fire once on mount. Combine with hover and tap motions for layered interaction design.
+          </p>
         </CardContent>
       </Card>
     </motion.div>
   );
 }
 
-/** Card with border-beam effect. */
+/** Card with animated border-beam effect. */
 export function CardBorderBeam() {
-  const rootEffectClassName = 'ui-studio-effect-border-beam';
-  const rootClassName = [
-    rootEffectClassName,
-    'bg-[var(--j6-neutral-600-dark)]',
-    'rounded-lg',
-    'text-sm',
-  ].join(' ');
   const rootStyle: React.CSSProperties & Record<string, string> = {
-    color: 'rgba(226, 232, 240, 1.000)',
-    fontFamily: 'Nunito',
+    color: '#c8c4bc',
+    fontFamily: interFont,
     '--ui-motion-speed': '2.8s',
-    '--ui-motion-fill': 'rgba(26, 26, 29, 1.000)',
+    '--ui-motion-fill': '#141416',
     '--ui-effect-beam-speed': '6s',
     '--ui-effect-beam-size': '80px',
     '--ui-effect-beam-width': '2px',
-    '--ui-effect-beam-from': '#9f72ff',
+    '--ui-effect-beam-from': '#8b5cf6',
     '--ui-effect-beam-to': '#6d28d9',
   };
 
   return (
-    <Card className={rootClassName} style={rootStyle}>
+    <Card
+      className="ui-studio-effect-border-beam bg-[#141416] rounded-xl text-sm"
+      style={rootStyle}
+    >
       <CardHeader>
-        <CardTitle>Premium Card</CardTitle>
-        <CardDescription style={{ color: 'rgba(159, 114, 255, 0.7)' }}>With animated border beam.</CardDescription>
+        <CardTitle style={{ color: '#f0ede8' }}>Border Beam</CardTitle>
+        <CardDescription style={{ color: 'rgba(139, 92, 246, 0.7)' }}>
+          Animated violet beam traces the card border on a continuous loop.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>Violet border beam effect.</p>
+        <p style={{ color: '#c8c4bc' }}>
+          The border-beam effect uses a CSS conic-gradient animation with zero JavaScript overhead. Fully configurable beam speed, size, and color stops.
+        </p>
       </CardContent>
     </Card>
   );
