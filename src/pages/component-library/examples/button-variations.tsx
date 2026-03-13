@@ -20,7 +20,7 @@ export function ButtonPrimaryHero() {
       whileTap={{ scale: 0.97 }}
     >
       <Button
-        className="rounded-xl text-[15px] font-semibold tracking-[-0.01em] h-[52px] px-8 gap-3 bg-gradient-to-b from-[#f5a623] to-[#e8940c] border border-[#c4800a]/40 text-[#1a1a1d] shadow-[0_1px_2px_rgba(0,0,0,0.2),_inset_0_1px_0_rgba(255,255,255,0.25)]"
+        className="rounded-xl text-[15px] font-semibold tracking-[-0.01em] h-[52px] px-8 gap-3 bg-gradient-to-b from-[#f5a623] to-[#e8940c] hover:bg-transparent hover:from-[#ffba4a] hover:to-[#f5a623] border border-[#c4800a]/40 text-[#1a1a1d] shadow-[0_1px_2px_rgba(0,0,0,0.2),_inset_0_1px_0_rgba(255,255,255,0.25)]"
         style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
       >
         Get Started <ArrowRight size={18} strokeWidth={2.5} />
@@ -60,7 +60,7 @@ export function ButtonGradientSlide() {
       className={[
         rootEffectClassName,
         'rounded-xl text-sm font-semibold h-11 px-6 gap-2',
-        'bg-[#7c3aed] text-white border border-[#6d28d9]/60',
+        'bg-[#7c3aed] hover:bg-[#7c3aed] text-white border border-[#6d28d9]/60',
         'shadow-[0_2px_8px_rgba(124,58,237,0.3)]',
       ].join(' ')}
       style={{
@@ -85,7 +85,7 @@ export function ButtonBorderBeam() {
       className={[
         rootEffectClassName,
         'rounded-xl text-[15px] font-semibold h-[52px] px-8 gap-3',
-        'bg-[#0f0f11] text-[#f0ede8]',
+        'bg-[#0f0f11] hover:bg-[#0f0f11] text-[#f0ede8]',
       ].join(' ')}
       style={{
         fontFamily: "'Inter', system-ui, sans-serif",
@@ -119,7 +119,7 @@ export function ButtonAnimatedBorder() {
         className={[
           rootEffectClassName,
           'rounded-lg text-sm font-semibold h-10 px-5 gap-2',
-          'border-2 text-white',
+          'border-2 bg-[#7c3aed] hover:bg-[#7c3aed] text-white',
         ].join(' ')}
         style={{
           fontFamily: "'Inter', system-ui, sans-serif",
@@ -152,7 +152,7 @@ export function ButtonRippleFill() {
       className={[
         rootEffectClassName,
         'rounded-lg text-sm font-semibold h-11 px-6 gap-2',
-        'bg-[#059669] text-white',
+        'bg-[#059669] hover:bg-[#059669] text-white',
         'shadow-[0_1px_3px_rgba(0,0,0,0.2),_inset_0_1px_0_rgba(255,255,255,0.1)]',
       ].join(' ')}
       style={{
@@ -176,7 +176,7 @@ export function ButtonShineBorder() {
       className={[
         rootEffectClassName,
         'rounded-lg text-xs font-semibold h-8 px-4 gap-1.5',
-        'bg-[#4338ca] text-white',
+        'bg-[#4338ca] hover:bg-[#4338ca] text-white',
       ].join(' ')}
       style={{
         fontFamily: "'Inter', system-ui, sans-serif",
@@ -207,7 +207,7 @@ export function ButtonPulseRing() {
         className={[
           rootEffectClassName,
           'rounded-xl text-sm font-semibold h-11 px-6 gap-2',
-          'bg-[#0284c7] text-white',
+          'bg-[#0284c7] hover:bg-[#0284c7] text-white',
           'shadow-[0_2px_12px_rgba(2,132,199,0.35)]',
         ].join(' ')}
         style={{
@@ -236,7 +236,7 @@ export function ButtonGlass() {
       transition={{ type: 'spring' as const, stiffness: 400, damping: 22 }}
     >
       <Button
-        className="rounded-xl text-sm font-medium h-11 px-6 gap-2 bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] shadow-[0_4px_16px_rgba(0,0,0,0.15),_inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+        className="rounded-xl text-sm font-medium h-11 px-6 gap-2 bg-white/[0.06] hover:bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] shadow-[0_4px_16px_rgba(0,0,0,0.15),_inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
         style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
       >
         <Heart size={15} /> Favourite
@@ -299,7 +299,7 @@ export function ButtonBorderBeamCompact() {
       className={[
         rootEffectClassName,
         'rounded-lg text-xs font-semibold h-8 px-4 gap-1.5',
-        'bg-[#0f0f11] text-[#e2e8f0]',
+        'bg-[#0f0f11] hover:bg-[#0f0f11] text-[#e2e8f0]',
       ].join(' ')}
       style={{
         fontFamily: "'Inter', system-ui, sans-serif",

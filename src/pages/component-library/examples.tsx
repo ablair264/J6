@@ -475,7 +475,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
   whileHover={{ y: -2, scale: 1.03 }}
 >
-  <Button className="rounded-xl h-[52px] px-8 bg-gradient-to-b from-[#f5a623] to-[#e8940c] text-[#1a1a1d]">
+  <Button className="rounded-xl h-[52px] px-8 bg-gradient-to-b from-[#f5a623] to-[#e8940c] hover:bg-transparent text-[#1a1a1d]">
     Get Started <ArrowRight size={18} />
   </Button>
 </motion.div>`,
@@ -494,7 +494,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Gradient Slide',
             preview: <ButtonGradientSlide />,
             code: `<Button
-  className="ui-studio-effect-gradient-slide rounded-xl h-11 px-6 bg-[#7c3aed] text-white"
+  className="ui-studio-effect-gradient-slide rounded-xl h-11 px-6 bg-[#7c3aed] hover:bg-[#7c3aed] text-white"
   style={{
     '--ui-motion-gradient-from': '#4f46e5',
     '--ui-motion-gradient-to': '#9f72ff',
@@ -508,7 +508,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Border Beam',
             preview: <ButtonBorderBeam />,
             code: `<Button
-  className="ui-studio-effect-border-beam rounded-xl h-[52px] px-8 bg-[#0f0f11] text-[#f0ede8]"
+  className="ui-studio-effect-border-beam rounded-xl h-[52px] px-8 bg-[#0f0f11] hover:bg-[#0f0f11] text-[#f0ede8]"
   style={{
     '--ui-effect-beam-speed': '5s',
     '--ui-effect-beam-from': '#f472b6',
@@ -522,7 +522,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Animated Border',
             preview: <ButtonAnimatedBorder />,
             code: `<Button
-  className="ui-studio-effect-animated-border rounded-lg h-10 px-5 border-2 text-white"
+  className="ui-studio-effect-animated-border rounded-lg h-10 px-5 border-2 bg-[#7c3aed] hover:bg-[#7c3aed] text-white"
   style={{
     '--ui-effect-border-speed': '3s',
     '--ui-effect-fill-base': '#7c3aed',
@@ -538,7 +538,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Ripple Fill',
             preview: <ButtonRippleFill />,
             code: `<Button
-  className="ui-studio-effect-ripple-fill rounded-lg h-11 px-6 bg-[#059669] text-white"
+  className="ui-studio-effect-ripple-fill rounded-lg h-11 px-6 bg-[#059669] hover:bg-[#059669] text-white"
   style={{ '--ui-motion-ripple-color': '#047857', '--ui-effect-ripple-speed': '0.5s' }}
 >
   <Download size={16} /> Download
@@ -548,7 +548,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Shine Border',
             preview: <ButtonShineBorder />,
             code: `<Button
-  className="ui-studio-effect-shine-border rounded-lg h-8 px-4 bg-[#4338ca] text-white text-xs"
+  className="ui-studio-effect-shine-border rounded-lg h-8 px-4 bg-[#4338ca] hover:bg-[#4338ca] text-white text-xs"
   style={{ '--ui-effect-shine-speed': '3.5s', '--ui-effect-shine-color': '#ffffff' }}
 >
   <Shield size={13} /> Secure
@@ -563,7 +563,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
   transition={{ type: 'spring', stiffness: 200, damping: 18 }}
 >
   <Button
-    className="ui-studio-effect-pulse-ring rounded-xl h-11 px-6 bg-[#0284c7] text-white"
+    className="ui-studio-effect-pulse-ring rounded-xl h-11 px-6 bg-[#0284c7] hover:bg-[#0284c7] text-white"
     style={{ '--ui-effect-pulse-speed': '1.8s', '--ui-effect-pulse-color': '#38bdf8' }}
   >
     <Rocket size={16} /> Launch
@@ -574,7 +574,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Glass',
             preview: <ButtonGlass />,
             code: `<motion.div whileHover={{ y: -2, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-  <Button className="rounded-xl h-11 px-6 bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] backdrop-blur-xl">
+  <Button className="rounded-xl h-11 px-6 bg-white/[0.06] hover:bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] backdrop-blur-xl">
     <Heart size={15} /> Favourite
   </Button>
 </motion.div>`,
@@ -605,7 +605,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Border Beam Compact',
             preview: <ButtonBorderBeamCompact />,
             code: `<Button
-  className="ui-studio-effect-border-beam rounded-lg h-8 px-4 bg-[#0f0f11] text-[#e2e8f0] text-xs"
+  className="ui-studio-effect-border-beam rounded-lg h-8 px-4 bg-[#0f0f11] hover:bg-[#0f0f11] text-[#e2e8f0] text-xs"
   style={{ '--ui-effect-beam-speed': '4s', '--ui-effect-beam-from': '#22d3ee', '--ui-effect-beam-to': '#06b6d4' }}
 >
   <Send size={12} /> Send
