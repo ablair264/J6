@@ -140,111 +140,131 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     /* ── Accordion ── */
     accordion: [
         createBuilderExample({
-            title: 'Knowledge Base',
+            title: 'Dark Amber',
             kind: 'accordion',
-            presetId: 'icon-accordion',
+            presetId: 'default',
             overrides: {
-                customWidth: 980,
-                fillColor: '#111827',
-                strokeColor: '#475569',
-                strokeOpacity: 56,
-                fontColor: '#f8fafc',
-                accordionTriggerFontSize: 17,
+                customWidth: 640,
+                fillColor: '#141416',
+                fillOpacity: 100,
+                strokeColor: '#2a2a2e',
+                strokeWeight: 1,
+                strokeOpacity: 100,
+                cornerRadius: 18,
+                fontColor: '#f0ede8',
+                accordionDividerColor: '#f5a623',
+                accordionDividerWeight: 1,
+                accordionTriggerFontSize: 15,
                 accordionTriggerFontWeight: 600,
-                accordionContentFontColor: '#a5b4cc',
-                accordionContentFontSize: 15,
+                accordionContentFontColor: '#9a9aa3',
+                accordionContentFontSize: 14,
                 accordionItemCount: 3,
                 accordionItems: [
                     {
                         id: 'frameworks',
                         title: 'What frameworks are supported?',
-                        subtitle: 'React, Vite, and Next-ready exports',
-                        content: 'Exported snippets are tuned for modern React apps and keep the styling aligned with the builder controls.',
+                        subtitle: 'React-ready output',
+                        content: 'UI Studio exports clean React components with Tailwind CSS classes that drop directly into Vite, Next.js, or Remix projects.',
                     },
                     {
                         id: 'motion-system',
                         title: 'How does the motion system work?',
-                        subtitle: 'Preset-driven entry, hover, and tap states',
-                        content: 'Motion presets map directly onto builder controls so previews and exported components stay visually consistent.',
+                        subtitle: 'Preset-driven animation',
+                        content: 'Motion presets cover entry, hover, tap, and exit states, then export as straightforward motion wrappers instead of hidden runtime magic.',
                     },
                     {
                         id: 'export-code',
                         title: 'Can I customize the exported code?',
-                        subtitle: 'Start from the generated component',
-                        content: 'Yes. The library preview uses the same snippet generator as the builder, so what you inspect here is what the app can actually produce.',
+                        subtitle: 'Edit the output freely',
+                        content: 'Everything exports as ordinary React and Tailwind code, so you can refactor the result without working around proprietary abstractions.',
                     },
                 ],
             },
-            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[340px]',
+            previewClassName: 'justify-center overflow-visible px-8 py-10 min-h-[280px]',
         }),
         createBuilderExample({
-            title: 'Minimal Collapse',
+            title: 'Light Spaced',
             kind: 'accordion',
             presetId: 'collapse-minimal',
             overrides: {
-                customWidth: 760,
-                fillColor: '#0b1220',
+                customWidth: 620,
+                fillColor: '#1a1a1d',
                 fillOpacity: 100,
-                strokeColor: '#1f2937',
-                strokeOpacity: 100,
-                accordionTriggerFontSize: 16,
-                accordionContentFontColor: '#93a4bb',
-                accordionItemCount: 2,
+                strokeColor: '#25262b',
+                strokeWeight: 0,
+                strokeOpacity: 0,
+                cornerRadius: 18,
+                fontColor: '#e0ddd7',
+                accordionSpacing: 10,
+                accordionTriggerFontSize: 15,
+                accordionContentFontColor: '#87878f',
+                accordionContentFontSize: 14,
+                accordionItemCount: 3,
                 accordionItems: [
                     {
-                        id: 'builder-sync',
-                        title: 'Builder-backed examples',
-                        subtitle: 'Single source of truth',
-                        content: 'The examples on this page are rendered through the builder preview pipeline instead of a separate docs-only implementation.',
+                        id: 'tokens',
+                        title: 'Design tokens and theming',
+                        subtitle: 'Brand-level overrides',
+                        content: 'Use tokens for color, spacing, and type so component updates stay consistent across the entire library instead of being patched one screen at a time.',
                     },
                     {
-                        id: 'style-controls',
-                        title: 'Professional defaults',
-                        subtitle: 'Color, type, motion, and spacing tuned together',
-                        content: 'Preset styling is still configurable, but the defaults are set up to read like production-ready component examples rather than placeholders.',
+                        id: 'a11y',
+                        title: 'Accessibility and keyboard navigation',
+                        subtitle: 'Built on reliable primitives',
+                        content: 'The accordion inherits keyboard navigation, semantics, and focus behavior from the production component rather than a docs-only wrapper.',
+                    },
+                    {
+                        id: 'effects',
+                        title: 'Component variants and effects',
+                        subtitle: 'Motion and style stay aligned',
+                        content: 'You can layer motion, borders, and surface treatments without breaking the exported structure, because the preview is driven by the same component model.',
                     },
                 ],
             },
-            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[280px]',
+            previewClassName: 'justify-center overflow-visible px-8 py-10 min-h-[280px]',
         }),
         createBuilderExample({
             title: 'Multiple Open',
             kind: 'accordion',
             presetId: 'default',
             overrides: {
-                customWidth: 920,
+                customWidth: 640,
                 accordionAllowMultiple: true,
-                accordionDividerColor: '#f59e0b',
+                accordionDividerColor: '#8b5cf6',
                 accordionDividerWeight: 1,
-                fillColor: '#101014',
+                fillColor: '#141416',
                 fillOpacity: 100,
-                strokeColor: '#3f3f46',
-                strokeOpacity: 78,
-                fontColor: '#f4f4f5',
-                accordionContentFontColor: '#c4b5fd',
+                strokeColor: '#8b5cf6',
+                strokeWeight: 1,
+                strokeOpacity: 25,
+                cornerRadius: 18,
+                fontColor: '#e8e5e0',
+                accordionContentFontColor: '#9a9aa3',
+                accordionTriggerFontSize: 15,
+                accordionContentFontSize: 14,
                 accordionItemCount: 3,
                 accordionItems: [
                     {
                         id: 'presets',
                         title: 'Entry and exit presets',
-                        subtitle: 'Preview the builder motion catalog',
-                        content: 'Choose from refined transitions without maintaining a second set of docs-specific motion wrappers.',
+                        subtitle: 'Configurable motion',
+                        content: 'Choose from blur-fade, slide-scale, drop-in, expand-x, and expand-y, then tune timing without rewriting the component.',
                     },
                     {
                         id: 'borders',
                         title: 'Border and outline effects',
-                        subtitle: 'Stroke treatments that export cleanly',
-                        content: 'The preview keeps border, fill, and radius settings in sync with the exported component code.',
+                        subtitle: 'Zero-runtime polish',
+                        content: 'Border beam, shine border, neon glow, and pulse ring effects are applied with exportable styles instead of ad hoc docs code.',
                     },
                     {
                         id: 'interactions',
                         title: 'Advanced hover interactions',
-                        subtitle: 'Micro-motion without layout drift',
-                        content: 'Hover treatments stay local to the component so the docs page feels stable and the examples read like real product UI.',
+                        subtitle: 'Interaction without drift',
+                        content: 'Hover treatments stay localized so the interface feels stable and the examples read like production UI, not a demo reel.',
                     },
                 ],
             },
-            previewClassName: 'items-start overflow-visible px-8 py-10 min-h-[320px]',
+            previewClassName: 'justify-center overflow-visible px-8 py-10 min-h-[300px]',
         }),
     ],
 
@@ -408,21 +428,21 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             presetId: 'circle',
             overrides: {
                 avatarFallbackText: 'JD',
-                avatarCustomSize: 72,
+                avatarCustomSize: 56,
                 avatarBgMode: 'gradient',
                 avatarBgColor: '#3424b9',
                 avatarBgColorTo: '#4338ca',
                 avatarStrokeWeight: 1,
                 avatarStrokeColor: '#4b3dd4',
                 avatarStrokeOpacity: 100,
-                avatarFontSize: 28,
+                avatarFontSize: 20,
                 avatarFontBold: true,
                 avatarFontColor: '#f8fafc',
                 avatarPopoverEnabled: true,
                 avatarPopoverDelay: 90,
-                avatarPopoverWidth: 360,
-                avatarPopoverPadding: 24,
-                avatarPopoverRadius: 28,
+                avatarPopoverWidth: 280,
+                avatarPopoverPadding: 18,
+                avatarPopoverRadius: 22,
                 avatarPopoverBgMode: 'gradient',
                 avatarPopoverBgColor: '#2c1d98',
                 avatarPopoverBgColorTo: '#251784',
@@ -431,31 +451,31 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
                 avatarPopoverStrokeColor: '#4538cc',
                 avatarPopoverStrokeOpacity: 100,
                 avatarPopoverFontColor: '#f8fafc',
-                avatarPopoverFontSize: 16,
+                avatarPopoverFontSize: 14,
                 avatarPopoverIconColor: '#b9b5de',
             },
-            previewClassName: 'items-start overflow-visible px-8 pt-44 pb-16 min-h-[400px]',
+            previewClassName: 'overflow-visible px-8 pt-28 pb-10 min-h-[300px]',
         }),
         createBuilderExample({
             title: 'Team Stack',
             kind: 'avatar-group',
             presetId: 'overlap',
             overrides: {
-                avatarCustomSize: 62,
-                avatarGroupSpacing: -14,
+                avatarCustomSize: 48,
+                avatarGroupSpacing: -10,
                 avatarBgMode: 'solid',
                 avatarBgColor: '#f79a3e',
                 avatarStrokeWeight: 2,
                 avatarStrokeColor: '#f7c96a',
                 avatarStrokeOpacity: 100,
-                avatarFontSize: 22,
+                avatarFontSize: 18,
                 avatarFontBold: true,
                 avatarFontColor: '#fff7ed',
                 avatarPopoverEnabled: true,
                 avatarPopoverDelay: 90,
-                avatarPopoverWidth: 360,
-                avatarPopoverPadding: 24,
-                avatarPopoverRadius: 28,
+                avatarPopoverWidth: 280,
+                avatarPopoverPadding: 18,
+                avatarPopoverRadius: 22,
                 avatarPopoverBgMode: 'gradient',
                 avatarPopoverBgColor: '#1d1d22',
                 avatarPopoverBgColorTo: '#15161a',
@@ -464,7 +484,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
                 avatarPopoverStrokeColor: '#3a3a42',
                 avatarPopoverStrokeOpacity: 100,
                 avatarPopoverFontColor: '#f5f5f5',
-                avatarPopoverFontSize: 16,
+                avatarPopoverFontSize: 14,
                 avatarPopoverIconColor: '#9ca3af',
                 avatarGroupCount: 4,
                 avatarGroupItems: [
@@ -474,7 +494,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
                     { id: 'avatar-nia', name: 'Nia Holt', initials: 'NH', role: 'Marketing' },
                 ],
             },
-            previewClassName: 'items-start overflow-visible px-8 pt-44 pb-16 min-h-[400px]',
+            previewClassName: 'overflow-visible px-8 pt-28 pb-10 min-h-[300px]',
         }),
     ],
 
@@ -484,7 +504,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Solid Destructive',
             preview: <BadgeSolidDestructive />,
             code: `<Badge
-  className="rounded-md text-xs font-medium"
+  className="rounded-md min-h-[24px] px-2 text-[11px] font-medium"
   style={{ background: 'rgba(239, 68, 68, 1)' }}
 >
   <Ban size={12} /> Badge token
@@ -494,7 +514,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Outline',
             preview: <BadgeOutline />,
             code: `<Badge
-  className="border border-solid rounded-md text-xs"
+  className="border border-solid rounded-md min-h-[22px] px-2 text-[11px]"
   style={{ borderColor: 'rgba(203, 213, 225, 1)' }}
 >
   Badge token
@@ -503,7 +523,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
         {
             title: 'Pill Sky',
             preview: <BadgePillSky />,
-            code: `<Badge className="rounded-full bg-[var(--j6-accent-sky-light)] text-xs">
+            code: `<Badge className="rounded-full min-h-[28px] px-3.5 bg-[var(--j6-accent-sky-light)] text-xs">
   Badge token
 </Badge>`,
         },
@@ -511,7 +531,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Grain Bell',
             preview: <BadgeGrainBell />,
             code: `<Badge
-  className="rounded-full ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
+  className="rounded-full min-h-[28px] px-3.5 ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
   style={{ '--ui-effect-grain-opacity': '0.25', '--ui-effect-grain-size': '200' }}
 >
   <Bell size={11} /> Badge token
@@ -521,7 +541,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Grain Plain',
             preview: <BadgeGrainPlain />,
             code: `<Badge
-  className="rounded-full ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
+  className="rounded-full min-h-[24px] px-2.5 text-[11px] ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
   style={{ '--ui-effect-grain-opacity': '0.25', '--ui-effect-grain-size': '200' }}
 >
   Badge token
@@ -531,7 +551,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Grain Icon Only',
             preview: <BadgeGrainIconOnly />,
             code: `<Badge
-  className="rounded-full ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
+  className="rounded-full min-h-[24px] px-2 text-[11px] ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
   style={{ '--ui-effect-grain-opacity': '0.25' }}
 >
   <Search size={11} />
@@ -541,7 +561,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Status Success',
             preview: <BadgeStatusSuccess />,
             code: `<Badge
-  className="border border-[#059669]/30 rounded-md"
+  className="border border-[#059669]/30 rounded-md min-h-[24px] px-2.5 text-[11px]"
   style={{ background: 'rgba(236, 253, 245, 1)', color: 'rgba(6, 95, 70, 1)' }}
 >
   <Check size={10} /> Badge token
@@ -551,7 +571,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Status Warning',
             preview: <BadgeStatusWarning />,
             code: `<Badge
-  className="border border-[#ca8a04]/30 rounded-md"
+  className="border border-[#ca8a04]/30 rounded-md min-h-[26px] px-3"
   style={{ background: 'rgba(254, 252, 232, 1)', color: 'rgba(133, 77, 14, 1)' }}
 >
   <Shield size={13} /> Badge token
@@ -561,7 +581,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Status Error',
             preview: <BadgeStatusError />,
             code: `<Badge
-  className="border border-[#dc2626]/20 rounded-md"
+  className="border border-[#dc2626]/20 rounded-md min-h-[24px] px-2.5 text-[11px]"
   style={{ background: 'rgba(254, 242, 242, 1)', color: 'rgba(153, 27, 27, 1)' }}
 >
   <X size={12} /> Badge token
@@ -571,7 +591,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Status Info',
             preview: <BadgeStatusInfo />,
             code: `<Badge
-  className="border border-[#3b82f6]/30 rounded-md"
+  className="border border-[#3b82f6]/30 rounded-md min-h-[26px] px-3"
   style={{ background: 'rgba(239, 246, 255, 1)', color: 'rgba(30, 58, 138, 1)' }}
 >
   <Bookmark size={12} /> Badge token
@@ -614,7 +634,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
   whileHover={{ y: -2, scale: 1.03 }}
 >
-  <Button className="rounded-xl h-[52px] px-8 bg-gradient-to-b from-[#f5a623] to-[#e8940c] hover:bg-transparent text-[#1a1a1d]">
+  <Button className="rounded-xl h-12 px-7 bg-gradient-to-b from-[#f5a623] to-[#e8940c] hover:bg-transparent text-[#1a1a1d]">
     Get Started <ArrowRight size={18} />
   </Button>
 </motion.div>`,
@@ -624,7 +644,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             preview: <ButtonOutlineHover />,
             code: `<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
   <Button variant="outline"
-    className="rounded-lg h-10 px-5 border-white/10 text-[#e2e8f0] hover:bg-white/[0.04]">
+    className="rounded-lg h-9 px-4 border-white/10 text-[#e2e8f0] hover:bg-white/[0.04]">
     Learn More
   </Button>
 </motion.div>`,
@@ -633,7 +653,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Gradient Slide',
             preview: <ButtonGradientSlide />,
             code: `<Button
-  className="ui-studio-effect-gradient-slide rounded-xl h-11 px-6 bg-[#7c3aed] hover:bg-[#7c3aed] text-white"
+  className="ui-studio-effect-gradient-slide rounded-xl h-10 px-5 bg-[#7c3aed] hover:bg-[#7c3aed] text-white"
   style={{
     '--ui-motion-gradient-from': '#4f46e5',
     '--ui-motion-gradient-to': '#9f72ff',
@@ -647,7 +667,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Border Beam',
             preview: <ButtonBorderBeam />,
             code: `<Button
-  className="ui-studio-effect-border-beam rounded-xl h-[52px] px-8 bg-[#0f0f11] hover:bg-[#0f0f11] text-[#f0ede8]"
+  className="ui-studio-effect-border-beam rounded-xl h-[46px] px-7 bg-[#0f0f11] hover:bg-[#0f0f11] text-[#f0ede8]"
   style={{
     '--ui-effect-beam-speed': '5s',
     '--ui-effect-beam-from': '#f472b6',
@@ -661,7 +681,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Animated Border',
             preview: <ButtonAnimatedBorder />,
             code: `<Button
-  className="ui-studio-effect-animated-border rounded-lg h-10 px-5 border-2 bg-[#7c3aed] hover:bg-[#7c3aed] text-white"
+  className="ui-studio-effect-animated-border rounded-lg h-9 px-4 border-2 bg-[#7c3aed] hover:bg-[#7c3aed] text-white"
   style={{
     '--ui-effect-border-speed': '3s',
     '--ui-effect-fill-base': '#7c3aed',
@@ -677,7 +697,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Ripple Fill',
             preview: <ButtonRippleFill />,
             code: `<Button
-  className="ui-studio-effect-ripple-fill rounded-lg h-11 px-6 bg-[#059669] hover:bg-[#059669] text-white"
+  className="ui-studio-effect-ripple-fill rounded-lg h-10 px-5 bg-[#059669] hover:bg-[#059669] text-white"
   style={{ '--ui-motion-ripple-color': '#047857', '--ui-effect-ripple-speed': '0.5s' }}
 >
   <Download size={16} /> Download
@@ -702,7 +722,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
   transition={{ type: 'spring', stiffness: 200, damping: 18 }}
 >
   <Button
-    className="ui-studio-effect-pulse-ring rounded-xl h-11 px-6 bg-[#0284c7] hover:bg-[#0284c7] text-white"
+    className="ui-studio-effect-pulse-ring rounded-xl h-10 px-5 bg-[#0284c7] hover:bg-[#0284c7] text-white"
     style={{ '--ui-effect-pulse-speed': '1.8s', '--ui-effect-pulse-color': '#38bdf8' }}
   >
     <Rocket size={16} /> Launch
@@ -713,7 +733,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Glass',
             preview: <ButtonGlass />,
             code: `<motion.div whileHover={{ y: -2, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-  <Button className="rounded-xl h-11 px-6 bg-white/[0.06] hover:bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] backdrop-blur-xl">
+  <Button className="rounded-xl h-10 px-5 bg-white/[0.06] hover:bg-white/[0.06] text-[#f0ede8] border border-white/[0.12] backdrop-blur-xl">
     <Heart size={15} /> Favourite
   </Button>
 </motion.div>`,
@@ -735,7 +755,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
   animate={{ filter: 'blur(0px)', opacity: 1 }}
   whileHover={{ scale: 1.02 }}
 >
-  <Button variant="destructive" className="rounded-lg h-10 px-5 bg-[#e11d48] text-white">
+  <Button variant="destructive" className="rounded-lg h-9 px-4 bg-[#e11d48] text-white">
     Delete Project
   </Button>
 </motion.div>`,
@@ -744,7 +764,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Border Beam Compact',
             preview: <ButtonBorderBeamCompact />,
             code: `<Button
-  className="ui-studio-effect-border-beam rounded-lg h-8 px-4 bg-[#0f0f11] hover:bg-[#0f0f11] text-[#e2e8f0] text-xs"
+  className="ui-studio-effect-border-beam rounded-lg h-7 px-3.5 bg-[#0f0f11] hover:bg-[#0f0f11] text-[#e2e8f0] text-[11px]"
   style={{ '--ui-effect-beam-speed': '4s', '--ui-effect-beam-from': '#22d3ee', '--ui-effect-beam-to': '#06b6d4' }}
 >
   <Send size={12} /> Send
@@ -1214,21 +1234,30 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             kind: 'popover',
             presetId: 'migration-snapshot',
             pinOverlayOpen: true,
-            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-16 min-h-[320px]',
+            previewClassName: 'items-start justify-start overflow-visible px-12 pt-10 pb-12 min-h-[260px]',
         }),
         createBuilderExample({
             title: 'Automation Panel',
             kind: 'popover',
             presetId: 'automation-panel',
             pinOverlayOpen: true,
-            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-16 min-h-[360px]',
+            previewClassName: 'items-start justify-start overflow-visible px-12 pt-10 pb-12 min-h-[280px]',
         }),
         createBuilderExample({
             title: 'Profile Menu',
             kind: 'popover',
             presetId: 'profile-menu',
+            overrides: {
+                fillColor: '#f8fafc',
+                fillOpacity: 100,
+                fontColor: '#111827',
+                strokeWeight: 1,
+                strokeColor: '#e2e8f0',
+                strokeOpacity: 100,
+                cornerRadius: 14,
+            },
             pinOverlayOpen: true,
-            previewClassName: 'items-start overflow-visible px-8 pt-10 pb-16 min-h-[300px]',
+            previewClassName: 'items-start justify-start overflow-visible px-12 pt-10 pb-12 min-h-[240px]',
         }),
     ],
 

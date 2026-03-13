@@ -814,11 +814,11 @@ const getIconExportName = (iconId: string): string => {
 function getPopoverContentClassName(variant: ComponentStyleConfig['popoverContentVariant']): string {
     switch (variant) {
         case 'profile':
-            return 'w-56 p-0 overflow-hidden';
+            return 'w-52 p-0 overflow-hidden';
         case 'snapshot':
-            return 'w-[300px]';
+            return 'w-[280px]';
         case 'automation':
-            return 'w-[320px]';
+            return 'w-72';
         default:
             return 'w-72';
     }

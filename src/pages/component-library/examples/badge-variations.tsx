@@ -10,7 +10,7 @@ const font = "'Inter', system-ui, sans-serif";
 export function BadgeSolidDestructive() {
   return (
     <Badge
-      className="rounded-md text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      className="rounded-md text-[11px] font-medium text-center justify-center min-h-[24px] px-2 gap-1"
       style={{ background: '#ef4444', color: '#ffffff', fontFamily: font }}
     >
       <Ban size={12} /> Rejected
@@ -22,7 +22,7 @@ export function BadgeSolidDestructive() {
 export function BadgeOutline() {
   return (
     <Badge
-      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5"
+      className="rounded-md border border-solid text-[11px] font-medium text-center justify-center min-h-[22px] px-2"
       style={{
         background: 'transparent',
         borderColor: '#505058',
@@ -39,7 +39,7 @@ export function BadgeOutline() {
 export function BadgePillSky() {
   return (
     <Badge
-      className="rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-3"
+      className="rounded-full text-xs font-medium text-center justify-center min-h-[28px] px-3.5"
       style={{ background: '#0ea5e9', color: '#ffffff', fontFamily: font }}
     >
       New
@@ -53,7 +53,7 @@ export function BadgePillSky() {
 export function BadgeGrainBell() {
   return (
     <Badge
-      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-3 gap-1"
+      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[28px] px-3.5 gap-1"
       style={{
         background: '#0ea5e9',
         color: '#ffffff',
@@ -71,7 +71,7 @@ export function BadgeGrainBell() {
 export function BadgeGrainPlain() {
   return (
     <Badge
-      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-3"
+      className="ui-studio-effect-grain rounded-full text-[11px] font-medium text-center justify-center min-h-[24px] px-2.5"
       style={{
         background: '#0ea5e9',
         color: '#ffffff',
@@ -89,7 +89,7 @@ export function BadgeGrainPlain() {
 export function BadgeGrainIconOnly() {
   return (
     <Badge
-      className="ui-studio-effect-grain rounded-full text-xs font-medium text-center justify-center min-h-[26px] px-2.5"
+      className="ui-studio-effect-grain rounded-full text-[11px] font-medium text-center justify-center min-h-[24px] px-2"
       style={{
         background: '#0ea5e9',
         color: '#ffffff',
@@ -109,7 +109,7 @@ export function BadgeGrainIconOnly() {
 export function BadgeStatusSuccess() {
   return (
     <Badge
-      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      className="rounded-md border border-solid text-[11px] font-medium text-center justify-center min-h-[24px] px-2.5 gap-1"
       style={{
         background: '#ecfdf5',
         borderColor: 'rgba(5, 150, 105, 0.3)',
@@ -126,7 +126,7 @@ export function BadgeStatusSuccess() {
 export function BadgeStatusWarning() {
   return (
     <Badge
-      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-3 gap-1"
       style={{
         background: '#fefce8',
         borderColor: 'rgba(202, 138, 4, 0.3)',
@@ -143,7 +143,7 @@ export function BadgeStatusWarning() {
 export function BadgeStatusError() {
   return (
     <Badge
-      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      className="rounded-md border border-solid text-[11px] font-medium text-center justify-center min-h-[24px] px-2.5 gap-1"
       style={{
         background: '#fef2f2',
         borderColor: 'rgba(220, 38, 38, 0.2)',
@@ -160,7 +160,7 @@ export function BadgeStatusError() {
 export function BadgeStatusInfo() {
   return (
     <Badge
-      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+      className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-3 gap-1.5"
       style={{
         background: '#eff6ff',
         borderColor: 'rgba(59, 130, 246, 0.3)',
@@ -184,7 +184,7 @@ export function BadgeEntryBlurFade() {
       transition={{ type: 'tween' as const, duration: 0.65, ease: 'easeInOut' as const }}
     >
       <Badge
-        className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1"
+        className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-3 gap-1.5"
         style={{
           background: '#eff6ff',
           borderColor: 'rgba(59, 130, 246, 0.3)',
@@ -208,7 +208,7 @@ export function BadgeTapSpring() {
       }}
     >
       <Badge
-        className="rounded-md border border-solid text-xs font-medium text-center justify-center min-h-[26px] px-2.5 gap-1 cursor-pointer"
+        className="rounded-md border border-solid text-[11px] font-medium text-center justify-center min-h-[24px] px-2.5 gap-1 cursor-pointer"
         style={{
           background: '#eff6ff',
           borderColor: 'rgba(59, 130, 246, 0.3)',
