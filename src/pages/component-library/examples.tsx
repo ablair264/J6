@@ -1,23 +1,33 @@
-import { useState, type ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/components/ui/alert';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
-import { DataTable } from '@/components/ui/data-table';
-import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
-import { AnimatedText } from '@/components/ui/animated-text';
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from '@/components/ui/drawer';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/dropdown-menu';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger as NavMenuTrigger, NavigationMenuContent, NavigationMenuLink } from '@/components/ui/navigation-menu';
+import type { ReactNode } from 'react';
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Variation component imports
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+import { AccordionDarkAmber, AccordionLightSpaced, AccordionEntryBlurFade, AccordionMultipleOpen } from './examples/accordion-variations';
+import { AlertInfo, AlertSuccess, AlertWarningDismissible, AlertError, AlertEntryBlurFade, AlertEntryScaleUp } from './examples/alert-variations';
+import { AnimatedTextTypewriter, AnimatedTextBlurIn, AnimatedTextSplitEntrance, AnimatedTextGradientSweep, AnimatedTextShiny, AnimatedTextDecrypt, AnimatedTextCountingNumber, AnimatedTextWordRotate, AnimatedTextBounce } from './examples/animated-text-variations';
+import { AvatarWithBadge, AvatarGroupStacked } from './examples/avatar-variations';
+import { BadgeSolidDestructive, BadgeOutline, BadgePillSky, BadgeGrainBell, BadgeGrainPlain, BadgeGrainIconOnly, BadgeStatusSuccess, BadgeStatusWarning, BadgeStatusError, BadgeStatusInfo, BadgeEntryBlurFade, BadgeTapSpring } from './examples/badge-variations';
+import { ButtonEntryScaleDown, ButtonEntryScaleUp, ButtonHoverLift, ButtonHoverTapCombo, ButtonGradientSlide, ButtonAnimatedBorder, ButtonRippleFill, ButtonBorderBeam, ButtonBorderBeamLarge, ButtonShineBorder, ButtonPulseRing, ButtonGlass } from './examples/button-variations';
+import { CardDefault, CardElevatedAction, CardGlass, CardHoverLift, CardEntryScaleUp, CardBorderBeam } from './examples/card-variations';
+import { CheckboxDefault } from './examples/checkbox-variations';
+import { DataTableDarkStriped, DataTableAmberCompact, DataTableEntryBlurFade } from './examples/datatable-variations';
+import { DialogTriggerDark, DialogTriggerAmber, DialogTriggerDestructive } from './examples/dialog-variations';
+import { DrawerTriggerRight, DrawerTriggerSettings } from './examples/drawer-variations';
+import { DropdownMenuTriggerDark, DropdownMenuTriggerAmber, DropdownMenuTriggerEffect } from './examples/dropdown-menu-variations';
+import { InputDark, InputLight, InputEntryBlurFade, InputVioletFocus } from './examples/input-variations';
+import { NavigationMenuDarkAmber, NavigationMenuViolet, NavigationMenuVertical } from './examples/navigation-menu-variations';
+import { PopoverTriggerDark, PopoverTriggerAmber, PopoverTriggerVioletGrain } from './examples/popover-variations';
+import { ProgressLinearAmber, ProgressLinearWithLabel, ProgressCircularViolet, ProgressCircularSmall, ProgressEntryBlurFade } from './examples/progress-variations';
+import { SliderDark, SliderRange, SliderEntryBlurFade } from './examples/slider-variations';
+import { StageButtonEmeraldSuccess, StageButtonAmberWarning, StageButtonRoseFailure, StageButtonVioletGrain } from './examples/stagebutton-variations';
+import { SwitchAmber, SwitchEmerald, SwitchVioletSmall, SwitchHoverScale } from './examples/switch-variations';
+import { TabsDefaultDark, TabsLineViolet, TabsPillEmerald, TabsSegmentEntry } from './examples/tabs-variations';
+import { TooltipDefault, TooltipInverse, TooltipNoArrow } from './examples/tooltip-variations';
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Chart card imports (kept for inline examples)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import { AreaChartCard } from '@/components/ui/cards/area-chart-card';
 import { BarChartCard } from '@/components/ui/cards/bar-chart-card';
 import { LineChartCard } from '@/components/ui/cards/line-chart-card';
@@ -28,145 +38,12 @@ import { DottedMultiLineChartCard } from '@/components/ui/cards/dotted-multi-lin
 import { LiveActivityCompactCard, NextEventCompactCard, WhosOnlineCompactCard, SparkStatsCompactCard } from '@/components/ui/cards/compact-sm-variants';
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Theme tokens
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const T = {
-    bg: '#0a0a0b',
-    subtle: '#111113',
-    surface: '#141416',
-    elevated: '#1a1a1d',
-    text: '#f0ede8',
-    textSec: '#9a9aa3',
-    textMuted: '#6b6b72',
-    brand: '#f5a623',
-    brandHover: '#ffba4a',
-    interactive: '#7c3aed',
-    interactiveHover: '#9f72ff',
-    border: 'rgba(255,255,255,0.08)',
-    borderStrong: 'rgba(255,255,255,0.15)',
-    success: '#34d399',
-    warning: '#facc15',
-    error: '#fb7185',
-    info: '#38bdf8',
-    electric: '#22d3ee',
-    bloom: '#f472b6',
-    acid: '#a3e635',
-    plasma: '#818cf8',
-    inferno: '#fb923c',
-    crimson: '#f43f5e',
-    spearmint: '#10b981',
-    solar: '#facc15',
-} as const;
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Types
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export interface LibraryExample {
     title: string;
     preview: ReactNode;
     code: string;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   DataTable constants
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const TABLE_COLUMNS = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'role', label: 'Role' },
-    { key: 'status', label: 'Status', variant: 'badge' as const },
-    { key: 'email', label: 'Email' },
-];
-const TABLE_DATA = [
-    { name: 'Ava Chen', role: 'Lead Engineer', status: 'Active', email: 'ava@company.io' },
-    { name: 'Kai Nakamura', role: 'Designer', status: 'Active', email: 'kai@company.io' },
-    { name: 'Zara Osei', role: 'PM', status: 'Away', email: 'zara@company.io' },
-    { name: 'Liam Torres', role: 'Backend Dev', status: 'Offline', email: 'liam@company.io' },
-];
-const TABLE_BADGE_COLORS: Record<string, { bg: string; text: string }> = {
-    Active: { bg: T.spearmint, text: '#0a0a0b' },
-    Away: { bg: T.solar, text: '#0a0a0b' },
-    Offline: { bg: T.textMuted, text: '#f0ede8' },
-};
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Helper components
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function AvatarHoverCard() {
-    const [hovered, setHovered] = useState(false);
-    return (
-        <div className="relative inline-block pt-4">
-            <div
-                className="cursor-pointer transition-transform duration-200"
-                style={{ transform: hovered ? 'translateY(-2px) scale(1.06)' : 'none' }}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
-            >
-                <Avatar size="lg" bgColor={T.interactive} badge badgeColor={T.success}>
-                    <AvatarImage src="https://i.pravatar.cc/80?img=5" />
-                    <AvatarFallback fontColor="#fff" fontBold>KN</AvatarFallback>
-                </Avatar>
-            </div>
-            {hovered && (
-                <div
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-10 shadow-xl"
-                    style={{
-                        background: T.elevated,
-                        border: `1px solid ${T.border}`,
-                        borderRadius: 12,
-                        padding: 12,
-                        width: 200,
-                        backdropFilter: 'blur(8px)',
-                        opacity: 1,
-                    }}
-                    onMouseEnter={() => setHovered(true)}
-                    onMouseLeave={() => setHovered(false)}
-                >
-                    <div className="flex items-center gap-2.5">
-                        <Avatar customSize={36} bgColor={T.interactive}>
-                            <AvatarImage src="https://i.pravatar.cc/80?img=5" />
-                            <AvatarFallback fontColor="#fff" fontBold>KN</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate font-semibold leading-none text-[13px]" style={{ color: T.text }}>Kai Nakamura</p>
-                            <p className="mt-1 truncate text-[11px]" style={{ color: T.textMuted }}>Lead Designer</p>
-                            <div className="mt-1.5 flex items-center gap-2">
-                                {['💬', '✉️', '📞'].map((icon) => (
-                                    <button key={icon} className="p-1 rounded-md transition-opacity opacity-60 hover:opacity-100 text-[12px]">{icon}</button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function DialogExample() {
-    const [open, setOpen] = useState(false);
-    return (
-        <>
-            <Button onClick={() => setOpen(true)} style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Open Dialog</Button>
-            {open && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setOpen(false)}>
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-                    <div className="relative z-10 w-[min(92vw,420px)] overflow-hidden rounded-2xl" style={{ background: T.elevated, border: `1px solid ${T.border}`, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
-                        <div className="p-6 space-y-1" style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <h3 className="text-base font-semibold" style={{ color: T.text }}>Confirm deployment</h3>
-                            <p className="text-[13px]" style={{ color: T.textSec }}>This will push changes to production. Are you sure?</p>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-[13px]" style={{ color: T.textMuted }}>Branch <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: T.surface, color: T.brand }}>main</code> will be deployed to all regions.</p>
-                        </div>
-                        <div className="flex justify-end gap-3 px-6 pb-6">
-                            <Button variant="ghost" size="sm" onClick={() => setOpen(false)} style={{ color: T.textSec, borderRadius: 8 }}>Cancel</Button>
-                            <Button size="sm" onClick={() => setOpen(false)} style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Deploy</Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
-    );
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -207,45 +84,68 @@ const COMPACT_DEMO_USERS = [
    EXAMPLES registry
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export const EXAMPLES: Record<string, LibraryExample[]> = {
+
     /* ── Accordion ── */
     accordion: [
         {
-            title: 'Default',
-            preview: (
-                <div className="w-full max-w-lg">
-                    <Accordion type="single" collapsible defaultValue="item-1" dividerEnabled dividerColor={T.border} dividerWeight={1}>
-                        <AccordionItem value="item-1">
-                            <AccordionTrigger triggerStyle={{ color: T.text, padding: '14px 0' }}>What is a micro-interaction?</AccordionTrigger>
-                            <AccordionContent contentStyle={{ color: T.textSec, paddingBottom: 14 }}>A micro-interaction is a small, contained product moment that revolves around a single use case.</AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="item-2">
-                            <AccordionTrigger triggerStyle={{ color: T.text, padding: '14px 0' }}>Why should I use a micro-interaction?</AccordionTrigger>
-                            <AccordionContent contentStyle={{ color: T.textSec, paddingBottom: 14 }}>They enhance user delight and provide contextual feedback for actions.</AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="item-3">
-                            <AccordionTrigger triggerStyle={{ color: T.text, padding: '14px 0' }}>How do I use a micro-interaction?</AccordionTrigger>
-                            <AccordionContent contentStyle={{ color: T.textSec, paddingBottom: 14 }}>Integrate them at key interaction points like form submissions and state changes.</AccordionContent>
-                        </AccordionItem>
-                    </Accordion>
-                </div>
-            ),
-            code: `<Accordion type="single" collapsible defaultValue="item-1">\n  <AccordionItem value="item-1">\n    <AccordionTrigger>What is a micro-interaction?</AccordionTrigger>\n    <AccordionContent>A micro-interaction is a small, contained product moment...</AccordionContent>\n  </AccordionItem>\n</Accordion>`,
+            title: 'Dark Amber',
+            preview: <AccordionDarkAmber />,
+            code: `<Accordion type="single" collapsible
+  dividerColor="var(--j6-amber-500-light)"
+  className="bg-[var(--j6-neutral-600-dark)] rounded-md"
+>
+  <AccordionItem value="item-1">
+    <AccordionTrigger>What is UI Studio?</AccordionTrigger>
+    <AccordionContent>A visual component design tool.</AccordionContent>
+  </AccordionItem>
+</Accordion>`,
         },
         {
-            title: 'Bordered',
-            preview: (
-                <div className="w-full max-w-lg">
-                    <Accordion type="single" collapsible dividerEnabled={false}>
-                        {['What is a micro-interaction?', 'Why should I use a micro-interaction?', 'How do I use a micro-interaction?'].map((q, i) => (
-                            <AccordionItem key={i} value={`b-${i}`}>
-                                <AccordionTrigger triggerStyle={{ color: T.text, padding: '12px 16px', background: T.surface, borderRadius: 10, border: `1px solid ${T.border}`, marginBottom: 6 }}>{q}</AccordionTrigger>
-                                <AccordionContent contentStyle={{ color: T.textSec, padding: '0 16px 12px' }}>Accordion content goes here.</AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                </div>
-            ),
-            code: `<Accordion type="single" collapsible>\n  <AccordionItem value="item-1">\n    <AccordionTrigger style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)' }}>\n      What is a micro-interaction?\n    </AccordionTrigger>\n    <AccordionContent>Content goes here.</AccordionContent>\n  </AccordionItem>\n</Accordion>`,
+            title: 'Light Spaced',
+            preview: <AccordionLightSpaced />,
+            code: `<Accordion type="single" collapsible
+  dividerEnabled={false}
+  spacing={8}
+  className="bg-[var(--j6-neutral-50-light)] rounded-md"
+>
+  <AccordionItem value="item-1">
+    <AccordionTrigger>Features</AccordionTrigger>
+    <AccordionContent>Visual preview, live editing, and export.</AccordionContent>
+  </AccordionItem>
+</Accordion>`,
+        },
+        {
+            title: 'Entry Blur Fade',
+            preview: <AccordionEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Accordion type="single" collapsible dividerColor="#5a5a64">
+    <AccordionItem value="item-1">
+      <AccordionTrigger>Getting started</AccordionTrigger>
+      <AccordionContent>Install via pnpm and start designing.</AccordionContent>
+    </AccordionItem>
+  </Accordion>
+</motion.div>`,
+        },
+        {
+            title: 'Multiple Open',
+            preview: <AccordionMultipleOpen />,
+            code: `<Accordion type="multiple"
+  dividerColor="var(--j6-violet-400)"
+  className="bg-[var(--j6-neutral-700-light)] rounded-md"
+>
+  <AccordionItem value="item-1">
+    <AccordionTrigger>Design tokens</AccordionTrigger>
+    <AccordionContent>Primitives, semantics, and showcase themes.</AccordionContent>
+  </AccordionItem>
+  <AccordionItem value="item-2">
+    <AccordionTrigger>Motion system</AccordionTrigger>
+    <AccordionContent>Entry, hover, tap, and exit animations.</AccordionContent>
+  </AccordionItem>
+</Accordion>`,
         },
     ],
 
@@ -253,226 +153,476 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     alert: [
         {
             title: 'Info',
-            preview: (
-                <Alert variant="info" showIcon style={{ background: `${T.info}10`, borderColor: `${T.info}30`, borderRadius: 12, maxWidth: 480 }}>
-                    <AlertTitle style={{ color: T.info }}>System update available</AlertTitle>
-                    <AlertDescription style={{ color: T.textSec }}>A new version is ready. Review the changelog before updating.</AlertDescription>
-                    <AlertAction><Button size="xs" style={{ background: T.info, color: '#0a0a0b', borderRadius: 6 }}>Update now</Button></AlertAction>
-                </Alert>
-            ),
-            code: `<Alert variant="info" showIcon>\n  <AlertTitle>System update available</AlertTitle>\n  <AlertDescription>A new version is ready.</AlertDescription>\n  <AlertAction><Button size="xs">Update now</Button></AlertAction>\n</Alert>`,
+            preview: <AlertInfo />,
+            code: `<Alert variant="info">
+  <AlertTitle>Information</AlertTitle>
+  <AlertDescription>This is an informational alert.</AlertDescription>
+</Alert>`,
         },
         {
             title: 'Success',
-            preview: (
-                <Alert variant="success" showIcon style={{ background: `${T.success}10`, borderColor: `${T.success}30`, borderRadius: 12, maxWidth: 480 }}>
-                    <AlertTitle style={{ color: T.success }}>Deployment successful</AlertTitle>
-                    <AlertDescription style={{ color: T.textSec }}>Production build deployed to all regions.</AlertDescription>
-                </Alert>
-            ),
-            code: `<Alert variant="success" showIcon>\n  <AlertTitle>Deployment successful</AlertTitle>\n  <AlertDescription>Production build deployed to all regions.</AlertDescription>\n</Alert>`,
+            preview: <AlertSuccess />,
+            code: `<Alert variant="success">
+  <AlertTitle>Success</AlertTitle>
+  <AlertDescription>Operation completed successfully.</AlertDescription>
+</Alert>`,
         },
         {
-            title: 'Warning',
-            preview: (
-                <Alert variant="warning" showIcon style={{ background: `${T.warning}10`, borderColor: `${T.warning}30`, borderRadius: 12, maxWidth: 480 }}>
-                    <AlertTitle style={{ color: T.warning }}>API rate limit approaching</AlertTitle>
-                    <AlertDescription style={{ color: T.textSec }}>You&apos;ve used 89% of your monthly quota.</AlertDescription>
-                </Alert>
-            ),
-            code: `<Alert variant="warning" showIcon>\n  <AlertTitle>API rate limit approaching</AlertTitle>\n  <AlertDescription>You've used 89% of your monthly quota.</AlertDescription>\n</Alert>`,
+            title: 'Warning Dismissible',
+            preview: <AlertWarningDismissible />,
+            code: `<Alert variant="warning" dismissible>
+  <AlertTitle>Warning</AlertTitle>
+  <AlertDescription>Please review before proceeding.</AlertDescription>
+</Alert>`,
         },
         {
             title: 'Error',
-            preview: (
-                <Alert variant="error" showIcon dismissible style={{ background: `${T.error}10`, borderColor: `${T.error}30`, borderRadius: 12, maxWidth: 480 }}>
-                    <AlertTitle style={{ color: T.error }}>Payment failed</AlertTitle>
-                    <AlertDescription style={{ color: T.textSec }}>Your card ending in 4242 was declined.</AlertDescription>
-                    <AlertAction><Button size="xs" variant="outline" style={{ borderColor: `${T.error}50`, color: T.error, borderRadius: 6 }}>Update card</Button></AlertAction>
-                </Alert>
-            ),
-            code: `<Alert variant="error" showIcon dismissible>\n  <AlertTitle>Payment failed</AlertTitle>\n  <AlertDescription>Your card ending in 4242 was declined.</AlertDescription>\n</Alert>`,
+            preview: <AlertError />,
+            code: `<Alert variant="error">
+  <AlertTitle>Error</AlertTitle>
+  <AlertDescription>Something went wrong. Please try again.</AlertDescription>
+</Alert>`,
+        },
+        {
+            title: 'Entry Blur Fade',
+            preview: <AlertEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Alert variant="info">
+    <AlertTitle>New feature</AlertTitle>
+    <AlertDescription>Motion animations are now available.</AlertDescription>
+  </Alert>
+</motion.div>`,
+        },
+        {
+            title: 'Entry Scale Up',
+            preview: <AlertEntryScaleUp />,
+            code: `<motion.div
+  initial={{ scale: 0.92, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 0.45, ease: 'easeOut' }}
+>
+  <Alert variant="success">
+    <AlertTitle>Deployed</AlertTitle>
+    <AlertDescription>Your changes are now live.</AlertDescription>
+  </Alert>
+</motion.div>`,
+        },
+    ],
+
+    /* ── Animated Text ── */
+    'animated-text': [
+        {
+            title: 'Typewriter',
+            preview: <AnimatedTextTypewriter />,
+            code: `<AnimatedText
+  text="Welcome to UI Studio"
+  variant="typewriter"
+  speed={1.2}
+  style={{ color: 'var(--j6-amber-400-light)' }}
+/>`,
+        },
+        {
+            title: 'Blur In',
+            preview: <AnimatedTextBlurIn />,
+            code: `<AnimatedText
+  text="Design components visually"
+  variant="blur-in"
+  speed={0.3}
+  stagger={0.06}
+  splitBy="word"
+/>`,
+        },
+        {
+            title: 'Split Entrance',
+            preview: <AnimatedTextSplitEntrance />,
+            code: `<AnimatedText
+  text="Preview in real-time"
+  variant="split-entrance"
+  speed={0.3}
+  stagger={0.03}
+  splitBy="char"
+/>`,
+        },
+        {
+            title: 'Gradient Sweep',
+            preview: <AnimatedTextGradientSweep />,
+            code: `<AnimatedText
+  text="Export clean code"
+  variant="gradient-sweep"
+  speed={3}
+  gradientColor1="var(--j6-accent-cyan-light)"
+  gradientColor2="var(--j6-violet-400)"
+/>`,
+        },
+        {
+            title: 'Shiny',
+            preview: <AnimatedTextShiny />,
+            code: `<AnimatedText
+  text="Premium components"
+  variant="shiny-text"
+  speed={2}
+  gradientColor1="var(--j6-amber-500-light)"
+  gradientColor2="rgba(255,255,255,0.9)"
+/>`,
+        },
+        {
+            title: 'Decrypt',
+            preview: <AnimatedTextDecrypt />,
+            code: `<AnimatedText
+  text="SYSTEM ONLINE"
+  variant="decrypt"
+  speed={1}
+  style={{ color: 'var(--j6-accent-emerald-light)', fontFamily: 'JetBrains Mono' }}
+/>`,
+        },
+        {
+            title: 'Counting Number',
+            preview: <AnimatedTextCountingNumber />,
+            code: `<AnimatedText
+  text="1247"
+  variant="counting-number"
+  speed={1.5}
+  className="text-3xl font-bold"
+  style={{ color: 'var(--j6-amber-400-light)' }}
+/>`,
+        },
+        {
+            title: 'Word Rotate',
+            preview: <AnimatedTextWordRotate />,
+            code: `<AnimatedText
+  text="Design, Preview, Export, Ship"
+  variant="word-rotate"
+  speed={2}
+/>`,
+        },
+        {
+            title: 'Bounce',
+            preview: <AnimatedTextBounce />,
+            code: `<AnimatedText
+  text="Hover me!"
+  variant="bounce"
+  style={{ color: 'var(--j6-violet-400)' }}
+/>`,
         },
     ],
 
     /* ── Avatar ── */
     avatar: [
         {
-            title: 'Sizes',
-            preview: (
-                <div className="flex items-end gap-4">
-                    <Avatar size="sm" bgColor={T.interactive}><AvatarFallback fontColor="#fff">SM</AvatarFallback></Avatar>
-                    <Avatar size="md" bgColor={T.brand}><AvatarFallback fontColor="#0a0a0b" fontBold>MD</AvatarFallback></Avatar>
-                    <Avatar size="lg" bgColor={T.electric}><AvatarFallback fontColor="#0a0a0b" fontBold>LG</AvatarFallback></Avatar>
-                </div>
-            ),
-            code: `<Avatar size="sm" bgColor="#7c3aed"><AvatarFallback fontColor="#fff">SM</AvatarFallback></Avatar>\n<Avatar size="md" bgColor="#f5a623"><AvatarFallback fontColor="#0a0a0b">MD</AvatarFallback></Avatar>\n<Avatar size="lg" bgColor="#22d3ee"><AvatarFallback fontColor="#0a0a0b">LG</AvatarFallback></Avatar>`,
+            title: 'With Badge',
+            preview: <AvatarWithBadge />,
+            code: `<motion.div whileHover={{ scale: 1.02 }}>
+  <Avatar customSize={62} radius={999} badge badgeColor="#22c55e">
+    <AvatarImage src="/images/avatar.jpg" alt="User" />
+    <AvatarFallback>JD</AvatarFallback>
+  </Avatar>
+</motion.div>`,
         },
         {
-            title: 'With Images & Badges',
-            preview: (
-                <div className="flex items-center gap-4">
-                    <Avatar size="md" strokeWeight={2} strokeColor={T.brand} badge badgeColor={T.success}><AvatarImage src="https://i.pravatar.cc/80?img=1" /><AvatarFallback>U1</AvatarFallback></Avatar>
-                    <Avatar size="md" strokeWeight={2} strokeColor={T.interactive} badge badgeColor={T.success}><AvatarImage src="https://i.pravatar.cc/80?img=5" /><AvatarFallback>U2</AvatarFallback></Avatar>
-                    <Avatar size="md" strokeWeight={2} strokeColor={T.electric} badge badgeColor={T.error}><AvatarImage src="https://i.pravatar.cc/80?img=8" /><AvatarFallback>U3</AvatarFallback></Avatar>
-                    <Avatar size="md" shape="rounded" strokeWeight={2} strokeColor={T.bloom}><AvatarImage src="https://i.pravatar.cc/80?img=12" /><AvatarFallback>U4</AvatarFallback></Avatar>
-                </div>
-            ),
-            code: `<Avatar size="md" strokeWeight={2} strokeColor="#f5a623" badge badgeColor="#34d399">\n  <AvatarImage src="https://i.pravatar.cc/80?img=1" />\n  <AvatarFallback>U1</AvatarFallback>\n</Avatar>`,
-        },
-        {
-            title: 'Avatar Group',
-            preview: (
-                <AvatarGroup spacing={-8}>
-                    {[
-                        { img: 'https://i.pravatar.cc/80?img=3', fb: 'AC', color: T.interactive },
-                        { img: 'https://i.pravatar.cc/80?img=7', fb: 'KN', color: T.brand },
-                        { img: 'https://i.pravatar.cc/80?img=11', fb: 'ZO', color: T.electric },
-                        { img: 'https://i.pravatar.cc/80?img=15', fb: 'LT', color: T.bloom },
-                    ].map((a, i) => (
-                        <Avatar key={i} size="md" strokeWeight={2} strokeColor={a.color}>
-                            <AvatarImage src={a.img} /><AvatarFallback fontColor="#fff">{a.fb}</AvatarFallback>
-                        </Avatar>
-                    ))}
-                    <AvatarGroupCount style={{ background: T.elevated, color: T.textSec, border: `2px solid ${T.surface}` }}>+5</AvatarGroupCount>
-                </AvatarGroup>
-            ),
-            code: `<AvatarGroup spacing={-8}>\n  <Avatar size="md" strokeWeight={2} strokeColor="#7c3aed">\n    <AvatarImage src="..." />\n    <AvatarFallback>AC</AvatarFallback>\n  </Avatar>\n  {/* more avatars... */}\n  <AvatarGroupCount>+5</AvatarGroupCount>\n</AvatarGroup>`,
-        },
-        {
-            title: 'Hover Contact Card',
-            preview: (
-                <div className="pb-24">
-                    <AvatarHoverCard />
-                    <p className="text-[11px] mt-2" style={{ color: T.textMuted }}>Hover the avatar</p>
-                </div>
-            ),
-            code: `{/* Hover-activated contact card */}\n<Avatar size="lg" badge badgeColor="#34d399"\n  onMouseEnter={() => setHovered(true)}\n  onMouseLeave={() => setHovered(false)}\n>\n  <AvatarImage src="..." />\n  <AvatarFallback>KN</AvatarFallback>\n</Avatar>\n{hovered && (\n  <div className="popover-card">\n    <Avatar customSize={36} />\n    <p>Kai Nakamura</p>\n    <p>Lead Designer</p>\n  </div>\n)}`,
-        },
-        {
-            title: 'Profile Menu Popover',
-            preview: (
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <button className="cursor-pointer">
-                            <Avatar size="lg" bgColor={T.interactive} badge badgeColor={T.success}>
-                                <AvatarImage src="https://i.pravatar.cc/80?img=1" /><AvatarFallback fontColor="#fff" fontBold>AC</AvatarFallback>
-                            </Avatar>
-                        </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-0 overflow-hidden" style={{ background: T.elevated, borderColor: T.border }}>
-                        <div className="p-4 space-y-2" style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <p className="text-sm font-medium" style={{ color: T.text }}>Ava Chen</p>
-                            <p className="text-xs" style={{ color: T.textMuted }}>ava@company.io</p>
-                        </div>
-                        <div className="p-2">
-                            {['View Profile', 'Settings', 'Sign Out'].map((item) => (
-                                <div key={item} className="px-3 py-1.5 rounded-md text-[13px] cursor-pointer transition-colors" style={{ color: item === 'Sign Out' ? T.error : T.textSec }}>{item}</div>
-                            ))}
-                        </div>
-                    </PopoverContent>
-                </Popover>
-            ),
-            code: `<Popover>\n  <PopoverTrigger asChild>\n    <button>\n      <Avatar size="lg" badge badgeColor="#34d399">\n        <AvatarImage src="..." />\n        <AvatarFallback>AC</AvatarFallback>\n      </Avatar>\n    </button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p>Ava Chen</p>\n    <p>ava@company.io</p>\n    <div>View Profile</div>\n    <div>Settings</div>\n    <div>Sign Out</div>\n  </PopoverContent>\n</Popover>`,
+            title: 'Group Stacked',
+            preview: <AvatarGroupStacked />,
+            code: `<motion.div whileHover={{ y: -2, scale: 1.04 }}>
+  <AvatarGroup spacing={-8}>
+    <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+      <AvatarFallback>CN</AvatarFallback>
+    </Avatar>
+    <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+      <AvatarFallback>LR</AvatarFallback>
+    </Avatar>
+    {/* ... */}
+  </AvatarGroup>
+</motion.div>`,
         },
     ],
 
     /* ── Badge ── */
     badge: [
         {
-            title: 'Showcase Colors',
-            preview: (
-                <div className="flex flex-wrap gap-3">
-                    {[
-                        { label: 'Electric', bg: T.electric, fg: '#0a0a0b' },
-                        { label: 'Bloom', bg: T.bloom, fg: '#0a0a0b' },
-                        { label: 'Acid', bg: T.acid, fg: '#0a0a0b' },
-                        { label: 'Plasma', bg: T.plasma, fg: '#0a0a0b' },
-                        { label: 'Inferno', bg: T.inferno, fg: '#0a0a0b' },
-                        { label: 'Crimson', bg: T.crimson, fg: '#fff' },
-                        { label: 'Spearmint', bg: T.spearmint, fg: '#0a0a0b' },
-                        { label: 'Solar', bg: T.solar, fg: '#0a0a0b' },
-                    ].map((b) => (
-                        <Badge key={b.label} style={{ background: b.bg, color: b.fg, borderRadius: 999, fontSize: 11, padding: '2px 8px' }}>{b.label}</Badge>
-                    ))}
-                </div>
-            ),
-            code: `<Badge style={{ background: '#22d3ee', color: '#0a0a0b' }}>Electric</Badge>\n<Badge style={{ background: '#f472b6', color: '#0a0a0b' }}>Bloom</Badge>\n<Badge style={{ background: '#a3e635', color: '#0a0a0b' }}>Acid</Badge>`,
+            title: 'Solid Destructive',
+            preview: <BadgeSolidDestructive />,
+            code: `<Badge
+  className="rounded-md text-xs font-medium"
+  style={{ background: 'rgba(239, 68, 68, 1)' }}
+>
+  <Ban size={12} /> Badge token
+</Badge>`,
         },
         {
-            title: 'Status Variants',
-            preview: (
-                <div className="flex flex-wrap gap-3">
-                    <Badge style={{ background: `${T.success}20`, color: T.success, border: `1px solid ${T.success}40`, borderRadius: 999, fontSize: 11, padding: '2px 8px' }}>Active</Badge>
-                    <Badge style={{ background: `${T.warning}20`, color: T.warning, border: `1px solid ${T.warning}40`, borderRadius: 999, fontSize: 11, padding: '2px 8px' }}>Pending</Badge>
-                    <Badge style={{ background: `${T.error}20`, color: T.error, border: `1px solid ${T.error}40`, borderRadius: 999, fontSize: 11, padding: '2px 8px' }}>Failed</Badge>
-                    <Badge style={{ background: `${T.info}20`, color: T.info, border: `1px solid ${T.info}40`, borderRadius: 999, fontSize: 11, padding: '2px 8px' }}>Info</Badge>
-                    <Badge variant="outline" style={{ borderColor: T.borderStrong, color: T.textSec, borderRadius: 999, fontSize: 11, padding: '2px 8px' }}>Draft</Badge>
-                </div>
-            ),
-            code: `<Badge style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }}>Active</Badge>`,
+            title: 'Outline',
+            preview: <BadgeOutline />,
+            code: `<Badge
+  className="border border-solid rounded-md text-xs"
+  style={{ borderColor: 'rgba(203, 213, 225, 1)' }}
+>
+  Badge token
+</Badge>`,
+        },
+        {
+            title: 'Pill Sky',
+            preview: <BadgePillSky />,
+            code: `<Badge className="rounded-full bg-[var(--j6-accent-sky-light)] text-xs">
+  Badge token
+</Badge>`,
+        },
+        {
+            title: 'Grain Bell',
+            preview: <BadgeGrainBell />,
+            code: `<Badge
+  className="rounded-full ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
+  style={{ '--ui-effect-grain-opacity': '0.25', '--ui-effect-grain-size': '200' }}
+>
+  <Bell size={11} /> Badge token
+</Badge>`,
+        },
+        {
+            title: 'Grain Plain',
+            preview: <BadgeGrainPlain />,
+            code: `<Badge
+  className="rounded-full ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
+  style={{ '--ui-effect-grain-opacity': '0.25', '--ui-effect-grain-size': '200' }}
+>
+  Badge token
+</Badge>`,
+        },
+        {
+            title: 'Grain Icon Only',
+            preview: <BadgeGrainIconOnly />,
+            code: `<Badge
+  className="rounded-full ui-studio-effect-grain bg-[var(--j6-accent-sky-light)]"
+  style={{ '--ui-effect-grain-opacity': '0.25' }}
+>
+  <Search size={11} />
+</Badge>`,
+        },
+        {
+            title: 'Status Success',
+            preview: <BadgeStatusSuccess />,
+            code: `<Badge
+  className="border border-[#059669]/30 rounded-md"
+  style={{ background: 'rgba(236, 253, 245, 1)', color: 'rgba(6, 95, 70, 1)' }}
+>
+  <Check size={10} /> Badge token
+</Badge>`,
+        },
+        {
+            title: 'Status Warning',
+            preview: <BadgeStatusWarning />,
+            code: `<Badge
+  className="border border-[#ca8a04]/30 rounded-md"
+  style={{ background: 'rgba(254, 252, 232, 1)', color: 'rgba(133, 77, 14, 1)' }}
+>
+  <Shield size={13} /> Badge token
+</Badge>`,
+        },
+        {
+            title: 'Status Error',
+            preview: <BadgeStatusError />,
+            code: `<Badge
+  className="border border-[#dc2626]/20 rounded-md"
+  style={{ background: 'rgba(254, 242, 242, 1)', color: 'rgba(153, 27, 27, 1)' }}
+>
+  <X size={12} /> Badge token
+</Badge>`,
+        },
+        {
+            title: 'Status Info',
+            preview: <BadgeStatusInfo />,
+            code: `<Badge
+  className="border border-[#3b82f6]/30 rounded-md"
+  style={{ background: 'rgba(239, 246, 255, 1)', color: 'rgba(30, 58, 138, 1)' }}
+>
+  <Bookmark size={12} /> Badge token
+</Badge>`,
+        },
+        {
+            title: 'Entry Blur Fade',
+            preview: <BadgeEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)' }}
+  animate={{ filter: 'blur(0px)' }}
+  transition={{ duration: 0.65, ease: 'easeInOut' }}
+>
+  <Badge className="border border-[#3b82f6]/30 rounded-md">
+    <Bookmark size={12} /> Badge token
+  </Badge>
+</motion.div>`,
+        },
+        {
+            title: 'Tap Spring',
+            preview: <BadgeTapSpring />,
+            code: `<motion.div
+  whileTap={{ scale: 0.96, transition: { type: 'spring', stiffness: 420, damping: 30 } }}
+>
+  <Badge className="border border-[#3b82f6]/30 rounded-md">
+    <Bookmark size={12} /> Badge token
+  </Badge>
+</motion.div>`,
         },
     ],
 
     /* ── Button ── */
     button: [
         {
-            title: 'Variants',
-            preview: (
-                <div className="flex flex-wrap gap-3">
-                    <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Primary</Button>
-                    <Button variant="secondary" style={{ background: T.elevated, color: T.text, borderRadius: 10 }}>Secondary</Button>
-                    <Button variant="destructive" style={{ background: T.error, color: '#fff', borderRadius: 10 }}>Destructive</Button>
-                    <Button variant="outline" style={{ borderColor: T.borderStrong, color: T.text, borderRadius: 10 }}>Outline</Button>
-                    <Button variant="ghost" style={{ color: T.textSec, borderRadius: 10 }}>Ghost</Button>
-                    <Button variant="link" style={{ color: T.brand }}>Link</Button>
-                </div>
-            ),
-            code: `<Button>Primary</Button>\n<Button variant="secondary">Secondary</Button>\n<Button variant="destructive">Destructive</Button>\n<Button variant="outline">Outline</Button>\n<Button variant="ghost">Ghost</Button>\n<Button variant="link">Link</Button>`,
+            title: 'Entry Scale Down',
+            preview: <ButtonEntryScaleDown />,
+            code: `<motion.div
+  initial={{ scale: 1.11 }}
+  animate={{ scale: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
+    Primary action
+  </Button>
+</motion.div>`,
         },
         {
-            title: 'Sizes',
-            preview: (
-                <div className="flex items-center gap-3">
-                    <Button size="sm" style={{ background: T.interactive, color: '#fff', borderRadius: 8 }}>Small</Button>
-                    <Button size="default" style={{ background: T.interactive, color: '#fff', borderRadius: 10 }}>Default</Button>
-                    <Button size="lg" style={{ background: T.interactive, color: '#fff', borderRadius: 12 }}>Large</Button>
-                </div>
-            ),
-            code: `<Button size="sm">Small</Button>\n<Button size="default">Default</Button>\n<Button size="lg">Large</Button>`,
+            title: 'Entry Scale Up',
+            preview: <ButtonEntryScaleUp />,
+            code: `<motion.div
+  initial={{ scale: 0.92 }}
+  animate={{ scale: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
+    Primary action
+  </Button>
+</motion.div>`,
         },
         {
-            title: 'Disabled',
-            preview: (
-                <div className="flex items-center gap-3">
-                    <Button disabled style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10, opacity: 0.4 }}>Primary</Button>
-                    <Button disabled variant="outline" style={{ borderColor: T.borderStrong, color: T.text, borderRadius: 10, opacity: 0.4 }}>Outline</Button>
-                </div>
-            ),
-            code: `<Button disabled>Primary</Button>\n<Button disabled variant="outline">Outline</Button>`,
+            title: 'Hover Lift',
+            preview: <ButtonHoverLift />,
+            code: `<motion.div
+  whileHover={{ y: 1, scale: 1.04, transition: { type: 'spring', stiffness: 485, damping: 20 } }}
+>
+  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
+    Primary action
+  </Button>
+</motion.div>`,
         },
         {
-            title: 'Studio — Gradient',
-            preview: (
-                <div className="flex flex-wrap items-center gap-3">
-                    <Button style={{ background: 'linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 12, fontWeight: 500, minHeight: 28, height: 28, paddingInline: 12 }}>Small</Button>
-                    <Button style={{ background: 'linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 38, height: 38, paddingInline: 14 }}>Medium</Button>
-                    <Button style={{ background: 'linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 17, fontWeight: 500, minHeight: 44, height: 44, paddingInline: 17 }}>Large</Button>
-                    <Button style={{ background: 'linear-gradient(135deg, rgba(227,85,230,1) 0%, rgba(227,85,230,1) 55%, rgba(82,13,89,1) 100%)', borderRadius: 5, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 12, fontWeight: 500, minHeight: 34, height: 34, paddingInline: 12 }}>Purple</Button>
-                </div>
-            ),
-            code: `/* Blue Gradient — Small */\n.studio-button-1 {\n  background: linear-gradient(135deg, rgba(85,157,230,1) 0%, rgba(85,157,230,1) 55%, rgba(13,49,89,1) 100%);\n  border-radius: 5px;\n  color: rgba(232,229,224,1);\n  font-size: 12px;\n}`,
+            title: 'Hover + Tap Combo',
+            preview: <ButtonHoverTapCombo />,
+            code: `<motion.div
+  whileHover={{ y: 1, scale: 1.04 }}
+  whileTap={{ scale: 0.96 }}
+>
+  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
+    Primary action
+  </Button>
+</motion.div>`,
         },
         {
-            title: 'Studio — Dark & Glow',
-            preview: (
-                <div className="flex flex-wrap items-center gap-3">
-                    <Button style={{ background: 'linear-gradient(135deg, rgba(59,56,56,1) 0%, rgba(59,56,56,1) 55%, rgba(41,40,40,1) 100%)', border: '0.5px solid rgba(255,255,255,0.23)', borderRadius: 9, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 32, height: 32, paddingInline: 14, boxShadow: 'inset 6px 7px 4px -4px rgba(0,0,0,0.26)' }}>Inset Shadow</Button>
-                    <Button style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,0.23)', borderRadius: 9, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 32, height: 32, paddingInline: 14 }}>Ghost</Button>
-                    <Button style={{ background: 'radial-gradient(100% 100% at 50% 50%, rgba(27,17,214,0.45) 0%, transparent 70%), rgba(0,0,0,1)', border: '1.5px solid rgba(255,255,255,0)', borderRadius: 9, color: 'rgba(232,229,224,1)', fontFamily: 'Open Sans', fontSize: 14, fontWeight: 500, minHeight: 32, height: 32, paddingInline: 14 }}>Radial Glow</Button>
-                </div>
-            ),
-            code: `/* Dark Inset Shadow */\n.studio-button-inset {\n  background: linear-gradient(135deg, rgba(59,56,56,1) 0%, rgba(59,56,56,1) 55%, rgba(41,40,40,1) 100%);\n  box-shadow: inset 6px 7px 4px -4px rgba(0,0,0,0.26);\n}\n\n/* Radial Glow */\n.studio-button-glow {\n  background: radial-gradient(100% 100% at 50% 50%, rgba(27,17,214,0.45) 0%, transparent 70%), rgba(0,0,0,1);\n}`,
+            title: 'Gradient Slide',
+            preview: <ButtonGradientSlide />,
+            code: `<Button
+  className="ui-studio-effect-gradient-slide bg-[var(--j6-amber-400-light)] rounded-sm"
+  style={{
+    '--ui-motion-gradient-from': '#eb5a0c',
+    '--ui-motion-gradient-to': '#ff8a05',
+    '--ui-effect-gs-speed': '0.32s',
+  }}
+>
+  <Bookmark size={18} /> Primary action
+</Button>`,
+        },
+        {
+            title: 'Animated Border',
+            preview: <ButtonAnimatedBorder />,
+            code: `<Button
+  className="ui-studio-effect-animated-border border-2 rounded-sm"
+  style={{
+    '--ui-effect-border-speed': '2.8s',
+    '--ui-effect-border-1': '#6d28d9',
+    '--ui-effect-border-2': '#3b0e87',
+    '--ui-effect-border-3': '#9f72ff',
+  }}
+>
+  <Bookmark size={18} /> Primary action
+</Button>`,
+        },
+        {
+            title: 'Ripple Fill',
+            preview: <ButtonRippleFill />,
+            code: `<Button
+  className="ui-studio-effect-ripple-fill bg-[var(--j6-violet-400)] rounded-sm"
+  style={{
+    '--ui-motion-ripple-color': '#3b0e87',
+    '--ui-effect-ripple-speed': '0.5s',
+  }}
+>
+  Primary action
+</Button>`,
+        },
+        {
+            title: 'Border Beam',
+            preview: <ButtonBorderBeam />,
+            code: `<Button
+  className="ui-studio-effect-border-beam bg-[var(--j6-neutral-600-dark)] rounded-sm"
+  style={{
+    '--ui-effect-beam-speed': '6s',
+    '--ui-effect-beam-from': '#f472b6',
+    '--ui-effect-beam-to': '#db2777',
+  }}
+>
+  Primary action
+</Button>`,
+        },
+        {
+            title: 'Border Beam Large',
+            preview: <ButtonBorderBeamLarge />,
+            code: `<Button
+  className="ui-studio-effect-border-beam bg-[var(--j6-neutral-600-dark)] text-base min-h-[44px]"
+  style={{
+    '--ui-effect-beam-speed': '6s',
+    '--ui-effect-beam-from': '#f472b6',
+    '--ui-effect-beam-to': '#db2777',
+  }}
+>
+  Primary action
+</Button>`,
+        },
+        {
+            title: 'Shine Border',
+            preview: <ButtonShineBorder />,
+            code: `<Button
+  className="ui-studio-effect-shine-border bg-[var(--j6-accent-indigo-light)] rounded-sm"
+  style={{
+    '--ui-effect-shine-speed': '4s',
+    '--ui-effect-shine-color': '#ffffff',
+    '--ui-effect-shine-width': '2px',
+  }}
+>
+  Primary action
+</Button>`,
+        },
+        {
+            title: 'Pulse Ring',
+            preview: <ButtonPulseRing />,
+            code: `<Button
+  className="ui-studio-effect-pulse-ring bg-[var(--j6-accent-sky-light)] rounded-sm"
+  style={{
+    '--ui-effect-pulse-speed': '1.5s',
+    '--ui-effect-pulse-color': '#22d3ee',
+  }}
+>
+  Primary action
+</Button>`,
+        },
+        {
+            title: 'Glass',
+            preview: <ButtonGlass />,
+            code: `<motion.div whileHover={{ y: 1, scale: 1.04 }}>
+  <Button
+    className="bg-[#000000]/0 rounded-sm backdrop-[blur(40px)_saturate(160%)]"
+    style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.14)' }}
+  >
+    Primary action
+  </Button>
+</motion.div>`,
         },
     ],
 
@@ -480,439 +630,671 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     card: [
         {
             title: 'Default',
-            preview: (
-                <Card style={{ background: T.surface, borderColor: T.border, borderRadius: 16, maxWidth: 360 }}>
-                    <CardHeader><CardTitle style={{ color: T.text }}>Default Card</CardTitle><CardDescription style={{ color: T.textSec }}>A surface with subtle border.</CardDescription></CardHeader>
-                    <CardContent><p className="text-sm" style={{ color: T.textMuted }}>Flexible content area with warm neutral styling.</p></CardContent>
-                    <CardFooter className="flex gap-3"><Button size="sm" style={{ background: T.brand, color: '#0a0a0b', borderRadius: 8 }}>Action</Button><Button size="sm" variant="ghost" style={{ color: T.textSec }}>Cancel</Button></CardFooter>
-                </Card>
-            ),
-            code: `<Card>\n  <CardHeader>\n    <CardTitle>Default Card</CardTitle>\n    <CardDescription>A surface with subtle border.</CardDescription>\n  </CardHeader>\n  <CardContent><p>Flexible content area.</p></CardContent>\n  <CardFooter>\n    <Button size="sm">Action</Button>\n    <Button size="sm" variant="ghost">Cancel</Button>\n  </CardFooter>\n</Card>`,
+            preview: <CardDefault />,
+            code: `<Card className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-lg">
+  <CardHeader>
+    <CardTitle>Card Title</CardTitle>
+    <CardDescription>A short description.</CardDescription>
+  </CardHeader>
+  <CardContent><p>Card body content goes here.</p></CardContent>
+</Card>`,
         },
         {
-            title: 'Elevated',
-            preview: (
-                <Card variant="elevated" style={{ background: T.elevated, borderColor: 'transparent', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', maxWidth: 360 }}>
-                    <CardHeader><CardTitle style={{ color: T.text }}>Elevated Card</CardTitle><CardDescription style={{ color: T.textSec }}>Deep shadow for prominent surfaces.</CardDescription></CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-3">
-                            <div className="size-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: `${T.interactive}30`, color: T.interactive }}>KN</div>
-                            <div><p className="text-sm font-medium" style={{ color: T.text }}>Kai Nakamura</p><p className="text-xs" style={{ color: T.textMuted }}>Lead Designer</p></div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ),
-            code: `<Card variant="elevated">\n  <CardHeader>\n    <CardTitle>Elevated Card</CardTitle>\n    <CardDescription>Deep shadow for prominent surfaces.</CardDescription>\n  </CardHeader>\n  <CardContent>...</CardContent>\n</Card>`,
+            title: 'Elevated Action',
+            preview: <CardElevatedAction />,
+            code: `<Card variant="elevated" className="bg-[var(--j6-neutral-700-light)] shadow-lg rounded-lg">
+  <CardHeader>
+    <CardTitle>Elevated Card</CardTitle>
+    <CardDescription>Enhanced depth with shadow.</CardDescription>
+  </CardHeader>
+  <CardContent><p>Content with a CTA below.</p></CardContent>
+  <CardFooter><Button size="sm">Action</Button></CardFooter>
+</Card>`,
+        },
+        {
+            title: 'Glass',
+            preview: <CardGlass />,
+            code: `<Card variant="glass"
+  className="bg-[#000000]/0 border border-[#ffffff]/20 rounded-lg backdrop-[blur(40px)]"
+>
+  <CardHeader>
+    <CardTitle>Glass Card</CardTitle>
+    <CardDescription>Frosted glass effect.</CardDescription>
+  </CardHeader>
+  <CardContent><p>Transparent with backdrop blur.</p></CardContent>
+</Card>`,
+        },
+        {
+            title: 'Hover Lift',
+            preview: <CardHoverLift />,
+            code: `<motion.div
+  whileHover={{ y: -4, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 25 } }}
+>
+  <Card className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-lg">
+    <CardHeader><CardTitle>Hover Card</CardTitle></CardHeader>
+    <CardContent><p>Spring-animated hover interaction.</p></CardContent>
+  </Card>
+</motion.div>`,
+        },
+        {
+            title: 'Entry Scale Up',
+            preview: <CardEntryScaleUp />,
+            code: `<motion.div
+  initial={{ scale: 0.92, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 0.5, ease: 'easeOut' }}
+>
+  <Card className="bg-[var(--j6-neutral-600-dark)] rounded-lg">
+    <CardHeader><CardTitle>Animated Card</CardTitle></CardHeader>
+    <CardContent><p>Smooth entry animation.</p></CardContent>
+  </Card>
+</motion.div>`,
+        },
+        {
+            title: 'Border Beam',
+            preview: <CardBorderBeam />,
+            code: `<Card
+  className="ui-studio-effect-border-beam bg-[var(--j6-neutral-600-dark)] rounded-lg"
+  style={{
+    '--ui-effect-beam-speed': '6s',
+    '--ui-effect-beam-from': '#9f72ff',
+    '--ui-effect-beam-to': '#6d28d9',
+  }}
+>
+  <CardHeader><CardTitle>Premium Card</CardTitle></CardHeader>
+  <CardContent><p>Violet border beam effect.</p></CardContent>
+</Card>`,
         },
     ],
 
     /* ── Checkbox ── */
     checkbox: [
         {
-            title: 'States',
-            preview: (
-                <div className="space-y-4">
-                    {['Enable notifications', 'Auto-save drafts', 'Dark mode'].map((label, i) => (
-                        <label key={label} className="flex items-center gap-3 cursor-pointer">
-                            <Checkbox defaultChecked={i < 2} style={{ borderColor: T.borderStrong, borderRadius: 4 }} />
-                            <span className="text-sm" style={{ color: T.text }}>{label}</span>
-                        </label>
-                    ))}
-                </div>
-            ),
-            code: `<label className="flex items-center gap-3">\n  <Checkbox defaultChecked />\n  <span>Enable notifications</span>\n</label>`,
-        },
-        {
-            title: 'Color Variants',
-            preview: (
-                <div className="space-y-4">
-                    {[
-                        { label: 'Brand accent', color: T.brand },
-                        { label: 'Interactive violet', color: T.interactive },
-                        { label: 'Electric cyan', color: T.electric },
-                        { label: 'Success green', color: T.success },
-                    ].map((item) => (
-                        <label key={item.label} className="flex items-center gap-3 cursor-pointer">
-                            <Checkbox defaultChecked className="data-[state=checked]:border-transparent" style={{ borderColor: T.borderStrong, borderRadius: 4, '--primary': item.color, '--primary-foreground': '#0a0a0b' } as React.CSSProperties} />
-                            <span className="text-sm" style={{ color: T.text }}>{item.label}</span>
-                        </label>
-                    ))}
-                </div>
-            ),
-            code: `<Checkbox defaultChecked style={{ '--primary': '#f5a623' }} />\n<Checkbox defaultChecked style={{ '--primary': '#7c3aed' }} />`,
-        },
-        {
-            title: 'Disabled & Indeterminate',
-            preview: (
-                <div className="space-y-4">
-                    <label className="flex items-center gap-3 cursor-not-allowed opacity-50">
-                        <Checkbox disabled defaultChecked style={{ borderColor: T.borderStrong, borderRadius: 4 }} />
-                        <span className="text-sm" style={{ color: T.textMuted }}>Disabled checked</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-not-allowed opacity-50">
-                        <Checkbox disabled style={{ borderColor: T.borderStrong, borderRadius: 4 }} />
-                        <span className="text-sm" style={{ color: T.textMuted }}>Disabled unchecked</span>
-                    </label>
-                </div>
-            ),
-            code: `<Checkbox disabled defaultChecked />\n<Checkbox disabled />`,
+            title: 'Default',
+            preview: <CheckboxDefault />,
+            code: `<div className="flex items-center gap-2">
+  <Checkbox
+    id="checkbox-demo"
+    defaultChecked
+    style={{ '--ui-checkbox-selection-speed': '0.22s' }}
+  />
+  <Label htmlFor="checkbox-demo">Enable notifications</Label>
+</div>`,
         },
     ],
 
     /* ── Data Table ── */
     'data-table': [
         {
-            title: 'Sortable & Striped',
-            preview: (
-                <div style={{ borderRadius: 12, border: `1px solid ${T.border}`, overflow: 'hidden', maxWidth: 600 }}>
-                    <DataTable columns={TABLE_COLUMNS} data={TABLE_DATA} sortable striped headerBg={T.elevated} rowBg={T.surface} stripedBg={T.subtle} textColor={T.text} headerTextColor={T.textSec} borderColor={T.border} badgeColors={TABLE_BADGE_COLORS} />
-                </div>
-            ),
-            code: `<DataTable\n  columns={columns}\n  data={data}\n  sortable\n  striped\n  headerBg="#1a1a1d"\n  rowBg="#141416"\n  stripedBg="#111113"\n/>`,
+            title: 'Dark Striped',
+            preview: <DataTableDarkStriped />,
+            code: `<DataTable
+  columns={columns}
+  data={data}
+  sortable
+  striped
+  headerBg="#2a2a2e"
+  rowBg="#3a3a3f"
+  stripedBg="#2a2a2e"
+  textColor="#e2e8f0"
+  borderColor="#5a5a64"
+/>`,
+        },
+        {
+            title: 'Amber Compact',
+            preview: <DataTableAmberCompact />,
+            code: `<DataTable
+  columns={columns}
+  data={data}
+  sortable
+  size="sm"
+  headerBg="var(--j6-amber-400-light)"
+  headerTextColor="var(--j6-neutral-600-dark)"
+  textColor="var(--j6-neutral-400-light)"
+/>`,
+        },
+        {
+            title: 'Entry Blur Fade',
+            preview: <DataTableEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.65, ease: 'easeInOut' }}
+>
+  <DataTable columns={columns} data={data} sortable striped />
+</motion.div>`,
         },
     ],
 
     /* ── Dialog ── */
     dialog: [
         {
-            title: 'Confirmation',
-            preview: <DialogExample />,
-            code: `<Dialog>\n  <DialogTrigger>\n    <Button>Open Dialog</Button>\n  </DialogTrigger>\n  <ModalOverlay isDismissable>\n    <Modal>\n      <Dialog>\n        <DialogHeader title="Confirm deployment" />\n        <DialogBody>Branch main will be deployed.</DialogBody>\n        <DialogFooter>\n          <DialogClose>Cancel</DialogClose>\n          <Button>Deploy</Button>\n        </DialogFooter>\n      </Dialog>\n    </Modal>\n  </ModalOverlay>\n</Dialog>`,
+            title: 'Trigger Dark',
+            preview: <DialogTriggerDark />,
+            code: `<Button
+  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
+  style={{ color: 'rgba(226, 232, 240, 1)' }}
+>
+  Open Dialog
+</Button>`,
+        },
+        {
+            title: 'Trigger Amber',
+            preview: <DialogTriggerAmber />,
+            code: `<Button
+  className="bg-[var(--j6-amber-400-light)] border border-[#c4800a]/50 rounded-sm"
+  style={{ color: 'var(--j6-neutral-600-dark)' }}
+>
+  Confirm Action
+</Button>`,
+        },
+        {
+            title: 'Trigger Destructive',
+            preview: <DialogTriggerDestructive />,
+            code: `<Button
+  className="bg-[var(--j6-accent-rose-light)] rounded-sm"
+  style={{ color: 'var(--j6-neutral-0-light)' }}
+>
+  Delete Item
+</Button>`,
         },
     ],
 
     /* ── Drawer ── */
     drawer: [
         {
-            title: 'Navigation Drawer',
-            preview: (
-                <Drawer>
-                    <DrawerTrigger asChild>
-                        <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Open Settings</Button>
-                    </DrawerTrigger>
-                    <DrawerContent side="right" style={{ background: T.elevated, borderColor: T.border }}>
-                        <DrawerHeader style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <DrawerTitle style={{ color: T.text }}>Settings</DrawerTitle>
-                            <DrawerDescription style={{ color: T.textSec }}>Configure your workspace.</DrawerDescription>
-                        </DrawerHeader>
-                        <div className="p-3 space-y-0.5">
-                            {['General', 'Appearance', 'Notifications', 'Security', 'Billing'].map((item, i) => (
-                                <div key={item} className="px-3 py-2 rounded-lg text-[13px] cursor-pointer transition-colors" style={{ background: i === 1 ? `${T.brand}15` : 'transparent', color: i === 1 ? T.brand : T.textSec }}>{item}</div>
-                            ))}
-                        </div>
-                        <DrawerClose />
-                    </DrawerContent>
-                </Drawer>
-            ),
-            code: `<Drawer>\n  <DrawerTrigger asChild>\n    <Button>Open Settings</Button>\n  </DrawerTrigger>\n  <DrawerContent side="right">\n    <DrawerHeader>\n      <DrawerTitle>Settings</DrawerTitle>\n      <DrawerDescription>Configure your workspace.</DrawerDescription>\n    </DrawerHeader>\n    {/* Navigation items */}\n    <DrawerClose />\n  </DrawerContent>\n</Drawer>`,
+            title: 'Trigger Right',
+            preview: <DrawerTriggerRight />,
+            code: `<Button
+  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
+  style={{ color: 'rgba(226, 232, 240, 1)' }}
+>
+  Open Drawer
+</Button>`,
+        },
+        {
+            title: 'Trigger Settings',
+            preview: <DrawerTriggerSettings />,
+            code: `<Button
+  className="bg-[var(--j6-amber-400-light)] border border-[#c4800a]/50 rounded-sm"
+  style={{ color: 'var(--j6-neutral-600-dark)' }}
+>
+  Settings
+</Button>`,
         },
     ],
 
     /* ── Dropdown Menu ── */
     'dropdown-menu': [
         {
-            title: 'With Shortcuts',
-            preview: (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Actions</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent style={{ background: T.elevated, borderColor: T.border }}>
-                        <DropdownMenuItem style={{ color: T.text }}>Edit <DropdownMenuShortcut>⌘E</DropdownMenuShortcut></DropdownMenuItem>
-                        <DropdownMenuItem style={{ color: T.text }}>Duplicate <DropdownMenuShortcut>⌘D</DropdownMenuShortcut></DropdownMenuItem>
-                        <DropdownMenuItem style={{ color: T.text }}>Move to... <DropdownMenuShortcut>⌘M</DropdownMenuShortcut></DropdownMenuItem>
-                        <DropdownMenuSeparator style={{ background: T.border }} />
-                        <DropdownMenuItem style={{ color: T.text }}>Archive <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut></DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive">Delete <DropdownMenuShortcut>⇧⌘⌫</DropdownMenuShortcut></DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            ),
-            code: `<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button>Actions</Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>Edit <DropdownMenuShortcut>⌘E</DropdownMenuShortcut></DropdownMenuItem>\n    <DropdownMenuItem>Duplicate <DropdownMenuShortcut>⌘D</DropdownMenuShortcut></DropdownMenuItem>\n    <DropdownMenuSeparator />\n    <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>`,
+            title: 'Trigger Dark',
+            preview: <DropdownMenuTriggerDark />,
+            code: `<Button
+  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
+  style={{ color: 'rgba(226, 232, 240, 1)' }}
+>
+  Options <ChevronDown size={14} />
+</Button>`,
+        },
+        {
+            title: 'Trigger Amber',
+            preview: <DropdownMenuTriggerAmber />,
+            code: `<motion.div whileHover={{ y: -1, scale: 1.03 }}>
+  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
+    Actions <ChevronDown size={14} />
+  </Button>
+</motion.div>`,
+        },
+        {
+            title: 'Trigger Effect',
+            preview: <DropdownMenuTriggerEffect />,
+            code: `<Button
+  className="ui-studio-effect-gradient-slide bg-[var(--j6-violet-500-light)] rounded-sm"
+  style={{
+    '--ui-motion-gradient-from': '#6d28d9',
+    '--ui-motion-gradient-to': '#9f72ff',
+    '--ui-effect-gs-speed': '0.32s',
+  }}
+>
+  Menu <ChevronDown size={14} />
+</Button>`,
         },
     ],
 
     /* ── Input ── */
     input: [
         {
-            title: 'With Labels',
-            preview: (
-                <div className="grid grid-cols-2 gap-6 max-w-md">
-                    <div className="space-y-2">
-                        <label className="text-[13px] font-medium block" style={{ color: T.textSec }}>Email</label>
-                        <Input placeholder="you@company.io" className="h-10 px-3 text-sm" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }} />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[13px] font-medium block" style={{ color: T.textSec }}>API Key</label>
-                        <Input type="password" placeholder="sk-••••••••" className="h-10 px-3 text-sm" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }} />
-                    </div>
-                </div>
-            ),
-            code: `<div className="space-y-2">\n  <label>Email</label>\n  <Input placeholder="you@company.io" />\n</div>`,
+            title: 'Dark',
+            preview: <InputDark />,
+            code: `<div className="flex flex-col gap-2">
+  <Label>Email</Label>
+  <Input
+    type="email"
+    placeholder="name@example.com"
+    className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
+  />
+</div>`,
         },
         {
-            title: 'Sizes',
-            preview: (
-                <div className="space-y-4 max-w-sm">
-                    <div className="space-y-1.5">
-                        <label className="text-[11px] font-medium uppercase tracking-wider" style={{ color: T.textMuted }}>Small</label>
-                        <Input placeholder="Small input" className="h-8 px-2.5 text-xs" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 8, borderWidth: 1 }} />
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className="text-[11px] font-medium uppercase tracking-wider" style={{ color: T.textMuted }}>Default</label>
-                        <Input placeholder="Default input" className="h-10 px-3 text-sm" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 10, borderWidth: 1 }} />
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className="text-[11px] font-medium uppercase tracking-wider" style={{ color: T.textMuted }}>Large</label>
-                        <Input placeholder="Large input" className="h-12 px-4 text-base" style={{ background: T.surface, borderColor: T.borderStrong, color: T.text, borderRadius: 12, borderWidth: 1 }} />
-                    </div>
-                </div>
-            ),
-            code: `<Input className="h-8 px-2.5 text-xs" placeholder="Small" />\n<Input className="h-10 px-3 text-sm" placeholder="Default" />\n<Input className="h-12 px-4 text-base" placeholder="Large" />`,
+            title: 'Light',
+            preview: <InputLight />,
+            code: `<div className="flex flex-col gap-2">
+  <Label>Username</Label>
+  <Input
+    type="text"
+    placeholder="Enter username"
+    className="bg-[var(--j6-neutral-0-light)] border border-[#1f2937]/20 rounded-sm"
+  />
+</div>`,
         },
         {
-            title: 'Disabled',
-            preview: (
-                <div className="max-w-xs">
-                    <Input disabled placeholder="Not editable" className="h-10 px-3 text-sm" style={{ background: T.subtle, borderColor: T.border, color: T.textMuted, borderRadius: 10, borderWidth: 1, opacity: 0.5 }} />
-                </div>
-            ),
-            code: `<Input disabled placeholder="Not editable" />`,
+            title: 'Entry Blur Fade',
+            preview: <InputEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Label>Search</Label>
+  <Input type="search" placeholder="Search components..." />
+</motion.div>`,
+        },
+        {
+            title: 'Violet Focus',
+            preview: <InputVioletFocus />,
+            code: `<div className="flex flex-col gap-2">
+  <Label>Password</Label>
+  <Input
+    type="password"
+    placeholder="Enter password"
+    className="bg-[var(--j6-neutral-700-light)] border-[var(--j6-violet-500-light)]/30
+      focus:border-[var(--j6-violet-400)] focus:ring-[var(--j6-violet-400)]/20"
+  />
+</div>`,
         },
     ],
 
     /* ── Navigation Menu ── */
     'navigation-menu': [
         {
-            title: 'Horizontal with Dropdown',
-            preview: (
-                <NavigationMenu hoverBg={`${T.brand}15`} hoverText={T.brand} activeBg={T.brand} activeText="#0a0a0b">
-                    <NavigationMenuList>
-                        <NavigationMenuItem>
-                            <NavMenuTrigger style={{ color: T.text, background: 'transparent' }}>Products</NavMenuTrigger>
-                            <NavigationMenuContent className="p-4" style={{ background: T.elevated, borderColor: T.border }}>
-                                <div className="grid gap-2 w-[320px]">
-                                    {['Analytics', 'Automation', 'Integrations'].map((item) => (
-                                        <NavigationMenuLink key={item} className="block px-3 py-2 rounded-lg text-[13px] transition-colors cursor-pointer" style={{ color: T.textSec }}>
-                                            <span className="font-medium block" style={{ color: T.text }}>{item}</span>
-                                            <span className="text-xs" style={{ color: T.textMuted }}>Manage your {item.toLowerCase()}</span>
-                                        </NavigationMenuLink>
-                                    ))}
-                                </div>
-                            </NavigationMenuContent>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink active activeBg={T.brand} activeText="#0a0a0b" className="px-4 py-2 rounded-lg text-[13px] font-medium cursor-pointer">Dashboard</NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink className="px-4 py-2 rounded-lg text-[13px] font-medium cursor-pointer" style={{ color: T.textSec }}>Settings</NavigationMenuLink>
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
-            ),
-            code: `<NavigationMenu>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuTrigger>Products</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <NavigationMenuLink>Analytics</NavigationMenuLink>\n        <NavigationMenuLink>Automation</NavigationMenuLink>\n      </NavigationMenuContent>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuLink active>Dashboard</NavigationMenuLink>\n    </NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>`,
+            title: 'Dark Amber',
+            preview: <NavigationMenuDarkAmber />,
+            code: `<NavigationMenu
+  hoverBg="rgba(255, 186, 74, 0.15)"
+  hoverText="var(--j6-amber-400-light)"
+>
+  <NavigationMenuList>
+    <NavigationMenuItem>
+      <NavigationMenuLink href="#" navigationItem>Home</NavigationMenuLink>
+    </NavigationMenuItem>
+    <NavigationMenuItem>
+      <NavigationMenuLink href="#" navigationItem active
+        activeBg="rgba(255, 186, 74, 0.2)"
+        activeText="var(--j6-amber-400-light)">Docs</NavigationMenuLink>
+    </NavigationMenuItem>
+  </NavigationMenuList>
+</NavigationMenu>`,
+        },
+        {
+            title: 'Violet',
+            preview: <NavigationMenuViolet />,
+            code: `<NavigationMenu
+  hoverBg="rgba(159, 114, 255, 0.15)"
+  hoverText="var(--j6-violet-400)"
+>
+  <NavigationMenuList>
+    <NavigationMenuItem>
+      <NavigationMenuLink href="#" navigationItem>Overview</NavigationMenuLink>
+    </NavigationMenuItem>
+  </NavigationMenuList>
+</NavigationMenu>`,
+        },
+        {
+            title: 'Vertical',
+            preview: <NavigationMenuVertical />,
+            code: `<NavigationMenu
+  orientation="vertical"
+  hoverBg="rgba(52, 211, 153, 0.12)"
+  hoverText="var(--j6-accent-emerald-dark)"
+>
+  <NavigationMenuList>
+    <NavigationMenuItem>
+      <NavigationMenuLink href="#" navigationItem>Dashboard</NavigationMenuLink>
+    </NavigationMenuItem>
+    <NavigationMenuItem>
+      <NavigationMenuLink href="#" navigationItem active
+        activeBg="rgba(52, 211, 153, 0.15)">Settings</NavigationMenuLink>
+    </NavigationMenuItem>
+  </NavigationMenuList>
+</NavigationMenu>`,
         },
     ],
 
     /* ── Popover ── */
     popover: [
         {
-            title: 'Settings Popover',
-            preview: (
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Quick Settings</Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-4" style={{ background: T.elevated, borderColor: T.border }}>
-                        <p className="text-[13px] font-medium mb-3" style={{ color: T.text }}>Quick settings</p>
-                        <div className="space-y-3">
-                            <label className="flex items-center justify-between"><span className="text-[13px]" style={{ color: T.textSec }}>Compact mode</span><Switch size="sm" trackColor={T.surface} trackActiveColor={T.brand} thumbColor={T.textMuted} thumbActiveColor="#0a0a0b" /></label>
-                            <label className="flex items-center justify-between"><span className="text-[13px]" style={{ color: T.textSec }}>Sound effects</span><Switch size="sm" defaultChecked trackColor={T.surface} trackActiveColor={T.brand} thumbColor={T.textMuted} thumbActiveColor="#0a0a0b" /></label>
-                        </div>
-                    </PopoverContent>
-                </Popover>
-            ),
-            code: `<Popover>\n  <PopoverTrigger asChild>\n    <Button>Quick Settings</Button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p>Quick settings</p>\n    <Switch>Compact mode</Switch>\n    <Switch defaultChecked>Sound effects</Switch>\n  </PopoverContent>\n</Popover>`,
+            title: 'Trigger Dark',
+            preview: <PopoverTriggerDark />,
+            code: `<Button
+  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
+  style={{ color: 'rgba(226, 232, 240, 1)' }}
+>
+  More Info
+</Button>`,
+        },
+        {
+            title: 'Trigger Amber',
+            preview: <PopoverTriggerAmber />,
+            code: `<Button
+  className="bg-[var(--j6-amber-400-light)] rounded-sm"
+  style={{ color: 'var(--j6-neutral-600-dark)' }}
+>
+  Details
+</Button>`,
+        },
+        {
+            title: 'Trigger Violet Grain',
+            preview: <PopoverTriggerVioletGrain />,
+            code: `<Button
+  className="ui-studio-effect-grain bg-[var(--j6-violet-500-light)] rounded-sm"
+  style={{
+    color: 'var(--j6-neutral-0-light)',
+    '--ui-effect-grain-opacity': '0.2',
+    '--ui-effect-grain-size': '200',
+  }}
+>
+  Settings
+</Button>`,
         },
     ],
 
     /* ── Progress ── */
     progress: [
         {
-            title: 'Linear',
-            preview: (
-                <div className="space-y-6 w-full max-w-md">
-                    {[{ label: 'Upload', value: 78, color: T.brand }, { label: 'Build', value: 100, color: T.success }, { label: 'Deploy', value: 45, color: T.interactive }].map((p) => (
-                        <div key={p.label} className="space-y-2 w-full">
-                            <div className="flex justify-between text-[13px] px-0.5"><span style={{ color: T.textSec }}>{p.label}</span><span className="font-mono text-[12px]" style={{ color: p.color }}>{p.value}%</span></div>
-                            <Progress value={p.value} trackColor={T.elevated} indicatorColor={p.color} className="w-full" />
-                        </div>
-                    ))}
-                </div>
-            ),
-            code: `<Progress value={78} trackColor="#1a1a1d" indicatorColor="#f5a623" />`,
+            title: 'Linear Amber',
+            preview: <ProgressLinearAmber />,
+            code: `<Progress
+  value={65}
+  trackColor="var(--j6-neutral-600-dark)"
+  indicatorColor="var(--j6-amber-400-light)"
+  size="md"
+/>`,
         },
         {
-            title: 'Circular',
-            preview: (
-                <div className="flex gap-6">
-                    {[{ v: 78, c: T.brand }, { v: 100, c: T.success }, { v: 45, c: T.interactive }, { v: 23, c: T.error }].map((p) => (
-                        <Progress key={p.v} variant="circular" value={p.v} indicatorColor={p.c} trackColor={T.elevated} labelColor={T.text} showLabel circularSize={68} circularStrokeWidth={5} />
-                    ))}
-                </div>
-            ),
-            code: `<Progress variant="circular" value={78} indicatorColor="#f5a623" showLabel circularSize={68} />`,
+            title: 'Linear With Label',
+            preview: <ProgressLinearWithLabel />,
+            code: `<Progress
+  value={42}
+  showLabel
+  trackColor="var(--j6-neutral-600-dark)"
+  indicatorColor="var(--j6-accent-emerald-light)"
+  labelColor="var(--j6-neutral-200-light)"
+  size="lg"
+/>`,
+        },
+        {
+            title: 'Circular Violet',
+            preview: <ProgressCircularViolet />,
+            code: `<Progress
+  value={72}
+  variant="circular"
+  circularSize={56}
+  circularStrokeWidth={5}
+  trackColor="#3a3a3f"
+  indicatorColor="var(--j6-violet-400)"
+  showLabel
+  labelColor="#c4a8ff"
+/>`,
+        },
+        {
+            title: 'Circular Small',
+            preview: <ProgressCircularSmall />,
+            code: `<Progress
+  value={85}
+  variant="circular"
+  circularSize={40}
+  circularStrokeWidth={3}
+  trackColor="#2a2a2e"
+  indicatorColor="var(--j6-accent-sky-light)"
+/>`,
+        },
+        {
+            title: 'Entry Blur Fade',
+            preview: <ProgressEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Progress value={55} trackColor="#2a2a2e"
+    indicatorColor="var(--j6-accent-pink-light)" size="md" />
+</motion.div>`,
         },
     ],
 
     /* ── Slider ── */
     slider: [
         {
-            title: 'Default',
-            preview: (
-                <div className="w-full max-w-sm space-y-8">
-                    <div className="space-y-3 w-full">
-                        <div className="flex justify-between text-[13px] px-0.5"><span style={{ color: T.textSec }}>Opacity</span><span className="font-mono text-[12px]" style={{ color: T.brand }}>65%</span></div>
-                        <Slider defaultValue={[65]} max={100} step={1} className="w-full" />
-                    </div>
-                    <div className="space-y-3 w-full">
-                        <div className="flex justify-between text-[13px] px-0.5"><span style={{ color: T.textSec }}>Volume</span><span className="font-mono text-[12px]" style={{ color: T.textMuted }}>40%</span></div>
-                        <Slider defaultValue={[40]} max={100} step={1} className="w-full" />
-                    </div>
-                </div>
-            ),
-            code: `<Slider defaultValue={[65]} max={100} step={1} />`,
+            title: 'Dark',
+            preview: <SliderDark />,
+            code: `<div className="flex flex-col gap-3">
+  <Label>Volume</Label>
+  <Slider defaultValue={[50]} max={100} className="w-[200px]" />
+</div>`,
+        },
+        {
+            title: 'Range',
+            preview: <SliderRange />,
+            code: `<div className="flex flex-col gap-3">
+  <Label>Price Range</Label>
+  <Slider defaultValue={[25, 75]} max={100} className="w-[200px]" />
+</div>`,
+        },
+        {
+            title: 'Entry Blur Fade',
+            preview: <SliderEntryBlurFade />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Label>Brightness</Label>
+  <Slider defaultValue={[70]} max={100} />
+</motion.div>`,
+        },
+    ],
+
+    /* ── Stateful Button ── */
+    'stateful-button': [
+        {
+            title: 'Emerald Success',
+            preview: <StageButtonEmeraldSuccess />,
+            code: `<StatefulButton
+  className="bg-[var(--j6-accent-emerald-light)] rounded-md"
+  autoPlay
+  resultState="success"
+  loadingDurationMs={600}
+  resetDelayMs={1600}
+>
+  Submit
+</StatefulButton>`,
+        },
+        {
+            title: 'Amber Warning',
+            preview: <StageButtonAmberWarning />,
+            code: `<StatefulButton
+  className="bg-[var(--j6-amber-400-light)] rounded-md"
+  autoPlay
+  resultState="warning"
+  loadingDurationMs={800}
+>
+  Validate
+</StatefulButton>`,
+        },
+        {
+            title: 'Rose Failure',
+            preview: <StageButtonRoseFailure />,
+            code: `<motion.div whileHover={{ y: -1, scale: 1.03 }}>
+  <StatefulButton
+    className="bg-[var(--j6-accent-rose-light)] rounded-md"
+    autoPlay
+    resultState="failure"
+    loadingDurationMs={500}
+  >
+    Delete
+  </StatefulButton>
+</motion.div>`,
+        },
+        {
+            title: 'Violet Grain',
+            preview: <StageButtonVioletGrain />,
+            code: `<StatefulButton
+  className="ui-studio-effect-grain bg-[var(--j6-violet-500-light)] rounded-md"
+  style={{ '--ui-effect-grain-opacity': '0.2', '--ui-effect-grain-size': '200' }}
+  autoPlay
+  resultState="success"
+>
+  Confirm
+</StatefulButton>`,
         },
     ],
 
     /* ── Switch ── */
     switch: [
         {
-            title: 'Color Variants',
-            preview: (
-                <div className="space-y-4">
-                    {[{ label: 'Feature flags', color: T.brand }, { label: 'Analytics', color: T.interactive }, { label: 'Maintenance', color: T.error }].map((s, i) => (
-                        <label key={s.label} className="flex items-center justify-between gap-8 cursor-pointer" style={{ width: 260 }}>
-                            <span className="text-[13px]" style={{ color: T.text }}>{s.label}</span>
-                            <Switch defaultChecked={i < 2} trackColor={T.elevated} trackActiveColor={s.color} thumbColor={T.textMuted} thumbActiveColor={s.color === T.error ? '#fff' : '#0a0a0b'} />
-                        </label>
-                    ))}
-                </div>
-            ),
-            code: `<Switch\n  trackColor="#1a1a1d"\n  trackActiveColor="#f5a623"\n  thumbColor="#6b6b72"\n  thumbActiveColor="#0a0a0b"\n/>`,
+            title: 'Amber',
+            preview: <SwitchAmber />,
+            code: `<Switch
+  trackColor="#3a3a3f"
+  trackActiveColor="var(--j6-amber-400-light)"
+  thumbColor="#e2e8f0"
+/>`,
+        },
+        {
+            title: 'Emerald',
+            preview: <SwitchEmerald />,
+            code: `<Switch
+  trackColor="#3a3a3f"
+  trackActiveColor="var(--j6-accent-emerald-light)"
+  thumbColor="#e2e8f0"
+/>`,
+        },
+        {
+            title: 'Violet Small',
+            preview: <SwitchVioletSmall />,
+            code: `<Switch
+  size="sm"
+  trackColor="#3a3a3f"
+  trackActiveColor="var(--j6-violet-500-light)"
+  thumbColor="#e2e8f0"
+/>`,
+        },
+        {
+            title: 'Hover Scale',
+            preview: <SwitchHoverScale />,
+            code: `<motion.div whileHover={{ scale: 1.08, transition: { type: 'spring', stiffness: 400, damping: 20 } }}>
+  <Switch
+    trackColor="#3a3a3f"
+    trackActiveColor="var(--j6-accent-sky-light)"
+    thumbColor="#ffffff"
+  />
+</motion.div>`,
         },
     ],
 
     /* ── Tabs ── */
     tabs: [
         {
-            title: 'Line',
-            preview: (
-                <Tabs defaultValue="overview" style={{ maxWidth: 460 }}>
-                    <TabsList variant="line" style={{ borderColor: T.border }}>
-                        {['overview', 'analytics', 'settings'].map((v) => (
-                            <TabsTrigger key={v} value={v} indicatorColor={T.brand} activeTextColor={T.text} inactiveTextColor={T.textMuted}>{v.charAt(0).toUpperCase() + v.slice(1)}</TabsTrigger>
-                        ))}
-                    </TabsList>
-                    <TabsContent value="overview" className="pt-4 text-[13px]" style={{ color: T.textSec }}>Overview content with project summary and key metrics.</TabsContent>
-                    <TabsContent value="analytics" className="pt-4 text-[13px]" style={{ color: T.textSec }}>Analytics dashboard with charts and insights.</TabsContent>
-                    <TabsContent value="settings" className="pt-4 text-[13px]" style={{ color: T.textSec }}>Configure project settings and preferences.</TabsContent>
-                </Tabs>
-            ),
-            code: `<Tabs defaultValue="overview">\n  <TabsList variant="line">\n    <TabsTrigger value="overview">Overview</TabsTrigger>\n    <TabsTrigger value="analytics">Analytics</TabsTrigger>\n  </TabsList>\n  <TabsContent value="overview">Overview content...</TabsContent>\n</Tabs>`,
+            title: 'Default Dark',
+            preview: <TabsDefaultDark />,
+            code: `<Tabs defaultValue="tab1">
+  <TabsList variant="default" listBg="#2a2a2e">
+    <TabsTrigger value="tab1"
+      activeBg="var(--j6-amber-400-light)"
+      activeTextColor="#1a1a1d"
+      inactiveTextColor="#8a8a94">Overview</TabsTrigger>
+    <TabsTrigger value="tab2" ...>Features</TabsTrigger>
+  </TabsList>
+  <TabsContent value="tab1">Overview content</TabsContent>
+</Tabs>`,
         },
         {
-            title: 'Pill',
-            preview: (
-                <Tabs defaultValue="all" style={{ maxWidth: 400 }}>
-                    <TabsList variant="pill" listBg={T.elevated}>
-                        {['all', 'active', 'archived'].map((v) => (
-                            <TabsTrigger key={v} value={v} activeBg={T.brand} activeTextColor="#0a0a0b" inactiveTextColor={T.textMuted}>{v.charAt(0).toUpperCase() + v.slice(1)}</TabsTrigger>
-                        ))}
-                    </TabsList>
-                </Tabs>
-            ),
-            code: `<Tabs defaultValue="all">\n  <TabsList variant="pill">\n    <TabsTrigger value="all">All</TabsTrigger>\n    <TabsTrigger value="active">Active</TabsTrigger>\n  </TabsList>\n</Tabs>`,
+            title: 'Line Violet',
+            preview: <TabsLineViolet />,
+            code: `<Tabs defaultValue="tab1">
+  <TabsList variant="line">
+    <TabsTrigger value="tab1"
+      indicatorColor="var(--j6-violet-400)"
+      activeTextColor="#c4a8ff"
+      inactiveTextColor="#8a8a94">Design</TabsTrigger>
+  </TabsList>
+  <TabsContent value="tab1">Design tab</TabsContent>
+</Tabs>`,
+        },
+        {
+            title: 'Pill Emerald',
+            preview: <TabsPillEmerald />,
+            code: `<Tabs defaultValue="tab1">
+  <TabsList variant="pill">
+    <TabsTrigger value="tab1"
+      activeBg="var(--j6-accent-emerald-light)"
+      activeTextColor="#ffffff"
+      inactiveTextColor="#8a8a94">Active</TabsTrigger>
+  </TabsList>
+  <TabsContent value="tab1">Active items</TabsContent>
+</Tabs>`,
+        },
+        {
+            title: 'Segment Entry',
+            preview: <TabsSegmentEntry />,
+            code: `<motion.div
+  initial={{ filter: 'blur(4px)', opacity: 0 }}
+  animate={{ filter: 'blur(0px)', opacity: 1 }}
+  transition={{ duration: 0.55, ease: 'easeInOut' }}
+>
+  <Tabs defaultValue="tab1">
+    <TabsList variant="segment">
+      <TabsTrigger value="tab1"
+        activeBg="var(--j6-accent-sky-light)"
+        activeTextColor="#ffffff">Day</TabsTrigger>
+    </TabsList>
+    <TabsContent value="tab1">Daily view</TabsContent>
+  </Tabs>
+</motion.div>`,
         },
     ],
 
     /* ── Tooltip ── */
     tooltip: [
         {
-            title: 'Default & Inverse',
-            preview: (
-                <div className="flex gap-4">
-                    <Tooltip>
-                        <Button style={{ background: T.elevated, color: T.text, borderRadius: 10, border: `1px solid ${T.borderStrong}` }}>Hover me</Button>
-                        <TooltipContent inverse><p>Useful context tooltip.</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <Button style={{ background: T.brand, color: '#0a0a0b', borderRadius: 10 }}>Brand tooltip</Button>
-                        <TooltipContent><p>Saves your configuration.</p></TooltipContent>
-                    </Tooltip>
-                </div>
-            ),
-            code: `<Tooltip>\n  <Button>Hover me</Button>\n  <TooltipContent inverse>\n    <p>Useful context tooltip.</p>\n  </TooltipContent>\n</Tooltip>`,
-        },
-    ],
-
-    /* ── Animated Text ── */
-    'animated-text': [
-        {
-            title: 'Entry Animations',
-            preview: (
-                <div className="grid grid-cols-2 gap-6">
-                    {[
-                        { v: 'blur-in' as const, text: 'Blur In', color: T.text },
-                        { v: 'fade-up' as const, text: 'Fade Up', color: T.brand },
-                        { v: 'split-entrance' as const, text: 'Split Entrance', color: T.text },
-                        { v: 'letters-pull-up' as const, text: 'Letters Pull Up', color: T.text },
-                    ].map((item) => (
-                        <div key={item.v} className="p-4 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                            <p className="text-[11px] font-mono mb-2" style={{ color: T.textMuted }}>{item.v}</p>
-                            <AnimatedText text={item.text} variant={item.v} speed={0.4} stagger={0.04} splitBy="word" trigger="mount" style={{ fontSize: 24, fontWeight: 600, color: item.color }} />
-                        </div>
-                    ))}
-                </div>
-            ),
-            code: `<AnimatedText text="Blur In" variant="blur-in" speed={0.4} stagger={0.04} />`,
+            title: 'Default',
+            preview: <TooltipDefault />,
+            code: `<Tooltip>
+  <TooltipTrigger className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64]">
+    Hover me
+  </TooltipTrigger>
+  <TooltipContent>Tooltip content</TooltipContent>
+</Tooltip>`,
         },
         {
-            title: 'Continuous Effects',
-            preview: (
-                <div className="grid grid-cols-2 gap-6">
-                    {[
-                        { v: 'gradient-sweep' as const, text: 'Gradient', extra: { gradientColor1: T.brand, gradientColor2: T.interactive } },
-                        { v: 'shiny-text' as const, text: 'Premium', style: { color: T.textMuted } },
-                        { v: 'typewriter' as const, text: 'Building the future...', style: { color: T.textSec }, speed: 1.2 },
-                        { v: 'decrypt' as const, text: 'ENCRYPTED', style: { color: T.electric }, speed: 1.5 },
-                    ].map((item) => (
-                        <div key={item.v} className="p-4 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                            <p className="text-[11px] font-mono mb-2" style={{ color: T.textMuted }}>{item.v}</p>
-                            <AnimatedText text={item.text} variant={item.v} speed={item.speed ?? 0.4} stagger={0.04} splitBy="word" trigger="mount" style={{ fontSize: 24, fontWeight: 700, ...item.style }} {...('extra' in item ? item.extra : {})} />
-                        </div>
-                    ))}
-                </div>
-            ),
-            code: `<AnimatedText text="Gradient" variant="gradient-sweep" gradientColor1="#f5a623" gradientColor2="#7c3aed" />`,
+            title: 'Inverse',
+            preview: <TooltipInverse />,
+            code: `<Tooltip>
+  <TooltipTrigger className="bg-[var(--j6-amber-400-light)]">
+    Hover me
+  </TooltipTrigger>
+  <TooltipContent inverse>Inverse tooltip</TooltipContent>
+</Tooltip>`,
         },
         {
-            title: 'Hover Interactive',
-            preview: (
-                <div className="grid grid-cols-2 gap-6">
-                    {[
-                        { v: 'bounce' as const, text: 'Hover me!' },
-                        { v: 'bubble' as const, text: 'Proximity' },
-                        { v: 'disperse' as const, text: 'Scatter' },
-                        { v: 'pattern' as const, text: 'PATTERN', style: { fontSize: 36, fontWeight: 800, color: T.textMuted } },
-                    ].map((item) => (
-                        <div key={item.v} className="p-4 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                            <p className="text-[11px] font-mono mb-2" style={{ color: T.textMuted }}>{item.v}</p>
-                            <AnimatedText text={item.text} variant={item.v} speed={0.4} stagger={0.04} splitBy="word" trigger="mount" style={{ fontSize: 28, fontWeight: 700, color: T.text, ...item.style }} />
-                        </div>
-                    ))}
-                </div>
-            ),
-            code: `<AnimatedText text="Hover me!" variant="bounce" />\n<AnimatedText text="Proximity" variant="bubble" />\n<AnimatedText text="Scatter" variant="disperse" />\n<AnimatedText text="PATTERN" variant="pattern" />`,
+            title: 'No Arrow',
+            preview: <TooltipNoArrow />,
+            code: `<Tooltip>
+  <TooltipTrigger className="bg-[var(--j6-violet-500-light)]">
+    No arrow
+  </TooltipTrigger>
+  <TooltipContent arrow={false}>Tooltip without arrow</TooltipContent>
+</Tooltip>`,
         },
     ],
 
