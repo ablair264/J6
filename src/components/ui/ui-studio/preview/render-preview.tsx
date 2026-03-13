@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap, Mail, MessageCircle, PhoneCall, Check, X, Minus, Heart, Ban, Slash, Star } from 'lucide-react';
+import { Bell, ChevronRight, FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Sparkles, Zap, Mail, MessageCircle, PhoneCall, Check, X, Minus, Heart, Ban, Slash, Star } from 'lucide-react';
 import { Checkbox as CheckboxPrimitive, Dialog as RadixDialogPrimitive } from 'radix-ui';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Avatar, AvatarImage, AvatarFallback, AvatarGroup } from '@/components/ui/avatar';
@@ -810,6 +810,144 @@ const getIconExportName = (iconId: string): string => {
     return nameMap[iconId] ?? iconId.charAt(0).toUpperCase() + iconId.slice(1);
 };
 
+function getPopoverContentClassName(variant: ComponentStyleConfig['popoverContentVariant']): string {
+    switch (variant) {
+        case 'profile':
+            return 'w-56 p-0 overflow-hidden';
+        case 'snapshot':
+            return 'w-[300px]';
+        case 'automation':
+            return 'w-[320px]';
+        default:
+            return 'w-72';
+    }
+}
+
+function buildPopoverContentSnippet(style: ComponentStyleConfig): string {
+    const title = style.popoverTitleText || 'Popover preview';
+    const body = style.popoverBodyText || 'Styled from the side controls.';
+    const accentColor = style.fillColor.startsWith('#') ? style.fillColor : '#7c3aed';
+    const accentBorder = accentColor.startsWith('#') ? hexToRgba(accentColor, 0.2) : accentColor;
+    const accentSurface = accentColor.startsWith('#') ? hexToRgba(accentColor, 0.12) : accentColor;
+
+    switch (style.popoverContentVariant) {
+        case 'profile':
+            return `\n    <div className="flex items-center gap-3 p-4 border-b">\n      <Avatar><AvatarFallback>AC</AvatarFallback></Avatar>\n      <div>\n        <p className="text-sm font-medium">Ava Chen</p>\n        <p className="text-xs text-muted-foreground">ava@company.io</p>\n      </div>\n    </div>\n    <div className="p-1.5">\n      <div className="px-3 py-1.5 rounded-md text-sm">View Profile</div>\n      <div className="px-3 py-1.5 rounded-md text-sm">Settings</div>\n      <div className="px-3 py-1.5 rounded-md text-sm text-red-400">Sign Out</div>\n    </div>\n  `;
+        case 'snapshot':
+            return `\n    <div className="space-y-4">\n      <PopoverHeader className="gap-2">\n        <PopoverTitle>${jsxText(title)}</PopoverTitle>\n        <PopoverDescription>${jsxText(body)}</PopoverDescription>\n      </PopoverHeader>\n      <div className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm" style={{ background: ${JSON.stringify(accentSurface)}, borderColor: ${JSON.stringify(accentBorder)} }}>\n        <span>${jsxText(style.popoverActionLabel || 'Open report')}</span>\n        <ChevronRight className="size-4" />\n      </div>\n    </div>\n  `;
+        case 'automation':
+            return `\n    <div className="space-y-4">\n      <PopoverHeader className="gap-2">\n        <PopoverTitle className="flex items-center gap-2"><Sparkles className="size-4" /> ${jsxText(title)}</PopoverTitle>\n        <PopoverDescription>${jsxText(body)}</PopoverDescription>\n      </PopoverHeader>\n      <div className="space-y-2 text-sm">\n        <div className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>\n          <span>${jsxText(style.popoverItemOneLabel || 'Daily digest')}</span>\n          <Bell className="size-4 text-[#c4b5fd]" />\n        </div>\n        <div className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>\n          <span>${jsxText(style.popoverItemTwoLabel || 'Auto-assign reviews')}</span>\n          <span className="text-[#34d399]">${jsxText(style.popoverItemTwoValue || 'On')}</span>\n        </div>\n      </div>\n    </div>\n  `;
+        default:
+            return `\n    <PopoverHeader>\n      <PopoverTitle>${jsxText(title)}</PopoverTitle>\n      <PopoverDescription>${jsxText(body)}</PopoverDescription>\n    </PopoverHeader>\n    <p className="text-sm text-muted-foreground">Update fill, stroke, and effects to see this change in real time.</p>\n  `;
+    }
+}
+
+function renderPopoverContent(
+    instance: ComponentInstance,
+    popoverTextMotion: ComponentStyleConfig,
+    popoverBodyMotion: ComponentStyleConfig,
+): ReactNode {
+    const title = instance.style.popoverTitleText || 'Popover preview';
+    const body = instance.style.popoverBodyText || 'Styled from the side controls.';
+    const accentColor = instance.style.fillColor.startsWith('#') ? instance.style.fillColor : '#7c3aed';
+    const accentBorder = hexToRgba(accentColor, 0.2);
+    const accentSurface = hexToRgba(accentColor, 0.12);
+
+    switch (instance.style.popoverContentVariant) {
+        case 'profile':
+            return renderEntryMotion(
+                <div>
+                    {renderEntryMotion(
+                        <div>
+                            <div className="flex items-center gap-3 p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                <Avatar customSize={36} bgColor="#7c3aed">
+                                    <AvatarFallback fontSize={13} fontColor="#fff" fontBold>AC</AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">Ava Chen</p>
+                                    <p className="text-xs text-muted-foreground truncate">ava@company.io</p>
+                                </div>
+                            </div>
+                            <div className="p-1.5">
+                                {['View Profile', 'Settings', 'Sign Out'].map((item) => (
+                                    <div key={item} className={cn('px-3 py-1.5 rounded-md text-[13px] cursor-default', item === 'Sign Out' ? 'text-red-400' : 'text-muted-foreground')}>{item}</div>
+                                ))}
+                            </div>
+                        </div>,
+                        popoverTextMotion,
+                    )}
+                </div>,
+                popoverBodyMotion,
+            );
+        case 'snapshot':
+            return renderEntryMotion(
+                <div className="space-y-4">
+                    {renderEntryMotion(
+                        <div className="space-y-4">
+                            <PopoverHeader className="gap-2">
+                                <PopoverTitle>{title}</PopoverTitle>
+                                <PopoverDescription>{body}</PopoverDescription>
+                            </PopoverHeader>
+                            <div
+                                className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
+                                style={{ background: accentSurface, borderColor: accentBorder }}
+                            >
+                                <span>{instance.style.popoverActionLabel || 'Open report'}</span>
+                                <ChevronRight className="size-4" />
+                            </div>
+                        </div>,
+                        popoverTextMotion,
+                    )}
+                </div>,
+                popoverBodyMotion,
+            );
+        case 'automation':
+            return renderEntryMotion(
+                <div className="space-y-4">
+                    {renderEntryMotion(
+                        <div className="space-y-4">
+                            <PopoverHeader className="gap-2">
+                                <PopoverTitle className="flex items-center gap-2">
+                                    <Sparkles className="size-4" />
+                                    {title}
+                                </PopoverTitle>
+                                <PopoverDescription>{body}</PopoverDescription>
+                            </PopoverHeader>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                                    <span>{instance.style.popoverItemOneLabel || 'Daily digest'}</span>
+                                    <Bell className="size-4 text-[#c4b5fd]" />
+                                </div>
+                                <div className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                                    <span>{instance.style.popoverItemTwoLabel || 'Auto-assign reviews'}</span>
+                                    <span className="text-[#34d399]">{instance.style.popoverItemTwoValue || 'On'}</span>
+                                </div>
+                            </div>
+                        </div>,
+                        popoverTextMotion,
+                    )}
+                </div>,
+                popoverBodyMotion,
+            );
+        default:
+            return renderEntryMotion(
+                <div className="space-y-2">
+                    {renderEntryMotion(
+                        <div className="space-y-2">
+                            <PopoverHeader>
+                                <PopoverTitle>{title}</PopoverTitle>
+                                <PopoverDescription>{body}</PopoverDescription>
+                            </PopoverHeader>
+                            <p className="text-sm text-muted-foreground">Update fill, stroke, and effects to see this change in real time.</p>
+                        </div>,
+                        popoverTextMotion,
+                    )}
+                </div>,
+                popoverBodyMotion,
+            );
+    }
+}
+
 export function componentSnippet(
     instance: ComponentInstance,
     previewStyle: CSSProperties,
@@ -993,11 +1131,12 @@ export function componentSnippet(
             const popoverDeclarations = [previewBindings.declarations, panelBindings.declarations, buttonClassBinding.declarations].filter(Boolean).join('\n');
             const popoverSideAttr = instance.style.popoverSide !== 'bottom' ? ` side="${instance.style.popoverSide}"` : '';
             const popoverAlignAttr = instance.style.popoverAlign !== 'center' ? ` align="${instance.style.popoverAlign}"` : '';
-            const popoverContentSnippet = instance.style.popoverContentVariant === 'profile'
-                ? `\n    <div className="flex items-center gap-3 p-4 border-b">\n      <Avatar><AvatarFallback>AC</AvatarFallback></Avatar>\n      <div>\n        <p className="text-sm font-medium">Ava Chen</p>\n        <p className="text-xs text-muted-foreground">ava@company.io</p>\n      </div>\n    </div>\n    <div className="p-1.5">\n      <div className="px-3 py-1.5 rounded-md text-sm">View Profile</div>\n      <div className="px-3 py-1.5 rounded-md text-sm">Settings</div>\n      <div className="px-3 py-1.5 rounded-md text-sm text-red-400">Sign Out</div>\n    </div>\n  `
-                : '...';
-            const profileClassAttr = instance.style.popoverContentVariant === 'profile' ? ' className="w-56 p-0 overflow-hidden"' : '';
-            return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${popoverSideAttr}${popoverAlignAttr}${profileClassAttr || buildSnippetClassNameAttr(undefined, contentClassNameVar)}${contentStyleSnippet}>${popoverContentSnippet}</PopoverContent>\n</Popover>`;
+            const popoverContentSnippet = buildPopoverContentSnippet(instance.style);
+            const popoverClassAttr = buildSnippetClassNameAttr(
+                getPopoverContentClassName(instance.style.popoverContentVariant),
+                contentClassNameVar,
+            );
+            return `${popoverDeclarations}\n\n<Popover>\n  <PopoverTrigger${buttonClassNameSnippet}${previewStyleSnippet}>${instance.style.iconPosition === 'left' ? iconLeft : ''}Toggle popover${instance.style.iconPosition === 'right' ? iconRight : ''}</PopoverTrigger>\n  <PopoverContent${popoverSideAttr}${popoverAlignAttr}${popoverClassAttr}${contentStyleSnippet}>${popoverContentSnippet}\n  </PopoverContent>\n</Popover>`;
         }
         case 'input': {
             const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
@@ -1864,49 +2003,13 @@ export function renderPreview(
                                     true,
                                 )}
                             </PopoverTrigger>
-                            <PopoverContent className={instance.style.popoverContentVariant === 'profile' ? 'w-56 p-0 overflow-hidden' : 'w-72'} side={instance.style.popoverSide} align={instance.style.popoverAlign} style={panelStyle}>
-                                {instance.style.popoverContentVariant === 'profile' ? (
-                                    renderEntryMotion(
-                                        <div>
-                                            {renderEntryMotion(
-                                                <div>
-                                                    <div className="flex items-center gap-3 p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                        <Avatar customSize={36} bgColor="#7c3aed">
-                                                            <AvatarFallback fontSize={13} fontColor="#fff" fontBold>AC</AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="min-w-0">
-                                                            <p className="text-sm font-medium truncate">Ava Chen</p>
-                                                            <p className="text-xs text-muted-foreground truncate">ava@company.io</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-1.5">
-                                                        {['View Profile', 'Settings', 'Sign Out'].map((item) => (
-                                                            <div key={item} className={cn('px-3 py-1.5 rounded-md text-[13px] cursor-default', item === 'Sign Out' ? 'text-red-400' : 'text-muted-foreground')}>{item}</div>
-                                                        ))}
-                                                    </div>
-                                                </div>,
-                                                popoverTextMotion,
-                                            )}
-                                        </div>,
-                                        popoverBodyMotion,
-                                    )
-                                ) : (
-                                    renderEntryMotion(
-                                        <div className="space-y-2">
-                                            {renderEntryMotion(
-                                                <div className="space-y-2">
-                                                    <PopoverHeader>
-                                                        <PopoverTitle>Popover preview</PopoverTitle>
-                                                        <PopoverDescription>Styled from the side controls.</PopoverDescription>
-                                                    </PopoverHeader>
-                                                    <p className="text-sm text-muted-foreground">Update fill, stroke, and effects to see this change in real time.</p>
-                                                </div>,
-                                                popoverTextMotion,
-                                            )}
-                                        </div>,
-                                        popoverBodyMotion,
-                                    )
-                                )}
+                            <PopoverContent
+                                className={getPopoverContentClassName(instance.style.popoverContentVariant)}
+                                side={instance.style.popoverSide}
+                                align={instance.style.popoverAlign}
+                                style={panelStyle}
+                            >
+                                {renderPopoverContent(instance, popoverTextMotion, popoverBodyMotion)}
                             </PopoverContent>
                         </Popover>
                     </div>

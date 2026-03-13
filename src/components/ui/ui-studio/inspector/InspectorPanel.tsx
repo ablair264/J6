@@ -1543,13 +1543,81 @@ export function InspectorPanel() {
                                 <FlatElementSubsection title="Content" defaultOpen>
                                     <FlatField label="Variant">
                                         <div className="flex w-full items-center gap-0.5 rounded-md bg-[var(--inspector-input)] p-0.5">
-                                            {(['default', 'profile'] as const).map((v) => (
-                                                <button key={v} type="button" onClick={() => updateSelectedStyle('popoverContentVariant', v)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverContentVariant === v ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
-                                                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                                            {([
+                                                { value: 'default', label: 'Default' },
+                                                { value: 'snapshot', label: 'Snapshot' },
+                                                { value: 'automation', label: 'Automation' },
+                                                { value: 'profile', label: 'Profile' },
+                                            ] as const).map(({ value, label }) => (
+                                                <button key={value} type="button" onClick={() => updateSelectedStyle('popoverContentVariant', value)} className={cn(inspectorChoiceButtonBase, selectedStyle.popoverContentVariant === value ? inspectorChoiceButtonActive : inspectorChoiceButtonIdle)}>
+                                                    {label}
                                                 </button>
                                             ))}
                                         </div>
                                     </FlatField>
+                                    {selectedStyle.popoverContentVariant !== 'profile' ? (
+                                        <>
+                                            <FlatField label="Title Text" stacked>
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.popoverTitleText}
+                                                    onChange={(event) => updateSelectedStyle('popoverTitleText', event.target.value)}
+                                                    className={studioInputClass}
+                                                    placeholder="Popover title"
+                                                />
+                                            </FlatField>
+                                            <FlatField label="Body Text" stacked>
+                                                <textarea
+                                                    value={selectedStyle.popoverBodyText}
+                                                    onChange={(event) => updateSelectedStyle('popoverBodyText', event.target.value)}
+                                                    className={cn(studioInputClass, 'min-h-[72px] resize-y py-2')}
+                                                    placeholder="Popover body copy"
+                                                />
+                                            </FlatField>
+                                        </>
+                                    ) : null}
+                                    {selectedStyle.popoverContentVariant === 'snapshot' ? (
+                                        <FlatField label="Action Label" stacked>
+                                            <input
+                                                type="text"
+                                                value={selectedStyle.popoverActionLabel}
+                                                onChange={(event) => updateSelectedStyle('popoverActionLabel', event.target.value)}
+                                                className={studioInputClass}
+                                                placeholder="Action label"
+                                            />
+                                        </FlatField>
+                                    ) : null}
+                                    {selectedStyle.popoverContentVariant === 'automation' ? (
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <FlatField label="Primary Row" stacked>
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.popoverItemOneLabel}
+                                                    onChange={(event) => updateSelectedStyle('popoverItemOneLabel', event.target.value)}
+                                                    className={studioInputClass}
+                                                    placeholder="Primary row label"
+                                                />
+                                            </FlatField>
+                                            <FlatField label="Secondary Row" stacked>
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.popoverItemTwoLabel}
+                                                    onChange={(event) => updateSelectedStyle('popoverItemTwoLabel', event.target.value)}
+                                                    className={studioInputClass}
+                                                    placeholder="Secondary row label"
+                                                />
+                                            </FlatField>
+                                            <FlatField label="Secondary Value" stacked>
+                                                <input
+                                                    type="text"
+                                                    value={selectedStyle.popoverItemTwoValue}
+                                                    onChange={(event) => updateSelectedStyle('popoverItemTwoValue', event.target.value)}
+                                                    className={studioInputClass}
+                                                    placeholder="On"
+                                                />
+                                            </FlatField>
+                                        </div>
+                                    ) : null}
                                 </FlatElementSubsection>
                             </FlatInspectorSection>
                         </div>

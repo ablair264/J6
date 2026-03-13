@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { AccordionDarkAmber, AccordionLightSpaced, AccordionEntryBlurFade, AccordionMultipleOpen } from './examples/accordion-variations';
 import { AlertInfo, AlertSuccess, AlertWarningDismissible, AlertError, AlertEntryBlurFade, AlertEntryScaleUp } from './examples/alert-variations';
 import { AnimatedTextTypewriter, AnimatedTextBlurIn, AnimatedTextSplitEntrance, AnimatedTextGradientSweep, AnimatedTextShiny, AnimatedTextDecrypt, AnimatedTextCountingNumber, AnimatedTextWordRotate, AnimatedTextBounce } from './examples/animated-text-variations';
-import { AvatarWithBadge, AvatarFallbackNeutral, AvatarGroupStacked } from './examples/avatar-variations';
+import { AvatarProfileCardGroup, AvatarProfileCardViolet } from './examples/avatar-variations';
 import { BadgeSolidDestructive, BadgeOutline, BadgePillSky, BadgeGrainBell, BadgeGrainPlain, BadgeGrainIconOnly, BadgeStatusSuccess, BadgeStatusWarning, BadgeStatusError, BadgeStatusInfo, BadgeEntryBlurFade, BadgeTapSpring } from './examples/badge-variations';
 import { ButtonPrimaryHero, ButtonOutlineHover, ButtonGradientSlide, ButtonAnimatedBorder, ButtonRippleFill, ButtonShineBorder, ButtonPulseRing, ButtonGlass, ButtonBorderBeam, ButtonBorderBeamCompact, ButtonDarkMinimal, ButtonDestructive } from './examples/button-variations';
 import { CardDefault, CardElevatedAction, CardGlass, CardHoverLift, CardEntryScaleUp, CardBorderBeam } from './examples/card-variations';
@@ -313,40 +313,49 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     /* ── Avatar ── */
     avatar: [
         {
-            title: 'With Badge',
-            preview: <AvatarWithBadge />,
-            code: `<motion.div whileHover={{ scale: 1.02 }}>
-  <Avatar customSize={62} radius={999} badge badgeColor="#22c55e"
-    className="border border-[#1f2937]/30 bg-[var(--ui-primitive-neutral-0-light)]">
-    <AvatarImage src="/images/avatar.jpg" alt="User" />
+            title: 'Profile Card',
+            preview: <AvatarProfileCardViolet />,
+            code: `<div className="flex flex-col items-center gap-9">
+  <div className="w-full rounded-[30px] border border-[#4538cc] bg-[linear-gradient(180deg,#2c1d98_0%,#251784_100%)] px-6 py-6">
+    <div className="flex items-center gap-5">
+      <Avatar customSize={76} radius={999} bgColor="#3424b9" strokeWeight={1} strokeColor="#4b3dd4">
+        <AvatarFallback>JD</AvatarFallback>
+      </Avatar>
+      <div>
+        <p>JD</p>
+        <p>Team Member</p>
+        <div className="mt-4 flex items-center gap-3">{/* Message, Mail, Phone */}</div>
+      </div>
+    </div>
+  </div>
+  <Avatar customSize={116} radius={999} bgColor="#3424b9" strokeWeight={1} strokeColor="#4b3dd4">
     <AvatarFallback>JD</AvatarFallback>
   </Avatar>
-</motion.div>`,
+</div>`,
         },
         {
-            title: 'Fallback Neutral',
-            preview: <AvatarFallbackNeutral />,
-            code: `<motion.div whileHover={{ scale: 1.02 }}>
-  <Avatar customSize={56} radius={999} strokeWeight={1} strokeColor="#d1d5db"
-    className="border border-[#1f2937]/30 bg-[var(--ui-primitive-neutral-0-light)]">
-    <AvatarFallback>JD</AvatarFallback>
-  </Avatar>
-</motion.div>`,
-        },
-        {
-            title: 'Group Stacked',
-            preview: <AvatarGroupStacked />,
-            code: `<motion.div whileHover={{ y: -2, scale: 1.04 }}>
-  <AvatarGroup spacing={-8}>
-    <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+            title: 'Team Stack',
+            preview: <AvatarProfileCardGroup />,
+            code: `<div className="flex flex-col items-center gap-9">
+  <div className="w-full rounded-[30px] border border-[#3a3a42] bg-[linear-gradient(180deg,#1d1d22_0%,#15161a_100%)] px-6 py-6">
+    <div className="flex items-center gap-5">
+      <Avatar customSize={80} radius={999} bgColor="#f79a3e" strokeWeight={2} strokeColor="#f7c96a">
+        <AvatarFallback>ER</AvatarFallback>
+      </Avatar>
+      <div>
+        <p>Evan Ross</p>
+        <p>Product</p>
+        <div className="mt-4 flex items-center gap-3">{/* Message, Mail, Phone */}</div>
+      </div>
+    </div>
+  </div>
+  <AvatarGroup spacing={-12}>
+    <Avatar customSize={72} radius={999} bgColor="#f79a3e" strokeWeight={2} strokeColor="#f7c96a">
       <AvatarFallback>CN</AvatarFallback>
     </Avatar>
-    <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
-      <AvatarFallback>LR</AvatarFallback>
-    </Avatar>
-    {/* ... */}
+    {/* LR, ER, NH */}
   </AvatarGroup>
-</motion.div>`,
+</div>`,
         },
     ],
 
@@ -813,9 +822,9 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Publish Dialog',
             preview: <DialogTriggerDark />,
             code: `<DialogTrigger>
-  <Button className="bg-[#1e1e22] hover:bg-[#1e1e22] border border-[#303035] text-[#e2e8f0]">
+  <AriaButton className="inline-flex h-10 items-center justify-center rounded-lg border border-[#303035] bg-[#1e1e22] px-5 text-[#e2e8f0] hover:bg-[#242429]">
     Open Dialog
-  </Button>
+  </AriaButton>
   <ModalOverlay isDismissable className="bg-black/60">
     <Modal className="max-w-[420px]">
       <Dialog className="rounded-2xl border border-white/10 bg-[#141416] text-[#f0ede8]">
@@ -836,9 +845,9 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Migration Confirm',
             preview: <DialogTriggerAmber />,
             code: `<DialogTrigger>
-  <Button className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">
+  <AriaButton className="inline-flex h-10 items-center justify-center rounded-lg border bg-[#f5a623] px-5 text-[#1a1a1d] hover:bg-[#ffba4a]">
     Confirm Action
-  </Button>
+  </AriaButton>
   <ModalOverlay isDismissable>
     <Modal className="max-w-[440px]">
       <Dialog className="rounded-[24px] border border-[#f5a623]/25 bg-[#141416] text-[#f0ede8]">
@@ -858,9 +867,9 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'Destructive Confirm',
             preview: <DialogTriggerDestructive />,
             code: `<DialogTrigger>
-  <Button className="bg-[#e11d48] hover:bg-[#be123c] text-white">
+  <AriaButton className="inline-flex h-10 items-center justify-center rounded-lg border bg-[#e11d48] px-5 text-white hover:bg-[#be123c]">
     Delete Item
-  </Button>
+  </AriaButton>
   <ModalOverlay isDismissable>
     <Modal className="max-w-[420px]">
       <Dialog className="rounded-2xl border border-[#fb7185]/20 bg-[#160c10] text-[#ffe4ea]">

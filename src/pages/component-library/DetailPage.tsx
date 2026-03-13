@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { getRegistryComponent } from '@/registry/components';
+import { getBuilderRegistryComponent } from '@/registry/components';
 import { generatedProps } from '@/registry/generated-props';
 import { ComponentPreview } from '@/components/docs/ComponentPreview';
 import { PropsTable } from './PropsTable';
@@ -38,13 +38,13 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 export function DetailPage({ slug, examples }: DetailPageProps) {
     const navigate = useNavigate();
-    const component = getRegistryComponent(slug);
+    const component = getBuilderRegistryComponent(slug);
     const props = generatedProps[slug] ?? [];
 
     if (!component) {
         return (
             <div className="p-8 lg:p-12">
-                <p style={{ color: T.textMuted }}>Component &quot;{slug}&quot; not found in registry.</p>
+                <p style={{ color: T.textMuted }}>Component &quot;{slug}&quot; is not available in the builder library.</p>
             </div>
         );
     }

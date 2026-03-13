@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button as AriaButton } from 'react-aria-components';
 import {
   Dialog,
   DialogBody,
@@ -12,20 +12,22 @@ import {
 } from '@/components/ui/dialog';
 
 const font = "'Inter', system-ui, sans-serif";
+const triggerClassName =
+  'inline-flex h-10 items-center justify-center rounded-lg border px-5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/20';
 
 /** Dialog example — dark modal with simple action row. */
 export function DialogTriggerDark() {
   return (
     <DialogTrigger>
-      <Button
-        className="rounded-lg border border-solid text-sm font-medium text-center justify-center h-10 px-5 bg-[#1e1e22] hover:bg-[#1e1e22] text-[#e2e8f0]"
+      <AriaButton
+        className={`${triggerClassName} bg-[#1e1e22] text-[#e2e8f0] hover:bg-[#242429]`}
         style={{
           borderColor: '#303035',
           fontFamily: font,
         }}
       >
         Open Dialog
-      </Button>
+      </AriaButton>
       <ModalOverlay isDismissable className="bg-black/60">
         <Modal className="max-w-[420px]">
           <Dialog className="rounded-2xl border border-white/10 bg-[#141416] text-[#f0ede8] shadow-[0_32px_80px_rgba(0,0,0,0.45)]">
@@ -68,15 +70,15 @@ export function DialogTriggerDark() {
 export function DialogTriggerAmber() {
   return (
     <DialogTrigger>
-      <Button
-        className="rounded-lg border border-solid text-sm font-medium text-center justify-center h-10 px-5 bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]"
+      <AriaButton
+        className={`${triggerClassName} bg-[#f5a623] text-[#1a1a1d] hover:bg-[#ffba4a]`}
         style={{
           borderColor: 'rgba(196, 128, 10, 0.4)',
           fontFamily: font,
         }}
       >
         Confirm Action
-      </Button>
+      </AriaButton>
       <ModalOverlay isDismissable className="bg-[rgba(10,10,11,0.72)] backdrop-blur-md">
         <Modal className="max-w-[440px]">
           <Dialog className="rounded-[24px] border border-[#f5a623]/25 bg-[linear-gradient(180deg,#1a1a1d_0%,#141416_100%)] text-[#f0ede8] shadow-[0_28px_70px_rgba(0,0,0,0.5)]">
@@ -118,15 +120,15 @@ export function DialogTriggerAmber() {
 export function DialogTriggerDestructive() {
   return (
     <DialogTrigger>
-      <Button
-        className="rounded-lg border border-solid text-sm font-medium text-center justify-center h-10 px-5 bg-[#e11d48] hover:bg-[#be123c] text-white"
+      <AriaButton
+        className={`${triggerClassName} bg-[#e11d48] text-white hover:bg-[#be123c]`}
         style={{
           borderColor: 'rgba(190, 18, 60, 0.4)',
           fontFamily: font,
         }}
       >
         Delete Item
-      </Button>
+      </AriaButton>
       <ModalOverlay isDismissable className="bg-[rgba(12,4,8,0.76)] backdrop-blur-sm">
         <Modal className="max-w-[420px]">
           <Dialog className="rounded-2xl border border-[#fb7185]/20 bg-[#160c10] text-[#ffe4ea] shadow-[0_32px_80px_rgba(0,0,0,0.5)]">

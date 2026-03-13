@@ -1,4 +1,5 @@
 import type { RegistryComponent } from './schema';
+import { COMPONENTS } from '@/components/ui/ui-studio/constants';
 
 // ---------------------------------------------------------------------------
 // Raw source imports via Vite ?raw
@@ -480,12 +481,31 @@ export const REGISTRY: RegistryComponent[] = [
   },
 ];
 
+const BUILDER_KIND_TO_REGISTRY_NAME: Partial<Record<(typeof COMPONENTS)[number]['kind'], string>> = {
+  dropdown: 'dropdown-menu',
+  'stage-button': 'stateful-button',
+};
+
+const BUILDER_SUPPORTED_REGISTRY_NAMES = new Set(
+  COMPONENTS
+    .map(({ kind }) => BUILDER_KIND_TO_REGISTRY_NAME[kind] ?? kind)
+    .filter((name) => REGISTRY.some((component) => component.name === name)),
+);
+
+export const BUILDER_REGISTRY: RegistryComponent[] = REGISTRY.filter((component) =>
+  BUILDER_SUPPORTED_REGISTRY_NAMES.has(component.name),
+);
+
 // ---------------------------------------------------------------------------
 // Helper functions
 // ---------------------------------------------------------------------------
 
 export function getRegistryComponent(name: string): RegistryComponent | undefined {
   return REGISTRY.find((c) => c.name === name);
+}
+
+export function getBuilderRegistryComponent(name: string): RegistryComponent | undefined {
+  return BUILDER_REGISTRY.find((c) => c.name === name);
 }
 
 export function getComponentSources(name: string): Record<string, string> | undefined {
