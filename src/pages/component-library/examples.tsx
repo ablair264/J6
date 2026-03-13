@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { AccordionDarkAmber, AccordionLightSpaced, AccordionEntryBlurFade, AccordionMultipleOpen } from './examples/accordion-variations';
 import { AlertInfo, AlertSuccess, AlertWarningDismissible, AlertError, AlertEntryBlurFade, AlertEntryScaleUp } from './examples/alert-variations';
 import { AnimatedTextTypewriter, AnimatedTextBlurIn, AnimatedTextSplitEntrance, AnimatedTextGradientSweep, AnimatedTextShiny, AnimatedTextDecrypt, AnimatedTextCountingNumber, AnimatedTextWordRotate, AnimatedTextBounce } from './examples/animated-text-variations';
-import { AvatarWithBadge, AvatarGroupStacked } from './examples/avatar-variations';
+import { AvatarWithBadge, AvatarFallbackNeutral, AvatarGroupStacked } from './examples/avatar-variations';
 import { BadgeSolidDestructive, BadgeOutline, BadgePillSky, BadgeGrainBell, BadgeGrainPlain, BadgeGrainIconOnly, BadgeStatusSuccess, BadgeStatusWarning, BadgeStatusError, BadgeStatusInfo, BadgeEntryBlurFade, BadgeTapSpring } from './examples/badge-variations';
 import { ButtonPrimaryHero, ButtonOutlineHover, ButtonGradientSlide, ButtonAnimatedBorder, ButtonRippleFill, ButtonShineBorder, ButtonPulseRing, ButtonGlass, ButtonBorderBeam, ButtonBorderBeamCompact, ButtonDarkMinimal, ButtonDestructive } from './examples/button-variations';
 import { CardDefault, CardElevatedAction, CardGlass, CardHoverLift, CardEntryScaleUp, CardBorderBeam } from './examples/card-variations';
@@ -316,8 +316,19 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
             title: 'With Badge',
             preview: <AvatarWithBadge />,
             code: `<motion.div whileHover={{ scale: 1.02 }}>
-  <Avatar customSize={62} radius={999} badge badgeColor="#22c55e">
+  <Avatar customSize={62} radius={999} badge badgeColor="#22c55e"
+    className="border border-[#1f2937]/30 bg-[var(--ui-primitive-neutral-0-light)]">
     <AvatarImage src="/images/avatar.jpg" alt="User" />
+    <AvatarFallback>JD</AvatarFallback>
+  </Avatar>
+</motion.div>`,
+        },
+        {
+            title: 'Fallback Neutral',
+            preview: <AvatarFallbackNeutral />,
+            code: `<motion.div whileHover={{ scale: 1.02 }}>
+  <Avatar customSize={56} radius={999} strokeWeight={1} strokeColor="#d1d5db"
+    className="border border-[#1f2937]/30 bg-[var(--ui-primitive-neutral-0-light)]">
     <AvatarFallback>JD</AvatarFallback>
   </Avatar>
 </motion.div>`,
@@ -799,95 +810,166 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     /* ── Dialog ── */
     dialog: [
         {
-            title: 'Trigger Dark',
+            title: 'Publish Dialog',
             preview: <DialogTriggerDark />,
-            code: `<Button
-  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
-  style={{ color: 'rgba(226, 232, 240, 1)' }}
->
-  Open Dialog
-</Button>`,
+            code: `<DialogTrigger>
+  <Button className="bg-[#1e1e22] hover:bg-[#1e1e22] border border-[#303035] text-[#e2e8f0]">
+    Open Dialog
+  </Button>
+  <ModalOverlay isDismissable className="bg-black/60">
+    <Modal className="max-w-[420px]">
+      <Dialog className="rounded-2xl border border-white/10 bg-[#141416] text-[#f0ede8]">
+        <DialogHeader title="Publish changes" description="Review before shipping." />
+        <DialogBody>Version 2.1 will replace the current draft.</DialogBody>
+        <DialogFooter>
+          <DialogClose intent="plain">Cancel</DialogClose>
+          <DialogClose intent="primary" className="bg-[#7c3aed] hover:bg-[#8b5cf6] text-white">
+            Publish
+          </DialogClose>
+        </DialogFooter>
+      </Dialog>
+    </Modal>
+  </ModalOverlay>
+</DialogTrigger>`,
         },
         {
-            title: 'Trigger Amber',
+            title: 'Migration Confirm',
             preview: <DialogTriggerAmber />,
-            code: `<Button
-  className="bg-[var(--j6-amber-400-light)] border border-[#c4800a]/50 rounded-sm"
-  style={{ color: 'var(--j6-neutral-600-dark)' }}
->
-  Confirm Action
-</Button>`,
+            code: `<DialogTrigger>
+  <Button className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">
+    Confirm Action
+  </Button>
+  <ModalOverlay isDismissable>
+    <Modal className="max-w-[440px]">
+      <Dialog className="rounded-[24px] border border-[#f5a623]/25 bg-[#141416] text-[#f0ede8]">
+        <DialogHeader title="Start migration?" description="Queue the release and notify the team." />
+        <DialogFooter>
+          <DialogClose intent="plain">Not now</DialogClose>
+          <DialogClose intent="primary" className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">
+            Start migration
+          </DialogClose>
+        </DialogFooter>
+      </Dialog>
+    </Modal>
+  </ModalOverlay>
+</DialogTrigger>`,
         },
         {
-            title: 'Trigger Destructive',
+            title: 'Destructive Confirm',
             preview: <DialogTriggerDestructive />,
-            code: `<Button
-  className="bg-[var(--j6-accent-rose-light)] rounded-sm"
-  style={{ color: 'var(--j6-neutral-0-light)' }}
->
-  Delete Item
-</Button>`,
+            code: `<DialogTrigger>
+  <Button className="bg-[#e11d48] hover:bg-[#be123c] text-white">
+    Delete Item
+  </Button>
+  <ModalOverlay isDismissable>
+    <Modal className="max-w-[420px]">
+      <Dialog className="rounded-2xl border border-[#fb7185]/20 bg-[#160c10] text-[#ffe4ea]">
+        <DialogHeader title="Delete this workspace?" description="This action cannot be undone." />
+        <DialogFooter>
+          <DialogClose intent="plain">Keep workspace</DialogClose>
+          <DialogClose intent="danger" className="bg-[#e11d48] hover:bg-[#be123c] text-white">
+            Delete forever
+          </DialogClose>
+        </DialogFooter>
+      </Dialog>
+    </Modal>
+  </ModalOverlay>
+</DialogTrigger>`,
         },
     ],
 
     /* ── Drawer ── */
     drawer: [
         {
-            title: 'Trigger Right',
+            title: 'Project Drawer',
             preview: <DrawerTriggerRight />,
-            code: `<Button
-  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
-  style={{ color: 'rgba(226, 232, 240, 1)' }}
->
-  Open Drawer
-</Button>`,
+            code: `<Drawer>
+  <DrawerTrigger asChild>
+    <Button className="bg-[#1e1e22] hover:bg-[#1e1e22] border border-[#303035] text-[#e2e8f0]">
+      Open Drawer
+    </Button>
+  </DrawerTrigger>
+  <DrawerContent side="right" className="border-l border-white/10 bg-[#141416] text-[#f0ede8]">
+    <DrawerHeader>
+      <DrawerTitle>Project details</DrawerTitle>
+      <DrawerDescription>Quick access to launch settings and release notes.</DrawerDescription>
+    </DrawerHeader>
+  </DrawerContent>
+</Drawer>`,
         },
         {
-            title: 'Trigger Settings',
+            title: 'Settings Drawer',
             preview: <DrawerTriggerSettings />,
-            code: `<Button
-  className="bg-[var(--j6-amber-400-light)] border border-[#c4800a]/50 rounded-sm"
-  style={{ color: 'var(--j6-neutral-600-dark)' }}
->
-  Settings
-</Button>`,
+            code: `<Drawer>
+  <DrawerTrigger asChild>
+    <Button className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">
+      Settings
+    </Button>
+  </DrawerTrigger>
+  <DrawerContent side="left" className="border-r border-[#f5a623]/20 bg-[#120f0f] text-[#f7efe4]">
+    <DrawerHeader>
+      <DrawerTitle>Workspace settings</DrawerTitle>
+      <DrawerDescription>Tune access and notification preferences.</DrawerDescription>
+    </DrawerHeader>
+  </DrawerContent>
+</Drawer>`,
         },
     ],
 
     /* ── Dropdown Menu ── */
     'dropdown-menu': [
         {
-            title: 'Trigger Dark',
+            title: 'Project Actions',
             preview: <DropdownMenuTriggerDark />,
-            code: `<Button
-  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
-  style={{ color: 'rgba(226, 232, 240, 1)' }}
->
-  Options <ChevronDown size={14} />
-</Button>`,
+            code: `<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button className="bg-[#1e1e22] hover:bg-[#1e1e22] border border-[#303035] text-[#e2e8f0]">
+      Options <ChevronDown size={14} />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="w-56 border-white/10 bg-[#141416] text-[#f0ede8]">
+    <DropdownMenuItem>Export build</DropdownMenuItem>
+    <DropdownMenuItem>Duplicate</DropdownMenuItem>
+    <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>`,
         },
         {
-            title: 'Trigger Amber',
+            title: 'Quick Actions',
             preview: <DropdownMenuTriggerAmber />,
-            code: `<motion.div whileHover={{ y: -1, scale: 1.03 }}>
-  <Button className="bg-[var(--j6-amber-400-light)] rounded-sm">
-    Actions <ChevronDown size={14} />
-  </Button>
-</motion.div>`,
+            code: `<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">
+      Actions <ChevronDown size={14} />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="w-52 border-[#f5a623]/25 bg-[#1a1510] text-[#fff1d6]">
+    <DropdownMenuItem>Promote draft</DropdownMenuItem>
+    <DropdownMenuItem>Share preview</DropdownMenuItem>
+    <DropdownMenuItem variant="destructive">Archive</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>`,
         },
         {
-            title: 'Trigger Effect',
+            title: 'Submenu',
             preview: <DropdownMenuTriggerEffect />,
-            code: `<Button
-  className="ui-studio-effect-gradient-slide bg-[var(--j6-violet-500-light)] rounded-sm"
-  style={{
-    '--ui-motion-gradient-from': '#6d28d9',
-    '--ui-motion-gradient-to': '#9f72ff',
-    '--ui-effect-gs-speed': '0.32s',
-  }}
->
-  Menu <ChevronDown size={14} />
-</Button>`,
+            code: `<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button className="ui-studio-effect-gradient-slide bg-[#7c3aed] hover:bg-[#7c3aed] text-white">
+      Menu <ChevronDown size={14} />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="w-56 border-[#8b5cf6]/25 bg-[#120d1d] text-white">
+    <DropdownMenuItem>Clone style</DropdownMenuItem>
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>Share</DropdownMenuSubTrigger>
+      <DropdownMenuSubContent>
+        <DropdownMenuItem>Copy link</DropdownMenuItem>
+        <DropdownMenuItem>Invite team</DropdownMenuItem>
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  </DropdownMenuContent>
+</DropdownMenu>`,
         },
     ],
 
@@ -949,18 +1031,19 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
         {
             title: 'Dark Amber',
             preview: <NavigationMenuDarkAmber />,
-            code: `<NavigationMenu
-  hoverBg="rgba(255, 186, 74, 0.15)"
-  hoverText="var(--j6-amber-400-light)"
->
+            code: `<NavigationMenu hoverBg="rgba(245,166,35,0.12)" hoverText="#f5a623">
   <NavigationMenuList>
     <NavigationMenuItem>
       <NavigationMenuLink href="#" navigationItem>Home</NavigationMenuLink>
     </NavigationMenuItem>
     <NavigationMenuItem>
-      <NavigationMenuLink href="#" navigationItem active
-        activeBg="rgba(255, 186, 74, 0.2)"
-        activeText="var(--j6-amber-400-light)">Docs</NavigationMenuLink>
+      <NavigationMenuTrigger variant="ghost">Components</NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <ul className="grid w-[340px] gap-1 rounded-xl border border-white/10 bg-[#141416] p-2">
+          <li><NavigationMenuLink asChild><a href="#">Library</a></NavigationMenuLink></li>
+          <li><NavigationMenuLink asChild><a href="#">Docs</a></NavigationMenuLink></li>
+        </ul>
+      </NavigationMenuContent>
     </NavigationMenuItem>
   </NavigationMenuList>
 </NavigationMenu>`,
@@ -968,13 +1051,19 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
         {
             title: 'Violet',
             preview: <NavigationMenuViolet />,
-            code: `<NavigationMenu
-  hoverBg="rgba(159, 114, 255, 0.15)"
-  hoverText="var(--j6-violet-400)"
->
+            code: `<NavigationMenu hoverBg="rgba(139,92,246,0.12)" hoverText="#c4b5fd">
   <NavigationMenuList>
     <NavigationMenuItem>
       <NavigationMenuLink href="#" navigationItem>Overview</NavigationMenuLink>
+    </NavigationMenuItem>
+    <NavigationMenuItem>
+      <NavigationMenuTrigger variant="ghost">Resources</NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <ul className="grid w-[340px] gap-1 rounded-xl border border-[#8b5cf6]/20 bg-[#120d1d] p-2">
+          <li><NavigationMenuLink asChild><a href="#">Playbooks</a></NavigationMenuLink></li>
+          <li><NavigationMenuLink asChild><a href="#">Community</a></NavigationMenuLink></li>
+        </ul>
+      </NavigationMenuContent>
     </NavigationMenuItem>
   </NavigationMenuList>
 </NavigationMenu>`,
@@ -982,11 +1071,7 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
         {
             title: 'Vertical',
             preview: <NavigationMenuVertical />,
-            code: `<NavigationMenu
-  orientation="vertical"
-  hoverBg="rgba(52, 211, 153, 0.12)"
-  hoverText="var(--j6-accent-emerald-dark)"
->
+            code: `<NavigationMenu orientation="vertical" hoverBg="rgba(16,185,129,0.1)" hoverText="#34d399">
   <NavigationMenuList>
     <NavigationMenuItem>
       <NavigationMenuLink href="#" navigationItem>Dashboard</NavigationMenuLink>
@@ -1003,38 +1088,53 @@ export const EXAMPLES: Record<string, LibraryExample[]> = {
     /* ── Popover ── */
     popover: [
         {
-            title: 'Trigger Dark',
+            title: 'Info Card',
             preview: <PopoverTriggerDark />,
-            code: `<Button
-  className="bg-[var(--j6-neutral-600-dark)] border border-[#5a5a64] rounded-sm"
-  style={{ color: 'rgba(226, 232, 240, 1)' }}
->
-  More Info
-</Button>`,
+            code: `<Popover>
+  <PopoverTrigger asChild>
+    <Button className="bg-[#1e1e22] hover:bg-[#1e1e22] border border-[#303035] text-[#e2e8f0]">
+      More Info
+    </Button>
+  </PopoverTrigger>
+  <PopoverContent className="w-[280px] border-white/10 bg-[#141416] text-[#f0ede8]">
+    <PopoverHeader>
+      <PopoverTitle>Release note</PopoverTitle>
+      <PopoverDescription>Libraries were updated and tokens were normalized.</PopoverDescription>
+    </PopoverHeader>
+  </PopoverContent>
+</Popover>`,
         },
         {
-            title: 'Trigger Amber',
+            title: 'Summary Card',
             preview: <PopoverTriggerAmber />,
-            code: `<Button
-  className="bg-[var(--j6-amber-400-light)] rounded-sm"
-  style={{ color: 'var(--j6-neutral-600-dark)' }}
->
-  Details
-</Button>`,
+            code: `<Popover>
+  <PopoverTrigger asChild>
+    <Button className="bg-[#f5a623] hover:bg-[#ffba4a] text-[#1a1a1d]">Details</Button>
+  </PopoverTrigger>
+  <PopoverContent className="w-[300px] border-[#f5a623]/25 bg-[#1a1510] text-[#f8ecd8]">
+    <PopoverHeader>
+      <PopoverTitle>Migration snapshot</PopoverTitle>
+      <PopoverDescription>24 components updated with no regressions detected.</PopoverDescription>
+    </PopoverHeader>
+  </PopoverContent>
+</Popover>`,
         },
         {
-            title: 'Trigger Violet Grain',
+            title: 'Utility Panel',
             preview: <PopoverTriggerVioletGrain />,
-            code: `<Button
-  className="ui-studio-effect-grain bg-[var(--j6-violet-500-light)] rounded-sm"
-  style={{
-    color: 'var(--j6-neutral-0-light)',
-    '--ui-effect-grain-opacity': '0.2',
-    '--ui-effect-grain-size': '200',
-  }}
->
-  Settings
-</Button>`,
+            code: `<Popover>
+  <PopoverTrigger asChild>
+    <Button className="ui-studio-effect-grain bg-[#7c3aed] hover:bg-[#7c3aed] text-white">
+      Settings
+    </Button>
+  </PopoverTrigger>
+  <PopoverContent className="w-[280px] border-[#8b5cf6]/25 bg-[#120d1d] text-white">
+    <PopoverHeader>
+      <PopoverTitle>Automation</PopoverTitle>
+      <PopoverDescription>Keep approvals on and surface only high-signal alerts.</PopoverDescription>
+    </PopoverHeader>
+  </PopoverContent>
+</Popover>`,
         },
     ],
 

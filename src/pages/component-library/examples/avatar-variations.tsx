@@ -1,14 +1,16 @@
 import { motion } from 'motion/react';
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar';
 
+const font = "'Inter', system-ui, sans-serif";
+
 /**
- * Avatar with online badge and hover scale.
+ * Avatar based on `Avatar5-tailwind (8).tsx`.
  */
 export function AvatarWithBadge() {
   return (
     <motion.div
       whileHover={{
-        scale: 1.05,
+        scale: 1.02,
         transition: { type: 'tween' as const, duration: 0.2, ease: 'easeInOut' as const },
       }}
     >
@@ -17,61 +19,65 @@ export function AvatarWithBadge() {
         radius={999}
         badge
         badgeColor="#22c55e"
+        className="border border-[#1f2937]/30 bg-[var(--ui-primitive-neutral-0-light)]"
+        style={{ color: 'rgba(226, 232, 240, 1)', fontFamily: font }}
       >
         <AvatarImage src="/images/avatar.jpg" alt="User" />
-        <AvatarFallback
-          style={{ fontFamily: "'Inter', system-ui, sans-serif", color: '#e2e8f0' }}
-        >
-          JD
-        </AvatarFallback>
+        <AvatarFallback>JD</AvatarFallback>
       </Avatar>
     </motion.div>
   );
 }
 
 /**
- * Avatar group — stacked with amber strokes and colorful fallbacks.
+ * Avatar based on `Avatar5-tailwind (9).tsx`.
+ */
+export function AvatarFallbackNeutral() {
+  return (
+    <motion.div
+      whileHover={{
+        scale: 1.02,
+        transition: { type: 'tween' as const, duration: 0.2, ease: 'easeInOut' as const },
+      }}
+    >
+      <Avatar
+        customSize={56}
+        radius={999}
+        strokeWeight={1}
+        strokeColor="#d1d5db"
+        className="border border-[#1f2937]/30 bg-[var(--ui-primitive-neutral-0-light)]"
+        style={{ color: 'rgba(226, 232, 240, 1)', fontFamily: font }}
+      >
+        <AvatarFallback>JD</AvatarFallback>
+      </Avatar>
+    </motion.div>
+  );
+}
+
+/**
+ * Avatar group based on `AvatarGroup8-tailwind.tsx`.
  */
 export function AvatarGroupStacked() {
   return (
     <motion.div
       whileHover={{
         y: -2,
+        scale: 1.04,
         transition: { type: 'tween' as const, duration: 0.2, ease: 'easeInOut' as const },
       }}
     >
       <AvatarGroup spacing={-8}>
-        <Avatar customSize={48} radius={999} strokeWeight={2} strokeColor="#f5a623" bgColor="#7c3aed">
-          <AvatarFallback
-            fontColor="#ffffff"
-            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
-          >
-            CN
-          </AvatarFallback>
+        <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+          <AvatarFallback style={{ fontFamily: font }}>CN</AvatarFallback>
         </Avatar>
-        <Avatar customSize={48} radius={999} strokeWeight={2} strokeColor="#f5a623" bgColor="#0ea5e9">
-          <AvatarFallback
-            fontColor="#ffffff"
-            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
-          >
-            LR
-          </AvatarFallback>
+        <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+          <AvatarFallback style={{ fontFamily: font }}>LR</AvatarFallback>
         </Avatar>
-        <Avatar customSize={48} radius={999} strokeWeight={2} strokeColor="#f5a623" bgColor="#10b981">
-          <AvatarFallback
-            fontColor="#ffffff"
-            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
-          >
-            ER
-          </AvatarFallback>
+        <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+          <AvatarFallback style={{ fontFamily: font }}>ER</AvatarFallback>
         </Avatar>
-        <Avatar customSize={48} radius={999} strokeWeight={2} strokeColor="#f5a623" bgColor="#f5a623">
-          <AvatarFallback
-            fontColor="#1a1a1d"
-            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
-          >
-            NH
-          </AvatarFallback>
+        <Avatar customSize={48} radius={999} strokeWeight={1} strokeColor="#ffda80">
+          <AvatarFallback style={{ fontFamily: font }}>NH</AvatarFallback>
         </Avatar>
       </AvatarGroup>
     </motion.div>

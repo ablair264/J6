@@ -1,7 +1,10 @@
 import { XMarkIcon } from "@heroicons/react/24/solid"
 import type { HeadingProps, TextProps } from "react-aria-components"
 import {
+  DialogTrigger as PrimitiveDialogTrigger,
   Heading,
+  Modal as PrimitiveModal,
+  ModalOverlay as PrimitiveModalOverlay,
   Button as PrimitiveButton,
   Dialog as PrimitiveDialog,
 } from "react-aria-components"
@@ -50,10 +53,34 @@ const Dialog = ({
 }
 
 const DialogTrigger = ({
+  ...props
+}: React.ComponentProps<typeof PrimitiveDialogTrigger>) => (
+  <PrimitiveDialogTrigger {...props} />
+)
+
+const ModalOverlay = ({
   className,
   ...props
-}: React.ComponentProps<typeof PrimitiveButton>) => (
-  <PrimitiveButton className={cx("cursor-pointer", className)} {...props} />
+}: React.ComponentProps<typeof PrimitiveModalOverlay>) => (
+  <PrimitiveModalOverlay
+    data-slot="dialog-overlay"
+    className={cx(
+      "fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm",
+      className,
+    )}
+    {...props}
+  />
+)
+
+const Modal = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PrimitiveModal>) => (
+  <PrimitiveModal
+    data-slot="dialog-modal"
+    className={cx("w-full max-w-lg", className)}
+    {...props}
+  />
 )
 
 interface DialogHeaderProps extends Omit<React.ComponentProps<"div">, "title"> {
@@ -176,6 +203,8 @@ export type {
 }
 export {
   Dialog,
+  Modal,
+  ModalOverlay,
   DialogClose,
   DialogTrigger,
   DialogHeader,
