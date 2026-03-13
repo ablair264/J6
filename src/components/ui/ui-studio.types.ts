@@ -162,6 +162,7 @@ export interface ComponentStyleConfig {
   dropdownTriggerVariant: 'button' | 'icon';
   dropdownShowItemIcons: boolean;
   dropdownShowSubmenu: boolean;
+  dropdownSubmenuOffset: number;
   panelFillColor: string;
   panelFillOpacity: number;
   panelStrokeColor: string;
@@ -403,6 +404,7 @@ export interface ComponentStyleConfig {
   sliderBarFillSpeed: number;
   sliderBarScale: number;
   sliderBarBounce: number;
+  sliderThumbCount: number;
 
   // ─── Phase 2: New Component Properties ──────────────────────────
   // Accordion

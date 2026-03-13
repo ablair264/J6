@@ -127,7 +127,7 @@ export function InteractiveDropdownPreview({
             const parentRect = relativeRef.current.getBoundingClientRect();
             setSubmenuPos({
                 top: rect.top - parentRect.top,
-                left: rect.right - parentRect.left + 4,
+                left: rect.right - parentRect.left + (motionConfig.dropdownSubmenuOffset ?? 4),
             });
         }
     }, [submenuOpen]);

@@ -82,14 +82,14 @@ export function NavigationMenuPreview({
                         idx,
                     )}
                     <NavigationMenuContent>
-                        <ul className="grid w-[340px] gap-1 p-2" style={dropdownPanelStyle}>
+                        <ul className="grid w-[340px] gap-1 p-2 text-left" style={dropdownPanelStyle}>
                             {DROPDOWN_ITEMS.map((item) => (
                                 <li key={item.label}>
                                     <NavigationMenuLink asChild>
                                         <a
                                             href="#"
                                             onClick={(e) => e.preventDefault()}
-                                            className="flex items-start gap-3 rounded-md p-2 transition-colors hover:bg-[var(--nav-hover-bg,hsl(var(--accent)))] hover:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))]"
+                                            className="flex items-start gap-3 rounded-md p-2 text-left transition-colors hover:bg-[var(--nav-hover-bg,hsl(var(--accent)))] hover:text-[var(--nav-hover-text,hsl(var(--accent-foreground)))]"
                                         >
                                             <item.icon className="mt-0.5 size-4 shrink-0 opacity-70" />
                                             <div className="space-y-1">

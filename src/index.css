@@ -1421,6 +1421,33 @@
 }
 
 
+/* ─── Reduced motion: respect prefers-reduced-motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .ui-studio-motion-rainbow,
+  .ui-studio-motion-shimmer,
+  .ui-studio-effect-animated-border-state-default,
+  .ui-studio-effect-border-beam::before,
+  .ui-studio-effect-shine-border::before,
+  .ui-studio-effect-neon-glow,
+  .ui-studio-effect-pulse-ring::after,
+  .ui-studio-effect-ripple-fill::before,
+  .ui-studio-effect-sweep::after,
+  .ui-studio-effect-gradient-slide::before,
+  .ui-studio-effect-grain::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ui-studio-slider-motion [data-slot='slider-thumb'] {
+    transition-duration: 0.01ms !important;
+  }
+
+  .ui-studio-slider-motion [data-slot='slider-range'] {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .react-resizable-handle {
   position: absolute;
   right: 8px;

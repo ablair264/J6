@@ -1491,6 +1491,15 @@ export function InspectorPanel() {
                         </div>
                     ) : null}
 
+                    {/* Slider Config */}
+                    {selectedInstance?.kind === 'slider' && selectedStyle ? (
+                        <div className="p-1">
+                            <FlatInspectorSection title="Slider Config" icon={Table} defaultOpen>
+                                <FlatUnitField label="Thumbs" value={selectedStyle.sliderThumbCount} min={1} max={5} unit="" onChange={(value) => updateSelectedStyle('sliderThumbCount', value)} />
+                            </FlatInspectorSection>
+                        </div>
+                    ) : null}
+
                     {/* Dropdown Config */}
                     {selectedInstance?.kind === 'dropdown' && selectedStyle ? (
                         <div className="p-1">
@@ -1508,6 +1517,9 @@ export function InspectorPanel() {
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                         <FlatSwitchRow label="Show Item Icons" checked={selectedStyle.dropdownShowItemIcons} onCheckedChange={(value) => updateSelectedStyle('dropdownShowItemIcons', value)} />
                                         <FlatSwitchRow label="Show Submenu" checked={selectedStyle.dropdownShowSubmenu} onCheckedChange={(value) => updateSelectedStyle('dropdownShowSubmenu', value)} />
+                                        {selectedStyle.dropdownShowSubmenu && (
+                                            <FlatUnitField label="Submenu Gap" value={selectedStyle.dropdownSubmenuOffset} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('dropdownSubmenuOffset', value)} />
+                                        )}
                                     </div>
                                 </FlatElementSubsection>
                             </FlatInspectorSection>
@@ -2035,7 +2047,7 @@ export function InspectorPanel() {
                                         <>
                                             <FlatUnitField label="Delay (ms)" value={selectedStyle.avatarPopoverDelay} min={0} max={2000} step={10} unit="ms" onChange={(value) => updateSelectedStyle('avatarPopoverDelay', value)} />
                                             <div className="flex flex-wrap items-start gap-3">
-                                                <FlatUnitField label="Width" value={selectedStyle.avatarPopoverWidth} min={120} max={320} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverWidth', value)} />
+                                                <FlatUnitField label="Width" value={selectedStyle.avatarPopoverWidth} min={100} max={320} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverWidth', value)} />
                                                 <FlatUnitField label="Padding" value={selectedStyle.avatarPopoverPadding} min={0} max={32} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverPadding', value)} />
                                                 <FlatUnitField label="Radius" value={selectedStyle.avatarPopoverRadius} min={0} max={24} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverRadius', value)} />
                                             </div>
@@ -2048,17 +2060,19 @@ export function InspectorPanel() {
                                                     ))}
                                                 </div>
                                             </FlatField>
-                                            <FlatColorControl label="BG Color" value={selectedStyle.avatarPopoverBgColor} onChange={(value) => updateSelectedStyle('avatarPopoverBgColor', value)} tokens={activeTokenSet.tokens} />
+                                            <div className="flex flex-wrap items-start gap-3">
+                                                <FlatColorControl label="BG Color" value={selectedStyle.avatarPopoverBgColor} onChange={(value) => updateSelectedStyle('avatarPopoverBgColor', value)} tokens={activeTokenSet.tokens} />
+                                                <FlatUnitField label="BG Opacity" value={selectedStyle.avatarPopoverBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverBgOpacity', value)} />
+                                            </div>
                                             {selectedStyle.avatarPopoverBgMode === 'gradient' ? (
                                                 <FlatColorControl label="BG Color To" value={selectedStyle.avatarPopoverBgColorTo} onChange={(value) => updateSelectedStyle('avatarPopoverBgColorTo', value)} tokens={activeTokenSet.tokens} />
                                             ) : null}
-                                            <FlatUnitField label="BG Opacity" value={selectedStyle.avatarPopoverBgOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverBgOpacity', value)} />
                                             <FlatUnitField label="Stroke Weight" value={selectedStyle.avatarPopoverStrokeWeight} min={0} max={4} unit="px" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeWeight', value)} />
                                             {selectedStyle.avatarPopoverStrokeWeight > 0 ? (
-                                                <>
+                                                <div className="flex flex-wrap items-start gap-3">
                                                     <FlatColorControl label="Stroke Color" value={selectedStyle.avatarPopoverStrokeColor} onChange={(value) => updateSelectedStyle('avatarPopoverStrokeColor', value)} tokens={activeTokenSet.tokens} />
                                                     <FlatUnitField label="Stroke Opacity" value={selectedStyle.avatarPopoverStrokeOpacity} min={0} max={100} unit="%" onChange={(value) => updateSelectedStyle('avatarPopoverStrokeOpacity', value)} />
-                                                </>
+                                                </div>
                                             ) : null}
                                             <FlatField label="Font" stacked>
                                                 <FlatSelect value={selectedStyle.avatarPopoverFontFamily} onValueChange={(value) => updateSelectedStyle('avatarPopoverFontFamily', value)} ariaLabel="Popover font">

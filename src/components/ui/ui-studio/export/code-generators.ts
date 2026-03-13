@@ -430,6 +430,12 @@ export function buildTailwindThemeStyles(
     const usesAnimatedText = instances.some(
         (instance) => instance.kind === 'animated-text',
     );
+    const usesSliderMotion = instances.some(
+        (instance) => instance.kind === 'slider',
+    );
+    const usesCheckboxMotion = instances.some(
+        (instance) => instance.kind === 'checkbox',
+    );
 
     const motionUtilityBlocks: string[] = [];
     if (usesRainbowMotion) {
@@ -777,7 +783,82 @@ export function buildTailwindThemeStyles(
   }`);
     }
 
+    if (usesSliderMotion) {
+        motionUtilityBlocks.push(`  .ui-studio-slider-motion [data-slot='slider-thumb'] {
+    transition: transform 160ms ease;
+  }
+
+  .ui-studio-slider-motion [data-slot='slider-thumb']:hover {
+    transform: scale(var(--ui-slider-thumb-hover-scale, 1.08));
+  }
+
+  .ui-studio-slider-motion [data-slot='slider-thumb']:active {
+    animation: ui-studio-loading-warning-pulse var(--ui-slider-thumb-tap-bounce, 0.2s) ease-in-out 1;
+  }
+
+  .ui-studio-slider-motion [data-slot='slider-range'] {
+    transition:
+      transform var(--ui-slider-bar-fill-speed, 0.25s) ease,
+      width var(--ui-slider-bar-fill-speed, 0.25s) ease;
+    transform: scaleY(var(--ui-slider-bar-scale, 1));
+  }
+
+  .ui-studio-slider-motion [data-slot='slider-track']:active [data-slot='slider-range'] {
+    animation: ui-studio-loading-warning-pulse var(--ui-slider-bar-bounce, 0.18s) ease-in-out 1;
+  }`);
+    }
+
+    if (usesCheckboxMotion) {
+        motionUtilityBlocks.push(`  .ui-studio-checkbox {
+    border-color: var(--ui-checkbox-border);
+    background-color: transparent;
+  }
+  .ui-studio-checkbox[data-state="checked"],
+  .ui-studio-checkbox[data-state="indeterminate"] {
+    background-color: var(--ui-checkbox-checked-bg);
+    border-color: var(--ui-checkbox-checked-border);
+    color: var(--ui-checkbox-indicator);
+  }
+  .ui-studio-checkbox[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ui-studio-checkbox-indicator {
+    color: currentColor;
+    animation: ui-studio-loading-success-pop var(--ui-checkbox-selection-speed, 0.22s) ease-out both;
+  }
+
+  .ui-studio-checkbox-indicator-icon {
+    width: 100%;
+    height: 100%;
+  }
+
+  .ui-studio-checkbox-indicator-solid {
+    display: block;
+    width: 75%;
+    height: 75%;
+    border-radius: 2px;
+    background: currentColor;
+  }`);
+    }
+
     const motionKeyframes: string[] = [];
+
+    if (usesSliderMotion || usesCheckboxMotion) {
+        motionKeyframes.push(`@keyframes ui-studio-loading-warning-pulse {
+  0% { opacity: 0.72; }
+  50% { opacity: 1; }
+  100% { opacity: 0.72; }
+}
+
+@keyframes ui-studio-loading-success-pop {
+  0% { transform: scale(0.72); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}`);
+    }
+
     if (usesRainbowMotion) {
         motionKeyframes.push(`@keyframes ui-studio-rainbow-shift {
   0% { background-position: 0% 0%, 0% 0%; }

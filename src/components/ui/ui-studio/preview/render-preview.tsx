@@ -50,6 +50,7 @@ import {
     buildMotionClassName,
     buildPreviewPresentation,
     buildComponentWrapperStyle,
+    buildActiveMotionVariables,
     extractTextStyle,
     getComponentVisualPreset,
     iconSnippet,
@@ -515,7 +516,7 @@ function TabsPreviewSurface({
         instance.style.tabsFullWidth ? 'w-full' : undefined,
         (instance.style.tabsHoverBg || instance.style.tabsHoverTextColor) ? 'ui-studio-tabs-hover' : undefined,
         instance.style.tabsInactiveBg ? 'ui-studio-tabs-inactive' : undefined,
-        'overflow-x-auto',
+        'overflow-hidden',
     );
 
     const renderTabLabel = (label: string) => {
@@ -543,7 +544,7 @@ function TabsPreviewSurface({
     return (
         <Tabs
             defaultValue="tab-0"
-            className={cn(instance.style.tabsFullWidth ? 'w-full' : 'max-w-md')}
+            className={cn('gap-3', instance.style.tabsFullWidth ? 'w-full' : 'max-w-md')}
         >
             <TabsList
                 variant={instance.style.tabsVariant}
@@ -603,7 +604,7 @@ function TabsPreviewSurface({
                 })}
             </TabsList>
             {tabLabels.map((item, i) => (
-                <TabsContent key={i} value={`tab-${i}`} className="rounded-xl border border-dashed border-border/70 p-3 text-sm text-muted-foreground">
+                <TabsContent key={i} value={`tab-${i}`} className="rounded-lg border border-border/30 p-4 text-sm text-muted-foreground data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-200">
                     {renderEntryMotion(
                         renderEntryMotion(<span>{item.label} tab body</span>, tabsTextMotion),
                         tabsBodyMotion,
@@ -648,16 +649,7 @@ function AccordionPreviewSurface({
         ...(instance.style.accordionContentFontUnderline ? { textDecoration: 'underline' } : {}),
     };
 
-    const accordionIconData = [
-        { icon: FileText, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', label: 'Documents', subtitle: 'Manage your files', content: 'View, upload, and organize all your documents in one place.' },
-        { icon: FolderOpen, color: '#fb923c', bg: 'rgba(251,146,60,0.1)', label: 'Projects', subtitle: 'Organize your work', content: 'Group related files and tasks into projects.' },
-        { icon: Settings, color: '#2dd4bf', bg: 'rgba(45,212,191,0.1)', label: 'Settings', subtitle: 'Customize your experience', content: 'Adjust preferences, update account details, and configure behavior.' },
-        { icon: Users, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Team Members', subtitle: 'Manage users and roles', content: 'Invite new members, assign roles, and control access permissions.' },
-        { icon: Bookmark, color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', label: 'Bookmarks', subtitle: 'Save for later', content: 'Organize and manage your saved items.' },
-        { icon: Globe, color: '#22d3ee', bg: 'rgba(34,211,238,0.1)', label: 'Integrations', subtitle: 'Connect services', content: 'Link external tools and automate workflows.' },
-        { icon: Shield, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Security', subtitle: 'Protect your data', content: 'Configure security settings and manage access controls.' },
-        { icon: Zap, color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Automation', subtitle: 'Speed up tasks', content: 'Set up automated workflows and triggers.' },
-    ];
+    const accordionIconData = [FileText, FolderOpen, Settings, Users, Bookmark, Globe, Shield, Zap];
 
     const showIcons = instance.style.accordionShowIcons;
     const iconPos = instance.style.accordionIconPosition;
@@ -670,23 +662,21 @@ function AccordionPreviewSurface({
             axis: 'y',
         });
         const hasItemMotion = Boolean(itemMotionProps.animate || itemMotionProps.whileInView || itemMotionProps.whileHover || itemMotionProps.whileTap);
-        const iconInfo = accordionIconData[index % accordionIconData.length];
-        const IconComp = iconInfo.icon;
+        const IconComp = accordionIconData[index % accordionIconData.length];
         const iconEl = showIcons ? (
             <div
-                className="flex shrink-0 items-center justify-center rounded-xl p-2.5"
-                style={{ backgroundColor: iconInfo.bg, color: iconInfo.color }}
+                className="flex shrink-0 items-center justify-center rounded-xl bg-white/5 p-2 text-current"
             >
-                <IconComp size={20} />
+                <IconComp size={18} />
             </div>
         ) : null;
 
         const triggerContent = showIcons ? (
-            <div className={cn('flex items-center gap-3', iconPos === 'right' && 'flex-row-reverse')}>
+            <div className={cn('flex items-center gap-3.5', iconPos === 'right' && 'flex-row-reverse')}>
                 {iconEl}
-                <div className="flex flex-col items-start text-left">
+                <div className="flex flex-col items-start text-left leading-none">
                     <span>{itemData.title}</span>
-                    <span className="text-sm opacity-60">{itemData.subtitle}</span>
+                    <span className="mt-1 text-[12px] opacity-55">{itemData.subtitle}</span>
                 </div>
             </div>
         ) : (
@@ -698,7 +688,7 @@ function AccordionPreviewSurface({
                 <AccordionTrigger triggerStyle={triggerTypoStyle}>{triggerContent}</AccordionTrigger>
                 <AccordionContent contentStyle={contentTypoStyle}>
                     {showIcons ? (
-                        <p style={iconPos === 'left' ? { paddingLeft: 52 } : undefined}>{itemData.content}</p>
+                        <p style={iconPos === 'left' ? { paddingLeft: 54 } : undefined}>{itemData.content}</p>
                     ) : (
                         <>{itemData.content}</>
                     )}
@@ -1011,10 +1001,38 @@ export function componentSnippet(
     const safeCheckboxValue = instance.style.checkboxValue.replace(/'/g, "\\'");
     const dropdownHoverClass =
         'data-[hovered]:!bg-[var(--ui-dropdown-hover-bg)] data-[focused]:!bg-[var(--ui-dropdown-hover-bg)] data-[hovered]:!text-[var(--ui-dropdown-hover-fg)] data-[focused]:!text-[var(--ui-dropdown-hover-fg)]';
+    const accordionSnippetIcons = ['FileText', 'FolderOpen', 'Settings', 'Users', 'Bookmark', 'Globe', 'Shield', 'Zap'];
 
     switch (instance.kind) {
         case 'accordion': {
-            const declarations = [previewBindings.declarations, rootClassBinding.declarations].filter(Boolean).join('\n');
+            const triggerStyle: React.CSSProperties = {
+                ...(instance.style.accordionTriggerFontFamily ? { fontFamily: instance.style.accordionTriggerFontFamily } : {}),
+                fontSize: instance.style.accordionTriggerFontSize,
+                fontWeight: instance.style.accordionTriggerFontBold ? 700 : instance.style.accordionTriggerFontWeight,
+                ...(instance.style.accordionTriggerFontColor ? { color: instance.style.accordionTriggerFontColor } : {}),
+                ...(instance.style.accordionTriggerFontItalic ? { fontStyle: 'italic' } : {}),
+                ...(instance.style.accordionTriggerFontUnderline ? { textDecoration: 'underline' } : {}),
+            };
+            const contentStyle: React.CSSProperties = {
+                ...(instance.style.accordionContentFontFamily ? { fontFamily: instance.style.accordionContentFontFamily } : {}),
+                fontSize: instance.style.accordionContentFontSize,
+                fontWeight: instance.style.accordionContentFontBold ? 700 : instance.style.accordionContentFontWeight,
+                ...(instance.style.accordionContentFontColor ? { color: instance.style.accordionContentFontColor } : {}),
+                ...(instance.style.accordionContentFontItalic ? { fontStyle: 'italic' } : {}),
+                ...(instance.style.accordionContentFontUnderline ? { textDecoration: 'underline' } : {}),
+            };
+            const triggerBindings = buildSnippetStyleBindings(triggerStyle, styleMode, 'accordionTrigger', tokenSet);
+            const contentBindings = buildSnippetStyleBindings(contentStyle, styleMode, 'accordionContent', tokenSet);
+            const triggerClassNameSnippet = buildSnippetClassNameAttr(undefined, styleMode === 'tailwind' ? triggerBindings.classVarName : undefined);
+            const contentClassNameSnippet = buildSnippetClassNameAttr(undefined, styleMode === 'tailwind' ? contentBindings.classVarName : undefined);
+            const triggerStyleSnippet = triggerBindings.styleVarName ? ` triggerStyle={${triggerBindings.styleVarName}}` : '';
+            const contentStyleVarSnippet = contentBindings.styleVarName ? ` contentStyle={${contentBindings.styleVarName}}` : '';
+            const declarations = [
+                previewBindings.declarations,
+                rootClassBinding.declarations,
+                triggerBindings.declarations,
+                contentBindings.declarations,
+            ].filter(Boolean).join('\n');
             const accProps = [
                 instance.style.accordionAllowMultiple ? 'type="multiple"' : 'type="single"',
                 !instance.style.accordionAllowMultiple ? `collapsible={${String(instance.style.accordionCollapsible)}}` : '',
@@ -1028,7 +1046,27 @@ export function componentSnippet(
             ].filter(Boolean).join('\n  ');
             const accordionItems = instance.style.accordionItems
                 .slice(0, instance.style.accordionItemCount)
-                .map((item) => `  <AccordionItem value="${item.id}">\n    <AccordionTrigger>${jsxText(item.title)}</AccordionTrigger>\n    <AccordionContent>${jsxText(item.content)}</AccordionContent>\n  </AccordionItem>`)
+                .map((item, index) => {
+                    const iconName = accordionSnippetIcons[index % accordionSnippetIcons.length];
+                    const triggerBody = instance.style.accordionShowIcons
+                        ? `<div className="${instance.style.accordionIconPosition === 'right' ? 'flex flex-row-reverse items-center gap-3.5' : 'flex items-center gap-3.5'}">
+      <div className="flex shrink-0 items-center justify-center rounded-xl bg-white/5 p-2 text-current">
+        <${iconName} size={18} />
+      </div>
+      <div className="flex flex-col items-start text-left leading-none">
+        <span>${jsxText(item.title)}</span>
+        <span className="mt-1 text-[12px] opacity-55">${jsxText(item.subtitle)}</span>
+      </div>
+    </div>`
+                        : jsxText(item.title);
+                    const contentBody = instance.style.accordionShowIcons && instance.style.accordionIconPosition === 'left'
+                        ? `\n      <p style={{ paddingLeft: 54 }}>${jsxText(item.content)}</p>\n    `
+                        : jsxText(item.content);
+                    return `  <AccordionItem value="${item.id}">
+    <AccordionTrigger${triggerClassNameSnippet}${triggerStyleSnippet}>${triggerBody}</AccordionTrigger>
+    <AccordionContent${contentClassNameSnippet}${contentStyleVarSnippet}>${contentBody}</AccordionContent>
+  </AccordionItem>`;
+                })
                 .join('\n');
             return `${declarations ? `${declarations}\n\n` : ''}<Accordion\n  ${accProps}${previewStyleSnippet}\n>\n${accordionItems}\n</Accordion>`;
         }
@@ -1653,6 +1691,64 @@ export function componentSnippet(
     }
 }
 
+// ─── Slider with value output feedback ──────────────────────────────────────
+
+function SliderWithOutput({
+    style: wrapperStyle,
+    motionClassName,
+    instance,
+    buttonPreviewStateClass,
+}: {
+    style: CSSProperties;
+    motionClassName?: string;
+    instance: ComponentInstance;
+    buttonPreviewStateClass?: string;
+}) {
+    const thumbCount = instance.style.sliderThumbCount ?? 1;
+    const defaultValues = thumbCount <= 1
+        ? [55]
+        : Array.from({ length: thumbCount }, (_, i) => Math.round((100 / (thumbCount + 1)) * (i + 1)));
+    const [values, setValues] = useState<number[]>(defaultValues);
+
+    // Reset values when thumb count changes
+    useEffect(() => {
+        const next = thumbCount <= 1
+            ? [55]
+            : Array.from({ length: thumbCount }, (_, i) => Math.round((100 / (thumbCount + 1)) * (i + 1)));
+        setValues(next);
+    }, [thumbCount]);
+
+    // Merge slider-specific motion CSS vars explicitly so they are guaranteed
+    // to be on the wrapper element that parents the Slider.
+    const motionVars = buildActiveMotionVariables('slider', instance.style);
+    const mergedStyle: CSSProperties = { ...wrapperStyle, ...motionVars };
+
+    const isElastic = instance.style.componentPreset === 'slider-elastic';
+    const displayValue = values.length === 1
+        ? `${values[0]}%`
+        : values.map((v) => `${v}%`).join(' – ');
+
+    return (
+        <div
+            className={cn('rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)}
+            style={mergedStyle}
+        >
+            <div className="flex items-center gap-2">
+                {isElastic ? <span className="text-sm text-muted-foreground">-</span> : null}
+                <Slider
+                    className={cn('ui-studio-slider-motion', motionClassName)}
+                    value={values}
+                    onValueChange={setValues}
+                    max={100}
+                    step={1}
+                />
+                {isElastic ? <span className="text-sm text-muted-foreground">+</span> : null}
+            </div>
+            <p className="text-sm text-muted-foreground text-center mt-2">{displayValue}</p>
+        </div>
+    );
+}
+
 export function renderPreview(
     instance: ComponentInstance,
     style: CSSProperties,
@@ -2095,12 +2191,20 @@ export function renderPreview(
                 const tooltipBodyMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipMotionPresetId);
                 const tooltipTextMotion = buildEntryPresetMotionConfig('tooltip', instance.style, instance.style.tooltipMotionPresetId);
                 const tooltipTriggerMotionProps = buildPreviewMotionProps(instance.style, { allowEntry: false, allowInteraction: true });
+                // Tooltip trigger uses neutral styling for visibility; panel colors go on TooltipContent only
+                const tooltipTriggerStyle: CSSProperties = {
+                    fontFamily: style.fontFamily,
+                    fontSize: style.fontSize,
+                    fontWeight: style.fontWeight,
+                    borderRadius: style.borderRadius,
+                    ...(tooltipTriggerMotionProps.style ?? {}),
+                };
                 return (
                     <div onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
                         <Tooltip delay={instance.style.tooltipDelay} isOpen={pinOverlayOpen ? true : undefined}>
                             <MotionTooltipTrigger
                                 className={cn(
-                                    'inline-flex min-w-0 max-w-full items-center overflow-hidden rounded-lg border border-border px-3 py-2',
+                                    'inline-flex min-w-0 max-w-full items-center overflow-hidden rounded-lg border border-border bg-muted text-foreground px-3 py-2',
                                     BUTTON_STATE_CLASS_NAME,
                                     buttonPreviewStateClass,
                                     motionClassName,
@@ -2111,10 +2215,7 @@ export function renderPreview(
                                 whileTap={tooltipTriggerMotionProps.whileTap}
                                 transition={tooltipTriggerMotionProps.transition}
                                 viewport={tooltipTriggerMotionProps.viewport}
-                                style={{
-                                    ...(style ?? {}),
-                                    ...(tooltipTriggerMotionProps.style ?? {}),
-                                }}
+                                style={tooltipTriggerStyle}
                             >
                                 <span className="inline-flex min-w-0 max-w-full items-center overflow-hidden">
                                     {withIcon('Hover for tooltip', icon, instance.style.iconPosition)}
@@ -2132,20 +2233,20 @@ export function renderPreview(
             }
 
         case 'slider': {
-            const sliderWrapperStyle = {
+            const sliderWrapperStyle: Record<string, unknown> = {
                 ...buildComponentWrapperStyle(style, 'slider'),
             };
             if (!sliderWrapperStyle.width) {
-                sliderWrapperStyle.width = '320px';
+                sliderWrapperStyle.width = '100%';
+                sliderWrapperStyle.maxWidth = '420px';
             }
             return (
-                <div className={cn('rounded-xl p-4', BUTTON_STATE_CLASS_NAME, buttonPreviewStateClass)} style={sliderWrapperStyle}>
-                    <div className="flex items-center gap-2">
-                        {instance.style.componentPreset === 'slider-elastic' ? <span className="text-sm text-muted-foreground">-</span> : null}
-                        <Slider className={cn('ui-studio-slider-motion', motionClassName)} defaultValue={[55]} max={100} step={1} />
-                        {instance.style.componentPreset === 'slider-elastic' ? <span className="text-sm text-muted-foreground">+</span> : null}
-                    </div>
-                </div>
+                <SliderWithOutput
+                    style={sliderWrapperStyle as CSSProperties}
+                    motionClassName={motionClassName}
+                    instance={instance}
+                    buttonPreviewStateClass={buttonPreviewStateClass}
+                />
             );
         }
 

@@ -108,7 +108,7 @@ function AccordionTrigger({
         {...props}
       >
         {children}
-        <ChevronDownIcon className="text-muted-foreground size-4 shrink-0 transition-transform duration-200 group-data-[state=open]/accordion-item:rotate-180" />
+        <ChevronDownIcon className="size-4 shrink-0 text-current opacity-60 transition-transform duration-200 group-data-[state=open]/accordion-item:rotate-180" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )
@@ -134,7 +134,7 @@ function AccordionContent({
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
         >
           <div
-            className={cn("pt-0", className)}
+            className={cn("pt-0 text-left", className)}
             style={{
               paddingBottom: 'var(--accordion-padding-h, 16px)',
               paddingLeft: 'var(--accordion-padding-w, 16px)',

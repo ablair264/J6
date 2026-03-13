@@ -1,5 +1,5 @@
 import { useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
-import { motion, useMotionValue, useMotionTemplate, useSpring } from 'motion/react';
+import { motion, useMotionValue, useMotionTemplate, useSpring, useReducedMotion } from 'motion/react';
 import { normalizeStyleConfig, MOTION_COMPONENT_PRESETS, SURFACE_MOTION_PRESET_IDS } from './constants';
 import { useStudioStore } from './store';
 import type {
@@ -1011,6 +1011,7 @@ export function AdvancedHoverWrapper({
     className?: string;
 }) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const shouldReduceMotion = useReducedMotion();
 
     // Raw mouse position (0–1 range)
     const mouseX = useMotionValue(0.5);
@@ -1054,6 +1055,11 @@ export function AdvancedHoverWrapper({
         rotateX.set(0);
         rotateY.set(0);
     }, [mouseX, mouseY, rotateX, rotateY]);
+
+    // Skip mouse-tracking effects when user prefers reduced motion
+    if (shouldReduceMotion) {
+        return <div className={className}>{children}</div>;
+    }
 
     return (
         <motion.div

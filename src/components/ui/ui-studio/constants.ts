@@ -397,6 +397,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     dropdownTriggerVariant: 'button',
     dropdownShowItemIcons: true,
     dropdownShowSubmenu: false,
+    dropdownSubmenuOffset: 4,
     panelFillColor: '#0f172a',
     panelFillOpacity: 96,
     panelStrokeColor: '#334155',
@@ -656,6 +657,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     sliderBarFillSpeed: 0.25,
     sliderBarScale: 1,
     sliderBarBounce: 0.18,
+    sliderThumbCount: 1,
     inputAutocompleteBgColor: '#0f172a',
     inputAutocompleteBorderColor: 'rgba(148,163,184,0.3)',
     inputAutocompleteTextColor: '#dbe7f8',
@@ -724,7 +726,7 @@ export const DEFAULT_STYLE: ComponentStyleConfig = {
     avatarPopoverDelay: 220,
     avatarPopoverPadding: 12,
     avatarPopoverRadius: 12,
-    avatarPopoverWidth: 200,
+    avatarPopoverWidth: 180,
     avatarPopoverBgColor: '#1c1c1e',
     avatarPopoverBgColorTo: '#2c2c2e',
     avatarPopoverBgMode: 'solid' as const,
@@ -1116,6 +1118,7 @@ export function normalizeStyleConfig(style: Partial<ComponentStyleConfig> | unde
     merged.effectAnimatedBorderColorCount = Math.max(2, Math.min(5, Math.round(merged.effectAnimatedBorderColorCount)));
     merged.sliderThumbHoverScale = Math.max(0.8, Math.min(1.6, merged.sliderThumbHoverScale));
     merged.sliderBarScale = Math.max(0.8, Math.min(1.6, merged.sliderBarScale));
+    merged.sliderThumbCount = Math.max(1, Math.min(5, Math.round(merged.sliderThumbCount)));
     return merged;
 }
 
